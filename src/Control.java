@@ -1,104 +1,100 @@
-
-
 public class Control {
 	enum COMMAND_TYPES {
 		ADD, REMOVE, SEARCH, EDIT, COMPLETE, INCOMPLETE, UNDO, REDO, CLEAR_ALL, TODAY, SHOW_ALL, SYNC, SETTINGS, HELP, EXIT, INVALID
 	}
-	
-	private static String executeCommand(String userCommandString){
+
+	private static String executeCommand(String userCommandString) {
 		boolean isEmptyCommand = userCommandString.trim().equals("");
-		
-		if (isEmptyCommand){
+
+		if (isEmptyCommand) {
 			return String.format("INVALID_COMMAND_FORMAT", userCommandString);
 		}
-		
+
 		String commandTypeString = getFirstWord(userCommandString);
-		
-		String[] splitedUserCommand = splitCommandString(userCommandString);
-		
+
+		String[] splittedUserCommand = splitCommandString(userCommandString);
+
 		COMMAND_TYPES commandType = determineCommandType(commandTypeString);
-		
-		switch(commandType){
+
+		switch (commandType) {
 		case ADD:
-			return executeAddCommand(splitedUserCommand);
+			return executeAddCommand(splittedUserCommand);
 		case EDIT:
-			return executeEditCommand(splitedUserCommand);
+			return executeEditCommand(splittedUserCommand);
 		case REMOVE:
-			return executeRemoveCommand(splitedUserCommand);
+			return executeRemoveCommand(splittedUserCommand);
 		case UNDO:
-			return executeUndoCommand(splitedUserCommand);
+			return executeUndoCommand(splittedUserCommand);
 		case REDO:
-			return executeRedoCommand(splitedUserCommand);
+			return executeRedoCommand(splittedUserCommand);
 		case SEARCH:
-			return executeSearchCommand(splitedUserCommand);
+			return executeSearchCommand(splittedUserCommand);
 		case TODAY:
-			return executeTodayCommand(splitedUserCommand);
+			return executeTodayCommand(splittedUserCommand);
 		case SHOW_ALL:
-			return executeShowAllCommand(splitedUserCommand);
+			return executeShowAllCommand(splittedUserCommand);
 		case CLEAR_ALL:
-			return executeCLearAllCommand(splitedUserCommand);
+			return executeClearAllCommand(splittedUserCommand);
 		case COMPLETE:
-			return executeCompleteCommand(splitedUserCommand);
+			return executeCompleteCommand(splittedUserCommand);
 		case INCOMPLETE:
-			return executeIncompleteCommand(splitedUserCommand);
+			return executeIncompleteCommand(splittedUserCommand);
 		case SETTINGS:
-			return executeSettingsCommand(splitedUserCommand);
+			return executeSettingsCommand(splittedUserCommand);
 		case HELP:
-			return executeHelpCommand(splitedUserCommand);
+			return executeHelpCommand(splittedUserCommand);
 		case SYNC:
-			return executeSyncCommand(splitedUserCommand);
+			return executeSyncCommand(splittedUserCommand);
 		case EXIT:
-			return executeExitCommand(splitedUserCommand);
+			return executeExitCommand(splittedUserCommand);
 		case INVALID:
-			return executeInvalidCommand(splitedUserCommand);
+			return executeInvalidCommand(splittedUserCommand);
 		default:
 			throw new Error("Unrecognised command type.");
 		}
 	}
-	
+
 	private static COMMAND_TYPES determineCommandType(String commandTypeString) {
 		if (commandTypeString == null)
 			throw new Error("Command type string cannot be null!");
 
-		if(isAddCommand(commandTypeString)){
+		if (isAddCommand(commandTypeString)) {
 			return COMMAND_TYPES.ADD;
-		} else if(isEditCommand(commandTypeString)){
+		} else if (isEditCommand(commandTypeString)) {
 			return COMMAND_TYPES.EDIT;
-		} else if(isRemoveCommand(commandTypeString)){
+		} else if (isRemoveCommand(commandTypeString)) {
 			return COMMAND_TYPES.REMOVE;
-		} else if(isUndoCommand(commandTypeString)){
+		} else if (isUndoCommand(commandTypeString)) {
 			return COMMAND_TYPES.UNDO;
-		} else if(isRedoCommand(commandTypeString)){
+		} else if (isRedoCommand(commandTypeString)) {
 			return COMMAND_TYPES.REDO;
-		} else if(isSearchCommand(commandTypeString)){
+		} else if (isSearchCommand(commandTypeString)) {
 			return COMMAND_TYPES.SEARCH;
-		} else if(isTodayCommand(commandTypeString)){
+		} else if (isTodayCommand(commandTypeString)) {
 			return COMMAND_TYPES.TODAY;
-		} else if(isShowAllCommand(commandTypeString)){
+		} else if (isShowAllCommand(commandTypeString)) {
 			return COMMAND_TYPES.SHOW_ALL;
-		} else if(isClearAllCommand(commandTypeString)){
+		} else if (isClearAllCommand(commandTypeString)) {
 			return COMMAND_TYPES.CLEAR_ALL;
-		} else if(isCompleteCommand(commandTypeString)){
+		} else if (isCompleteCommand(commandTypeString)) {
 			return COMMAND_TYPES.COMPLETE;
-		} else if(isIncompleteCommand(commandTypeString)){
+		} else if (isIncompleteCommand(commandTypeString)) {
 			return COMMAND_TYPES.INCOMPLETE;
-		} else if(isSettingsCommand(commandTypeString)){
+		} else if (isSettingsCommand(commandTypeString)) {
 			return COMMAND_TYPES.SETTINGS;
-		} else if(isHelpCommand(commandTypeString)){
+		} else if (isHelpCommand(commandTypeString)) {
 			return COMMAND_TYPES.HELP;
-		} else if(isSyncCommand(commandTypeString)){
+		} else if (isSyncCommand(commandTypeString)) {
 			return COMMAND_TYPES.SYNC;
-		} else if(isExitCommand(commandTypeString)){
+		} else if (isExitCommand(commandTypeString)) {
 			return COMMAND_TYPES.EXIT;
 		} else {
 			return COMMAND_TYPES.INVALID;
 		}
 	}
-	
-	
-	
-	private static String executeAddCommand(String[] splitedUserCommand) {
-		if(splitedUserCommand.length < 1){
+
+	private static String executeAddCommand(String[] splittedUserCommand) {
+		if (splitedUserCommand.length < 1) {
 			return String.format("Invalid command");
 		}
 		String startTime = null;
@@ -106,146 +102,159 @@ public class Control {
 		String tag = null;
 		boolean hasTag = false;
 		boolean isImptTask = false;
-		String workInfo = splitedUserCommand[0];
-		for(int i=1; i<splitedUserCommand.length; i++){
-			if(isStartTime(splitedUserCommand[i])){
-				startTime = splitedUserCommand[i];
-			} else if(isEndTime(splitedUserCommand[i])){
-				endTime = splitedUserCommand[i];
-			} else if(hasTag(splitedUserCommand[i])){
+		String workInfo = splittedUserCommand[0];
+		for (int i = 1; i < splittedUserCommand.length; i++) {
+			if (isStartTime(splittedUserCommand[i])) {
+				startTime = splittedUserCommand[i];
+			} else if (isEndTime(splittedUserCommand[i])) {
+				endTime = splittedUserCommand[i];
+			} else if (hasTag(splittedUserCommand[i])) {
 				hasTag = true;
-				tag = splitedUserCommand[i];
-			} else if(isImportantTask(splitedUserCommand[i])){
+				tag = splittedUserCommand[i];
+			} else if (isImportantTask(splittedUserCommand[i])) {
 				isImptTask = true;
-			}	
+			}
 		}
-		
+
 		Task task = new Task(workInfo);
-		
-		if(startTime != null){
+
+		if (startTime != null) {
 			task.setStartTime(startTime);
 		}
-		if(endTime != null){
+		if (endTime != null) {
 			task.setEndTime(endTime);
 		}
-		if(hasTag){
+		if (hasTag) {
 			task.setTag(tag);
 		}
-		if(isImptTask){
+		if (isImptTask) {
 			task.setImptTask();
 		}
 	}
-		
-	
+
 	private static String[] splitCommandString(String userCommand) {
 		String content = removeFirstWord(userCommand);
-		
-		if(content.contains(",")){
+
+		if (content.contains(",")) {
 			return splitCommandStringByComma(content);
 		} else {
 			return splitCommandStringBySpace(content);
 		}
 	}
-	
+
 	private static String[] splitCommandStringByComma(String content) {
 		return content.trim().split(",");
 	}
+
 	private static String[] splitCommandStringBySpace(String content) {
 		return content.trim().split(" ");
 	}
-	
+
 	private static String getFirstWord(String userCommand) {
 		String commandTypeString = userCommand.trim().split("\\s+")[0];
 		return commandTypeString;
 	}
-	
+
 	private static String removeFirstWord(String userCommand) {
 		return userCommand.replace(getFirstWord(userCommand), "").trim();
 	}
-	
-	
-	private static boolean isStartTime(String content){
-		if(content.contains("start") ||
-				content.contains("begin") ||
-					content.contains("from")){
+
+	private static boolean isStartTime(String content) {
+		if (content.contains("start") || content.contains("begin")
+				|| content.contains("from")) {
 			return true;
 		}
 		return false;
 	}
-	
-	private static boolean isEndTime(String content){
-		if(content.contains("end") || content.contains("to") ||
-		   content.contains("till") || content.contains("untill") ||
-		   content.contains("by") || content.contains("due")){
+
+	private static boolean isEndTime(String content) {
+		if (content.contains("end") || content.contains("to")
+				|| content.contains("till") || content.contains("until")
+				|| content.contains("by") || content.contains("due")) {
 			return true;
 		}
 		return false;
 	}
-	private static boolean hasTag(String content){
+
+	private static boolean hasTag(String content) {
 		return content.contains("#");
 	}
-	private static boolean isImportantTask(String content){
+
+	private static boolean isImportantTask(String content) {
 		return content.contains("*");
 	}
-	
-	
+
 	private static boolean isAddCommand(String commandTypeString) {
 		return commandTypeString.equalsIgnoreCase("add");
 	}
+
 	private static boolean isEditCommand(String commandTypeString) {
-		boolean isEdit = commandTypeString.equalsIgnoreCase("edit") ||
-						 commandTypeString.equalsIgnoreCase("modify") ||
-						 commandTypeString.equalsIgnoreCase("mod");
+		boolean isEdit = commandTypeString.equalsIgnoreCase("edit")
+				|| commandTypeString.equalsIgnoreCase("modify")
+				|| commandTypeString.equalsIgnoreCase("mod");
 		return isEdit;
 	}
+
 	private static boolean isRemoveCommand(String commandTypeString) {
-		boolean isRemove = commandTypeString.equalsIgnoreCase("remove") ||
-				 		   commandTypeString.equalsIgnoreCase("rm") ||
-				 		   commandTypeString.equalsIgnoreCase("delete") ||
-				 		   commandTypeString.equalsIgnoreCase("del");
+		boolean isRemove = commandTypeString.equalsIgnoreCase("remove")
+				|| commandTypeString.equalsIgnoreCase("rm")
+				|| commandTypeString.equalsIgnoreCase("delete")
+				|| commandTypeString.equalsIgnoreCase("del");
 		return isRemove;
 	}
+
 	private static boolean isUndoCommand(String commandTypeString) {
 		return commandTypeString.equalsIgnoreCase("undo");
 	}
+
 	private static boolean isRedoCommand(String commandTypeString) {
 		return commandTypeString.equalsIgnoreCase("redo");
 	}
+
 	private static boolean isSearchCommand(String commandTypeString) {
-		boolean isSearch = commandTypeString.equalsIgnoreCase("search") ||
-				 		   commandTypeString.equalsIgnoreCase("find");
+		boolean isSearch = commandTypeString.equalsIgnoreCase("search")
+				|| commandTypeString.equalsIgnoreCase("find");
 		return isSearch;
 	}
+
 	private static boolean isTodayCommand(String commandTypeString) {
 		return commandTypeString.equalsIgnoreCase("today");
 	}
+
 	private static boolean isShowAllCommand(String commandTypeString) {
-		boolean isShowAll = commandTypeString.equalsIgnoreCase("all") ||
-				 		    commandTypeString.equalsIgnoreCase("show") ||
-				 		    commandTypeString.equalsIgnoreCase("list") ||
-				 		    commandTypeString.equalsIgnoreCase("ls");
+		boolean isShowAll = commandTypeString.equalsIgnoreCase("all")
+				|| commandTypeString.equalsIgnoreCase("show")
+				|| commandTypeString.equalsIgnoreCase("list")
+				|| commandTypeString.equalsIgnoreCase("ls");
 		return isShowAll;
 	}
+
 	private static boolean isClearAllCommand(String commandTypeString) {
-		boolean isClearAll = commandTypeString.equalsIgnoreCase("clear") ||
-				 		     commandTypeString.equalsIgnoreCase("clr");
+		boolean isClearAll = commandTypeString.equalsIgnoreCase("clear")
+				|| commandTypeString.equalsIgnoreCase("clr");
 		return isClearAll;
 	}
+
 	private static boolean isCompleteCommand(String commandTypeString) {
 		return commandTypeString.equalsIgnoreCase("done");
 	}
+
 	private static boolean isIncompleteCommand(String commandTypeString) {
 		return commandTypeString.equalsIgnoreCase("undone");
 	}
+
 	private static boolean isSettingsCommand(String commandTypeString) {
 		return commandTypeString.equalsIgnoreCase("settings");
 	}
+
 	private static boolean isHelpCommand(String commandTypeString) {
 		return commandTypeString.equalsIgnoreCase("help");
 	}
+
 	private static boolean isSyncCommand(String commandTypeString) {
 		return commandTypeString.equalsIgnoreCase("sync");
 	}
+
 	private static boolean isExitCommand(String commandTypeString) {
 		return commandTypeString.equalsIgnoreCase("exit");
 	}
