@@ -1,6 +1,6 @@
 public class Control {
 	enum COMMAND_TYPES {
-		ADD, REMOVE, SEARCH, EDIT, COMPLETE, INCOMPLETE, UNDO, REDO, CLEAR_ALL, TODAY, SHOW_ALL, SYNC, SETTINGS, HELP, EXIT, INVALID
+		ADD, REMOVE, SEARCH, EDIT, COMPLETE, INCOMPLETE, UNDO, REDO, CLEAR_ALL, TODAY, SHOW_ALL, SYNC, SETTINGS, HELP, EXIT, INVALID, MARK, UNMARK
 	}
 
 	private static String executeCommand(String userCommandString) {
@@ -39,6 +39,10 @@ public class Control {
 			return executeCompleteCommand(splittedUserCommand);
 		case INCOMPLETE:
 			return executeIncompleteCommand(splittedUserCommand);
+		case MARK:
+			return executeMarkCommand(splittedUserCommand);
+		case UNMARK:
+			return executeUnmarkCommand(splittedUserCommand);
 		case SETTINGS:
 			return executeSettingsCommand(splittedUserCommand);
 		case HELP:
@@ -80,6 +84,10 @@ public class Control {
 			return COMMAND_TYPES.COMPLETE;
 		} else if (isIncompleteCommand(commandTypeString)) {
 			return COMMAND_TYPES.INCOMPLETE;
+		} else if(isMarkCommand(commandTypeString)){
+			return COMMAND_TYPES.MARK;
+		} else if(isUnmarkCommand(commandTypeString)){
+			return COMMAND_TYPES.UNMARK;
 		} else if (isSettingsCommand(commandTypeString)) {
 			return COMMAND_TYPES.SETTINGS;
 		} else if (isHelpCommand(commandTypeString)) {
@@ -119,10 +127,10 @@ public class Control {
 		Task task = new Task(workInfo);
 
 		if (startTime != null) {
-			task.setStartTime(startTime);
+			task.setStartTime(new CustomDate(removeKeyWords(startTime));
 		}
 		if (endTime != null) {
-			task.setEndTime(endTime);
+			task.setEndTime(new CustomDate(endTime);
 		}
 		if (hasTag) {
 			task.setTag(tag);
@@ -242,7 +250,15 @@ public class Control {
 	private static boolean isIncompleteCommand(String commandTypeString) {
 		return commandTypeString.equalsIgnoreCase("undone");
 	}
-
+	
+	private static boolean isMarkCommand(String commandTypeString) {
+		return commandTypeString.equalsIgnoreCase("mark");
+	}
+	
+	private static boolean isUnmarkCommand(String commandTypeString) {
+		return commandTypeString.equalsIgnoreCase("unmark");
+	}
+	
 	private static boolean isSettingsCommand(String commandTypeString) {
 		return commandTypeString.equalsIgnoreCase("settings");
 	}
