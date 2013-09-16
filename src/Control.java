@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 public class Control {
 	enum COMMAND_TYPES {
 		ADD, REMOVE, SEARCH, EDIT, COMPLETE, INCOMPLETE, UNDO, REDO, CLEAR_ALL, TODAY, SHOW_ALL, SYNC, SETTINGS, HELP, EXIT, INVALID, MARK, UNMARK
@@ -52,7 +54,7 @@ public class Control {
 		case EXIT:
 			return executeExitCommand(splittedUserCommand);
 		case INVALID:
-			return executeInvalidCommand(splittedUserCommand);
+			return executeInvalidCommand(userCommandString);
 		default:
 			throw new Error("Unrecognised command type.");
 		}
@@ -102,7 +104,7 @@ public class Control {
 	}
 
 	private static String executeAddCommand(String[] splittedUserCommand) {
-		if (splitedUserCommand.length < 1) {
+		if (splittedUserCommand.length < 1) {
 			return String.format("Invalid command");
 		}
 		String startTime = null;
@@ -111,7 +113,7 @@ public class Control {
 		boolean hasTag = false;
 		boolean isImptTask = false;
 		String workInfo = splittedUserCommand[0];
-		for (int i = 1; i < splittedUserCommand.length; i++) {
+		for (int i = splittedUserCommand.length-1; i >= 0; i--) {
 			if (isStartTime(splittedUserCommand[i])) {
 				startTime = splittedUserCommand[i];
 			} else if (isEndTime(splittedUserCommand[i])) {
@@ -139,6 +141,60 @@ public class Control {
 			task.setImptTask();
 		}
 	}
+	
+	private static String executeEditCommand(String[] splittedUserCommand){
+		
+	}
+	
+	private static String executeRemoveCommand(String[] splittedUserCommand){
+		
+	}
+	private static String executeUndoCommand(String[] splittedUserCommand){
+		
+	}
+	private static String executeRedoCommand(String[] splittedUserCommand){
+		
+	}
+	private static String executeSearchCommand(String[] splittedUserCommand){
+		
+	}
+	private static String executeTodayCommand(String[] splittedUserCommand){
+		
+	}
+	private static String executeShowAllCommand(String[] splittedUserCommand){
+		
+	}
+	private static String executeClearAllCommand(String[] splittedUserCommand){
+		
+	}
+	private static String executeCompleteCommand(String[] splittedUserCommand){
+
+	}
+	private static String executeIncompleteCommand(String[] splittedUserCommand){
+		
+	}
+	private static String executeMarkCommand(String[] splittedUserCommand){
+		
+	}
+	private static String executeUnmarkCommand(String[] splittedUserCommand){
+		
+	}
+	private static String executeSettingsCommand(String[] splittedUserCommand){
+		
+	}
+	private static String executeHelpCommand(String[] splittedUserCommand){
+		
+	}
+	private static String executeSyncCommand(String[] splittedUserCommand){
+		
+	}
+	private static String executeExitCommand(String[] splittedUserCommand){
+		
+	}
+	private static String executeInvalidCommand(String userCommandString){
+		return "Invalid command";
+	}
+	
 
 	private static String[] splitCommandString(String userCommand) {
 		String content = removeFirstWord(userCommand);
@@ -151,7 +207,30 @@ public class Control {
 	}
 
 	private static String[] splitCommandStringByComma(String content) {
-		return content.trim().split(",");
+		String[] temp = content.split(",");
+		ArrayList<String> lst = new ArrayList<String>();
+		
+		for(int i=temp.length; i>=0; i++){
+			if(isImportantTask(temp[i])&&!lst.contains(temp[i])){
+				lst.add(temp[i]);
+				content = content.substring(0, content.lastIndexOf(","));
+			} else if(hasTag(temp[i])&&!lst.contains(temp[i])){
+				lst.add(temp[i]);
+				content = content.substring(0, content.lastIndexOf(","));
+			} else if(isEndTime(temp[i])&&!lst.contains(temp[i])){
+				lst.add(temp[i]);
+				content = content.substring(0, content.lastIndexOf(","));
+			} else if(isStartTime(temp[i])&&!lst.contains(temp[i])){
+				lst.add(temp[i]);
+				content = content.substring(0, content.lastIndexOf(","));
+			}
+		}
+		lst.add(content);
+		String[] splittedCommand = new String[lst.size()];
+		for(int i=0; i<lst.size();i++){
+			splittedCommand[i] = lst.get(lst.size()-1-i);
+		}
+		return splittedCommand;
 	}
 
 	private static String[] splitCommandStringBySpace(String content) {
