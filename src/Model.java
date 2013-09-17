@@ -24,4 +24,21 @@ class Model{
 	public void addTaskToPending(Task newPendingTask){ pending.add(newPendingTask); }
 	public void addTaskToComplete(Task newCompleteTask){ complete.add(newCompleteTask); }
 	public void addTaskToTrash(Task newTrashTask){ trash.add(newTrashTask); }
+   
+  // remove task functions return INVALID or VALID when remove a task
+  public int removeTaskFromPending(int index) {
+    if(index>pending.size()) return INVALID 
+     else {pending.remove(index);
+       return VALID;}
+    }
+  public int removeTaskFromComplete (int index) {
+      if(index>pending.size()) return INVALID 
+     else {complete.remove(index);
+       return VALID;}
+    }
+  public int removeTaskFromTrash (int index) {   
+      if(index>pending.size()) return INVALID 
+     else {trash.remove(index);
+       return VALID;}
+    }
 }
