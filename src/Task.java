@@ -6,7 +6,16 @@ class Task{
 	private String tag;
 	private int indexId;
 	
-	// constructor
+	// default constructor
+	public Task(){
+		isImportant = false;
+		startDate = null;
+		endDate = null;
+		workInfo = "";
+		tag = "";
+		indexId = 0;
+	}
+
 	public Task(boolean isImportant, CustomDate startDate, CustomDate endDate, 
 		String workInfo, String tag, int indexId){
 		this.isImportant = isImportant;
