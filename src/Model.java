@@ -4,12 +4,13 @@ class Model{
 	private ArrayList<Task> pending;
 	private ArrayList<Task> complete;
 	private ArrayList<Task> trash;
-	
+	private ArrayList<Task> search;
 	// constructor
 	public Model(){
 		pending = new ArrayList<Task>();
 		complete = new ArrayList<Task>();
 		trash = new ArrayList<Task>();
+		search = new ArrayList<Task>();
 	}
 	
 	// get functions
