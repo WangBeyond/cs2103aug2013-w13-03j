@@ -18,10 +18,10 @@ public class Control {
 		}
 
 		String commandTypeString = getFirstWord(userCommandString);
-
-		String[] splittedUserCommand = splitCommandString(userCommandString);
-
+		
 		COMMAND_TYPES commandType = determineCommandType(commandTypeString);
+		
+		String[] splittedUserCommand = splitCommandString(userCommandString, commandType);
 
 		switch (commandType) {
 		case ADD:
@@ -132,11 +132,11 @@ public class Control {
 				--workInfoIndex;
 			} else if(endDate == null && isEndDate(splittedUserCommand[i])){
 				endDate = new CustomDate();
-				endDate.convert(removeInputKeys(splittedUserCommand[i], endDateKeys));
+				endDate.convert(getEndDateString(splittedUserCommand[i]));
 				--workInfoIndex;
 			} else if(startDate == null && isStartDate(splittedUserCommand[i])){
 				startDate = new CustomDate();
-				startDate.convert(removeInputKeys(splittedUserCommand[i], startDateKeys));
+				startDate.convert(getStartDateString(splittedUserCommand[i]));
 				--workInfoIndex;
 			}
 		}
@@ -271,11 +271,16 @@ public class Control {
             prevIndex = indexList[i];
         }        
     }
-  
-	public static String[] splitCommandString(String userCommand) {
+    
+    private public int executeSearchCommand(String[] splittedUserCommand){
+    	
+    	
+    }
+    
+	public static String[] splitCommandString(String userCommand, COMMAND_TYPES commandType) {
 		String content = removeFirstWord(userCommand);
 
-		if (content.contains(",")) {
+		if (commandType == COMMAND_TYPES.ADD || commandType == COMMAND_TYPES.EDIT || commandType == COMMAND_TYPES.SEARCH) {
 			return splitCommandStringByComma(content);
 		} else {
 			return splitCommandStringBySpace(content);
@@ -308,7 +313,7 @@ public class Control {
 		return removeInputKeys(s, keys);
 	}
 	public static String getEndDateString(String s) {
-		String[] keys = {"to", "till", "untill", "by", "end at", "begin by", "end on", "end before", "due"};
+		String[] keys = {"to", "till", "until", "by", "end at", "begin by", "end on", "end before", "due"};
 		return removeInputKeys(s, keys);
 	}
 	private static String removeInputKeys(String s, String[] keys) {
@@ -316,6 +321,7 @@ public class Control {
 		for(int i=0; i<keys.length; i++){
 			if(s.contains(keys[i])){
 				StringRemovedKey = s.replace(keys[i], " ").trim();
+				break;
 			}
 		}
 		return StringRemovedKey;
