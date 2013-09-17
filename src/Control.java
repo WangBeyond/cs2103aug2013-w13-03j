@@ -1,4 +1,8 @@
 public class Control {
+
+  final public static int VALID = 1;
+  final public static int INVALID = -1; 
+  
 	enum COMMAND_TYPES {
 		ADD, REMOVE, SEARCH, EDIT, COMPLETE, INCOMPLETE, UNDO, REDO, CLEAR_ALL, TODAY, SHOW_ALL, SYNC, SETTINGS, HELP, EXIT, INVALID, MARK, UNMARK
 	}
