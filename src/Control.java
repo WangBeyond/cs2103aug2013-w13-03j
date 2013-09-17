@@ -108,7 +108,7 @@ public class Control {
 		}
 	}
 
-	private int executeAddCommand(String[] splittedUserCommand) {
+	public static int executeAddCommand(String[] splittedUserCommand) {
 		String[] startDateKeys = {"start", "begin", "from"};
 		String[] endDateKeys = {"end", "to", "till", "until", "by", "due"};
 		if (splittedUserCommand.length < 1) {
@@ -122,7 +122,7 @@ public class Control {
 		boolean isImptTask = false;
 		int workInfoIndex = splittedUserCommand.length-1;
 
-		for(int i=splittedUserCommand.length;i>=0;i--){
+		for(int i=splittedUserCommand.length-1;i>=0;i--){
 			if(isImptTask == false && isImportantTask(splittedUserCommand[i])){
 				isImptTask = true;
 				--workInfoIndex;
@@ -130,11 +130,11 @@ public class Control {
 				hasTag = true;
 				tag = getTagName(splittedUserCommand[i]);
 				--workInfoIndex;
-			} else if(endDate == null && isEndTime(splittedUserCommand[i])){
+			} else if(endDate == null && isEndDate(splittedUserCommand[i])){
 				endDate = new CustomDate();
 				endDate.convert(removeInputKeys(splittedUserCommand[i], endDateKeys));
 				--workInfoIndex;
-			} else if(startDate == null && isStartTime(splittedUserCommand[i])){
+			} else if(startDate == null && isStartDate(splittedUserCommand[i])){
 				startDate = new CustomDate();
 				startDate.convert(removeInputKeys(splittedUserCommand[i], startDateKeys));
 				--workInfoIndex;
@@ -147,6 +147,9 @@ public class Control {
 		
 		for(int i=0;i<=workInfoIndex;i++){
 			workInfo += splittedUserCommand[i];
+			if(i != workInfoIndex){
+				workInfo += ",";
+			}
 		}
 		
 		Task task = new Task();
@@ -164,8 +167,13 @@ public class Control {
 		if (isImptTask) {
 			task.setIsImportant(isImptTask);
 		}
+		System.out.println("workInfo: "+workInfo);
+		System.out.println("startDate: "+startDate);
+		System.out.println("endDate: "+endDate);
+		System.out.println("tag: "+tag);
+		System.out.println("impt: "+isImptTask);
 		
-		modelHandler.getPending().add(task);
+		//modelHandler.getPending().add(task);
 		
 		return VALID;
 	}
@@ -264,7 +272,7 @@ public class Control {
         }        
     }
   
-	private static String[] splitCommandString(String userCommand) {
+	public static String[] splitCommandString(String userCommand) {
 		String content = removeFirstWord(userCommand);
 
 		if (content.contains(",")) {
@@ -276,9 +284,9 @@ public class Control {
 
 	private static String[] splitCommandStringByComma(String content) {
 		String[] splittedContent = content.split(",");
-    for( String s : splittedContent){
-      s=s.trim();
-    }
+		for( String s : splittedContent){
+			s=s.trim();
+		}
     return splittedContent;
 	}
 
@@ -295,11 +303,11 @@ public class Control {
 		return userCommand.replace(getFirstWord(userCommand), "").trim();
 	}
 
-	private static String getStartTime(String s) {
+	public static String getStartDateString(String s) {
 		String[] keys = {"from", "start from", "start at", "start on", "begin at", "begin from", "begin on"};
 		return removeInputKeys(s, keys);
 	}
-	private static String getEndTime(String s) {
+	public static String getEndDateString(String s) {
 		String[] keys = {"to", "till", "untill", "by", "end at", "begin by", "end on", "end before", "due"};
 		return removeInputKeys(s, keys);
 	}
@@ -315,7 +323,7 @@ public class Control {
 	private static String getTagName(String s) {
 		return s.replace("#", " ").trim();
 	}
-	private static boolean isStartTime(String content) {
+	public static boolean isStartDate(String content) {
 		String[] inputKeys = {"start", "begin", "from"};
 		boolean containsKey = false;
 		for(int i=0;i<inputKeys.length;i++){
@@ -325,13 +333,13 @@ public class Control {
 		}
 		if(containsKey){
 			CustomDate tempDate = new CustomDate();
-			String DateString = removeInputKeys(content, inputKeys);
+			String DateString = getStartDateString(content);
 			return tempDate.convert(DateString) == VALID;			
 		}
 		return false;
 	}
 
-	private static boolean isEndTime(String content) {
+	public static boolean isEndDate(String content) {
 		String[] inputKeys = {"end", "to", "till", "until", "by", "due"};
 		boolean containsKey = false;
 		for(int i=0;i<inputKeys.length;i++){
@@ -341,7 +349,7 @@ public class Control {
 		}
 		if(containsKey){
 			CustomDate tempDate = new CustomDate();
-			String DateString = removeInputKeys(content, inputKeys);
+			String DateString = getEndDateString(content);
 			return tempDate.convert(DateString) == VALID;			
 		}
 		return false;
