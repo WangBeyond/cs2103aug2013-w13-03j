@@ -1,0 +1,4 @@
+class CustomDate{
+	
+	public CustomDate(){}
+}
