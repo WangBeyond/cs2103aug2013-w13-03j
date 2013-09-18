@@ -1,5 +1,7 @@
 import java.util.ArrayList;
 
+import com.sun.jmx.snmp.tasks.Task;
+
 public class Control {
 
   public static final int VALID = 1;
@@ -276,16 +278,66 @@ public class Control {
     		return INVALID;
     	
     	String workInfo = "";
+    	int startWorkInfoIndex = -1;
+    	int endWorkInfoIndex = -1;
     	boolean hasStartDate = false;
     	boolean hasEndDate = false;
-    	boolean hasImpotantTask = false;
-    	boolean hasTag = false;
+    	boolean hasImpotantTaskKey = false;
+    	boolean hasTagKey = false;
     	boolean hasWorkInfo = false;
     	
+    	CustomDate tempStartDate = null;
+    	CustomDate tempEndDate = null;
     	
     	
+    	for(int i = splittedUserCommand.length - 1; i >= 0; i--){
+    		if(!hasImportantTaskKey && isImportantTask(splittedUserCommand[i])){
+    			searchList = searchImportantTask((searchList.isEmpty() ? modelHandler.getPending() : searchList));
+    			hasImportantTaskKey = true;
+    			if(endWorkInfoIndex != -1 && startWorkInfoIndex == -1){
+    				startWorkInfoIndex = i + 1;
+    				hasWorkInfo = true;
+    			}
+    		} else if(!hasTagKey && hasTag(splittedUserCommand[i])){
+    			searchList = searchTag((searchList.isEmpty() ? modelHandler.getPending() : searchList), getTagName(s));
+    			hasTagKey = true;
+    			if(endWorkInfoIndex != -1 && startWorkInfoIndex == -1){
+    				startWorkInfoIndex = i + 1;
+    				hasWorkInfo = true;
+    			}
+    		} else if(!hasStartDate && isStartDate(splittedUserCommand[i]) && (tempStartDate = getStartDate(splittedUserCommand[i])) != null){
+    			searchList = searchStartDate((searchList.isEmpty() ? modelHandler.getPending() : searchList), tempStartDate);
+    			hasStartDate = true;
+    			if(endWorkInfoIndex != -1 && startWorkInfoIndex == -1){
+    				startWorkInfoIndex = i + 1;
+    				hasWorkInfo = true;
+    			}
+    		} else if(!hasEndDate && isEndDate(spliitedUserCommand[i]) && (tempEndDate = getEndDate(splittedUserCommand[i])) != null){
+    			searchList = searchEndDate((searchList.isEmpty() ? modelHandler.getPending() : searchList), tempEndDate);
+    			hasEndDate = true;
+    			if(endWorkInfoIndex != -1 && startWorkInfoIndex == -1){
+    				startWorkInfoIndex = i;
+    				hasWorkInfo = true;
+    			}
+    		} else if(!hasWorkInfo){
+    			endWorInfoIndex = i;
+    		} else
+    			return INVALID;
+    	}
     	
+    	if(hasWorkInfo || (endWorkInfoIndex != -1 && startWorkInfoIndex == -1)){
+    		for(int i = startWorkInfoIndex + 1; i <= endWorkInfoIndex; i++){
+    			workInfo += splittedUserCommand[i] + (i == endWorkInfoIndex ? "" : ", ");
+    		}
+    		searchWorkInfo((searchList.isEmpty() ? modelHandler.getPending() : searchList), workInfo);
+    	}
+    	if(searchList.isEmpty())
+    		return INVALID;
+    	else
+    		return VALID;
     }
+    
+    
     
 	public static String[] splitCommandString(String userCommand, COMMAND_TYPES commandType) {
 		String content = removeFirstWord(userCommand);

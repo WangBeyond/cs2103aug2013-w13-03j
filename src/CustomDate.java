@@ -3,7 +3,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 
 // Note: 3 public functions are getTime(), constructor and convert()
-public class CustomDate {
+public class CustomDate implements Comparable<CustomDate>{
 	final public static int VALID = 1;
 	final public static int INVALID = -1;
 
@@ -15,11 +15,52 @@ public class CustomDate {
 		targetDate = new GregorianCalendar();
 		currentDate = new GregorianCalendar();
 	}
-
+	
+	public int compareTo(CustomDate other){
+		int difference = 0;
+		for(int i = 0; i < 5; i++){
+			if(i == 0)
+				difference = this.getYear() - other.getYear();
+			else if(i == 1)
+				difference = this.getMonth() - other.getMonth();
+			else if(i == 2)
+				difference = this.getDate() - other.getDate();
+			else if(i == 3)
+				difference = this.getHour() - other.getHour();
+			else
+				difference = this.getMinute() - other.getMinute();
+			if(difference != 0)
+				return difference;
+		}
+		return difference;
+		
+	}
+	
+	private int getYear(){
+		return targetDate.get(Calendar.YEAR);
+	}
+	
+	private int getMonth(){
+		return targetDate.get(Calendar.MONTH);
+	}
+	
+	private int getDate(){
+		return targetDate.get(Calendar.DATE);
+	}
+	
+	private int getHour(){
+		return targetDate.get(Calendar.HOUR);
+	}
+	
+	private int getMinute(){
+		return targetDate.get(Calendar.MINUTE);
+	}
+	
+	
 	public Date getTime() {
 		return targetDate.getTime();
 	}
-
+	
 	public int convert(String s) {
 		dateInfo = s.toLowerCase();
 		currentDate = new GregorianCalendar();
