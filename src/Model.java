@@ -20,6 +20,7 @@ class Model{
 	public ArrayList<Task> getPending(){ return pending; }
 	public ArrayList<Task> getComplete(){ return complete; }
 	public ArrayList<Task> getTrash(){ return trash; }
+	public ArrayList<Task> getSearchList() { return search; }
 	
 	// add new task functions
 	public void addTaskToPending(Task newPendingTask){ pending.add(newPendingTask); }

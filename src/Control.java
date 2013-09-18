@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 public class Control {
 
   public static final int VALID = 1;
@@ -109,8 +111,6 @@ public class Control {
 	}
 
 	public static int executeAddCommand(String[] splittedUserCommand) {
-		String[] startDateKeys = {"start", "begin", "from"};
-		String[] endDateKeys = {"end", "to", "till", "until", "by", "due"};
 		if (splittedUserCommand.length < 1) {
 			return INVALID;
 		}
@@ -130,13 +130,9 @@ public class Control {
 				hasTag = true;
 				tag = getTagName(splittedUserCommand[i]);
 				--workInfoIndex;
-			} else if(endDate == null && isEndDate(splittedUserCommand[i])){
-				endDate = new CustomDate();
-				endDate.convert(getEndDateString(splittedUserCommand[i]));
+			} else if(endDate == null && isEndDate(splittedUserCommand[i]) && (endDate = getEndDate(splittedUserCommand[i])) != null ){
 				--workInfoIndex;
-			} else if(startDate == null && isStartDate(splittedUserCommand[i])){
-				startDate = new CustomDate();
-				startDate.convert(getStartDateString(splittedUserCommand[i]));
+			} else if(startDate == null && isStartDate(splittedUserCommand[i]) && (startDate = getStartDate(splittedUSerCommand[i])) != null){
 				--workInfoIndex;
 			}
 		}
@@ -148,7 +144,7 @@ public class Control {
 		for(int i=0;i<=workInfoIndex;i++){
 			workInfo += splittedUserCommand[i];
 			if(i != workInfoIndex){
-				workInfo += ",";
+				workInfo += ", ";
 			}
 		}
 		
@@ -242,7 +238,7 @@ public class Control {
             if(startDate.convert(dateInfo)==-INVALID){
                 return INVALID;
             task.setStartDate(startDate);
-            return VALID
+            return VALID;
         }
 
         private static int updateEndDate(String dateInfo,Task task){
@@ -250,7 +246,7 @@ public class Control {
             if(endDate.convert(dateInfo)==-INVALID){
                 return INVALID;
             task.setEndDate(endDate);
-            return VALID
+            return VALID;
         }
 
 
@@ -273,6 +269,20 @@ public class Control {
     }
     
     private public int executeSearchCommand(String[] splittedUserCommand){
+    	ArrayList<Task> searchList = modelHandler.getSearchList();
+    	searchList.clear();
+    	
+    	if(splittedUserCommand.length == 0)
+    		return INVALID;
+    	
+    	String workInfo = "";
+    	boolean hasStartDate = false;
+    	boolean hasEndDate = false;
+    	boolean hasImpotantTask = false;
+    	boolean hasTag = false;
+    	boolean hasWorkInfo = false;
+    	
+    	
     	
     	
     }
@@ -334,15 +344,19 @@ public class Control {
 		boolean containsKey = false;
 		for(int i=0;i<inputKeys.length;i++){
 			if(content.contains(inputKeys[i])){
-				containsKey = true;
+				return true;
 			}
 		}
-		if(containsKey){
+		return false;
+	}
+	
+	public static CustomDate getStartDate(String content){
 			CustomDate tempDate = new CustomDate();
 			String DateString = getStartDateString(content);
-			return tempDate.convert(DateString) == VALID;			
-		}
-		return false;
+			if(tempDate.convert(DateString) == VALID)
+				return tempDate;
+			else
+				return null;
 	}
 
 	public static boolean isEndDate(String content) {
@@ -350,19 +364,23 @@ public class Control {
 		boolean containsKey = false;
 		for(int i=0;i<inputKeys.length;i++){
 			if(content.contains(inputKeys[i])){
-				containsKey = true;
+				return true;
 			}
-		}
-		if(containsKey){
-			CustomDate tempDate = new CustomDate();
-			String DateString = getEndDateString(content);
-			return tempDate.convert(DateString) == VALID;			
 		}
 		return false;
 	}
+	
+	public static CustomDate getEndDate(String content){
+			CustomDate tempDate = new CustomDate();
+			String DateString = getEndDateString(content);
+			if(tempDate.convert(DateString) == VALID)		
+				return tempDate;
+			else
+				return null;
+	}
 
 	private static boolean hasTag(String content) {
-		return content.contains("#");
+		return content.trim().startsWith("#");
 	}
 
 	private static boolean isImportantTask(String content) {
