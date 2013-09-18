@@ -285,6 +285,7 @@ public class Control {
     	boolean hasImpotantTaskKey = false;
     	boolean hasTagKey = false;
     	boolean hasWorkInfo = false;
+    	boolean searchFirstTime = true;
     	
     	CustomDate tempStartDate = null;
     	CustomDate tempEndDate = null;
@@ -292,28 +293,36 @@ public class Control {
     	
     	for(int i = splittedUserCommand.length - 1; i >= 0; i--){
     		if(!hasImportantTaskKey && isImportantTask(splittedUserCommand[i])){
-    			searchList = searchImportantTask((searchList.isEmpty() ? modelHandler.getPending() : searchList));
+    			searchList = searchImportantTask(searchFirstTime ? modelHandler.getPending() : searchList);
+    			if(searchFirstTime)
+    				searchFirstTime = false;
     			hasImportantTaskKey = true;
     			if(endWorkInfoIndex != -1 && startWorkInfoIndex == -1){
     				startWorkInfoIndex = i + 1;
     				hasWorkInfo = true;
     			}
     		} else if(!hasTagKey && hasTag(splittedUserCommand[i])){
-    			searchList = searchTag((searchList.isEmpty() ? modelHandler.getPending() : searchList), getTagName(s));
+    			searchList = searchTag((searchFirstTime ? modelHandler.getPending() : searchList), getTagName(s));
+    			if(searchFirstTime)
+    				searchFirstTime = false;
     			hasTagKey = true;
     			if(endWorkInfoIndex != -1 && startWorkInfoIndex == -1){
     				startWorkInfoIndex = i + 1;
     				hasWorkInfo = true;
     			}
     		} else if(!hasStartDate && isStartDate(splittedUserCommand[i]) && (tempStartDate = getStartDate(splittedUserCommand[i])) != null){
-    			searchList = searchStartDate((searchList.isEmpty() ? modelHandler.getPending() : searchList), tempStartDate);
+    			searchList = searchStartDate((searchFirstTime ? modelHandler.getPending() : searchList), tempStartDate);
+    			if(searchFirstTime)
+    				searchFirstTime = false;
     			hasStartDate = true;
     			if(endWorkInfoIndex != -1 && startWorkInfoIndex == -1){
     				startWorkInfoIndex = i + 1;
     				hasWorkInfo = true;
     			}
-    		} else if(!hasEndDate && isEndDate(spliitedUserCommand[i]) && (tempEndDate = getEndDate(splittedUserCommand[i])) != null){
-    			searchList = searchEndDate((searchList.isEmpty() ? modelHandler.getPending() : searchList), tempEndDate);
+    		} else if(!hasEndDate && isEndDate(splittedUserCommand[i]) && (tempEndDate = getEndDate(splittedUserCommand[i])) != null){
+    			searchList = searchEndDate((searchFirstTime ? modelHandler.getPending() : searchList), tempEndDate);
+    			if(searchFirstTime)
+    				searchFirstTime = false;
     			hasEndDate = true;
     			if(endWorkInfoIndex != -1 && startWorkInfoIndex == -1){
     				startWorkInfoIndex = i;
@@ -329,7 +338,7 @@ public class Control {
     		for(int i = startWorkInfoIndex + 1; i <= endWorkInfoIndex; i++){
     			workInfo += splittedUserCommand[i] + (i == endWorkInfoIndex ? "" : ", ");
     		}
-    		searchWorkInfo((searchList.isEmpty() ? modelHandler.getPending() : searchList), workInfo);
+    		searchWorkInfo((searchFirstTime ? modelHandler.getPending() : searchList), workInfo);
     	}
     	if(searchList.isEmpty())
     		return INVALID;
@@ -337,6 +346,50 @@ public class Control {
     		return VALID;
     }
     
+    public ArrayList<Task> searchImportantTask(ArrayList<Task> list){
+    	ArrayList<Task> result = new ArrayList<Task>();
+    	for(int i = 0; i < list.size(); i++){
+    		if(list.get(i).getIsImportant())
+    			result.add(list.get(i));
+    	}
+    	return result;
+    }
+    
+    public ArrayList<Task> searchTag(ArrayList<Task> list, String tagName){
+    	ArrayList<Task> result = new ArrayList<Task>();
+    	for(int i = 0; i < list.size(); i++){
+    		if(list.get(i).getTag().equals(tagName))
+    			result.add(list.get(i));
+    	}
+    	return result;
+    }
+    
+    public ArrayList<Task> searchStartDate(ArrayList<Task> list, CustomDate date){
+    	ArrayList<Task> result = new ArrayList<Task>();
+    	for(int i = 0; i < list.size(); i++){
+    		if(list.get(i).getStartDate().compareTo(date) <= 0)
+    			result.add(list.get(i));
+    	}
+    	return result;
+    }
+    
+    public ArrayList<Task> searchEndDate(ArrayList<Task> list, CustomDate date){
+    	ArrayList<Task> result = new ArrayList<Task>();
+    	for(int i = 0; i < list.size(); i++){
+    		if(list.get(i).getEndDate().compareTo(date) <= 0)
+    			result.add(list.get(i));
+    	}
+    	return result;
+    }
+    
+    public ArrayList<Task> searchWorkInfo(ArrayList<Task> list, String workInfo){
+    	ArrayList<Task> result = new ArrayList<Task>();
+    	for(int i = 0; i < list.size(); i++){
+    		if(list.get(i).getWorkInfo().equals(workInfo))
+    			result.add(list.get(i));
+    	}
+    	return result;
+    }
     
     
 	public static String[] splitCommandString(String userCommand, COMMAND_TYPES commandType) {
