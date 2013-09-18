@@ -3,181 +3,221 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 
 // Note: 3 public functions are getTime(), constructor and convert()
-public class CustomDate implements Comparable<CustomDate>{
+public class CustomDate implements Comparable<CustomDate> {
 	final public static int VALID = 1;
 	final public static int INVALID = -1;
 
 	private GregorianCalendar targetDate;
 	private String dateInfo;
-	private GregorianCalendar currentDate;
+	private static GregorianCalendar currentDate;
 
+	// Constructor
 	public CustomDate() {
 		targetDate = new GregorianCalendar();
-		currentDate = new GregorianCalendar();
 	}
-	
-	public int compareTo(CustomDate other){
+
+	// compareTo Function
+	public int compareTo(CustomDate other) {
 		int difference = 0;
-		for(int i = 0; i < 5; i++){
-			if(i == 0)
+		for (int i = 0; i < 5; i++) {
+			if (i == 0)
 				difference = this.getYear() - other.getYear();
-			else if(i == 1)
+			else if (i == 1)
 				difference = this.getMonth() - other.getMonth();
-			else if(i == 2)
+			else if (i == 2)
 				difference = this.getDate() - other.getDate();
-			else if(i == 3)
+			else if (i == 3)
 				difference = this.getHour() - other.getHour();
 			else
 				difference = this.getMinute() - other.getMinute();
-			if(difference != 0)
+			if (difference != 0)
 				return difference;
 		}
 		return difference;
-		
 	}
-	
-	private int getYear(){
+
+	// GET methods
+	private int getYear() {
 		return targetDate.get(Calendar.YEAR);
 	}
-	
-	private int getMonth(){
+
+	private int getMonth() {
 		return targetDate.get(Calendar.MONTH);
 	}
-	
-	private int getDate(){
+
+	private int getDate() {
 		return targetDate.get(Calendar.DATE);
 	}
-	
-	private int getHour(){
+
+	private int getHour() {
 		return targetDate.get(Calendar.HOUR);
 	}
-	
-	private int getMinute(){
+
+	private int getMinute() {
 		return targetDate.get(Calendar.MINUTE);
 	}
-	
-	
+
 	public Date getTime() {
 		return targetDate.getTime();
 	}
-	
+
+	/* Convert Function */
 	public int convert(String s) {
 		dateInfo = s.toLowerCase();
-		currentDate = new GregorianCalendar();
-
 		String[] infos = dateInfo.split(" ");
 
-		if (infos.length > 4 || infos.length == 0)
+		updateCurrentDate();
+
+		boolean invalidLength = infos.length > 4 || infos.length == 0;
+		if (invalidLength) {
 			return INVALID;
+		}
 
 		try {
-			Integer n = new Integer(infos.length);
+			int numElements = infos.length;
 			GregorianCalendar tempDate = new GregorianCalendar();
-			if (hasDateFormat()) {
-				n = updateDate(infos, tempDate, n);
-			} else if (hasDayFormat()) {
-				n = updateDay(infos, tempDate, n);
-			} else if (infos.length > 2)
-				return INVALID;
+			tempDate.setLenient(false);
 
-			if (hasTimeFormat())
-				n = updateTime(infos, tempDate, n);
-			else {
+			if (hasDateFormat()) {
+				numElements = updateDate(infos, tempDate, numElements);
+			} else if (hasDayFormat()) {
+				numElements = updateDay(infos, tempDate, numElements);
+			} else if (infos.length > 2) {
+				return INVALID;
+			}
+
+			if (hasTimeFormat()) {
+				numElements = updateTime(infos, tempDate, numElements);
+			} else {
 				if (infos.length > 2)
 					return INVALID;
 				resetTime(tempDate);
 			}
 
-			if (n > 0)
+			if (numElements > 0) {
 				return INVALID;
+			}
+			tempDate.getTime();
 			targetDate = tempDate;
 			return VALID;
-		} catch (IllegalArgumentException e) {
+		} catch (Exception e) {
 			return INVALID;
 		}
 	}
 
-	private int updateDate(String[] infos, GregorianCalendar targetDate,
-			Integer n) {
-		int startIndex = 0;
-		if (hasTimeFormat()) {
-			int temp = indexOfTime(infos);
-			if (temp != -1)
-				startIndex = (temp == 1) ? temp + 1 : 0;
-			else {
-				temp = indexOfColon(infos);
-				startIndex = (temp == 0) ? temp + 1 : 0;
-			}
-		}
+	private void updateCurrentDate() {
+		currentDate = new GregorianCalendar();
+	}
 
+	private int updateDate(String[] infos, GregorianCalendar targetDate,
+			int numElements) {
+		int startIndex = getStartIndexOfDate(infos);
 		try {
 			if (hasMonthWord()) {
-				targetDate.set(Calendar.MONTH, getMonth(infos[startIndex + 1]));
-				targetDate.set(Calendar.DATE,
-						Integer.parseInt(infos[startIndex]));
-				if (targetDate.get(Calendar.MONTH) < currentDate
-						.get(Calendar.MONTH)
-						|| (targetDate.get(Calendar.MONTH) == currentDate
-								.get(Calendar.MONTH) && targetDate
-								.get(Calendar.DATE) < currentDate
-								.get(Calendar.DATE)))
-					targetDate.set(Calendar.YEAR,
-							currentDate.get(Calendar.YEAR) + 1);
-				n -= 2;
+				numElements = updateDateWithMonth(infos, targetDate,
+						numElements, startIndex);
 			} else if (dateInfo.contains("/")) {
-				String[] date = infos[startIndex].split("/");
-				if (date.length == 3)
-					targetDate.set(Integer.parseInt(date[2]),
-							getMonth(date[1]), Integer.parseInt(date[0]));
-				else if (date.length == 2) {
-					targetDate.set(Calendar.DATE, Integer.parseInt(date[0]));
-					targetDate.set(Calendar.MONTH, getMonth(date[1]));
-					if (targetDate.get(Calendar.MONTH) < currentDate
-							.get(Calendar.MONTH)
-							|| (targetDate.get(Calendar.MONTH) == currentDate
-									.get(Calendar.MONTH) && targetDate
-									.get(Calendar.DATE) < currentDate
-									.get(Calendar.DATE)))
-						targetDate.set(Calendar.YEAR,
-								currentDate.get(Calendar.YEAR) + 1);
-				} else
-					throw new IllegalArgumentException();
-				n--;
+				numElements = updateDateWithSlash(infos, targetDate,
+						numElements, startIndex);
 			} else {
-				String[] date = infos[0].split("-");
-				if (date.length == 3)
-					targetDate.set(Integer.parseInt(date[2]),
-							getMonth(date[1]), Integer.parseInt(date[0]));
-				else if (date.length == 2) {
-					targetDate.set(Calendar.DATE, Integer.parseInt(date[0]));
-					targetDate.set(Calendar.MONTH, getMonth(date[1]));
-					if (targetDate.get(Calendar.MONTH) < currentDate
-							.get(Calendar.MONTH)
-							|| (targetDate.get(Calendar.MONTH) == currentDate
-									.get(Calendar.MONTH) && targetDate
-									.get(Calendar.DATE) < currentDate
-									.get(Calendar.DATE)))
-						targetDate.set(Calendar.YEAR,
-								currentDate.get(Calendar.YEAR) + 1);
-				} else
-					throw new IllegalArgumentException();
-				n--;
-
+				numElements = updateDateWithDash(infos, targetDate,
+						numElements, startIndex);
 			}
-			return n;
+
+			return numElements;
 		} catch (Exception e) {
 			throw new IllegalArgumentException();
 		}
 	}
 
-	private int indexOfTime(String[] infos) {
-		for (int i = 1; i < infos.length; i++)
-			if (infos[i].equals("am") || infos[i].equals("pm"))
+	private static int updateDateWithMonth(String[] infos,
+			GregorianCalendar targetDate, int numElements, int startIndex) {
+		int date = Integer.parseInt(infos[startIndex]);
+		int month = getMonth(infos[startIndex + 1]);
+
+		targetDate.set(Calendar.MONTH, month);
+		targetDate.set(Calendar.DATE, date);
+
+		if (isEarlierDate(targetDate, currentDate)) {
+			targetDate.set(Calendar.YEAR, targetDate.get(Calendar.YEAR) + 1);
+		}
+		return numElements - 2;
+	}
+
+	private static int updateDateWithSlash(String[] infos,
+			GregorianCalendar targetDate, int numElements, int startIndex) {
+		String[] numbers = infos[startIndex].split("/");
+		boolean invalidLength = numbers.length != 3 && numbers.length != 2;
+		if (invalidLength)
+			throw new IllegalArgumentException();
+
+		int year = (numbers.length == 3) ? Integer.parseInt(numbers[2])
+				: currentDate.get(Calendar.YEAR);
+		if (numbers.length == 2 && isEarlierDate(targetDate, currentDate)) {
+			year++;
+		}
+		targetDate.set(Calendar.YEAR, year);
+
+		int month = Integer.parseInt(numbers[1]);
+		targetDate.set(Calendar.MONTH, month);
+
+		int date = Integer.parseInt(numbers[0]);
+		targetDate.set(Calendar.DATE, date);
+
+		return numElements - 1;
+	}
+
+	private static int updateDateWithDash(String[] infos,
+			GregorianCalendar targetDate, int numElements, int startIndex) {
+		String[] numbers = infos[0].split("-");
+		boolean invalidLength = numbers.length != 3 && numbers.length != 2;
+		if (invalidLength)
+			throw new IllegalArgumentException();
+		int date = Integer.parseInt(numbers[0]);
+		targetDate.set(Calendar.DATE, date);
+
+		int month = Integer.parseInt(numbers[1]);
+		targetDate.set(Calendar.MONTH, month);
+
+		int year = (numbers.length == 3) ? Integer.parseInt(numbers[2])
+				: currentDate.get(Calendar.YEAR);
+		if (numbers.length == 2 && isEarlierDate(targetDate, currentDate)) {
+			year++;
+		}
+		targetDate.set(Calendar.YEAR, year);
+
+		return numElements - 1;
+	}
+
+	private static boolean isEarlierDate(GregorianCalendar targetDate,
+			GregorianCalendar currentDate) {
+		return targetDate.get(Calendar.MONTH) < currentDate.get(Calendar.MONTH)
+				|| (targetDate.get(Calendar.MONTH) == currentDate
+						.get(Calendar.MONTH) && targetDate.get(Calendar.DATE) < currentDate
+						.get(Calendar.DATE));
+	}
+
+	private int getStartIndexOfDate(String[] infos) {
+		if (hasTimeFormat()) {
+			int temp = getIndexOfTime(infos);
+			if (temp != -1)
+				return (temp <= 1) ? temp + 1 : 0;
+			else {
+				temp = getIndexOfColon(infos);
+				return (temp == 0) ? temp + 1 : 0;
+			}
+		}
+		return 0;
+	}
+
+	private static int getIndexOfTime(String[] infos) {
+		for (int i = 0; i < infos.length; i++)
+			if (infos[i].contains("am") || infos[i].contains("pm"))
 				return i;
 		return INVALID;
 	}
 
-	private int indexOfColon(String[] infos) {
+	private static int getIndexOfColon(String[] infos) {
 		for (int i = 0; i < infos.length; i++)
 			if (infos[i].contains(":"))
 				return i;
@@ -185,103 +225,157 @@ public class CustomDate implements Comparable<CustomDate>{
 	}
 
 	private int updateDay(String[] infos, GregorianCalendar targetDate,
-			Integer n) {
+			int numElements) {
+		int startIndex = getStartIndexOfDate(infos);
 
-		int currentDay = currentDate.get(Calendar.DAY_OF_WEEK);
-
-		int startIndex = 0;
-		if (hasTimeFormat()) {
-			int temp = indexOfTime(infos);
-			if (temp != -1)
-				startIndex = (temp == 1) ? temp + 1 : 0;
-			else {
-				temp = indexOfColon(infos);
-				startIndex = (temp == 0) ? temp + 1 : 0;
+		try {
+			if (isTomorrowKeyWord(infos[startIndex])) {
+				numElements = updateTomorrow(targetDate, numElements);
+			} else if (isTodayKeyWord(infos[startIndex])) {
+				numElements--;
+			} else if (hasDayWord()) {
+				numElements = updateDateWithDay(infos, targetDate, numElements,
+						startIndex);
 			}
+			return numElements;
+		} catch (Exception e) {
+			throw new IllegalArgumentException();
 		}
+	}
 
-		if (infos[startIndex].equals("tomorrow")
-				|| infos[startIndex].equals("tmr")) {
-			targetDate.set(currentDate.get(Calendar.YEAR),
-					currentDate.get(Calendar.MONTH),
-					currentDate.get(Calendar.DATE) + 1);
-			n--;
-		} else if (infos[startIndex].equals("today")) {
-			targetDate.set(currentDate.get(Calendar.YEAR),
-					currentDate.get(Calendar.MONTH),
-					currentDate.get(Calendar.DATE));
-			n--;
-		} else if (hasDayWord()) {
-			boolean hasNext = infos[startIndex].equals("next");
-			int targetDay = (hasNext == true) ? getDay(infos[startIndex + 1])
-					: getDay(infos[startIndex]);
-			targetDate.set(currentDate.get(Calendar.YEAR),
-					currentDate.get(Calendar.MONTH),
-					currentDate.get(Calendar.DATE) + targetDay - currentDay
-							+ ((hasNext || targetDay < currentDay) ? 7 : 0));
-			if (hasNext == true)
-				n -= 2;
-			else
-				n--;
+	private static int updateTomorrow(GregorianCalendar targetDate,
+			int numElements) {
+		targetDate.set(Calendar.DATE, targetDate.get(Calendar.DATE) + 1);
+		return numElements - 1;
+	}
+
+	private static int updateDateWithDay(String[] infos,
+			GregorianCalendar targetDate, int numElements, int startIndex) {
+		boolean hasNext = infos[startIndex].equals("next");
+		int currentDay = currentDate.get(Calendar.DAY_OF_WEEK);
+		int targetDay = (hasNext == true) ? getDay(infos[startIndex + 1])
+				: getDay(infos[startIndex]);
+
+		targetDate.set(Calendar.DATE, currentDate.get(Calendar.DATE)
+				+ targetDay - currentDay
+				+ ((hasNext || targetDay < currentDay) ? 7 : 0));
+
+		if (hasNext == true) {
+			numElements -= 2;
+		} else {
+			numElements--;
 		}
-		return n;
+		return numElements;
+	}
+
+	private static boolean isTomorrowKeyWord(String s) {
+		return s.equals("tomorrow") || s.equals("tmr");
+	}
+
+	private static boolean isTodayKeyWord(String s) {
+		return s.equals("today");
 	}
 
 	private int updateTime(String[] infos, GregorianCalendar targetDate,
-			Integer n) {
-		int index = -1;
-		for (int i = 1; i < infos.length; i++) {
-			if (infos[i].equals("am") || infos[i].equals("pm")) {
-				index = i;
-				break;
-			}
-		}
+			int numElements) {
+		int index = getIndexOfTime(infos);
 
-		if (index != -1) {
-			String[] time;
-			if (infos[index - 1].contains(":")) {
-				time = infos[index - 1].split(":");
-				targetDate.set(Calendar.HOUR_OF_DAY, Integer.parseInt(time[0])
-						+ (infos[index].equals("pm") ? 12 : 0));
-				targetDate.set(Calendar.MINUTE, Integer.parseInt(time[1]));
-			} else if (infos[index - 1].contains(".")) {
-				time = infos[index - 1].split("\\.");
-				targetDate.set(Calendar.HOUR_OF_DAY, Integer.parseInt(time[0])
-						+ (infos[index].equals("pm") ? 12 : 0));
-				targetDate.set(Calendar.MINUTE, Integer.parseInt(time[1]));
+		try {
+			if (index != INVALID) {
+				numElements = updateTimeWith12Format(infos, targetDate, index,
+						numElements);
 			} else {
-				try {
-					int s = Integer.parseInt(infos[index - 1]);
-					if (infos[index - 1].length() < 3) {
-						targetDate.set(Calendar.HOUR_OF_DAY,
-								s + (infos[index].equals("pm") ? 12 : 0));
-						targetDate.set(Calendar.MINUTE, 0);
-					} else if (infos[index - 1].length() == 3
-							|| infos[index - 1].length() == 4) {
-						targetDate.set(Calendar.HOUR_OF_DAY, s / 100
-								+ (infos[index].equals("pm") ? 12 : 0));
-						targetDate.set(Calendar.MINUTE, s % 100);
-					}
-				} catch (NumberFormatException e) {
-					throw new IllegalArgumentException();
-				}
+				numElements = updateTimeWith24Format(infos, targetDate,
+						numElements);
 			}
-			n -= 2;
-		} else {
-			String[] time = new String[2];
-			for (int i = 0; i < infos.length; i++) {
-				if (infos[i].contains(":")) {
-					time = infos[i].split(":");
-					break;
-				}
-			}
-			targetDate.set(Calendar.HOUR_OF_DAY, Integer.parseInt(time[0]));
-			targetDate.set(Calendar.MINUTE, Integer.parseInt(time[1]));
-			n--;
+		} catch (Exception e) {
+			throw new IllegalArgumentException();
 		}
 
 		targetDate.set(Calendar.SECOND, 0);
-		return n;
+		return numElements;
+	}
+
+	private static int updateTimeWith12Format(String[] infos,
+			GregorianCalendar targetDate, int index, int numElements) {
+		boolean isDay;
+		String timeInfo;
+		boolean hasSpace;
+
+		if (infos[index].equals("am") || infos[index].equals("pm")) {
+			isDay = infos[index].equals("am");
+			timeInfo = infos[index - 1];
+			hasSpace = true;
+		} else {
+			isDay = infos[index].substring(infos[index].length() - 2).equals(
+					"am");
+			timeInfo = infos[index].substring(0, infos[index].length() - 2);
+			hasSpace = false;
+		}
+
+		if (timeInfo.contains(":")) {
+			updateTimeWithColon(timeInfo, isDay, targetDate);
+		} else if (timeInfo.contains(".")) {
+			updateTimeWithDot(timeInfo, isDay, targetDate);
+		} else {
+			updateTimeWithoutSign(timeInfo, isDay, targetDate);
+		}
+
+		if (hasSpace)
+			return numElements - 2;
+		else
+			return numElements - 1;
+	}
+
+	private static void updateTimeWithColon(String timeInfo, boolean isDay,
+			GregorianCalendar targetDate) {
+		String[] time = timeInfo.split(":");
+		if (time.length > 2)
+			throw new IllegalArgumentException();
+
+		targetDate.set(Calendar.HOUR_OF_DAY, Integer.parseInt(time[0])
+				+ (isDay ? 0 : 12));
+		targetDate.set(Calendar.MINUTE, Integer.parseInt(time[1]));
+	}
+
+	private static void updateTimeWithDot(String timeInfo, boolean isDay,
+			GregorianCalendar targetDate) {
+		String[] time = timeInfo.split("\\.");
+		if (time.length > 2)
+			throw new IllegalArgumentException();
+
+		targetDate.set(Calendar.HOUR_OF_DAY, Integer.parseInt(time[0])
+				+ (isDay ? 0 : 12));
+		targetDate.set(Calendar.MINUTE, Integer.parseInt(time[1]));
+	}
+
+	private static void updateTimeWithoutSign(String timeInfo, boolean isDay,
+			GregorianCalendar targetDate) {
+		int s = Integer.parseInt(timeInfo);
+		if (timeInfo.length() < 3) {
+			targetDate.set(Calendar.HOUR_OF_DAY, s + (isDay ? 0 : 12));
+			targetDate.set(Calendar.MINUTE, 0);
+		} else if (timeInfo.length() == 3 || timeInfo.length() == 4) {
+			targetDate.set(Calendar.HOUR_OF_DAY, s / 100 + (isDay ? 0 : 12));
+			targetDate.set(Calendar.MINUTE, s % 100);
+		} else{
+			throw new IllegalArgumentException();
+		}
+	}
+
+	private static int updateTimeWith24Format(String[] infos,
+			GregorianCalendar targetDate, int numElements) {
+		int index = getIndexOfColon(infos);
+		String[] time = infos[index].split(":");
+		if (time.length > 2)
+			throw new IllegalArgumentException();
+
+		int hour = Integer.parseInt(time[0]);
+		int minute = Integer.parseInt(time[1]);
+
+		targetDate.set(Calendar.HOUR_OF_DAY, hour);
+		targetDate.set(Calendar.MINUTE, minute);
+		return numElements - 1;
 	}
 
 	private void resetTime(GregorianCalendar targetDate) {
@@ -290,23 +384,52 @@ public class CustomDate implements Comparable<CustomDate>{
 		targetDate.set(Calendar.SECOND, 0);
 	}
 
-	private int getDay(String s) {
-		if (s.equals("monday") || s.equals("mon"))
+	private static int getDay(String s) {
+		if (isMonday(s)) {
 			return Calendar.MONDAY;
-		else if (s.equals("tuesday") || s.equals("tue"))
+		} else if (isTuesday(s)) {
 			return Calendar.TUESDAY;
-		else if (s.equals("wednesday") || s.equals("wed"))
+		} else if (isWednesday(s)) {
 			return Calendar.WEDNESDAY;
-		else if (s.equals("thursday") || s.equals("thu"))
+		} else if (isThursday(s)) {
 			return Calendar.THURSDAY;
-		else if (s.equals("friday") || s.equals("fri"))
+		} else if (isFriday(s)) {
 			return Calendar.FRIDAY;
-		else if (s.equals("saturday") || s.equals("sat"))
+		} else if (isSaturday(s)) {
 			return Calendar.SATURDAY;
-		else if (s.equals("sunday") || s.equals("sun"))
+		} else if (isSunday(s)) {
 			return Calendar.SUNDAY;
-		else
+		} else {
 			throw new IllegalArgumentException("Wrong Format");
+		}
+	}
+
+	private static boolean isMonday(String s) {
+		return s.equals("monday") || s.equals("mon");
+	}
+
+	private static boolean isTuesday(String s) {
+		return s.equals("tuesday") || s.equals("tue");
+	}
+
+	private static boolean isWednesday(String s) {
+		return s.equals("wednesday") || s.equals("wed");
+	}
+
+	private static boolean isThursday(String s) {
+		return s.equals("thursday") || s.equals("thu");
+	}
+
+	private static boolean isFriday(String s) {
+		return s.equals("friday") || s.equals("fri");
+	}
+
+	private static boolean isSaturday(String s) {
+		return s.equals("saturday") || s.equals("sat");
+	}
+
+	private static boolean isSunday(String s) {
+		return s.equals("sunday") || s.equals("sun");
 	}
 
 	private boolean hasTimeFormat() {
@@ -318,8 +441,8 @@ public class CustomDate implements Comparable<CustomDate>{
 		boolean hasToday = dateInfo.contains("today");
 		boolean hasTomorrow = dateInfo.contains("tomorrow")
 				|| dateInfo.contains("tmr");
-		boolean hasDayWord = hasDayWord();
-		return hasToday || hasTomorrow || hasDayWord;
+
+		return hasToday || hasTomorrow || hasDayWord();
 	}
 
 	private boolean hasDayWord() {
@@ -332,9 +455,8 @@ public class CustomDate implements Comparable<CustomDate>{
 	private boolean hasDateFormat() {
 		boolean hasSlash = dateInfo.contains("/");
 		boolean hasDash = dateInfo.contains("-");
-		boolean hasMonthWord = hasMonthWord();
 
-		return hasSlash || hasDash || hasMonthWord;
+		return hasSlash || hasDash || hasMonthWord();
 	}
 
 	private boolean hasMonthWord() {
@@ -346,33 +468,90 @@ public class CustomDate implements Comparable<CustomDate>{
 				|| dateInfo.contains("nov") || dateInfo.contains("dec");
 	}
 
-	private int getMonth(String s) {
-		if (s.equals("jan") || s.equals("1") || s.equals("january"))
+	private static int getMonth(String s) {
+		if (isJanuary(s)) {
 			return Calendar.JANUARY;
-		else if (s.equals("feb") || s.equals("2") || s.equals("february"))
+		} else if (isFebruary(s)) {
 			return Calendar.FEBRUARY;
-		else if (s.equals("mar") || s.equals("3") || s.equals("march"))
+		} else if (isMarch(s)) {
 			return Calendar.MARCH;
-		else if (s.equals("apr") || s.equals("4") || s.equals("april"))
+		} else if (isApril(s)) {
 			return Calendar.APRIL;
-		else if (s.equals("may") || s.equals("5"))
+		} else if (isMay(s)) {
 			return Calendar.MAY;
-		else if (s.equals("june") || s.equals("6"))
+		} else if (isJune(s)) {
 			return Calendar.JUNE;
-		else if (s.equals("july") || s.equals("7"))
+		} else if (isJuly(s)) {
 			return Calendar.JULY;
-		else if (s.equals("aug") || s.equals("8") || s.equals("august"))
+		} else if (isAugust(s)) {
 			return Calendar.AUGUST;
-		else if (s.equals("sep") || s.equals("9") || s.equals("september"))
+		} else if (isSeptember(s)) {
 			return Calendar.SEPTEMBER;
-		else if (s.equals("oct") || s.equals("10") || s.equals("october"))
+		} else if (isOctober(s)) {
 			return Calendar.OCTOBER;
-		else if (s.equals("nov") || s.equals("11") || s.equals("november"))
+		} else if (isNovember(s)) {
 			return Calendar.NOVEMBER;
-		else if (s.equals("dec") || s.equals("12") || s.equals("december"))
+		} else if (isDecember(s)) {
 			return Calendar.DECEMBER;
-		else {
+		} else {
 			throw new IllegalArgumentException("Wrong Format");
 		}
+	}
+
+	private static boolean isJanuary(String s) {
+		return s.equals("jan") || Integer.compare(Integer.parseInt(s), 1) == 0
+				|| s.equals("january");
+	}
+
+	private static boolean isFebruary(String s) {
+		return s.equals("feb") || Integer.compare(Integer.parseInt(s), 2) == 0
+				|| s.equals("february");
+	}
+
+	private static boolean isMarch(String s) {
+		return s.equals("mar") || Integer.compare(Integer.parseInt(s), 3) == 0
+				|| s.equals("march");
+	}
+
+	private static boolean isApril(String s) {
+		return s.equals("apr") || Integer.compare(Integer.parseInt(s), 4) == 0
+				|| s.equals("april");
+	}
+
+	private static boolean isMay(String s) {
+		return s.equals("may") || Integer.compare(Integer.parseInt(s), 5) == 0;
+	}
+
+	private static boolean isJune(String s) {
+		return s.equals("june") || Integer.compare(Integer.parseInt(s), 6) == 0;
+	}
+
+	private static boolean isJuly(String s) {
+		return s.equals("july") || Integer.compare(Integer.parseInt(s), 7) == 0;
+	}
+
+	private static boolean isAugust(String s) {
+		return s.equals("aug") || Integer.compare(Integer.parseInt(s), 8) == 0
+				|| s.equals("august");
+	}
+
+	private static boolean isSeptember(String s) {
+		return s.equals("sep") || Integer.compare(Integer.parseInt(s), 9) == 0
+				|| s.equals("september");
+	}
+
+	private static boolean isOctober(String s) {
+		return s.equals("oct") || Integer.compare(Integer.parseInt(s), 10) == 0
+				|| s.equals("october");
+	}
+
+	private static boolean isNovember(String s) {
+		return s.equals("nov") || Integer.compare(Integer.parseInt(s), 11) == 0
+				|| s.equals("november");
+	}
+
+	private static boolean isDecember(String s) {
+		return s.equals("dec") || Integer.compare(Integer.parseInt(s), 12) == 0
+				|| s.equals("december");
 	}
 }
