@@ -1,22 +1,31 @@
 import java.util.ArrayList;
 
+import com.sun.jmx.snmp.tasks.Task;
+
 public class Control {
+
+  public static final int VALID = 1;
+  public static final int INVALID = -1;
+  
+  
+  private Model modelHandler = new Model();
+  
 	enum COMMAND_TYPES {
 		ADD, REMOVE, SEARCH, EDIT, COMPLETE, INCOMPLETE, UNDO, REDO, CLEAR_ALL, TODAY, SHOW_ALL, SYNC, SETTINGS, HELP, EXIT, INVALID, MARK, UNMARK
 	}
 
-	private static String executeCommand(String userCommandString) {
+	private int executeCommand(String userCommandString) {
 		boolean isEmptyCommand = userCommandString.trim().equals("");
 
 		if (isEmptyCommand) {
-			return String.format("INVALID_COMMAND_FORMAT", userCommandString);
+			return INVALID;
 		}
 
 		String commandTypeString = getFirstWord(userCommandString);
-
-		String[] splittedUserCommand = splitCommandString(userCommandString);
-
+		
 		COMMAND_TYPES commandType = determineCommandType(commandTypeString);
+		
+		String[] splittedUserCommand = splitCommandString(userCommandString, commandType);
 
 		switch (commandType) {
 		case ADD:
@@ -103,103 +112,290 @@ public class Control {
 		}
 	}
 
-	private static String executeAddCommand(String[] splittedUserCommand) {
+	public static int executeAddCommand(String[] splittedUserCommand) {
 		if (splittedUserCommand.length < 1) {
-			return String.format("Invalid command");
+			return INVALID;
 		}
-		String startTime = null;
-		String endTime = null;
+		CustomDate startDate = null;
+		CustomDate endDate = null;
+		String workInfo = "";
 		String tag = null;
 		boolean hasTag = false;
 		boolean isImptTask = false;
-		String workInfo = splittedUserCommand[0];
-		for (int i = splittedUserCommand.length-1; i >= 0; i--) {
-			if (isStartTime(splittedUserCommand[i])) {
-				startTime = splittedUserCommand[i];
-			} else if (isEndTime(splittedUserCommand[i])) {
-				endTime = splittedUserCommand[i];
-			} else if (hasTag(splittedUserCommand[i])) {
-				hasTag = true;
-				tag = splittedUserCommand[i];
-			} else if (isImportantTask(splittedUserCommand[i])) {
+		int workInfoIndex = splittedUserCommand.length-1;
+
+		for(int i=splittedUserCommand.length-1;i>=0;i--){
+			if(isImptTask == false && isImportantTask(splittedUserCommand[i])){
 				isImptTask = true;
+				--workInfoIndex;
+			} else if(hasTag == false && hasTag(splittedUserCommand[i])){
+				hasTag = true;
+				tag = getTagName(splittedUserCommand[i]);
+				--workInfoIndex;
+			} else if(endDate == null && isEndDate(splittedUserCommand[i]) && (endDate = getEndDate(splittedUserCommand[i])) != null ){
+				--workInfoIndex;
+			} else if(startDate == null && isStartDate(splittedUserCommand[i]) && (startDate = getStartDate(splittedUSerCommand[i])) != null){
+				--workInfoIndex;
 			}
 		}
-
-		Task task = new Task(workInfo);
-
-		if (startTime != null) {
-			task.setStartTime(new CustomDate(removeKeyWords(startTime));
+		
+		if(workInfoIndex < 0){
+			System.out.println("Invalid workInfo");
 		}
-		if (endTime != null) {
-			task.setEndTime(new CustomDate(endTime);
+		
+		for(int i=0;i<=workInfoIndex;i++){
+			workInfo += splittedUserCommand[i];
+			if(i != workInfoIndex){
+				workInfo += ", ";
+			}
+		}
+		
+		Task task = new Task();
+		task.setWorkInfo(workInfo);
+		
+		if (startDate != null) {
+			task.setStartDate(startDate);
+		}
+		if (endDate != null) {
+			task.setEndDate(endDate);
 		}
 		if (hasTag) {
 			task.setTag(tag);
 		}
 		if (isImptTask) {
-			task.setImptTask();
+			task.setIsImportant(isImptTask);
 		}
-	}
-	
-	private static String executeEditCommand(String[] splittedUserCommand){
+		System.out.println("workInfo: "+workInfo);
+		System.out.println("startDate: "+startDate);
+		System.out.println("endDate: "+endDate);
+		System.out.println("tag: "+tag);
+		System.out.println("impt: "+isImptTask);
 		
-	}
-	
-	private static String executeRemoveCommand(String[] splittedUserCommand){
+		//modelHandler.getPending().add(task);
 		
+		return VALID;
 	}
-	private static String executeUndoCommand(String[] splittedUserCommand){
-		
-	}
-	private static String executeRedoCommand(String[] splittedUserCommand){
-		
-	}
-	private static String executeSearchCommand(String[] splittedUserCommand){
-		
-	}
-	private static String executeTodayCommand(String[] splittedUserCommand){
-		
-	}
-	private static String executeShowAllCommand(String[] splittedUserCommand){
-		
-	}
-	private static String executeClearAllCommand(String[] splittedUserCommand){
-		
-	}
-	private static String executeCompleteCommand(String[] splittedUserCommand){
+  
 
-	}
-	private static String executeIncompleteCommand(String[] splittedUserCommand){
-		
-	}
-	private static String executeMarkCommand(String[] splittedUserCommand){
-		
-	}
-	private static String executeUnmarkCommand(String[] splittedUserCommand){
-		
-	}
-	private static String executeSettingsCommand(String[] splittedUserCommand){
-		
-	}
-	private static String executeHelpCommand(String[] splittedUserCommand){
-		
-	}
-	private static String executeSyncCommand(String[] splittedUserCommand){
-		
-	}
-	private static String executeExitCommand(String[] splittedUserCommand){
-		
-	}
-	private static String executeInvalidCommand(String userCommandString){
-		return "Invalid command";
-	}
-	
+        //The user can edit the starting time, ending time, tag and isImportant of existing tasks 
+    executeEditCommand(String[] splittedUserCommand){            
+        int updateNum = splittedUserCommand.size()-1;
+        int taskIndex = getFirstWord(splittedUserCommand[0]);
+        splittedUserCommand[0] = removeFirstWord(splittedUserCommand[0]);
+        Task targettask = getTaskFromPending(taskIndex);
+        //Retrive the edited infos one by one
+        for(int i=0;i<updateNum;i++){
+            String updateInfo = splittedUserCommand[i].trim();
+            String[] splittedUpdateInfo = updateInfo.split(" ");
 
-	private static String[] splitCommandString(String userCommand) {
+            //The case that the update info 1 is new starting date
+            if(splittedUpdateInfo[0].equalsTo("from"){
+                String dateInfo = removeFirstWord(updateInfo);
+                if(updateStartDate(dateInfo,targetTask)==INVALID){
+                    //feedback about dateUpdateFailure, waiting to implement
+                    feedbackStartDateUpdateFail("Invalid input");
+                } 
+            } else if((splittedUpdateInfo[0].equalsTo("start")||splittedUpdateInfo[0].equalsTo("begin"))
+                && (splittedUpdateInfo[1].equalsTo("at")||splittedUpdateInfo[1].equalsTo("from")||splittedUpdateInfo[1].equalsTo("on")){
+                String dateInfo =removeFirstWord(removeFirstWord(updateInfo));
+                if(updateStartDate(dateInfo,targetTask)==INVALID){
+                    //feedback about dateUpdateFailure, waiting to implement
+                    feedbackStartDateUpdateFail("Invalid input");
+                }
+            } 
+            //The case that the update info 1 is new ending date
+              else if(splittedUpdateInfo[0].equalsTo("to")||splittedUpdateInfo[0].equalsTo("till")
+                ||splittedUpdateInfo[0].equalsTo("until")||splittedUpdateInfo[0].equalsTo("by")
+                ||splittedUpdateInfo[0].equalsTo("due")){
+                String dateInfo = removeFirstWord(UpdateInfo);
+                if(updateEndDate(dateInfo,targetTask)==INVALID){
+                    //feedback about dateUpdateFailure, waiting to implement
+                    feedbackEndDateUpdateFail("Invalid input");
+                } 
+            } else if(splittedUpdateInfo[0].equalsTo("end")&&(splittedUpdateInfo[1].equalsTo("on")||
+                splittedUpdateInfo[1].equalsTo("at")||splittedUpdateInfo[1].equalsTo("by")|splittedUpdateInfo[1].equalsTo("before"))){
+                String dateInfo = removeFirstWord(removeFirstWord(updateInfo));
+                if(updateEndDate(dateInfo,targetTask)==INVALID){
+                    //feedback about dateUpdateFailure, waiting to implement
+                    feedbackEndDateUpdateFail("Invalid input");
+                } 
+            } 
+               //The case that the update info 1 is a tag
+               else if(hasTag(updateInfo)){
+                        targettask.setTag(updateInfo.trim());
+            } 
+              //The case that the update info 1 is about importance*
+              else if(isImportantTask(updateInfo)){
+                        targettask.setIsImportant(true);
+            } else if(updateInfo.equalsTo("~")||updateInfo.toLowerCase().equalsTo("not important")){
+                        targettask.setIsImportant(false)
+            }
+        }
+    }
+
+
+        //return the result whether the update is successful
+        private static int updateStartDate(String dateInfo,Task task){
+            CustomDate startDate = new CustomDate();
+            if(startDate.convert(dateInfo)==-INVALID){
+                return INVALID;
+            task.setStartDate(startDate);
+            return VALID;
+        }
+
+        private static int updateEndDate(String dateInfo,Task task){
+            CustomDate endDate = new CustomDate();
+            if(endDate.convert(dateInfo)==-INVALID){
+                return INVALID;
+            task.setEndDate(endDate);
+            return VALID;
+        }
+
+
+
+    private public executeRemoveCommand(String[] splittedUserCommand){
+        indexCount = splittedUserCommand.size();
+        int[] indexList = new int[indexCount]
+        for(int=0; i<indexCount;i++){
+            indexList[i] = parseInt(splittedUserCommand[i]);
+        }
+        java.util.Arrays.sort(indexList)
+        int i=indexCount-1;
+        prevIndex=-1
+        while(i>=0){
+            if(indexList[i]!=prevIndex){
+                model.reomvoeTaskFromComplete(i);
+            }
+            prevIndex = indexList[i];
+        }        
+    }
+    
+    private public int executeSearchCommand(String[] splittedUserCommand){
+    	ArrayList<Task> searchList = modelHandler.getSearchList();
+    	searchList.clear();
+    	
+    	if(splittedUserCommand.length == 0)
+    		return INVALID;
+    	
+    	String workInfo = "";
+    	int startWorkInfoIndex = -1;
+    	int endWorkInfoIndex = -1;
+    	boolean hasStartDate = false;
+    	boolean hasEndDate = false;
+    	boolean hasImpotantTaskKey = false;
+    	boolean hasTagKey = false;
+    	boolean hasWorkInfo = false;
+    	boolean searchFirstTime = true;
+    	
+    	CustomDate tempStartDate = null;
+    	CustomDate tempEndDate = null;
+    	
+    	
+    	for(int i = splittedUserCommand.length - 1; i >= 0; i--){
+    		if(!hasImportantTaskKey && isImportantTask(splittedUserCommand[i])){
+    			searchList = searchImportantTask(searchFirstTime ? modelHandler.getPending() : searchList);
+    			if(searchFirstTime)
+    				searchFirstTime = false;
+    			hasImportantTaskKey = true;
+    			if(endWorkInfoIndex != -1 && startWorkInfoIndex == -1){
+    				startWorkInfoIndex = i + 1;
+    				hasWorkInfo = true;
+    			}
+    		} else if(!hasTagKey && hasTag(splittedUserCommand[i])){
+    			searchList = searchTag((searchFirstTime ? modelHandler.getPending() : searchList), getTagName(s));
+    			if(searchFirstTime)
+    				searchFirstTime = false;
+    			hasTagKey = true;
+    			if(endWorkInfoIndex != -1 && startWorkInfoIndex == -1){
+    				startWorkInfoIndex = i + 1;
+    				hasWorkInfo = true;
+    			}
+    		} else if(!hasStartDate && isStartDate(splittedUserCommand[i]) && (tempStartDate = getStartDate(splittedUserCommand[i])) != null){
+    			searchList = searchStartDate((searchFirstTime ? modelHandler.getPending() : searchList), tempStartDate);
+    			if(searchFirstTime)
+    				searchFirstTime = false;
+    			hasStartDate = true;
+    			if(endWorkInfoIndex != -1 && startWorkInfoIndex == -1){
+    				startWorkInfoIndex = i + 1;
+    				hasWorkInfo = true;
+    			}
+    		} else if(!hasEndDate && isEndDate(splittedUserCommand[i]) && (tempEndDate = getEndDate(splittedUserCommand[i])) != null){
+    			searchList = searchEndDate((searchFirstTime ? modelHandler.getPending() : searchList), tempEndDate);
+    			if(searchFirstTime)
+    				searchFirstTime = false;
+    			hasEndDate = true;
+    			if(endWorkInfoIndex != -1 && startWorkInfoIndex == -1){
+    				startWorkInfoIndex = i;
+    				hasWorkInfo = true;
+    			}
+    		} else if(!hasWorkInfo){
+    			endWorInfoIndex = i;
+    		} else
+    			return INVALID;
+    	}
+    	
+    	if(hasWorkInfo || (endWorkInfoIndex != -1 && startWorkInfoIndex == -1)){
+    		for(int i = startWorkInfoIndex + 1; i <= endWorkInfoIndex; i++){
+    			workInfo += splittedUserCommand[i] + (i == endWorkInfoIndex ? "" : ", ");
+    		}
+    		searchWorkInfo((searchFirstTime ? modelHandler.getPending() : searchList), workInfo);
+    	}
+    	if(searchList.isEmpty())
+    		return INVALID;
+    	else
+    		return VALID;
+    }
+    
+    public ArrayList<Task> searchImportantTask(ArrayList<Task> list){
+    	ArrayList<Task> result = new ArrayList<Task>();
+    	for(int i = 0; i < list.size(); i++){
+    		if(list.get(i).getIsImportant())
+    			result.add(list.get(i));
+    	}
+    	return result;
+    }
+    
+    public ArrayList<Task> searchTag(ArrayList<Task> list, String tagName){
+    	ArrayList<Task> result = new ArrayList<Task>();
+    	for(int i = 0; i < list.size(); i++){
+    		if(list.get(i).getTag().equals(tagName))
+    			result.add(list.get(i));
+    	}
+    	return result;
+    }
+    
+    public ArrayList<Task> searchStartDate(ArrayList<Task> list, CustomDate date){
+    	ArrayList<Task> result = new ArrayList<Task>();
+    	for(int i = 0; i < list.size(); i++){
+    		if(list.get(i).getStartDate().compareTo(date) <= 0)
+    			result.add(list.get(i));
+    	}
+    	return result;
+    }
+    
+    public ArrayList<Task> searchEndDate(ArrayList<Task> list, CustomDate date){
+    	ArrayList<Task> result = new ArrayList<Task>();
+    	for(int i = 0; i < list.size(); i++){
+    		if(list.get(i).getEndDate().compareTo(date) <= 0)
+    			result.add(list.get(i));
+    	}
+    	return result;
+    }
+    
+    public ArrayList<Task> searchWorkInfo(ArrayList<Task> list, String workInfo){
+    	ArrayList<Task> result = new ArrayList<Task>();
+    	for(int i = 0; i < list.size(); i++){
+    		if(list.get(i).getWorkInfo().equals(workInfo))
+    			result.add(list.get(i));
+    	}
+    	return result;
+    }
+    
+    
+	public static String[] splitCommandString(String userCommand, COMMAND_TYPES commandType) {
 		String content = removeFirstWord(userCommand);
 
-		if (content.contains(",")) {
+		if (commandType == COMMAND_TYPES.ADD || commandType == COMMAND_TYPES.EDIT || commandType == COMMAND_TYPES.SEARCH) {
 			return splitCommandStringByComma(content);
 		} else {
 			return splitCommandStringBySpace(content);
@@ -207,11 +403,11 @@ public class Control {
 	}
 
 	private static String[] splitCommandStringByComma(String content) {
-		String[] temp = content.split(",");
-		ArrayList<String> lst = new ArrayList<String>();
-		
-		for(int i=temp.length; i>=0; i++){
-			if(isImportantTask(temp[i])&&!lst.contains(temp[i])){
+		String[] splittedContent = content.split(",");
+		for( String s : splittedContent){
+			s=s.trim();
+		}
+    return splittedContent;
 				lst.add(temp[i]);
 				content = content.substring(0, content.lastIndexOf(","));
 			} else if(hasTag(temp[i])&&!lst.contains(temp[i])){
@@ -246,29 +442,73 @@ public class Control {
 		return userCommand.replace(getFirstWord(userCommand), "").trim();
 	}
 
-	private static boolean isStartTime(String content) {
-		if (content.contains("start") || content.contains("begin")
-				|| content.contains("from")) {
-			return true;
+	public static String getStartDateString(String s) {
+		String[] keys = {"from", "start from", "start at", "start on", "begin at", "begin from", "begin on"};
+		return removeInputKeys(s, keys);
+	}
+	public static String getEndDateString(String s) {
+		String[] keys = {"to", "till", "until", "by", "end at", "begin by", "end on", "end before", "due"};
+		return removeInputKeys(s, keys);
+	}
+	private static String removeInputKeys(String s, String[] keys) {
+		String StringRemovedKey = null;
+		for(int i=0; i<keys.length; i++){
+			if(s.contains(keys[i])){
+				StringRemovedKey = s.replace(keys[i], " ").trim();
+				break;
+			}
+		}
+		return StringRemovedKey;
+	}
+	private static String getTagName(String s) {
+		return s.replace("#", " ").trim();
+	}
+	public static boolean isStartDate(String content) {
+		String[] inputKeys = {"start", "begin", "from"};
+		boolean containsKey = false;
+		for(int i=0;i<inputKeys.length;i++){
+			if(content.contains(inputKeys[i])){
+				return true;
+			}
 		}
 		return false;
 	}
+	
+	public static CustomDate getStartDate(String content){
+			CustomDate tempDate = new CustomDate();
+			String DateString = getStartDateString(content);
+			if(tempDate.convert(DateString) == VALID)
+				return tempDate;
+			else
+				return null;
+	}
 
-	private static boolean isEndTime(String content) {
-		if (content.contains("end") || content.contains("to")
-				|| content.contains("till") || content.contains("until")
-				|| content.contains("by") || content.contains("due")) {
-			return true;
+	public static boolean isEndDate(String content) {
+		String[] inputKeys = {"end", "to", "till", "until", "by", "due"};
+		boolean containsKey = false;
+		for(int i=0;i<inputKeys.length;i++){
+			if(content.contains(inputKeys[i])){
+				return true;
+			}
 		}
 		return false;
+	}
+	
+	public static CustomDate getEndDate(String content){
+			CustomDate tempDate = new CustomDate();
+			String DateString = getEndDateString(content);
+			if(tempDate.convert(DateString) == VALID)		
+				return tempDate;
+			else
+				return null;
 	}
 
 	private static boolean hasTag(String content) {
-		return content.contains("#");
+		return content.trim().startsWith("#");
 	}
 
 	private static boolean isImportantTask(String content) {
-		return content.contains("*");
+		return content.trim().equals("*");
 	}
 
 	private static boolean isAddCommand(String commandTypeString) {
