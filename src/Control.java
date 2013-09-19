@@ -1,67 +1,60 @@
 import java.util.ArrayList;
 
-import com.sun.jmx.snmp.tasks.Task;
-
 public class Control {
 
+	private static final String MESSAGE_INVALID_COMMAND = "Invalid Command!";
+	
   public static final int VALID = 1;
   public static final int INVALID = -1;
   
   
   private Model modelHandler = new Model();
   
-	enum COMMAND_TYPES {
-		ADD, REMOVE, SEARCH, EDIT, COMPLETE, INCOMPLETE, UNDO, REDO, CLEAR_ALL, TODAY, SHOW_ALL, SYNC, SETTINGS, HELP, EXIT, INVALID, MARK, UNMARK
-	}
-
-	private int executeCommand(String userCommandString) {
-		boolean isEmptyCommand = userCommandString.trim().equals("");
-
+	private int executeCommand(String userCommand) {
+		boolean isEmptyCommand = Parser.checkEmptyCommand(userCommand);
 		if (isEmptyCommand) {
 			return INVALID;
 		}
-
-		String commandTypeString = getFirstWord(userCommandString);
 		
-		COMMAND_TYPES commandType = determineCommandType(commandTypeString);
+		Parser.COMMAND_TYPES commandType = Parser.determineCommandType(userCommand);
 		
-		String[] splittedUserCommand = splitCommandString(userCommandString, commandType);
+		String[] parsedUserCommand = Parser.parseCommand(userCommand, commandType);
 
 		switch (commandType) {
 		case ADD:
-			return executeAddCommand(splittedUserCommand);
+			return executeAddCommand(parsedUserCommand);
 		case EDIT:
-			return executeEditCommand(splittedUserCommand);
+			return executeEditCommand(parsedUserCommand);
 		case REMOVE:
-			return executeRemoveCommand(splittedUserCommand);
+			return executeRemoveCommand(parsedUserCommand);
 		case UNDO:
-			return executeUndoCommand(splittedUserCommand);
+			return executeUndoCommand(parsedUserCommand);
 		case REDO:
-			return executeRedoCommand(splittedUserCommand);
+			return executeRedoCommand(parsedUserCommand);
 		case SEARCH:
-			return executeSearchCommand(splittedUserCommand);
+			return executeSearchCommand(parsedUserCommand);
 		case TODAY:
-			return executeTodayCommand(splittedUserCommand);
+			return executeTodayCommand(parsedUserCommand);
 		case SHOW_ALL:
-			return executeShowAllCommand(splittedUserCommand);
+			return executeShowAllCommand(parsedUserCommand);
 		case CLEAR_ALL:
-			return executeClearAllCommand(splittedUserCommand);
+			return executeClearAllCommand(parsedUserCommand);
 		case COMPLETE:
-			return executeCompleteCommand(splittedUserCommand);
+			return executeCompleteCommand(parsedUserCommand);
 		case INCOMPLETE:
-			return executeIncompleteCommand(splittedUserCommand);
+			return executeIncompleteCommand(parsedUserCommand);
 		case MARK:
-			return executeMarkCommand(splittedUserCommand);
+			return executeMarkCommand(parsedUserCommand);
 		case UNMARK:
-			return executeUnmarkCommand(splittedUserCommand);
+			return executeUnmarkCommand(parsedUserCommand);
 		case SETTINGS:
-			return executeSettingsCommand(splittedUserCommand);
+			return executeSettingsCommand(parsedUserCommand);
 		case HELP:
-			return executeHelpCommand(splittedUserCommand);
+			return executeHelpCommand(parsedUserCommand);
 		case SYNC:
-			return executeSyncCommand(splittedUserCommand);
+			return executeSyncCommand(parsedUserCommand);
 		case EXIT:
-			return executeExitCommand(splittedUserCommand);
+			return executeExitCommand(parsedUserCommand);
 		case INVALID:
 			return executeInvalidCommand(userCommandString);
 		default:
@@ -69,48 +62,7 @@ public class Control {
 		}
 	}
 
-	private static COMMAND_TYPES determineCommandType(String commandTypeString) {
-		if (commandTypeString == null)
-			throw new Error("Command type string cannot be null!");
-
-		if (isAddCommand(commandTypeString)) {
-			return COMMAND_TYPES.ADD;
-		} else if (isEditCommand(commandTypeString)) {
-			return COMMAND_TYPES.EDIT;
-		} else if (isRemoveCommand(commandTypeString)) {
-			return COMMAND_TYPES.REMOVE;
-		} else if (isUndoCommand(commandTypeString)) {
-			return COMMAND_TYPES.UNDO;
-		} else if (isRedoCommand(commandTypeString)) {
-			return COMMAND_TYPES.REDO;
-		} else if (isSearchCommand(commandTypeString)) {
-			return COMMAND_TYPES.SEARCH;
-		} else if (isTodayCommand(commandTypeString)) {
-			return COMMAND_TYPES.TODAY;
-		} else if (isShowAllCommand(commandTypeString)) {
-			return COMMAND_TYPES.SHOW_ALL;
-		} else if (isClearAllCommand(commandTypeString)) {
-			return COMMAND_TYPES.CLEAR_ALL;
-		} else if (isCompleteCommand(commandTypeString)) {
-			return COMMAND_TYPES.COMPLETE;
-		} else if (isIncompleteCommand(commandTypeString)) {
-			return COMMAND_TYPES.INCOMPLETE;
-		} else if(isMarkCommand(commandTypeString)){
-			return COMMAND_TYPES.MARK;
-		} else if(isUnmarkCommand(commandTypeString)){
-			return COMMAND_TYPES.UNMARK;
-		} else if (isSettingsCommand(commandTypeString)) {
-			return COMMAND_TYPES.SETTINGS;
-		} else if (isHelpCommand(commandTypeString)) {
-			return COMMAND_TYPES.HELP;
-		} else if (isSyncCommand(commandTypeString)) {
-			return COMMAND_TYPES.SYNC;
-		} else if (isExitCommand(commandTypeString)) {
-			return COMMAND_TYPES.EXIT;
-		} else {
-			return COMMAND_TYPES.INVALID;
-		}
-	}
+	
 
 	public static int executeAddCommand(String[] splittedUserCommand) {
 		if (splittedUserCommand.length < 1) {
@@ -242,6 +194,7 @@ public class Control {
             task.setStartDate(startDate);
             return VALID;
         }
+        }
 
         private static int updateEndDate(String dateInfo,Task task){
             CustomDate endDate = new CustomDate();
@@ -250,18 +203,19 @@ public class Control {
             task.setEndDate(endDate);
             return VALID;
         }
+        }
 
 
 
     private public executeRemoveCommand(String[] splittedUserCommand){
         indexCount = splittedUserCommand.size();
-        int[] indexList = new int[indexCount]
-        for(int=0; i<indexCount;i++){
+        int[] indexList = new int[indexCount];
+        for(int i=0; i<indexCount;i++){
             indexList[i] = parseInt(splittedUserCommand[i]);
         }
-        java.util.Arrays.sort(indexList)
+        
         int i=indexCount-1;
-        prevIndex=-1
+        prevIndex=-1;
         while(i>=0){
             if(indexList[i]!=prevIndex){
                 model.reomvoeTaskFromComplete(i);
@@ -270,7 +224,7 @@ public class Control {
         }        
     }
     
-    private public int executeSearchCommand(String[] splittedUserCommand){
+    private int executeSearchCommand(String[] splittedUserCommand){
     	ArrayList<Task> searchList = modelHandler.getSearchList();
     	searchList.clear();
     	
@@ -282,7 +236,7 @@ public class Control {
     	int endWorkInfoIndex = -1;
     	boolean hasStartDate = false;
     	boolean hasEndDate = false;
-    	boolean hasImpotantTaskKey = false;
+    	boolean hasImportantTaskKey = false;
     	boolean hasTagKey = false;
     	boolean hasWorkInfo = false;
     	boolean searchFirstTime = true;
@@ -401,13 +355,7 @@ public class Control {
 			return splitCommandStringBySpace(content);
 		}
 	}
-
-	private static String[] splitCommandStringByComma(String content) {
-		String[] splittedContent = content.split(",");
-		for( String s : splittedContent){
-			s=s.trim();
-		}
-    return splittedContent;
+/*
 				lst.add(temp[i]);
 				content = content.substring(0, content.lastIndexOf(","));
 			} else if(hasTag(temp[i])&&!lst.contains(temp[i])){
@@ -428,88 +376,7 @@ public class Control {
 		}
 		return splittedCommand;
 	}
+*/
 
-
-	private static boolean isAddCommand(String commandTypeString) {
-		return commandTypeString.equalsIgnoreCase("add");
-	}
-
-	private static boolean isEditCommand(String commandTypeString) {
-		boolean isEdit = commandTypeString.equalsIgnoreCase("edit")
-				|| commandTypeString.equalsIgnoreCase("modify")
-				|| commandTypeString.equalsIgnoreCase("mod");
-		return isEdit;
-	}
-
-	private static boolean isRemoveCommand(String commandTypeString) {
-		boolean isRemove = commandTypeString.equalsIgnoreCase("remove")
-				|| commandTypeString.equalsIgnoreCase("rm")
-				|| commandTypeString.equalsIgnoreCase("delete")
-				|| commandTypeString.equalsIgnoreCase("del");
-		return isRemove;
-	}
-
-	private static boolean isUndoCommand(String commandTypeString) {
-		return commandTypeString.equalsIgnoreCase("undo");
-	}
-
-	private static boolean isRedoCommand(String commandTypeString) {
-		return commandTypeString.equalsIgnoreCase("redo");
-	}
-
-	private static boolean isSearchCommand(String commandTypeString) {
-		boolean isSearch = commandTypeString.equalsIgnoreCase("search")
-				|| commandTypeString.equalsIgnoreCase("find");
-		return isSearch;
-	}
-
-	private static boolean isTodayCommand(String commandTypeString) {
-		return commandTypeString.equalsIgnoreCase("today");
-	}
-
-	private static boolean isShowAllCommand(String commandTypeString) {
-		boolean isShowAll = commandTypeString.equalsIgnoreCase("all")
-				|| commandTypeString.equalsIgnoreCase("show")
-				|| commandTypeString.equalsIgnoreCase("list")
-				|| commandTypeString.equalsIgnoreCase("ls");
-		return isShowAll;
-	}
-
-	private static boolean isClearAllCommand(String commandTypeString) {
-		boolean isClearAll = commandTypeString.equalsIgnoreCase("clear")
-				|| commandTypeString.equalsIgnoreCase("clr");
-		return isClearAll;
-	}
-
-	private static boolean isCompleteCommand(String commandTypeString) {
-		return commandTypeString.equalsIgnoreCase("done");
-	}
-
-	private static boolean isIncompleteCommand(String commandTypeString) {
-		return commandTypeString.equalsIgnoreCase("undone");
-	}
 	
-	private static boolean isMarkCommand(String commandTypeString) {
-		return commandTypeString.equalsIgnoreCase("mark");
-	}
-	
-	private static boolean isUnmarkCommand(String commandTypeString) {
-		return commandTypeString.equalsIgnoreCase("unmark");
-	}
-	
-	private static boolean isSettingsCommand(String commandTypeString) {
-		return commandTypeString.equalsIgnoreCase("settings");
-	}
-
-	private static boolean isHelpCommand(String commandTypeString) {
-		return commandTypeString.equalsIgnoreCase("help");
-	}
-
-	private static boolean isSyncCommand(String commandTypeString) {
-		return commandTypeString.equalsIgnoreCase("sync");
-	}
-
-	private static boolean isExitCommand(String commandTypeString) {
-		return commandTypeString.equalsIgnoreCase("exit");
-	}
 }
