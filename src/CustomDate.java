@@ -200,9 +200,12 @@ public class CustomDate implements Comparable<CustomDate> {
 	private int getStartIndexOfDate(String[] infos) {
 		if (hasTimeFormat()) {
 			int temp = getIndexOfTime(infos);
-			if (temp != -1)
-				return (temp <= 1) ? temp + 1 : 0;
-			else {
+			if (temp != -1) {
+				if (infos[temp].equals("am") || infos[temp].equals("pm"))
+					return (temp <= 1) ? temp + 1 : 0;
+				else
+					return (temp >= 1) ? 0 : temp + 1;
+			} else {
 				temp = getIndexOfColon(infos);
 				return (temp == 0) ? temp + 1 : 0;
 			}
@@ -358,7 +361,7 @@ public class CustomDate implements Comparable<CustomDate> {
 		} else if (timeInfo.length() == 3 || timeInfo.length() == 4) {
 			targetDate.set(Calendar.HOUR_OF_DAY, s / 100 + (isDay ? 0 : 12));
 			targetDate.set(Calendar.MINUTE, s % 100);
-		} else{
+		} else {
 			throw new IllegalArgumentException();
 		}
 	}

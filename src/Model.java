@@ -71,7 +71,7 @@ class Model {
 	}
 
 	public int removeTaskFromComplete(int index) {
-		if (index > pending.size()) {
+		if (index > complete.size()) {
 			return Control.INVALID;
 		} else {
 			complete.remove(index);
@@ -80,7 +80,7 @@ class Model {
 	}
 
 	public int removeTaskFromTrash(int index) {
-		if (index > pending.size()) {
+		if (index > trash.size()) {
 			return Control.INVALID;
 		} else {
 			trash.remove(index);
