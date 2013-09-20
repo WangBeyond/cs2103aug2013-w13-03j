@@ -19,7 +19,7 @@ public class Parser {
 	public static final String FALSE = "false";
 	public static final String NULL = "null";
 
-	/* Test Parse Function
+	/*Test Parse Function
 	public static void main(String[] args) {
 		Scanner sc = new Scanner(System.in);
 		String s;
@@ -33,8 +33,8 @@ public class Parser {
 				System.out.println("Invalid Command");
 			}
 		}
-	}
-*/
+	}*/
+
 	public static String[] parseAddCommand(String content) {
 		if (content.isEmpty()) {
 			String[] s = { null, null, null, null, null };
@@ -521,10 +521,10 @@ public class Parser {
 
 		String[] temp = parseSearchCommand(removeFirstWord(content));
 
-		String[] parsedCommand = new String[6];
+		String[] parsedCommand = new String[5];
 		parsedCommand[0] = String.valueOf(index);
 		for (int i = 1; i < parsedCommand.length; i++) {
-			parsedCommand[i] = temp[i - 1];
+			parsedCommand[i] = temp[i];
 		}
 		return parsedCommand;
 	}
@@ -610,12 +610,12 @@ public class Parser {
 	}
 
 	/* String Modifying Section */
-	private static String getFirstWord(String userCommand) {
+	static String getFirstWord(String userCommand) {
 		String commandTypeString = userCommand.trim().split("\\s+")[0];
 		return commandTypeString;
 	}
 
-	private static String removeFirstWord(String userCommand) {
+	static String removeFirstWord(String userCommand) {
 		return userCommand.replaceFirst(getFirstWord(userCommand), "").trim();
 	}
 
