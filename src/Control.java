@@ -188,81 +188,51 @@ public class Control {
         }        
     }
     
-    private int executeSearchCommand(String[] splittedUserCommand){
-    	ArrayList<Task> searchList = modelHandler.getSearchList();
-    	searchList.clear();
-    	
-    	if(splittedUserCommand.length == 0)
-    		return INVALID;
-    	
-    	String workInfo = "";
-    	int startWorkInfoIndex = -1;
-    	int endWorkInfoIndex = -1;
-    	boolean hasStartDate = false;
-    	boolean hasEndDate = false;
-    	boolean hasImportantTaskKey = false;
-    	boolean hasTagKey = false;
-    	boolean hasWorkInfo = false;
-    	boolean searchFirstTime = true;
-    	
-    	CustomDate tempStartDate = null;
-    	CustomDate tempEndDate = null;
-    	
-    	
-    	for(int i = splittedUserCommand.length - 1; i >= 0; i--){
-    		if(!hasImportantTaskKey && isImportantTask(splittedUserCommand[i])){
-    			searchList = searchImportantTask(searchFirstTime ? modelHandler.getPending() : searchList);
-    			if(searchFirstTime)
-    				searchFirstTime = false;
-    			hasImportantTaskKey = true;
-    			if(endWorkInfoIndex != -1 && startWorkInfoIndex == -1){
-    				startWorkInfoIndex = i + 1;
-    				hasWorkInfo = true;
-    			}
-    		} else if(!hasTagKey && hasTag(splittedUserCommand[i])){
-    			searchList = searchTag((searchFirstTime ? modelHandler.getPending() : searchList), getTagName(s));
-    			if(searchFirstTime)
-    				searchFirstTime = false;
-    			hasTagKey = true;
-    			if(endWorkInfoIndex != -1 && startWorkInfoIndex == -1){
-    				startWorkInfoIndex = i + 1;
-    				hasWorkInfo = true;
-    			}
-    		} else if(!hasStartDate && isStartDate(splittedUserCommand[i]) && (tempStartDate = getStartDate(splittedUserCommand[i])) != null){
-    			searchList = searchStartDate((searchFirstTime ? modelHandler.getPending() : searchList), tempStartDate);
-    			if(searchFirstTime)
-    				searchFirstTime = false;
-    			hasStartDate = true;
-    			if(endWorkInfoIndex != -1 && startWorkInfoIndex == -1){
-    				startWorkInfoIndex = i + 1;
-    				hasWorkInfo = true;
-    			}
-    		} else if(!hasEndDate && isEndDate(splittedUserCommand[i]) && (tempEndDate = getEndDate(splittedUserCommand[i])) != null){
-    			searchList = searchEndDate((searchFirstTime ? modelHandler.getPending() : searchList), tempEndDate);
-    			if(searchFirstTime)
-    				searchFirstTime = false;
-    			hasEndDate = true;
-    			if(endWorkInfoIndex != -1 && startWorkInfoIndex == -1){
-    				startWorkInfoIndex = i;
-    				hasWorkInfo = true;
-    			}
-    		} else if(!hasWorkInfo){
-    			endWorInfoIndex = i;
-    		} else
-    			return INVALID;
-    	}
-    	
-    	if(hasWorkInfo || (endWorkInfoIndex != -1 && startWorkInfoIndex == -1)){
-    		for(int i = startWorkInfoIndex + 1; i <= endWorkInfoIndex; i++){
-    			workInfo += splittedUserCommand[i] + (i == endWorkInfoIndex ? "" : ", ");
-    		}
-    		searchWorkInfo((searchFirstTime ? modelHandler.getPending() : searchList), workInfo);
-    	}
-    	if(searchList.isEmpty())
-    		return INVALID;
-    	else
-    		return VALID;
-    }
+   private String executeSearchCommand(String[] splittedUserCommand) {
+		ArrayList<Task> searchList = modelHandler.getSearchList();
+		searchList.clear();
+
+		boolean isFirstTimeSearch = true;
+
+		if (splittedUserCommand[0] != Parser.NULL) {
+			String workInfo = splittedUserCommand[0];
+			searchList = searchWorkInfo(
+					(isFirstTimeSearch) ? modelHandler.getPendingList()
+							: searchList, workInfo);
+			isFirstTimeSearch = false;
+		}
+
+		if (splittedUserCommand[1] != Parser.NULL) {
+			String date = splittedUserCommand[1];
+			searchList = searchStartDate(
+					(isFirstTimeSearch) ? modelHandler.getPendingList()
+							: searchList, Parser.getStartDate(date));
+			isFirstTimeSearch = false;
+		}
+
+		if (splittedUserCommand[2] != Parser.NULL) {
+			String date = splittedUserCommand[2];
+			searchList = searchStartDate(
+					(isFirstTimeSearch) ? modelHandler.getPendingList()
+							: searchList, Parser.getEndDate(date));
+			isFirstTimeSearch = false;
+		}
+
+		if (splittedUserCommand[3] != Parser.NULL) {
+			String tag = splittedUserCommand[3];
+			searchList = searchTag(
+					(isFirstTimeSearch) ? modelHandler.getPendingList()
+							: searchList, tag);
+			isFirstTimeSearch = false;
+		}
+
+		if (splittedUserCommand[4] == Parser.TRUE) {
+			searchList = searchImportantTask((isFirstTimeSearch) ? modelHandler
+					.getPendingList() : searchList);
+		}
+
+		return "Search Completed!";
+	}
     
     public ArrayList<Task> searchImportantTask(ArrayList<Task> list){
     	ArrayList<Task> result = new ArrayList<Task>();
