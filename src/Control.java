@@ -7,8 +7,7 @@ public class Control {
   public static final int VALID = 1;
   public static final int INVALID = -1;
   
-  
-  private Model modelHandler = new Model();
+  static Model modelHandler = new Model();
   
 	private int executeCommand(String userCommand) {
 		boolean isEmptyCommand = Parser.checkEmptyCommand(userCommand);
@@ -130,59 +129,24 @@ public class Control {
   
 
         //The user can edit the starting time, ending time, tag and isImportant of existing tasks 
-    executeEditCommand(String[] splittedUserCommand){            
-        int updateNum = splittedUserCommand.size()-1;
-        int taskIndex = getFirstWord(splittedUserCommand[0]);
-        splittedUserCommand[0] = removeFirstWord(splittedUserCommand[0]);
-        Task targettask = getTaskFromPending(taskIndex);
-        //Retrive the edited infos one by one
-        for(int i=0;i<updateNum;i++){
-            String updateInfo = splittedUserCommand[i].trim();
-            String[] splittedUpdateInfo = updateInfo.split(" ");
-
-            //The case that the update info 1 is new starting date
-            if(splittedUpdateInfo[0].equalsTo("from"){
-                String dateInfo = removeFirstWord(updateInfo);
-                if(updateStartDate(dateInfo,targetTask)==INVALID){
-                    //feedback about dateUpdateFailure, waiting to implement
-                    feedbackStartDateUpdateFail("Invalid input");
-                } 
-            } else if((splittedUpdateInfo[0].equalsTo("start")||splittedUpdateInfo[0].equalsTo("begin"))
-                && (splittedUpdateInfo[1].equalsTo("at")||splittedUpdateInfo[1].equalsTo("from")||splittedUpdateInfo[1].equalsTo("on")){
-                String dateInfo =removeFirstWord(removeFirstWord(updateInfo));
-                if(updateStartDate(dateInfo,targetTask)==INVALID){
-                    //feedback about dateUpdateFailure, waiting to implement
-                    feedbackStartDateUpdateFail("Invalid input");
-                }
-            } 
-            //The case that the update info 1 is new ending date
-              else if(splittedUpdateInfo[0].equalsTo("to")||splittedUpdateInfo[0].equalsTo("till")
-                ||splittedUpdateInfo[0].equalsTo("until")||splittedUpdateInfo[0].equalsTo("by")
-                ||splittedUpdateInfo[0].equalsTo("due")){
-                String dateInfo = removeFirstWord(UpdateInfo);
-                if(updateEndDate(dateInfo,targetTask)==INVALID){
-                    //feedback about dateUpdateFailure, waiting to implement
-                    feedbackEndDateUpdateFail("Invalid input");
-                } 
-            } else if(splittedUpdateInfo[0].equalsTo("end")&&(splittedUpdateInfo[1].equalsTo("on")||
-                splittedUpdateInfo[1].equalsTo("at")||splittedUpdateInfo[1].equalsTo("by")|splittedUpdateInfo[1].equalsTo("before"))){
-                String dateInfo = removeFirstWord(removeFirstWord(updateInfo));
-                if(updateEndDate(dateInfo,targetTask)==INVALID){
-                    //feedback about dateUpdateFailure, waiting to implement
-                    feedbackEndDateUpdateFail("Invalid input");
-                } 
-            } 
-               //The case that the update info 1 is a tag
-               else if(hasTag(updateInfo)){
-                        targettask.setTag(updateInfo.trim());
-            } 
-              //The case that the update info 1 is about importance*
-              else if(isImportantTask(updateInfo)){
-                        targettask.setIsImportant(true);
-            } else if(updateInfo.equalsTo("~")||updateInfo.toLowerCase().equalsTo("not important")){
-                        targettask.setIsImportant(false)
-            }
-        }
+	public static void  executeEditCommand(String[] parsedUserCommand){       
+		int index = Integer.parseInt(parsedUserCommand[0]);
+		Task targetTask = modelHandler.getTaskFromPending(index);
+		if(!parsedUserCommand[1].equals(Parser.NULL)) {
+			String startTime = parsedUserCommand[1];
+			int feedback = updateStartDate(startTime, targetTask);
+		} 
+		if(!parsedUserCommand[2].equals(Parser.NULL)) {
+			String endTime = parsedUserCommand[2];
+			int feedback = updateEndDate(endTime, targetTask);
+		}
+		if(!parsedUserCommand[3].equals(Parser.NULL)) {
+			String tagKey = parsedUserCommand[3];
+			targetTask.setTag(tagKey);
+		}
+		if(parsedUserCommand[4].equals(Parser.TRUE)) {
+			targetTask.setIsImportant(true);
+		}
     }
 
 
@@ -191,34 +155,34 @@ public class Control {
             CustomDate startDate = new CustomDate();
             if(startDate.convert(dateInfo)==-INVALID){
                 return INVALID;
+            }
             task.setStartDate(startDate);
             return VALID;
-        }
-        }
+       }
 
         private static int updateEndDate(String dateInfo,Task task){
             CustomDate endDate = new CustomDate();
             if(endDate.convert(dateInfo)==-INVALID){
                 return INVALID;
+            }
             task.setEndDate(endDate);
             return VALID;
         }
-        }
 
 
 
-    private public executeRemoveCommand(String[] splittedUserCommand){
-        indexCount = splittedUserCommand.size();
+    public static void executeRemoveCommand(String[] splittedUserCommand){
+        int indexCount = splittedUserCommand.length;
         int[] indexList = new int[indexCount];
         for(int i=0; i<indexCount;i++){
-            indexList[i] = parseInt(splittedUserCommand[i]);
+            indexList[i] = Integer.valueOf(splittedUserCommand[i]);
         }
         
         int i=indexCount-1;
-        prevIndex=-1;
+        int prevIndex=-1;
         while(i>=0){
             if(indexList[i]!=prevIndex){
-                model.reomvoeTaskFromComplete(i);
+                modelHandler.removeTaskFromPending(i);
             }
             prevIndex = indexList[i];
         }        
@@ -355,6 +319,8 @@ public class Control {
 			return splitCommandStringBySpace(content);
 		}
 	}
+	
+
 /*
 				lst.add(temp[i]);
 				content = content.substring(0, content.lastIndexOf(","));
