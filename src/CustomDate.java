@@ -49,13 +49,21 @@ public class CustomDate implements Comparable<CustomDate> {
 		return targetDate.get(Calendar.DATE);
 	}
 
-	private int getHour() {
+	public int getHour() {
 		return targetDate.get(Calendar.HOUR);
 	}
-
-	private int getMinute() {
+	
+	public void setHour(int hour){
+		targetDate.set(Calendar.HOUR, hour);
+		}
+		
+	public int getMinute() {
 		return targetDate.get(Calendar.MINUTE);
 	}
+	
+	public void setMinute(int minute) {
+		targetDate.set(Calendar.MINUTE, minute);
+		}
 
 	public Date getTime() {
 		return targetDate.getTime();
@@ -158,7 +166,7 @@ public class CustomDate implements Comparable<CustomDate> {
 		}
 		targetDate.set(Calendar.YEAR, year);
 
-		int month = Integer.parseInt(numbers[1]);
+		int month = getMonth(numbers[1]);
 		targetDate.set(Calendar.MONTH, month);
 
 		int date = Integer.parseInt(numbers[0]);
@@ -176,7 +184,7 @@ public class CustomDate implements Comparable<CustomDate> {
 		int date = Integer.parseInt(numbers[0]);
 		targetDate.set(Calendar.DATE, date);
 
-		int month = Integer.parseInt(numbers[1]);
+		int month = getMonth(numbers[1]);
 		targetDate.set(Calendar.MONTH, month);
 
 		int year = (numbers.length == 3) ? Integer.parseInt(numbers[2])
@@ -502,59 +510,50 @@ public class CustomDate implements Comparable<CustomDate> {
 	}
 
 	private static boolean isJanuary(String s) {
-		return s.equals("jan") || Integer.compare(Integer.parseInt(s), 1) == 0
-				|| s.equals("january");
+		return s.equals("jan") || s.equals("1") || s.equals("january");
 	}
 
 	private static boolean isFebruary(String s) {
-		return s.equals("feb") || Integer.compare(Integer.parseInt(s), 2) == 0
-				|| s.equals("february");
+		return s.equals("feb") || s.equals("2") || s.equals("february");
 	}
 
 	private static boolean isMarch(String s) {
-		return s.equals("mar") || Integer.compare(Integer.parseInt(s), 3) == 0
-				|| s.equals("march");
+		return s.equals("mar") || s.equals("3") || s.equals("march");
 	}
 
 	private static boolean isApril(String s) {
-		return s.equals("apr") || Integer.compare(Integer.parseInt(s), 4) == 0
-				|| s.equals("april");
+		return s.equals("apr") || s.equals("4") || s.equals("april");
 	}
 
 	private static boolean isMay(String s) {
-		return s.equals("may") || Integer.compare(Integer.parseInt(s), 5) == 0;
+		return s.equals("may") || s.equals("5");
 	}
 
 	private static boolean isJune(String s) {
-		return s.equals("june") || Integer.compare(Integer.parseInt(s), 6) == 0;
+		return s.equals("june") || s.equals("6");
 	}
 
 	private static boolean isJuly(String s) {
-		return s.equals("july") || Integer.compare(Integer.parseInt(s), 7) == 0;
+		return s.equals("july") || s.equals("7");
 	}
 
 	private static boolean isAugust(String s) {
-		return s.equals("aug") || Integer.compare(Integer.parseInt(s), 8) == 0
-				|| s.equals("august");
+		return s.equals("aug") || s.equals("8") || s.equals("august");
 	}
 
 	private static boolean isSeptember(String s) {
-		return s.equals("sep") || Integer.compare(Integer.parseInt(s), 9) == 0
-				|| s.equals("september");
+		return s.equals("sep") || s.equals("9") || s.equals("september");
 	}
 
 	private static boolean isOctober(String s) {
-		return s.equals("oct") || Integer.compare(Integer.parseInt(s), 10) == 0
-				|| s.equals("october");
+		return s.equals("oct") || s.equals("10") || s.equals("october");
 	}
 
 	private static boolean isNovember(String s) {
-		return s.equals("nov") || Integer.compare(Integer.parseInt(s), 11) == 0
-				|| s.equals("november");
+		return s.equals("nov") || s.equals("11") || s.equals("november");
 	}
 
 	private static boolean isDecember(String s) {
-		return s.equals("dec") || Integer.compare(Integer.parseInt(s), 12) == 0
-				|| s.equals("december");
+		return s.equals("dec") || s.equals("12") || s.equals("december");
 	}
 }

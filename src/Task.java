@@ -62,6 +62,10 @@ class Task {
 	}
 
 	public void setEndDate(CustomDate endDate) {
+		if(endDate.getHour() == 0 && endDate.getMinute() == 0){
+			endDate.setHour(23);
+			endDate.setMinute(59);
+		}
 		this.endDate = endDate;
 	}
 
