@@ -9,7 +9,8 @@ public class Control {
 	public static final int INVALID = -1;
 
   static Model modelHandler = new Model();
-  	
+  
+  	/*
 	public static void main(String[] args) {
 		Scanner sc = new Scanner(System.in);
 		String s;
@@ -23,6 +24,7 @@ public class Control {
 			}
 		}
 	}
+	*/
   	
 	private static int executeCommand(String userCommand) {
 		boolean isEmptyCommand = Parser.checkEmptyCommand(userCommand);
