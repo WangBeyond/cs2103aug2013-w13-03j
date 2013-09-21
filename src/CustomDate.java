@@ -556,4 +556,8 @@ public class CustomDate implements Comparable<CustomDate> {
 	private static boolean isDecember(String s) {
 		return s.equals("dec") || s.equals("12") || s.equals("december");
 	}
+	
+	public String toString() {
+		return dateInfo;
+	}
 }

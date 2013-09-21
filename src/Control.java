@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class Control {
 
@@ -8,15 +9,29 @@ public class Control {
 	public static final int INVALID = -1;
 
   static Model modelHandler = new Model();
-
-	private int executeCommand(String userCommand) {
+  	
+	public static void main(String[] args) {
+		Scanner sc = new Scanner(System.in);
+		String s;
+		while (sc.hasNextLine()) {
+			s = sc.nextLine();
+			try {
+				 int feedback = executeCommand(s);
+				 System.out.println(feedback);
+			} catch (Exception e) {
+				System.out.println("Invalid Command");
+			}
+		}
+	}
+  	
+	private static int executeCommand(String userCommand) {
 		boolean isEmptyCommand = Parser.checkEmptyCommand(userCommand);
 		if (isEmptyCommand) {
 			return INVALID;
 		}
 
-		Parser.COMMAND_TYPES commandType = Parser
-				.determineCommandType(userCommand);
+		Parser.COMMAND_TYPES commandType = Parser.determineCommandType(userCommand);
+		System.out.println(commandType);
 
 		String[] parsedUserCommand = Parser.parseCommand(userCommand,
 				commandType);
@@ -62,9 +77,9 @@ public class Control {
 			throw new Error("Unrecognised command type.");
 		}
 	}
-
-	public static int executeAddCommand(String[] splittedUserCommand) {
-		if (splittedUserCommand.length < 1) {
+	/*
+	public static int executeAddCommand(String[] parsedUserCommand) {
+		if (parsedUserCommand.length < 1) {
 			return INVALID;
 		}
 		CustomDate startDate = null;
@@ -73,22 +88,22 @@ public class Control {
 		String tag = null;
 		boolean hasTag = false;
 		boolean isImptTask = false;
-		int workInfoIndex = splittedUserCommand.length - 1;
+		int workInfoIndex = parsedUserCommand.length - 1;
 
-		for (int i = splittedUserCommand.length - 1; i >= 0; i--) {
-			if (isImptTask == false && isImportantTask(splittedUserCommand[i])) {
+		for (int i = parsedUserCommand.length - 1; i >= 0; i--) {
+			if (isImptTask == false && isImportantTask(parsedUserCommand[i])) {
 				isImptTask = true;
 				--workInfoIndex;
-			} else if (hasTag == false && hasTag(splittedUserCommand[i])) {
+			} else if (hasTag == false && hasTag(parsedUserCommand[i])) {
 				hasTag = true;
-				tag = getTagName(splittedUserCommand[i]);
+				tag = getTagName(parsedUserCommand[i]);
 				--workInfoIndex;
-			} else if (endDate == null && isEndDate(splittedUserCommand[i])
-					&& (endDate = getEndDate(splittedUserCommand[i])) != null) {
+			} else if (endDate == null && isEndDate(parsedUserCommand[i])
+					&& (endDate = getEndDate(parsedUserCommand[i])) != null) {
 				--workInfoIndex;
 			} else if (startDate == null
-					&& isStartDate(splittedUserCommand[i])
-					&& (startDate = getStartDate(splittedUSerCommand[i])) != null) {
+					&& isStartDate(parsedUserCommand[i])
+					&& (startDate = getStartDate(parsedUSerCommand[i])) != null) {
 				--workInfoIndex;
 			}
 		}
@@ -129,50 +144,108 @@ public class Control {
 
 		return VALID;
 	}
+	*/
+	
+	public static int executeAddCommand(String[] parsedUserCommand) {
+		String workInfo = parsedUserCommand[0];
+		String startDate = parsedUserCommand[1];
+		String endDate = parsedUserCommand[2];
+		String tag = parsedUserCommand[3];
+		boolean isImptTask = false;
+		if (parsedUserCommand[4].equals(Parser.TRUE)){
+			isImptTask = true;
+		}
+		
+		Task task = new Task();
+		task.setWorkInfo(workInfo);
 
+		if (!startDate.equals("")) {
+			if (updateStartDate(endDate,task) == INVALID) {
+				return INVALID;		
+			}
+		}
+		if (!endDate.equals("")) {
+			if (updateStartDate(endDate,task) == INVALID) {
+				return INVALID;		
+			}
+		}
+		if (tag != null) {
+			task.setTag(tag);
+		}
+		task.setIsImportant(isImptTask);
+		modelHandler.addTaskToPending(task);
+		System.out.println("workInfo: " + workInfo);
+		System.out.println("startDate: " + startDate);
+		System.out.println("endDate: " + endDate);
+		System.out.println("tag: " + tag);
+		System.out.println("impt: " + isImptTask);
+		return VALID;
+	}
+	
 	// The user can edit the starting time, ending time, tag and isImportant of
 	// existing tasks
-	public static void  executeEditCommand(String[] parsedUserCommand){       
+	public static int  executeEditCommand(String[] parsedUserCommand){       
 		int index = Integer.parseInt(parsedUserCommand[0]);
+
 		Task targetTask = modelHandler.getTaskFromPending(index);
-		if(!parsedUserCommand[1].equals(Parser.NULL)) {
-			String startTime = parsedUserCommand[1];
-			int feedback = updateStartDate(startTime, targetTask);
+
+		String workInfo = targetTask.getWorkInfo();
+		String startTime =  targetTask.getStartDate()==null?"":targetTask.getStartDate().toString();
+
+		String endTime = targetTask.getEndDate()==null?"":targetTask.getEndDate().toString();
+		
+		String tag = targetTask.getTag();
+
+		String isImptTask =targetTask.getIsImportant()==true?Parser.TRUE:Parser.FALSE;
+		
+		if(parsedUserCommand[1] != Parser.NULL) {
+			startTime = parsedUserCommand[1];
+			if (updateStartDate(startTime, targetTask) == INVALID) {
+				return INVALID;
+			}
 		} 
-		if(!parsedUserCommand[2].equals(Parser.NULL)) {
-			String endTime = parsedUserCommand[2];
-			int feedback = updateEndDate(endTime, targetTask);
+		if (parsedUserCommand[2] != Parser.NULL) {
+			endTime = parsedUserCommand[2];
+			if (updateEndDate(endTime, targetTask) == INVALID) {
+				return INVALID;
+			}
 		}
-		if(!parsedUserCommand[3].equals(Parser.NULL)) {
-			String tagKey = parsedUserCommand[3];
-			targetTask.setTag(tagKey);
+		if (parsedUserCommand[3] != Parser.NULL) {
+			tag = parsedUserCommand[3];
+			targetTask.setTag(tag);
 		}
-		if(parsedUserCommand[4].equals(Parser.TRUE)) {
+		if (parsedUserCommand[4].equals(Parser.TRUE)) {
+			isImptTask = Parser.TRUE;
 			targetTask.setIsImportant(true);
 		}
+		System.out.println("workInfo: " + workInfo);
+		System.out.println("startDate: " + startTime);
+		System.out.println("endDate: " + endTime);
+		System.out.println("tag: " + tag);
+		System.out.println("impt: " + isImptTask);
+		return VALID;
     }
 
 	// return the result whether the update is successful
 	private static int updateStartDate(String dateInfo, Task task) {
 		CustomDate startDate = new CustomDate();
-		if (startDate.convert(dateInfo) == -INVALID) {
+		if (startDate.convert(dateInfo) == INVALID) {
 			return INVALID;
             }
 			task.setStartDate(startDate);
 			return VALID;
-        }
 	}
 
 	private static int updateEndDate(String dateInfo, Task task) {
 		CustomDate endDate = new CustomDate();
-		if (endDate.convert(dateInfo) == -INVALID) {
+		if (endDate.convert(dateInfo) == INVALID) {
 			return INVALID;
             }
 			task.setEndDate(endDate);
 			return VALID;
 		}
 
-    public static void executeRemoveCommand(String[] splittedUserCommand){
+    public static int executeRemoveCommand(String[] splittedUserCommand){
         int indexCount = splittedUserCommand.length;
 		int[] indexList = new int[indexCount];
 		for (int i = 0; i < indexCount; i++) {
@@ -183,13 +256,16 @@ public class Control {
         int prevIndex=-1;
 		while (i >= 0) {
 			if (indexList[i] != prevIndex) {
-                modelHandler.removeTaskFromPending(i);
+                if (modelHandler.removeTaskFromPending(i) == INVALID) {
+                	return INVALID;
+                }
 			}
 			prevIndex = indexList[i];
 		}
+		return VALID;
 	}
 
-	private String executeSearchCommand(String[] splittedUserCommand) {
+	private static int executeSearchCommand(String[] splittedUserCommand) {
 		ArrayList<Task> searchList = modelHandler.getSearchList();
 		searchList.clear();
 
@@ -232,10 +308,10 @@ public class Control {
 					.getPendingList() : searchList);
 		}
 
-		return "Search Completed!";
+		return INVALID;
 	}
 
-	public ArrayList<Task> searchImportantTask(ArrayList<Task> list) {
+	public static ArrayList<Task> searchImportantTask(ArrayList<Task> list) {
 		ArrayList<Task> result = new ArrayList<Task>();
 		for (int i = 0; i < list.size(); i++) {
 			if (list.get(i).getIsImportant())
@@ -244,7 +320,7 @@ public class Control {
 		return result;
 	}
 
-	public ArrayList<Task> searchTag(ArrayList<Task> list, String tagName) {
+	public static ArrayList<Task> searchTag(ArrayList<Task> list, String tagName) {
 		ArrayList<Task> result = new ArrayList<Task>();
 		for (int i = 0; i < list.size(); i++) {
 			if (list.get(i).getTag().equals(tagName))
@@ -253,7 +329,7 @@ public class Control {
 		return result;
 	}
 
-	public ArrayList<Task> searchStartDate(ArrayList<Task> list, CustomDate date) {
+	public static ArrayList<Task> searchStartDate(ArrayList<Task> list, CustomDate date) {
 		ArrayList<Task> result = new ArrayList<Task>();
 		for (int i = 0; i < list.size(); i++) {
 			if (list.get(i).getStartDate().compareTo(date) <= 0)
@@ -262,7 +338,7 @@ public class Control {
 		return result;
 	}
 
-	public ArrayList<Task> searchEndDate(ArrayList<Task> list, CustomDate date) {
+	public static ArrayList<Task> searchEndDate(ArrayList<Task> list, CustomDate date) {
 		ArrayList<Task> result = new ArrayList<Task>();
 		for (int i = 0; i < list.size(); i++) {
 			if (list.get(i).getEndDate().compareTo(date) <= 0)
@@ -271,7 +347,7 @@ public class Control {
 		return result;
 	}
 
-	public ArrayList<Task> searchWorkInfo(ArrayList<Task> list, String workInfo) {
+	public static ArrayList<Task> searchWorkInfo(ArrayList<Task> list, String workInfo) {
 		ArrayList<Task> result = new ArrayList<Task>();
 		for (int i = 0; i < list.size(); i++) {
 			if (list.get(i).getWorkInfo().equals(workInfo))

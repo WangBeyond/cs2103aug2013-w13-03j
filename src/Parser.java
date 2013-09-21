@@ -26,14 +26,15 @@ public class Parser {
 		while (sc.hasNextLine()) {
 			s = sc.nextLine();
 			try {
-				String[] result = parseSearchCommand(s);
+				String[] result = parseEditCommand(s);
 				for (String u : result)
 					System.out.println(u);
 			} catch (Exception e) {
 				System.out.println("Invalid Command");
 			}
 		}
-	}*/
+	}
+	*/
 
 	public static String[] parseAddCommand(String content) {
 		if (content.isEmpty()) {
