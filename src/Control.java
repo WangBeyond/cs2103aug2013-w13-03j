@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Scanner;
 
 public class Control {
@@ -358,5 +359,7 @@ public class Control {
 		return result;
 	}
 	
-
+	private static void sortList(ArrayList<Task> list){
+		Collections.sort(list);
+	}
 }

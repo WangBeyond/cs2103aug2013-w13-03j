@@ -1,4 +1,4 @@
-class Task {
+class Task implements Comparable<Task> {
 
 	private boolean isImportant;
 	private CustomDate startDate;
@@ -27,6 +27,14 @@ class Task {
 		this.indexId = indexId;
 	}
 
+	public int compareTo(Task other){
+		if(endDate.compareTo(other.endDate))
+			return workInfo.compareToIgnoreCase(other.workInfo);
+		else
+			return endDate.compareTo(other.endDate);
+	}
+	
+	
 	// get functions
 	public boolean getIsImportant() {
 		return isImportant;
