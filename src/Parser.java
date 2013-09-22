@@ -5,19 +5,35 @@ public class Parser {
 		ADD, REMOVE, SEARCH, EDIT, COMPLETE, INCOMPLETE, UNDO, REDO, CLEAR_ALL, TODAY, SHOW_ALL, SYNC, SETTINGS, HELP, EXIT, INVALID, MARK, UNMARK
 	}
 
-	private static String[] startDateKeys = { "start from", "start at",
-			"start on", "begin from", "begin at", "begin on", "from" };
-	private static String[] endDateKeys = { "end on", "end at", "end by",
-			"end before", "to", "till", "until", "by", "due" };
+	/*start date keys*/
+	private static String[] startDateKeys = {
+		"start from", "start at", "start on", "begin from", "begin at", "begin on", "from", "frm"
+	};
+	
+	/*end date keys*/
+	private static String[] endDateKeys = {
+		"end on", "end at", "end by", "end before", "to", "till", "until", "by", "due"
+	};
 
 	public static final int INDEX_IS_MATCH = 0;
-	public static final int INDEX_WORK_INFO = 1;
+	public static final int INDEX_WORK_INFO = 0;
+	public static final int INDEX_STRING_BEFORE = 1;
+	public static final int INDEX_TAG = 1;
 	public static final int INDEX_START_DATE = 2;
 	public static final int INDEX_END_DATE = 3;
-
+	public static final int INDEX_STRING_AFTER = 4;
+	public static final int INDEX_IS_IMPT = 4;
+	
+	/*maximum length of a date. Example: next Monday 4pm*/
+	public static final int MAX_DATE_LENGTH = 3;
+	
+	public static final String IMPT_MARK = "*";
+	public static final String HASH_TAG = "#";
 	public static final String TRUE = "true";
 	public static final String FALSE = "false";
 	public static final String NULL = "null";
+	public static final String START_KEY = "start key";
+	public static final String END_KEY = "end key";
 
 	/*Test Parse Function
 	public static void main(String[] args) {
@@ -35,312 +51,512 @@ public class Parser {
 		}
 	}
 	*/
-
-	public static String[] parseAddCommand(String content) {
-		if (content.isEmpty()) {
-			String[] s = { null, null, null, null, null };
-			return s;
+/*******************************************************************************************************************/
+	/**
+	 * Parse add command string into an array of strings.
+	 * @param content - a add command string with "add" key word being removed
+	 * @return an array of strings where  
+	 *         the first field contains workInfo, NULL if it is empty;
+	 *         the second field contains startDateString, NULL if it is empty;
+	 *         the third field contains endDateString, NULL if it is empty;
+	 *         the fourth field contains tag, NULL if it is empty;
+	 *         the fifth field contains isImpt (TRUE or FALSE).
+	 */
+	public static String[] parseAddCommand(String content){
+		String commandString = content.trim();
+		
+		String[] result = null;
+		
+		String workInfo = NULL;
+		String startDateString = NULL;
+		String endDateString = NULL;
+		String tag = NULL;
+		String isImpt = FALSE;
+		
+		if(hasMultipleTags(commandString)){//if contains multiple hash tags
+			throw new IllegalArgumentException("Invalid Command: multiple hash tags(#).");
+		} else {
+			tag = getTagName(commandString);
+			commandString = removeTag(commandString);
 		}
-
-		String[] tempResult = new String[4];
-		String workInfo = "";
-		String startDateString = "";
-		String endDateString = "";
-		String tag = "";
-		String isImpt = "";
-
-		content = content.trim();
-
-		if (isImptTask(content)) {
-			isImpt = TRUE;
-			content = removeImptMark(content);
+		
+		if(hasMultipleImptMarks(commandString)){//if contains multiple important marks
+			throw new IllegalArgumentException("Invalid Command: multiple important marks(*).");
+		} else {
+			isImpt = isImptTask(commandString);
+			commandString = removeImptMark(commandString);
 		}
-		if (hasTag(content)) {
-			tag = getTagName(content);
-			content = removeTag(content);
-		}
-
-		String commandString = content;
-
-		tempResult = matchDatePattern1(commandString);
-		if (tempResult[INDEX_IS_MATCH] == TRUE) {
-			workInfo = tempResult[INDEX_WORK_INFO];
-			startDateString = tempResult[INDEX_START_DATE];
-			endDateString = tempResult[INDEX_END_DATE];
-			String[] result = new String[5];
-			result[0] = workInfo;
-			result[1] = startDateString;
-			result[2] = endDateString;
-			result[3] = tag;
-			result[4] = isImpt;
-			return result;
-		}
-
-		tempResult = matchDatePattern2(commandString);
-		if (tempResult[INDEX_IS_MATCH] == TRUE) {
-			workInfo = tempResult[INDEX_WORK_INFO];
-			startDateString = tempResult[INDEX_START_DATE];
-			endDateString = tempResult[INDEX_END_DATE];
-			String[] result = new String[5];
-			result[0] = workInfo;
-			result[1] = startDateString;
-			result[2] = endDateString;
-			result[3] = tag;
-			result[4] = isImpt;
-			return result;
-		}
-
-		tempResult = matchDatePattern3(commandString);
-		if (tempResult[INDEX_IS_MATCH] == TRUE) {
-			workInfo = tempResult[INDEX_WORK_INFO];
-			startDateString = tempResult[INDEX_START_DATE];
-			endDateString = tempResult[INDEX_END_DATE];
-			String[] result = new String[5];
-			result[0] = workInfo;
-			result[1] = startDateString;
-			result[2] = endDateString;
-			result[3] = tag;
-			result[4] = isImpt;
-			return result;
-		}
-
-		tempResult = matchDatePattern4(commandString);
-		if (tempResult[INDEX_IS_MATCH] == TRUE) {
-			workInfo = tempResult[INDEX_WORK_INFO];
-			startDateString = tempResult[INDEX_START_DATE];
-			endDateString = tempResult[INDEX_END_DATE];
-			String[] result = new String[5];
-			result[0] = workInfo;
-			result[1] = startDateString;
-			result[2] = endDateString;
-			result[3] = tag;
-			result[4] = isImpt;
-			return result;
-		}
-
-		tempResult = matchDatePattern5(commandString);
-		if (tempResult[INDEX_IS_MATCH] == TRUE) {
-			workInfo = tempResult[INDEX_WORK_INFO];
-			startDateString = tempResult[INDEX_START_DATE];
-			endDateString = tempResult[INDEX_END_DATE];
-			String[] result = new String[5];
-			result[0] = workInfo;
-			result[1] = startDateString;
-			result[2] = endDateString;
-			result[3] = tag;
-			result[4] = isImpt;
-			return result;
-		}
-
-		String[] result = new String[5];
-		result[0] = commandString;
-		result[1] = "";
-		result[2] = "";
-		result[3] = tag;
-		result[4] = isImpt;
-
-		return result;
-	}
-
-	/* pattern: <start key> <date> <end key> <date> */
-	private static String[] matchDatePattern1(String commandString) {
-		String[] result = { FALSE, NULL, NULL, NULL };
-		String workInfo = "";
-		String unmatchedString = commandString;
-		boolean isStartDateMatch = false;
-		// find last occurrence of a <start key>
-		for (int i = 0; i < startDateKeys.length; i++) {
-			int index = unmatchedString.lastIndexOf(startDateKeys[i]);
-			if (index < 0) {
-				continue;
-			} else {
-				int length = startDateKeys[i].length();
-				isStartDateMatch = true;
-				workInfo = unmatchedString.substring(0, index - 1).trim();
-				unmatchedString = unmatchedString.substring(index + length,
-						unmatchedString.length());
-				break;
-			}
-		}
-		if (isStartDateMatch) {
-			String startDateString = "";
-			String endDateString = "";
-			boolean isEndDateMatch = false;
-			// find last occurrence of a <end key>
-			for (int i = 0; i < endDateKeys.length; i++) {
-				int index = unmatchedString.lastIndexOf(endDateKeys[i]);
-				if (index < 0) {
-					continue;
+		
+		//split command string into three parts: string before dates, dates, and string after dates.
+		result = splitByDate(commandString);
+		String stringBeforeDate = result[INDEX_STRING_BEFORE];
+		String stringAfterDate = result[INDEX_STRING_AFTER];
+		
+		startDateString = result[INDEX_START_DATE];
+		endDateString = result[INDEX_END_DATE];
+		
+		if(result[INDEX_START_DATE] != NULL || result[INDEX_END_DATE] != NULL){//contains at one date
+			//check if contains multiple dates
+			if(splitByDate(result[4])[0] == TRUE){//contains multiple dates
+				throw new IllegalArgumentException("Invalid Command: multiple date inputs.");
+			} else {//contains only one date
+				if(stringBeforeDate == NULL && stringAfterDate == NULL){//empty work information
+					throw new IllegalArgumentException("Invalid command: work information can't be empty.");					
 				} else {
-					int length = endDateKeys[i].length();
-					isEndDateMatch = true;
-					startDateString = unmatchedString.substring(0, index - 1)
-							.trim();
-					endDateString = unmatchedString.substring(index + length,
-							unmatchedString.length()).trim();
-					break;
-				}
-			}
-			if (isEndDateMatch) {
-				CustomDate DateTester = new CustomDate();
-				if (DateTester.convert(startDateString) == 1
-						&& DateTester.convert(endDateString) == 1) {
-					result[INDEX_IS_MATCH] = TRUE;
-					result[INDEX_WORK_INFO] = workInfo;
-					result[INDEX_START_DATE] = startDateString;
-					result[INDEX_END_DATE] = endDateString;
-					return result;
-				}
-			}
-		}
-		return result;
-	}
-
-	/* pattern: <date> <end key> <date> */
-	private static String[] matchDatePattern2(String commandString) {
-		String[] result = { FALSE, NULL, NULL, NULL };
-		String unmatchedString = commandString;
-		String workInfo = "";
-		String startDateString = "";
-		String endDateString = "";
-		boolean isEndDateMatch = false;
-		boolean isStartDateMatch = false;
-		// find last occurrence of a <end key>
-		for (int i = 0; i < endDateKeys.length; i++) {
-			int index = unmatchedString.lastIndexOf(endDateKeys[i]);
-			if (index < 0) {
-				continue;
-			} else {
-				int length = endDateKeys[i].length();
-				isEndDateMatch = true;
-				endDateString = unmatchedString.substring(index + length,
-						unmatchedString.length()).trim();
-				unmatchedString = unmatchedString.substring(0, index - 1)
-						.trim();
-				break;
-			}
-		}
-		if (isEndDateMatch) {
-			CustomDate dateTester = new CustomDate();
-			if (dateTester.convert(endDateString) == 1) {
-				while (!unmatchedString.isEmpty()) {
-					if (dateTester.convert(getLastWord(unmatchedString)) == 1) {
-						isStartDateMatch = true;
-						if (dateTester.convert(getLastWord(unmatchedString)
-								+ " " + startDateString) == 1) {
-							startDateString = getLastWord(unmatchedString)
-									+ " " + startDateString;
-							unmatchedString = removeLastWord(unmatchedString);
-							workInfo = unmatchedString;
-						} else {
-							break;
-						}
-					} else {
-						break;
+					if(stringBeforeDate == NULL){//case 1: date is at the begin
+						workInfo = stringAfterDate;
+					} else if(stringAfterDate == NULL){//case 2: date is at the end
+						workInfo = stringBeforeDate;
+					} else {//case 3: date is at the middle
+						workInfo = stringBeforeDate + " " + stringAfterDate;
 					}
 				}
 			}
+		} else {//contains no date
+			workInfo = stringBeforeDate;
 		}
-		if (isStartDateMatch) {
-			result[INDEX_IS_MATCH] = TRUE;
-			result[INDEX_WORK_INFO] = workInfo;
-			result[INDEX_START_DATE] = startDateString.trim();
-			result[INDEX_END_DATE] = endDateString;
+		
+		String[] parsedCommand = new String[]{FALSE, NULL, NULL, NULL, NULL};
+		
+		parsedCommand[INDEX_WORK_INFO] = workInfo;
+		parsedCommand[INDEX_START_DATE] = startDateString;
+		parsedCommand[INDEX_END_DATE] = endDateString;
+		parsedCommand[INDEX_TAG] = tag;
+		parsedCommand[INDEX_IS_IMPT] = isImpt;
+	
+		return parsedCommand;
+	}
+	
+	/**
+	 * Splits the specified command string into an array of strings based on dates.
+	 * @param commandString - a command string
+	 * @return an array of string where the first field contains is_match(TRUE or FALSE); 
+	 *         the second field contains stringBeforeStartDate, NULL if it is empty;
+	 *         the third field contains startDateString, NULL if it is empty;
+	 *         the fourth field contains endDateString, NULL if it is empty;
+	 *         the fifth field contains stringAfterEndDate, NULL if it is empty.
+	 */
+	private static String[] splitByDate(String commandString){
+		String[] r = new String[] {TRUE, NULL, NULL, NULL, NULL};
+		
+		//try to match date pattern1: <start date key> <date> <end date key> <date>
+		r = matchDatePattern1(commandString.trim());
+		if(r[0] == TRUE){//if it matches pattern1
+			return r;
+		}
+		
+		//try to match date pattern2: <start date key> <date> 
+		r = matchDatePattern2(commandString.trim());
+		if(r[0] == TRUE){//if it matches pattern2.
+			return r;
+		}
+		
+		//try to match date pattern3: <end date key> <date>
+		r = matchDatePattern3(commandString.trim());
+		if(r[0] == TRUE){//if it matches pattern3.
+			return r;
+		}
+		
+		//no dates found in command string
+		r[INDEX_STRING_BEFORE] = commandString;
+		
+		return r;
+	}
+	
+	/**
+	 * Matches a date pattern: <start date key> <date> <end date key> <date> within the specified string.
+	 * @param commandString - a command string.
+	 * @return an array of string where the first field contains is_match(TRUE or FALSE); 
+	 *         the second field contains stringBeforeStartDate, NULL if it is empty;
+	 *         the third field contains startDateString, NULL if it is empty;
+	 *         the fourth field contains endDateString, NULL if it is empty;
+	 *         the fifth field contains stringAfterEndDate, NULL if it is empty.
+	 */
+	private static String[] matchDatePattern1(String commandString){
+		String[] result = {FALSE, NULL, NULL, NULL, NULL};
+		
+		for(int i = 0; i < startDateKeys.length; i++){
+			//find first occurrence of a <start key>
+			int startKeyIndex =  indexOf(commandString, startDateKeys[i], 0);
+			while(startKeyIndex >= 0){
+				int startKeyLength = startDateKeys[i].length();
+				String stringBeforeStartKey = commandString.substring(0, startKeyIndex).trim();
+				String stringAfterStartKey = commandString.substring(startKeyIndex+startKeyLength).trim();
+				
+				//find first occurrence of a <end key> after start key
+				for(int j = 0; j < endDateKeys.length; j++){
+					int endKeyIndex = stringAfterStartKey.indexOf(endDateKeys[j]);
+					if(endKeyIndex < 0){//only has a start key
+						continue;
+					} else {
+						int endKeyLength = endDateKeys[j].length();
+						CustomDate dateTester = new CustomDate();
+						String startDateString = stringAfterStartKey.substring(0, endKeyIndex).trim();
+						if(dateTester.convert(startDateString)==Control.INVALID){
+							break;
+						}
+						//get end date string
+						String stringAfterEndKey = stringAfterStartKey.substring(endKeyLength+endKeyIndex).trim();
+						int endDateLength = isValidDate(stringAfterEndKey);
+						if(endDateLength == Control.INVALID){
+							break;
+						} else {
+							String endDateString = stringAfterEndKey.substring(0, endDateLength);
+							String remainingString = stringAfterEndKey.substring(endDateLength).trim();
+							
+							result[INDEX_IS_MATCH] = TRUE;
+							if(!stringBeforeStartKey.isEmpty()){
+								result[INDEX_STRING_BEFORE] = stringBeforeStartKey;								
+							}
+							if(!remainingString.isEmpty()){
+								result[INDEX_STRING_AFTER] = remainingString;
+							}
+							result[INDEX_START_DATE] = startDateString;
+							result[INDEX_END_DATE] = endDateString;
+							
+							return result;
+						}
+					}
+				}
+				startKeyIndex = indexOf(commandString, startDateKeys[i], startKeyIndex+startKeyLength);
+			}	
 		}
 		return result;
 	}
-
-	/* pattern: <start key> <date> */
-	private static String[] matchDatePattern3(String commandString) {
-		String[] result = { FALSE, NULL, NULL, NULL };
-		String workInfo = "";
-		String unmatchedString = commandString;
-		String startDateString = "";
-		boolean isStartDateMatch = false;
+	
+	/**
+	 * Matches a date pattern: <start date key> <date> within the specified string.
+	 * @param commandString - a command string.
+	 * @return an array of string where the first field contains is_match(TRUE or FALSE); 
+	 *         the second field contains stringBeforeStartDate, NULL if it is empty;
+	 *         the third field contains startDateString, NULL if it is empty;
+	 *         the fourth field contains endDateString, NULL if it is empty;
+	 *         the fifth field contains stringAfterEndDate, NULL if it is empty.
+	 */
+	private static String[] matchDatePattern2(String commandString){
+		return matchDatePatternWith(commandString, startDateKeys, START_KEY);
+	}
+	
+	/**
+	 * Matches a date pattern: <end date key> <date> within the specified string.
+	 * @param commandString - a command string.
+	 * @return an array of string where the first field contains is_match(TRUE or FALSE); 
+	 *         the second field contains stringBeforeStartDate, NULL if it is empty;
+	 *         the third field contains startDateString, NULL if it is empty;
+	 *         the fourth field contains endDateString, NULL if it is empty;
+	 *         the fifth field contains stringAfterEndDate, NULL if it is empty.
+	 */
+	private static String[] matchDatePattern3(String commandString){
+		return matchDatePatternWith(commandString, endDateKeys, END_KEY);
+	}
+	
+	/**
+	 * Matches the specified command string with a date pattern.
+	 * @param commandString - a command string.
+	 * @param keys - an array of string which contains a set of keys.
+	 * @param keyType - a string of key type. It should be neither START_KEY or END_KEY.
+	 * @return an array of string where the first field contains is_match(TRUE or FALSE); 
+	 *         the second field contains stringBeforeStartDate, NULL if it is empty;
+	 *         the third field contains startDateString, NULL if it is empty;
+	 *         the fourth field contains endDateString, NULL if it is empty;
+	 *         the fifth field contains stringAfterEndDate, NULL if it is empty.
+	 */
+	private static String[] matchDatePatternWith(String commandString, String[] keys, String keyType){
+		String[] result = {FALSE, NULL, NULL, NULL, NULL};
+		
+		for(int i = 0; i < keys.length; i++){
+			//find first occurrence of a <key>
+			int keyIndex =  indexOf(commandString, keys[i], 0);
+			while(keyIndex >= 0){
+				int keyLength = keys[i].length();
+				//get string before the date key
+				String stringBeforeKey = commandString.substring(0, keyIndex).trim();
+				//get string after the date key
+				String stringAfterKey = commandString.substring(keyIndex+keyLength).trim();
+				
+				int dateIndex = isValidDate(stringAfterKey);
+				if(dateIndex == Control.INVALID){
+					keyIndex = indexOf(commandString, keys[i], keyIndex+keyLength);
+				} else {
+					String dateString = stringAfterKey.substring(0, dateIndex);
+					String remainingString = stringAfterKey.substring(dateIndex, stringAfterKey.length()).trim();
+					result[INDEX_IS_MATCH] = TRUE;
+					if(!stringBeforeKey.isEmpty()){
+						result[INDEX_STRING_BEFORE] = stringBeforeKey;
+					}
+					if(!remainingString.isEmpty()){
+						result[INDEX_STRING_AFTER] = remainingString;
+					}
+					if(keyType.equals(START_KEY)){
+						result[INDEX_START_DATE] = dateString;						
+						result[INDEX_END_DATE] = NULL;
+					} else {
+						result[INDEX_START_DATE] = NULL;
+						result[INDEX_END_DATE] = dateString;
+					}
+					return result;
+				}
+			}	
+		}
+		return result;
+	}
+	
+	/**
+	 * Returns the index within this string of the first occurrence of the specified substring after a specified index. 
+	 * @param s - the string within witch str is being searched.
+	 * @param str - a string.
+	 * @param fromIndex - the index to search from.
+	 * @return the index of the first occurrence of the specified substring within this string; 
+	 *         if no such value of k exists, then -1 is returned.
+	 */
+	private static int indexOf(String s, String str, int fromIndex){
+		int index = s.substring(fromIndex, s.length()).indexOf(str);
+		if(index < 0){
+			return -1;
+		} else {
+			return index+fromIndex;
+		}
+	}
+	
+	/*
+	private static int isValidStartDate(String startDateString){
 		CustomDate dateTester = new CustomDate();
-		// find last occurrence of a <start key>
-		for (int i = 0; i < startDateKeys.length; i++) {
-			int index = unmatchedString.lastIndexOf(startDateKeys[i]);
-			if (index < 0) {
-				continue;
-			} else {
-				int length = startDateKeys[i].length();
-				isStartDateMatch = true;
-				workInfo = unmatchedString.substring(0, index - 1).trim();
-				startDateString = unmatchedString.substring(index + length,
-						unmatchedString.length()).trim();
-				break;
-			}
+		String[] startDateStringArray = startDateString.trim().split("\\s+");
+		int length = 0;
+		if(startDateStringArray.length >= 4){
+			length = 4;
+		} else {
+			length = startDateStringArray.length;
 		}
-		if (isStartDateMatch) {
-			if (dateTester.convert(startDateString) == 1) {
-				result[INDEX_IS_MATCH] = TRUE;
-				result[INDEX_WORK_INFO] = workInfo;
-				result[INDEX_START_DATE] = startDateString;
-			}
+		String tester = "";
+		for(int i=0;i<length;i++){
+			tester = (tester+" "+startDateStringArray[i]);
 		}
-		return result;
+		tester = tester.trim();
+		while(!tester.isEmpty()){
+			if(dateTester.convert(tester) == Control.VALID){
+				return tester.length();
+			}
+			tester = removeLastWord(tester);
+		}
+		return Control.INVALID;
 	}
-
-	/* pattern: <end key> <date> */
-	private static String[] matchDatePattern4(String commandString) {
-		String[] result = { FALSE, NULL, NULL, NULL };
-		String workInfo = "";
-		String unmatchedString = commandString;
-		String endDateString = "";
-		boolean isEndDateMatch = false;
+	
+	private static int isValidEndDate(String endDateString){
 		CustomDate dateTester = new CustomDate();
-		// find last occurrence of a <end key>
-		for (int i = 0; i < endDateKeys.length; i++) {
-			int index = unmatchedString.lastIndexOf(endDateKeys[i]);
-			if (index < 0) {
-				continue;
-			} else {
-				int length = endDateKeys[i].length();
-				isEndDateMatch = true;
-				workInfo = unmatchedString.substring(0, index - 1).trim();
-				endDateString = unmatchedString.substring(index + length,
-						unmatchedString.length()).trim();
-				break;
-			}
+		String[] endDateStringArray = endDateString.trim().split("\\s+");
+		int length = 0;
+		if(endDateStringArray.length >= 4){
+			length = 4;
+		} else {
+			length = endDateStringArray.length;
 		}
-		if (isEndDateMatch) {
-			if (dateTester.convert(endDateString) == 1) {
-				result[INDEX_IS_MATCH] = TRUE;
-				result[INDEX_WORK_INFO] = workInfo;
-				result[INDEX_END_DATE] = endDateString;
-			}
+		String tester = "";
+		for(int i=0;i<length;i++){
+			tester = (tester+" "+endDateStringArray[i]);
 		}
-		return result;
+		tester = tester.trim();
+		while(!tester.isEmpty()){
+			if(dateTester.convert(tester) == Control.VALID){
+				return tester.length();
+			}
+			tester = removeLastWord(tester);
+		}
+		return Control.INVALID;
 	}
-
-	/* pattern: <date> */
-	private static String[] matchDatePattern5(String commandString) {
-		String[] result = { FALSE, NULL, NULL, NULL };
-		String workInfo = "";
-		String startDateString = "";
-		boolean isStartDate = false;
-		String unmatchedString = commandString;
+	*/
+	
+	/**
+	 * Checks whether a string is a valid date or not.
+	 * @param dateString - the string which is being checked.
+	 * @return number of words in the date string if the string contains a date;
+	 *         otherwise, returns INVALID(-1).
+	 */
+	private static int isValidDate(String dateString){
 		CustomDate dateTester = new CustomDate();
-		while (!unmatchedString.isEmpty()) {
-			if (dateTester.convert(getLastWord(unmatchedString)) == 1) {
-				isStartDate = true;
-				startDateString = getLastWord(unmatchedString) + " "
-						+ startDateString;
-				unmatchedString = removeLastWord(unmatchedString);
-				workInfo = unmatchedString;
-			} else {
-				break;
+		String[] dateStringArray = dateString.trim().split("\\s+");
+		int length = 0;
+		
+		if(dateStringArray.length >= MAX_DATE_LENGTH){
+			length = MAX_DATE_LENGTH;
+		} else {
+			length = dateStringArray.length;
+		}
+		
+		String tester = "";
+		
+		//construct the date tester string.
+		for(int i = 0; i < length; i++){
+			tester = (tester + " " + dateStringArray[i]);
+		}
+		
+		tester = tester.trim();
+		
+		while(!tester.isEmpty()){
+			if(dateTester.convert(tester) == Control.VALID){
+				return tester.length();
+			}
+			tester = removeLastWord(tester);
+		}
+		return Control.INVALID;
+	}
+	
+	/*
+	private static String getFirstWord(String userCommand) {
+		String commandTypeString = userCommand.trim().split("\\s+")[0];
+		return commandTypeString;
+	}
+	
+	private static String removeFirstWord(String userCommand) {
+		return userCommand.replace(getFirstWord(userCommand), "").trim();
+	}
+	*/
+	
+	private static String getLastWord(String commandString){
+		String[] stringArray = commandString.trim().split("\\s+");
+		return stringArray[stringArray.length-1];
+	}
+	
+	private static String removeLastWord(String commandString){
+		String lastWord = getLastWord(commandString);
+		return commandString.substring(0, commandString.length()-lastWord.length()).trim();
+	}
+	
+	/**
+	 * Checks whether the specified command string has more than one hash tags.
+	 * @param commandString - the string which is being checked.
+	 * @return true if it contains more than one hash tag; false otherwise.
+	 */
+	private static boolean hasMultipleTags(String commandString){
+		String[] words = commandString.trim().split("\\s+");
+		boolean hasTag = false;
+		
+		for(int i = 0;i < words.length; i++){
+			if(words[i].startsWith(HASH_TAG)){
+				if(hasTag){
+					return true;
+				}
+				hasTag = true;
 			}
 		}
-		if (isStartDate) {
-			result[INDEX_IS_MATCH] = TRUE;
-			result[INDEX_WORK_INFO] = workInfo;
-			result[INDEX_START_DATE] = startDateString;
-		}
-		return result;
+		return false;
 	}
-
+	
+	/**
+	 * Removes the first hash tag from the specified string.
+	 * @param commandString - the string from which the hash tag is being removed.
+	 * @return the string with hash tag being removed if it contains a hash tag;
+	 *         otherwise, returns the same string.
+	 */
+	private static String removeTag(String commandString){
+		String[] words = commandString.trim().split("\\s+");
+		String result = "";
+		int index = indexOfTag(commandString);
+		if(index >= 0){
+			for(int i = 0; i < words.length; i++){
+				if(i != index){
+					result = result + " " + words[i];
+				}
+			}
+			return result.trim();
+		}
+		return commandString;
+	}
+	
+	/**
+	 * Returns content of the hash tag in the specified command string.
+	 * @param commandString - the string which may contains a hash tag.
+	 * @return the content of the hash tag with '#' being removed if the string contains a hash tag;
+	 *         the string NULL otherwise.
+	 */
+	private static String getTagName(String commandString){
+		String[] words = commandString.trim().split("\\s+");
+		for(int i = 0; i < words.length; i++){
+			if(words[i].startsWith(HASH_TAG)){
+				return words[i].replaceFirst(HASH_TAG, " ").trim();
+			}
+		}
+		return NULL;
+	}
+	
+	/**
+	 * Returns the index of the first hash tag in the specified command string.
+	 * @param commandString - the string which is being checked.
+	 * @return the starting index if the command string contains a hag tag; -1 otherwise.
+	 */
+	private static int indexOfTag(String commandString) {
+		String[] words = commandString.trim().split("\\s+");
+		for(int i = 0; i < words.length; i++){
+			if(words[i].startsWith(HASH_TAG)){
+				return i;
+			}
+		}
+		return -1;
+	}
+	
+	/**
+	 * Checks whether the specified command string contains more than one important marks.
+	 * @param commandString - the string which is being checked.
+	 * @return true if it contains more than one important marks; false, otherwise.
+	 */
+	private static boolean hasMultipleImptMarks(String commandString){
+		String[] words = commandString.trim().split("\\s+");
+		boolean isImpt = false;
+		
+		for(int i = 0; i < words.length; i++){
+			if(words[i].equals(IMPT_MARK)){
+				if(isImpt){
+					return true;
+				}
+				isImpt = true;
+			}
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * Checks whether the specified command string is important.
+	 * @param commandString - the string which is being checked.
+	 * @return the string TRUE if it is a important task; otherwise, returns the string FALSE.
+	 */
+	private static String isImptTask(String commandString) {
+		String[] words = commandString.trim().split("\\s+");
+		
+		for(int i = 0; i < words.length; i++){
+			if(words[i].equals(IMPT_MARK)){
+				return TRUE;
+			}
+		}
+		
+		return FALSE;
+	}
+	
+	/**
+	 * Removes the important mark from the specified command string.
+	 * @param commandString - the string from which the important mark is being removed.
+	 * @return the string after removing the first important mark if it contains important mark;
+	 *         otherwise the same string is returned.
+	 */
+	private static String removeImptMark(String commandString){
+		if(isImptTask(commandString) == TRUE){
+			String[] words = commandString.trim().split("\\s+");
+			String result = "";
+			for(int i = 0; i < words.length; i++){
+				if(!words[i].equals(IMPT_MARK)){
+					result = result + " " + words[i];
+				}
+			}
+			return result.trim();
+		}
+		
+		return commandString;
+	}
+/********************************************************************************************************************/
+	
+	
+	
+	
 	public static boolean checkEmptyCommand(String userCommand) {
 		return userCommand.trim().equals("");
 	}
@@ -618,99 +834,5 @@ public class Parser {
 
 	static String removeFirstWord(String userCommand) {
 		return userCommand.replaceFirst(getFirstWord(userCommand), "").trim();
-	}
-
-	private static String removeLastWord(String commandString) {
-		String lastWord = getLastWord(commandString);
-		return commandString.substring(0,
-				commandString.length() - lastWord.length()).trim();
-	}
-
-	private static String getLastWord(String commandString) {
-		String[] stringArray = commandString.trim().split("\\s+");
-		return stringArray[stringArray.length - 1];
-	}
-
-	public static String getStartDateString(String s) {
-		return removeInputKeys(s, startDateKeys);
-	}
-
-	public static String getEndDateString(String s) {
-		return removeInputKeys(s, endDateKeys);
-	}
-
-	private static String removeInputKeys(String s, String[] keys) {
-		String StringRemovedKey = null;
-		for (int i = 0; i < keys.length; i++) {
-			if (s.startsWith(keys[i])) {
-				StringRemovedKey = s.replaceFirst(keys[i], " ").trim();
-				break;
-			}
-		}
-		return StringRemovedKey;
-	}
-
-	private static String getTagName(String s) {
-		return getLastWord(s).replace("#", "").trim();
-	}
-
-	public static boolean isStartDate(String content) {
-		for (int i = 0; i < startDateKeys.length; i++) {
-			if (content.startsWith(startDateKeys[i])) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	public static CustomDate getStartDate(String content) {
-		CustomDate tempDate = new CustomDate();
-		String DateString = getStartDateString(content);
-		if (tempDate.convert(DateString) == 1)
-			return tempDate;
-		else
-			return null;
-	}
-
-	public static boolean isEndDate(String content) {
-		for (int i = 0; i < endDateKeys.length; i++) {
-			if (content.startsWith(endDateKeys[i])) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	public static CustomDate getEndDate(String content) {
-		CustomDate tempDate = new CustomDate();
-		String DateString = getEndDateString(content);
-		if (tempDate.convert(DateString) == 1)
-			return tempDate;
-		else
-			return null;
-	}
-
-	private static boolean hasTag(String commandString) {
-		String lastWord = getLastWord(commandString);
-		return lastWord.startsWith("#");
-	}
-
-	private static String removeTag(String commandString) {
-		if (hasTag(commandString)) {
-			return removeLastWord(commandString);
-		}
-		return commandString;
-	}
-
-	private static boolean isImptTask(String commandString) {
-		return commandString.charAt(commandString.length() - 1) == '*';
-	}
-
-	private static String removeImptMark(String commandString) {
-		if (isImptTask(commandString)) {
-			return commandString.substring(0, commandString.length() - 1)
-					.trim();
-		}
-		return commandString;
 	}
 }
