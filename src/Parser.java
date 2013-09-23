@@ -33,7 +33,7 @@ public class Parser {
 	public static final String NULL = "null";
 	public static final String START_KEY = "start key";
 	public static final String END_KEY = "end key";
-
+/*
 	public static void main(String[] args) {
 		Scanner sc = new Scanner(System.in);
 		String s;
@@ -53,7 +53,7 @@ public class Parser {
 			}
 		}
 	}
-
+*/
 	/**
 	 * This function is used to determine the command type of the command input
 	 * from the user
@@ -256,6 +256,9 @@ public class Parser {
 	 */
 	private static String[] parseCommandWithIndex(String content) {
 		String[] splittedUserCommand = splitBySpace(content);
+		if(splittedUserCommand.length < 1)
+			throw new IllegalArgumentException("No indexes");
+		
 		try {
 			for (String s : splittedUserCommand)
 				Integer.parseInt(s);
@@ -348,8 +351,11 @@ public class Parser {
 		tester = tester.trim();
 
 		while (!tester.isEmpty()) {
-			if (dateTester.convert(tester) == Control.VALID) {
+			int result = dateTester.convert(tester);
+			if (result == Control.VALID) {
 				return tester.length();
+			} else if(result == CustomDate.OUT_OF_BOUNDS){
+				throw new IllegalArgumentException("The time is out of bounds. Please recheck!");
 			}
 			tester = removeLastWord(tester);
 		}
