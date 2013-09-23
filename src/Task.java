@@ -28,7 +28,7 @@ class Task implements Comparable<Task> {
 	}
 
 	public int compareTo(Task other){
-		if(endDate.compareTo(other.endDate))
+		if(endDate.compareTo(other.endDate) == 0)
 			return workInfo.compareToIgnoreCase(other.workInfo);
 		else
 			return endDate.compareTo(other.endDate);
