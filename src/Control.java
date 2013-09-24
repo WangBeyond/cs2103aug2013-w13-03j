@@ -11,12 +11,16 @@ public class Control {
 	private static final String MESSAGE_EMPTY_COMMAND = "Empty Command!";
 	private static final String MESSAGE_SUCCESSFUL_SEARCH = "Successful Search!";
 	private static final String MESSAGE_NO_RESULTS = "Search no results!";
-	private static final String MESSAGE_SUCCESSFUL_ADD = "Task is added successfully";
-	private static final String MESSAGE_SUCCESSFUL_EDIT = "Task is edited successfully";
-	private static final String MESSAGE_SUCCESFUL_REMOVE = "Indicated tasks are removed";
-	private static final String MESSAGE_INVALID_DATE_RANGE = "Invalid date range as start date is after end date";
-	private static final String MESSAGE_DUPLICATE_INDEXES = "There are duplicate indexes";
-	private static final String MESSAGE_INDEX_OUT_OF_BOUNDS = "There is an index outside the range of the list";
+	private static final String MESSAGE_SUCCESSFUL_ADD = "Task is added successfully.";
+	private static final String MESSAGE_SUCCESSFUL_EDIT = "Task is edited successfully.";
+	private static final String MESSAGE_SUCCESFUL_REMOVE = "Indicated tasks are removed.";
+	private static final String MESSAGE_INVALID_DATE_RANGE = "Invalid date range as start date is after end date.";
+	private static final String MESSAGE_DUPLICATE_INDEXES = "There are duplicate indexes.";
+	private static final String MESSAGE_INDEX_OUT_OF_BOUNDS = "There is an index outside the range of the list.";
+	private static final String MESSAGE_SUCCESSFUL_MARK = "Task(s) %1$shas/have been marked successfully.";
+	private static final String MESSAGE_FAILED_MARK = "Task(s) %1$shas/have not been successfully marked as index(es) is/are not valid.";
+	private static final String MESSAGE_SUCCESSFUL_UNMARK = "Task(s) %1$shas/have been unmarked successfully.";
+	private static final String MESSAGE_FAILED_UNMARK = "Task(s) %1$shas/have not been successfully unmarked as index(es) is/are not valid.";	
 
 	public static final int VALID = 1;
 	public static final int INVALID = -1;
@@ -258,6 +262,54 @@ public class Control {
 			return MESSAGE_NO_RESULTS;
 
 		return MESSAGE_SUCCESSFUL_SEARCH;
+	}
+
+	public static String executeMarkCommand(String[] splittedUserCommand){
+		int numPendingTasks = modelHandler.getPendingList().size();
+		int indexCount = splittedUserCommand.length;
+		String successfulMark = "", failedMark = "";
+
+		for (int i = 0; i < indexCount; i++){
+			if (i >= numPendingTasks || i < 0){
+				failedMark += i + " ";			
+			}
+			else{
+				Task targetTask = modelHandler.getTaskFromPending(i);
+				targetTask.setIsImportant(true);
+				successfulMark += i + " ";
+			}
+		}
+
+		if (failedMark.equals(""))
+			return String.format(MESSAGE_SUCCESSFUL_MARK, successfulMark);
+		else if (successfulMark.equals(""))
+			return String.format(MESSAGE_FAILED_MARK, failedMark);
+		else
+			return String.format(MESSAGE_SUCCESSFUL_MARK, successfulMark) + String.format(MESSAGE_FAILED_MARK, failedMark);
+	}
+
+	public static String executeUnmarkCommand(String[] splittedUserCommand){
+		int numPendingTasks = modelHandler.getPendingList().size();
+		int indexCount = splittedUserCommand.length;
+		String successfulUnmark = "", failedUnmark = "";
+
+		for (int i = 0; i < indexCount; i++){
+			if (i >= numPendingTasks || i < 0){
+				failedUnmark += i + " ";			
+			}
+			else{
+				Task targetTask = modelHandler.getTaskFromPending(i);
+				targetTask.setIsImportant(false);
+				successfulUnmark += i + " ";
+			}
+		}
+
+		if (failedUnmark.equals(""))
+			return String.format(MESSAGE_SUCCESSFUL_UNMARK, successfulUnmark);
+		else if (successfulUnmark.equals(""))
+			return String.format(MESSAGE_FAILED_UNMARK, failedUnmark);
+		else
+			return String.format(MESSAGE_SUCCESSFUL_UNMARK, successfulUnmark) + String.format(MESSAGE_FAILED_UNMARK, failedUnmark);
 	}
 
 	public static ArrayList<Task> searchImportantTask(ArrayList<Task> list) {
