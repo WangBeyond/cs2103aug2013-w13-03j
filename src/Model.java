@@ -1,9 +1,9 @@
 import java.util.ArrayList;
 
 class Model {
-	private ArrayList<Task> pending;
-	private ArrayList<Task> complete;
-	private ArrayList<Task> trash;
+	ArrayList<Task> pending;
+	ArrayList<Task> complete;
+	ArrayList<Task> trash;
 	private ArrayList<Task> search;
 
 	// constructor

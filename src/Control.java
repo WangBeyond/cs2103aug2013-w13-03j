@@ -23,7 +23,7 @@ public class Control {
 
 	static Model modelHandler = new Model();
 
-	private static String executeCommand(String userCommand) {
+	public static String executeCommand(String userCommand) {
 		boolean isEmptyCommand = Parser.checkEmptyCommand(userCommand);
 		if (isEmptyCommand) {
 			return MESSAGE_EMPTY_COMMAND;
