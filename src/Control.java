@@ -22,7 +22,11 @@ public class Control {
 	private static final String MESSAGE_SUCCESSFUL_UNMARK = "Task(s) %1$shas/have been unmarked successfully.";
 	private static final String MESSAGE_FAILED_UNMARK = "Task(s) %1$shas/have not been successfully unmarked as index(es) is/are not valid.";	
 	private static final String MESSAGE_SUCCESSFUL_CLEAR = "All %1$s tasks have been cleared.";	
-
+	private static final String MESSAGE_SUCCESSFUL_COMPLETE = "Task(s) %1$shas/have been marked as complete.";	
+	private static final String MESSAGE_FAILED_COMPLETE = "Task(s) %1$shas/have not been marked complete as index(es) is/are not valid.";
+	private static final String MESSAGE_SUCCESSFUL_INCOMPLETE = "Task(s) %1$shas/have been marked as incomplete.";	
+	private static final String MESSAGE_FAILED_INCOMPLETE = "Task(s) %1$shas/have not been marked incomplete as index(es) is/are not valid.";	
+	
 	public static final int VALID = 1;
 	public static final int INVALID = -1;
 
@@ -59,10 +63,10 @@ public class Control {
 				// return executeShowAllCommand(parsedUserCommand);
 			case CLEAR_ALL:
 				return executeClearAllCommand(parsedUserCommand);
-				// case COMPLETE:
-				// return executeCompleteCommand(parsedUserCommand);
-				// case INCOMPLETE:
-				// return executeIncompleteCommand(parsedUserCommand);
+			case COMPLETE:
+				return executeCompleteCommand(parsedUserCommand);
+			case INCOMPLETE:
+				return executeIncompleteCommand(parsedUserCommand);
 			case MARK:
 				return executeMarkCommand(parsedUserCommand);
 			case UNMARK:
@@ -310,7 +314,8 @@ public class Control {
 		else if (successfulMark.equals(""))
 			return String.format(MESSAGE_FAILED_MARK, failedMark);
 		else
-			return String.format(MESSAGE_SUCCESSFUL_MARK, successfulMark) + String.format(MESSAGE_FAILED_MARK, failedMark);
+			return String.format(MESSAGE_SUCCESSFUL_MARK, successfulMark) 
+					+ String.format(MESSAGE_FAILED_MARK, failedMark);
 	}
 
 	public static String executeUnmarkCommand(String[] splittedUserCommand){
@@ -334,9 +339,63 @@ public class Control {
 		else if (successfulUnmark.equals(""))
 			return String.format(MESSAGE_FAILED_UNMARK, failedUnmark);
 		else
-			return String.format(MESSAGE_SUCCESSFUL_UNMARK, successfulUnmark) + String.format(MESSAGE_FAILED_UNMARK, failedUnmark);
+			return String.format(MESSAGE_SUCCESSFUL_UNMARK, successfulUnmark) 
+					+ String.format(MESSAGE_FAILED_UNMARK, failedUnmark);
 	}
 
+	public static String executeCompleteCommand(String[] splittedUserCommand){
+		int numPendingTasks = modelHandler.getPendingList().size();
+		String successfulComplete = "", failedComplete = "";
+		
+		for (int i = 0; i < splittedUserCommand.length; i++){
+			if (Integer.parseInt(splittedUserCommand[i]) < numPendingTasks 
+					&& Integer.parseInt(splittedUserCommand[i]) >= 0){
+				Task toComplete = modelHandler.getTaskFromPending(i);
+				modelHandler.removeTaskFromPending(i);
+				modelHandler.addTaskToComplete(toComplete);
+				successfulComplete += i + " ";
+			}
+			else{
+				failedComplete += i + " ";
+			}
+		}
+		
+		if (failedComplete.equals(""))
+			return String.format(MESSAGE_SUCCESSFUL_COMPLETE, successfulComplete);
+		else if (successfulComplete.equals(""))
+			return String.format(MESSAGE_FAILED_COMPLETE, failedComplete);
+		else
+			return String.format(MESSAGE_SUCCESSFUL_COMPLETE, successfulComplete)
+					+ String.format(MESSAGE_FAILED_COMPLETE, failedComplete);
+	}
+	
+	public static String executeIncompleteCommand(String[] splittedUserCommand){
+		int numCompleteTasks = modelHandler.getCompleteList().size();
+		String successfulIncomplete = "", failedIncomplete = "";
+		
+		for (int i = 0; i < splittedUserCommand.length; i++){
+			if (Integer.parseInt(splittedUserCommand[i]) < numCompleteTasks 
+					&& Integer.parseInt(splittedUserCommand[i]) >= 0){
+				Task toIncomplete = modelHandler.getTaskFromComplete(i);
+				modelHandler.removeTaskFromComplete(i);
+				modelHandler.addTaskToPending(toIncomplete);
+				// sort pending?
+				successfulIncomplete += i + " ";
+			}
+			else{
+				failedIncomplete += i + " ";
+			}
+		}
+		
+		if (successfulIncomplete.equals(""))
+			return String.format(MESSAGE_SUCCESSFUL_INCOMPLETE, successfulIncomplete);
+		else if (successfulIncomplete.equals(""))
+			return String.format(MESSAGE_FAILED_INCOMPLETE, failedIncomplete);
+		else
+			return String.format(MESSAGE_SUCCESSFUL_INCOMPLETE, successfulIncomplete)
+					+ String.format(MESSAGE_FAILED_INCOMPLETE, failedIncomplete);
+	}
+	
 	public static ArrayList<Task> searchImportantTask(ArrayList<Task> list) {
 		ArrayList<Task> result = new ArrayList<Task>();
 		for (int i = 0; i < list.size(); i++) {
