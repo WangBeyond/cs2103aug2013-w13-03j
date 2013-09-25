@@ -87,4 +87,19 @@ class Model {
 			return Control.VALID;
 		}
 	}
+
+	public void clearPendingTasks(){
+//		ArrayList<Task> pendingHistory = pending;
+		pending = new ArrayList<Task>();
+	}
+	
+	public void clearCompleteTasks(){
+//		ArrayList<Task> completeHistory = complete;
+		complete = new ArrayList<Task>();
+	}
+	
+	public void clearTrash(){
+//		ArrayList<Task> trashHistory = trash;
+		trash = new ArrayList<Task>();
+	}
 }
