@@ -21,6 +21,7 @@ public class Control {
 	private static final String MESSAGE_FAILED_MARK = "Task(s) %1$shas/have not been successfully marked as index(es) is/are not valid.";
 	private static final String MESSAGE_SUCCESSFUL_UNMARK = "Task(s) %1$shas/have been unmarked successfully.";
 	private static final String MESSAGE_FAILED_UNMARK = "Task(s) %1$shas/have not been successfully unmarked as index(es) is/are not valid.";	
+	private static final String MESSAGE_SUCCESSFUL_CLEAR = "All %1$s tasks have been cleared.";	
 
 	public static final int VALID = 1;
 	public static final int INVALID = -1;
@@ -56,16 +57,16 @@ public class Control {
 				// return executeTodayCommand(parsedUserCommand);
 				// case SHOW_ALL:
 				// return executeShowAllCommand(parsedUserCommand);
-				// case CLEAR_ALL:
-				// return executeClearAllCommand(parsedUserCommand);
+			case CLEAR_ALL:
+				return executeClearAllCommand(parsedUserCommand);
 				// case COMPLETE:
 				// return executeCompleteCommand(parsedUserCommand);
 				// case INCOMPLETE:
 				// return executeIncompleteCommand(parsedUserCommand);
-				// case MARK:
-				// return executeMarkCommand(parsedUserCommand);
-				// case UNMARK:
-				// return executeUnmarkCommand(parsedUserCommand);
+			case MARK:
+				return executeMarkCommand(parsedUserCommand);
+			case UNMARK:
+				return executeUnmarkCommand(parsedUserCommand);
 				// case SETTINGS:
 				// return executeSettingsCommand(parsedUserCommand);
 				// case HELP:
@@ -262,6 +263,30 @@ public class Control {
 			return MESSAGE_NO_RESULTS;
 
 		return MESSAGE_SUCCESSFUL_SEARCH;
+	}
+	
+	public static String executeClearAllCommand(String[] clearCommand){
+		String clearMessage = "";
+		
+		if (clearCommand[0].equals("all") || clearCommand[0].equals("")){
+			modelHandler.clearPendingTasks();
+			modelHandler.clearCompleteTasks();
+			modelHandler.clearTrash();
+			clearMessage = "pending, complete and trash";
+		}
+		else if (clearCommand[0].equals("pending") || clearCommand[0].equals("p")){
+			modelHandler.clearPendingTasks();
+			clearMessage = "pending";
+		}
+		else if (clearCommand[0].equals("complete") || clearCommand[0].equals("c")){
+			modelHandler.clearCompleteTasks();
+			clearMessage = "complete";
+		}
+		else if(clearCommand[0].equals("trash") || clearCommand[0].equals("t")){
+			modelHandler.clearTrash();
+			clearMessage = "trash";
+		}
+		return String.format(MESSAGE_SUCCESSFUL_CLEAR, clearMessage);
 	}
 
 	public static String executeMarkCommand(String[] splittedUserCommand){
