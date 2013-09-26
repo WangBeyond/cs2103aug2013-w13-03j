@@ -41,7 +41,7 @@ public class View {
 	public TabPane tabPane;
 	double dragAnchorX;
 	double dragAnchorY;
-
+	
 	public View(final Model model, final Stage primaryStage) {
 		/* Bottom */
 		VBox bottom = new VBox();
@@ -105,7 +105,7 @@ public class View {
 
 		setDraggable(root, primaryStage);
 
-		scene = new Scene(root, 700, 530, Color.rgb(45, 45, 48));
+		scene = new Scene(root, 730, 530, Color.rgb(45, 45, 48));
 		scene.getStylesheets().addAll(getClass().getResource("customize.css").toExternalForm());
 	}
 
