@@ -63,10 +63,15 @@ public class Task implements Comparable<Task> {
 	}
 
 	public int compareTo(Task other) {
-		if (CustomDate.compare(getEndDate(), other.getEndDate()) == 0)
+		int compareEndDate = CustomDate.compare(getEndDate(), other.getEndDate());
+		int compareStartDate = CustomDate.compare(getStartDate(), other.getStartDate());
+		
+		if (compareEndDate == 0 && compareStartDate == 0)
 			return getWorkInfo().compareToIgnoreCase(other.getWorkInfo());
+		else if(compareEndDate == 0)
+			return compareStartDate;
 		else
-			return CustomDate.compare(getEndDate(), other.getEndDate());
+			return compareEndDate;
 	}
 
 	// get Property

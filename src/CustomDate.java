@@ -29,9 +29,9 @@ public class CustomDate {
 		if (date1 == null && date2 == null)
 			return 0;
 		if (date1 == null && date2 != null)
-			return -1;
-		if (date1 != null && date2 == null)
 			return 1;
+		if (date1 != null && date2 == null)
+			return -1;
 
 		for (int i = 0; i < 5; i++) {
 			if (i == 0)

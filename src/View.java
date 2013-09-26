@@ -233,8 +233,7 @@ public class View {
 					}
 					
 					private void clearStyle(){
-						getTableRow().getStyleClass().removeAll("table-row-cell", "unimportant");
-						getTableRow().getStyleClass().remove("important");
+						getTableRow().getStyleClass().removeAll("table-row-cell", "unimportant", "important");
 					}
 					
 					private void setStyle(boolean isImportant){
