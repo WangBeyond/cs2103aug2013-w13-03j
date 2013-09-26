@@ -1,11 +1,11 @@
-
-
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabBuilder;
 import javafx.scene.control.TabPane;
@@ -46,7 +46,7 @@ public class View {
 		/* Bottom */
 		VBox bottom = new VBox();
 		bottom.setSpacing(5);
-		bottom.setPadding(new Insets(10, 30, 10, 30));
+		bottom.setPadding(new Insets(10, 30, 20, 30));
 		commandLine = new TextField();
 		commandLine.setMaxWidth(600);
 		feedback = TextBuilder.create().styleClass("feedback").fill(Color.WHITE)
@@ -55,27 +55,38 @@ public class View {
 
 		/* Top */
 		AnchorPane top = new AnchorPane();
-		top.setPadding(new Insets(-5, 30, -5, 30));
-		title = TextBuilder.create().styleClass("title").fill(Color.WHITE)
-				.text("iDo").build();
-		Button minimizeButton = new Button();
-		Button closeButton = new Button();
-		HBox hb = HBoxBuilder.create().children(minimizeButton, closeButton).spacing(10).build();
+		top.setPadding(new Insets(30, 30, 5, 30));
+		Image iDo = new Image(getClass().getResourceAsStream("iDo.png"), 110, 54, true, true);
+		ImageView title = new ImageView(iDo);
+		
+		/* Buttons */
+		Image minimize = new Image(getClass().getResourceAsStream("minimise.png"), 26, 26, true, true);
+		Button minimizeButton = new Button("", new ImageView(minimize));
+		minimizeButton.setStyle("-fx-background-color:transparent");
+		Image cross = new Image(getClass().getResourceAsStream("close.png"), 26, 26, true, true);
+		Button closeButton = new Button("", new ImageView(cross));
+		closeButton.setStyle("-fx-background-color:transparent");
+//		closeButton.cancelButtonProperty();
+		HBox hb = new HBox();
+		hb.getChildren().add(minimizeButton);
+		hb.getChildren().add(closeButton);
+		hb.setAlignment(Pos.BOTTOM_CENTER);
+		
 		top.getChildren().addAll(title, hb);
 		AnchorPane.setLeftAnchor(title, 10.0);
-		AnchorPane.setTopAnchor(hb, 10.0);
+		AnchorPane.setTopAnchor(hb, 0.0);
 		AnchorPane.setTopAnchor(title, 0.0);
-		AnchorPane.setRightAnchor(hb, -18.0);
+		AnchorPane.setRightAnchor(hb, -5.0); 
 
 		/* Center */
 		taskPendingList = new TableView<Task>();
-		createTable(taskPendingList, model.getPendingList());
+		createTable(taskPendingList, (ObservableList<Task>) model.getPendingList());
 
 		taskCompleteList = new TableView<Task>();
-		createTable(taskCompleteList, model.getCompleteList());
+		createTable(taskCompleteList, (ObservableList<Task>) model.getCompleteList());
 
 		taskTrashList = new TableView<Task>();
-		createTable(taskTrashList, model.getTrashList());
+		createTable(taskTrashList, (ObservableList<Task>) model.getTrashList());
 
 		tabPane = new TabPane();
 		Tab pending = TabBuilder.create().content(taskPendingList)
@@ -86,7 +97,7 @@ public class View {
 				.closable(false).build();
 		tabPane.getTabs().addAll(pending, complete, trash);
 
-		HBox center = HBoxBuilder.create().padding(new Insets(10, 30, 10, 30))
+		HBox center = HBoxBuilder.create().padding(new Insets(0, 30, -20, 30))
 				.children(tabPane).build();
 
 		BorderPane root = BorderPaneBuilder.create().top(top).center(center)

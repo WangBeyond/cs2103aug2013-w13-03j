@@ -1,14 +1,17 @@
 class History {
-	
+/*	
 	private final static int BEFORE = 0;	
 	private final static int AFTER = 1;
 	private final static int NUM_CHANGE_HISTORY = 2;
 	
-	private String[] changeHistory;
+	private String prevCommand;
+	private String oppositeCommand;
 
 	// default constructor
-	public History(){
-		changeHistory = new String[NUM_CHANGE_HISTORY];
+	public History(Parser.COMMAND_TYPES type , UndoableCommand command){
+		if(type == Parser.COMMAND_TYPES.ADD)
+			prevCommand = new AddCommand(command);
+		
 	}
 	
 	public String getAfter(){
@@ -29,4 +32,5 @@ class History {
 			changeHistory[AFTER] = newChange;
 		}
 	}
+*/
 }
