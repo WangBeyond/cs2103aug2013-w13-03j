@@ -191,7 +191,7 @@ class RemoveCommand extends TwoWayCommand {
 	public RemoveCommand(String[] userParsedCommand, Model model, View view) {
 		this.model = model;
 		this.view = view;
-		tabIndex = view.tabPane.getSelectionModel().getSelectedIndex();
+		tabIndex = this.view.tabPane.getSelectionModel().getSelectedIndex();
 		modifiedList = FXCollections.observableArrayList();
 		if (tabIndex == 0)
 			modifiedList = this.model.getPendingList();
@@ -201,7 +201,7 @@ class RemoveCommand extends TwoWayCommand {
 			modifiedList = this.model.getTrashList();
 
 		int indexCount = userParsedCommand.length;
-		int[] indexList = new int[indexCount];
+		indexList = new int[indexCount];
 		for (int i = 0; i < indexCount; i++) {
 			indexList[i] = Integer.valueOf(userParsedCommand[i]);
 		}
@@ -273,7 +273,7 @@ class CompleteCommand extends TwoWayCommand {
 		modifiedList = this.model.getPendingList();
 
 		int indexCount = userParsedCommand.length;
-		int[] indexList = new int[indexCount];
+		indexList = new int[indexCount];
 		for (int i = 0; i < indexCount; i++) {
 			indexList[i] = Integer.valueOf(userParsedCommand[i]);
 		}
@@ -319,7 +319,7 @@ class IncompleteCommand extends TwoWayCommand {
 		modifiedList = this.model.getCompleteList();
 
 		int indexCount = userParsedCommand.length;
-		int[] indexList = new int[indexCount];
+		indexList = new int[indexCount];
 		for (int i = 0; i < indexCount; i++) {
 			indexList[i] = Integer.valueOf(userParsedCommand[i]);
 		}
@@ -373,7 +373,7 @@ class MarkCommand extends TwoWayCommand {
 			modifiedList = this.model.getTrashList();
 
 		int indexCount = userParsedCommand.length;
-		int[] indexList = new int[indexCount];
+		indexList = new int[indexCount];
 		for (int i = 0; i < indexCount; i++) {
 			indexList[i] = Integer.valueOf(userParsedCommand[i]);
 		}
@@ -423,7 +423,7 @@ class UnmarkCommand extends TwoWayCommand {
 			modifiedList = this.model.getTrashList();
 
 		int indexCount = userParsedCommand.length;
-		int[] indexList = new int[indexCount];
+		indexList = new int[indexCount];
 		for (int i = 0; i < indexCount; i++) {
 			indexList[i] = Integer.valueOf(userParsedCommand[i]);
 		}
