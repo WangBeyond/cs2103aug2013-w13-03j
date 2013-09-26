@@ -42,6 +42,7 @@ class AddCommand extends TwoWayCommand {
 	String startDateString;
 	String endDateString;
 	boolean isImptTask;
+	String repeatingType;
 
 	public AddCommand(String[] parsedUserCommand, Model model, View view) {
 		workInfo = parsedUserCommand[0];
@@ -49,6 +50,8 @@ class AddCommand extends TwoWayCommand {
 		startDateString = parsedUserCommand[2];
 		endDateString = parsedUserCommand[3];
 		isImptTask = false;
+		repeatingType = parsedUserCommand[5];
+		tag += " "+repeatingType;
 		this.model = model;
 		this.view = view;
 

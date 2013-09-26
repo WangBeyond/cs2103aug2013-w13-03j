@@ -37,7 +37,7 @@ public class Parser {
 	public static final String NULL = "null";
 	public static final String START_KEY = "start key";
 	public static final String END_KEY = "end key";
-/*
+
 	public static void main(String[] args) {
 		Scanner sc = new Scanner(System.in);
 		String s;
@@ -57,7 +57,7 @@ public class Parser {
 			}
 		}
 	}
-*/
+
 	/**
 	 * This function is used to determine the command type of the command input
 	 * from the user
@@ -209,6 +209,7 @@ public class Parser {
 		String[] result = getRepeatingType(commandString);
 		commandString = result[0];
 		repeatingType = result[1];
+		System.out.println(repeatingType+" "+commandString);
 		
 		if (hasMultipleTags(commandString)) {// if contains multiple hash tags
 			throw new IllegalArgumentException(
@@ -246,14 +247,14 @@ public class Parser {
 		} else
 			workInfo = commandString.trim();
 
-		String[] parsedCommand = new String[] { FALSE, NULL, NULL, NULL, NULL };
-
-		parsedCommand[INDEX_WORK_INFO] = workInfo;
-		parsedCommand[INDEX_START_DATE] = startDateString;
-		parsedCommand[INDEX_END_DATE] = endDateString;
-		parsedCommand[INDEX_TAG] = tag;
+		String[] parsedCommand = new String[] { NULL, NULL, NULL, NULL, FALSE, NULL };
+		
+		parsedCommand[INDEX_WORK_INFO] = workInfo==NULL?NULL:workInfo;
+		parsedCommand[INDEX_START_DATE] = startDateString==NULL?NULL:startDateString;
+		parsedCommand[INDEX_END_DATE] = endDateString == NULL? NULL:endDateString;
+		parsedCommand[INDEX_TAG] = tag == NULL? NULL:tag;
 		parsedCommand[INDEX_IS_IMPT] = isImpt;
-		parsedCommand[INDEX_REPEATING] = repeatingType;
+		parsedCommand[INDEX_REPEATING] = repeatingType ==NULL?NULL:repeatingType;
 
 		return parsedCommand;
 	}
