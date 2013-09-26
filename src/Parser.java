@@ -33,7 +33,7 @@ public class Parser {
 	public static final String NULL = "null";
 	public static final String START_KEY = "start key";
 	public static final String END_KEY = "end key";
-
+/*
 	public static void main(String[] args) {
 		Scanner sc = new Scanner(System.in);
 		String s;
@@ -53,7 +53,7 @@ public class Parser {
 			}
 		}
 	}
-
+*/
 	/**
 	 * This function is used to determine the command type of the command input
 	 * from the user
@@ -141,8 +141,6 @@ public class Parser {
 				|| commandType == COMMAND_TYPES.MARK
 				|| commandType == COMMAND_TYPES.UNMARK)
 			return parseCommandWithIndex(content);
-		else if (commandType == COMMAND_TYPES.CLEAR_ALL)
-			return parseClearCommand(content);
 		else
 			return null;
 	}
@@ -230,10 +228,12 @@ public class Parser {
 		commandString = result[0];
 		endDateString = result[1];
 
-		if (commandString.equals("")) {
+		if (commandString.trim().equals("")) {
 			if (commandType == COMMAND_TYPES.ADD)
 				throw new IllegalArgumentException(
 						"Invalid command: work information cannot be empty");
+			else
+				workInfo = Parser.NULL;
 		} else
 			workInfo = commandString.trim();
 
@@ -269,20 +269,7 @@ public class Parser {
 		}
 		return splittedUserCommand;
 	}
-	
-	/**
-	 * This method is used to parse clear command
-	 */
-	private static String[] parseClearCommand(String content){
-		String[] clearCommand = splitBySpace(content);
-		if (clearCommand.length > 1)
-			throw new IllegalArgumentException("You may only clear all or one category of tasks at a time!");
-		else if (isClearAllSubCommand(clearCommand[0]))
-			return clearCommand;
-		else
-			throw new IllegalArgumentException("Please type in a valid clear command!");
-	}
-	
+
 	/**
 	 * This method is used to check a command string for valid date and remove
 	 * the valid date from this command string. If the command string contains
@@ -434,7 +421,7 @@ public class Parser {
 		String[] words = splitBySpace(commandString);
 		for (int i = 0; i < words.length; i++) {
 			if (words[i].startsWith(HASH_TAG)) {
-				return words[i].replaceFirst(HASH_TAG, " ").trim();
+				return words[i];
 			}
 		}
 		return NULL;
@@ -607,18 +594,6 @@ public class Parser {
 		boolean isClearAll = commandTypeString.equalsIgnoreCase("clear")
 				|| commandTypeString.equalsIgnoreCase("clr");
 		return isClearAll;
-	}
-	
-	private static boolean isClearAllSubCommand(String command){
-		boolean isClearAllSub = command.equalsIgnoreCase("all")
-				|| command.equalsIgnoreCase("")
-				|| command.equalsIgnoreCase("pending")
-				|| command.equalsIgnoreCase("p")
-				|| command.equalsIgnoreCase("trash")
-				|| command.equalsIgnoreCase("t")
-				|| command.equalsIgnoreCase("complete")
-				|| command.equalsIgnoreCase("c");
-		return isClearAllSub;
 	}
 
 	private static boolean isCompleteCommand(String commandTypeString) {
