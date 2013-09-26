@@ -4,8 +4,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
-import java.util.ArrayList;
 import java.lang.String;
+import javafx.collections.ObservableList;
 
 
 public class DataStorage extends Store {
@@ -74,11 +74,11 @@ public class DataStorage extends Store {
 	public static void storeToFile() throws IOException{
 		out = new BufferedWriter(new FileWriter(fileName,false));
 		out.write(PENDING_TITLE);
-		out = addTaskinfoToWriter(out,Control.modelHandler.pending);
+		out = addTaskinfoToWriter(out,Control.getModel().getPendingList());
 		out.write(COMPLETE_TITLE);
-		out = addTaskinfoToWriter(out,Control.modelHandler.complete);
+		out = addTaskinfoToWriter(out,Control.getModel().getCompleteList());
 		out.write(TRASH_TITLE);
-		out = addTaskinfoToWriter(out,Control.modelHandler.trash);		
+		out = addTaskinfoToWriter(out,Control.getModel().getTrashList());		
 		out.flush();		
 	}
 	
@@ -91,15 +91,15 @@ public class DataStorage extends Store {
 		newTask.setTag(in.readLine());
 		newTask.setIsImportant((in.readLine()).equals(TRUE)?true:false);
 		switch(taskType) {
-			case PENDING: Control.modelHandler.addTaskToPending(newTask); break;
-			case COMPLETE: Control.modelHandler.addTaskToComplete(newTask); break;
-			case TRASH: Control.modelHandler.addTaskToTrash(newTask); break;
+			case PENDING: Control.getModel().addTaskToPending(newTask); break;
+			case COMPLETE: Control.getModel().addTaskToComplete(newTask); break;
+			case TRASH: Control.getModel().addTaskToTrash(newTask); break;
 		}		
 		in.readLine();
 		return in;
 	}
 	
-	private static BufferedWriter addTaskinfoToWriter(BufferedWriter out, ArrayList<Task> taskList) throws IOException{
+	private static BufferedWriter addTaskinfoToWriter(BufferedWriter out, ObservableList<Task> taskList) throws IOException{
 		for (int i = 0; i < taskList.size(); i++) {
 			Task targetTask = taskList.get(i);
 			out.write(targetTask.getIndexId()+"\r\n");

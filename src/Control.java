@@ -84,6 +84,10 @@ public class Control extends Application {
 			}
 		}, 0, 60000);
 	}
+	
+	public static Model getModel() {
+		return modelHandler;
+	}
 
 	private static void updateList(ObservableList<Task> list) {
 		for (int i = 0; i < list.size(); i++)
@@ -692,4 +696,5 @@ public class Control extends Application {
 			return String.format(MESSAGE_SUCCESSFUL_INCOMPLETE, successfulIncomplete)
 					+ String.format(MESSAGE_FAILED_INCOMPLETE, failedIncomplete);
 	}
+	
 }
