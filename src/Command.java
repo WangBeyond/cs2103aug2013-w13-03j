@@ -5,8 +5,6 @@ import javafx.collections.ObservableList;
 import javafx.stage.Stage;
 
 public abstract class Command {
-	private static final String MESSAGE_INVALID_COMMAND_TYPE = "Invalid Command Type!";
-	private static final String MESSAGE_EMPTY_COMMAND = "Empty Command!";
 	protected static final String MESSAGE_SHOW_ALL = "Show all the tasks";
 	protected static final String MESSAGE_CLEAR_ALL = "Clear all the tasks";
 	protected static final String MESSAGE_SUCCESSFUL_SEARCH = "Successful Search!";
@@ -293,7 +291,7 @@ class CompleteCommand extends TwoWayCommand {
 
 		for (int i = indexCount - 1; i >= 0; i--) {
 			Task toComplete = model.getTaskFromPending(indexList[i] - 1);
-			model.removeTaskFromPending(indexList[i] - 1);
+			model.getPendingList().remove(indexList[i] - 1);
 			model.addTaskToComplete(toComplete);
 			successfulComplete += i + " ";
 		}
@@ -339,7 +337,7 @@ class IncompleteCommand extends TwoWayCommand {
 
 		for (int i = indexCount - 1; i >= 0; i--) {
 			Task toPending = model.getTaskFromComplete(indexList[i] - 1);
-			model.removeTaskFromComplete(indexList[i] - 1);
+			model.getCompleteList().remove(indexList[i] - 1);
 			model.addTaskToPending(toPending);
 			successfulIncomplete += i + " ";
 		}
