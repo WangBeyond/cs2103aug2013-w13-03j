@@ -1,9 +1,10 @@
+import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
 // Note: 3 public functions are getTime(), constructor and convert()
-public class CustomDate implements Comparable<CustomDate> {
+public class CustomDate {
 	final public static int VALID = 1;
 	final public static int INVALID = -1;
 	final public static int OUT_OF_BOUNDS = 0;
@@ -23,19 +24,26 @@ public class CustomDate implements Comparable<CustomDate> {
 	}
 
 	// compareTo Function
-	public int compareTo(CustomDate other) {
+	public static int compare(CustomDate date1, CustomDate date2) {
 		int difference = 0;
+		if (date1 == null && date2 == null)
+			return 0;
+		if (date1 == null && date2 != null)
+			return -1;
+		if (date1 != null && date2 == null)
+			return 1;
+
 		for (int i = 0; i < 5; i++) {
 			if (i == 0)
-				difference = this.getYear() - other.getYear();
+				difference = date1.getYear() - date2.getYear();
 			else if (i == 1)
-				difference = this.getMonth() - other.getMonth();
+				difference = date1.getMonth() - date2.getMonth();
 			else if (i == 2)
-				difference = this.getDate() - other.getDate();
+				difference = date1.getDate() - date2.getDate();
 			else if (i == 3)
-				difference = this.getHour() - other.getHour();
+				difference = date1.getHour() - date2.getHour();
 			else
-				difference = this.getMinute() - other.getMinute();
+				difference = date1.getMinute() - date2.getMinute();
 			if (difference != 0)
 				return difference;
 		}
@@ -62,11 +70,11 @@ public class CustomDate implements Comparable<CustomDate> {
 	}
 
 	public int getHour() {
-		return targetDate.get(Calendar.HOUR);
+		return targetDate.get(Calendar.HOUR_OF_DAY);
 	}
 
 	public void setHour(int hour) {
-		targetDate.set(Calendar.HOUR, hour);
+		targetDate.set(Calendar.HOUR_OF_DAY, hour);
 	}
 
 	public int getMinute() {
@@ -75,6 +83,10 @@ public class CustomDate implements Comparable<CustomDate> {
 
 	public void setMinute(int minute) {
 		targetDate.set(Calendar.MINUTE, minute);
+	}
+
+	public long getTimeInMillis() {
+		return targetDate.getTimeInMillis();
 	}
 
 	public Date getTime() {
@@ -117,17 +129,17 @@ public class CustomDate implements Comparable<CustomDate> {
 			if (numElements > 0) {
 				return INVALID;
 			}
-			tempDate.getTime();
+
 			targetDate = tempDate;
 			return VALID;
 		} catch (Exception e) {
-			if(e.getMessage().equals("Out of bounds"))
+			if (e.getMessage().equals("Out of bounds"))
 				return OUT_OF_BOUNDS;
 			return INVALID;
 		}
 	}
 
-	private void updateCurrentDate() {
+	public static void updateCurrentDate() {
 		currentDate = new GregorianCalendar();
 	}
 
@@ -158,9 +170,6 @@ public class CustomDate implements Comparable<CustomDate> {
 		targetDate.set(Calendar.DATE, date);
 		checkDateBound(targetDate);
 
-		if (isEarlierDate(targetDate, currentDate)) {
-			targetDate.set(Calendar.YEAR, targetDate.get(Calendar.YEAR) + 1);
-		}
 		return numElements - 2;
 	}
 
@@ -169,7 +178,7 @@ public class CustomDate implements Comparable<CustomDate> {
 		String[] numbers = infos[startIndex].split("/");
 		boolean invalidLength = numbers.length != 3 && numbers.length != 2;
 		if (invalidLength)
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException("Invalid length in slash format");
 
 		int month = getMonth(numbers[1]);
 		targetDate.set(Calendar.MONTH, month);
@@ -181,9 +190,6 @@ public class CustomDate implements Comparable<CustomDate> {
 		int year = (numbers.length == 3) ? Integer.parseInt(numbers[2])
 				: currentDate.get(Calendar.YEAR);
 
-		if (numbers.length == 2 && isEarlierDate(targetDate, currentDate)) {
-			year++;
-		}
 		targetDate.set(Calendar.YEAR, year);
 
 		return numElements - 1;
@@ -194,7 +200,7 @@ public class CustomDate implements Comparable<CustomDate> {
 		String[] numbers = infos[0].split("-");
 		boolean invalidLength = numbers.length != 3 && numbers.length != 2;
 		if (invalidLength)
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException("Invalid length in dash format");
 		int date = Integer.parseInt(numbers[0]);
 		targetDate.set(Calendar.DATE, date);
 
@@ -204,20 +210,10 @@ public class CustomDate implements Comparable<CustomDate> {
 		checkDateBound(targetDate);
 		int year = (numbers.length == 3) ? Integer.parseInt(numbers[2])
 				: currentDate.get(Calendar.YEAR);
-		if (numbers.length == 2 && isEarlierDate(targetDate, currentDate)) {
-			year++;
-		}
+
 		targetDate.set(Calendar.YEAR, year);
 
 		return numElements - 1;
-	}
-
-	private static boolean isEarlierDate(GregorianCalendar targetDate,
-			GregorianCalendar currentDate) {
-		return targetDate.get(Calendar.MONTH) < currentDate.get(Calendar.MONTH)
-				|| (targetDate.get(Calendar.MONTH) == currentDate
-						.get(Calendar.MONTH) && targetDate.get(Calendar.DATE) < currentDate
-						.get(Calendar.DATE));
 	}
 
 	private static void checkDateBound(GregorianCalendar targetDate) {
@@ -290,9 +286,10 @@ public class CustomDate implements Comparable<CustomDate> {
 		if (currentDay == 1)
 			currentDay += 7;
 
-		targetDate.set(Calendar.DATE, currentDate.get(Calendar.DATE)
-				+ targetDay - currentDay
-				+ ((hasNext || targetDay < currentDay) ? 7 : 0));
+		long difference = targetDay - currentDay
+				+ ((hasNext || targetDay < currentDay) ? 7 : 0);
+		targetDate.setTimeInMillis(currentDate.getTimeInMillis() + difference
+				* 24 * 60 * 60 * 1000);
 
 		if (hasNext == true) {
 			numElements -= 2;
@@ -352,11 +349,15 @@ public class CustomDate implements Comparable<CustomDate> {
 			GregorianCalendar targetDate) {
 		String[] time = timeInfo.split(":");
 		if (time.length > 2)
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException(
+					"Invalid length in colon time format");
 
-		targetDate.set(Calendar.HOUR_OF_DAY, Integer.parseInt(time[0])
-				+ (isDay ? 0 : 12));
-		targetDate.set(Calendar.MINUTE, Integer.parseInt(time[1]));
+		int hour = Integer.parseInt(time[0]) + (isDay ? 0 : 12);
+		if (hour == 24 || hour == 12)
+			hour -= 12;
+		int minute = Integer.parseInt(time[1]);
+		targetDate.set(Calendar.HOUR_OF_DAY, hour);
+		targetDate.set(Calendar.MINUTE, minute);
 		checkTimeBound(targetDate);
 	}
 
@@ -364,11 +365,15 @@ public class CustomDate implements Comparable<CustomDate> {
 			GregorianCalendar targetDate) {
 		String[] time = timeInfo.split("\\.");
 		if (time.length > 2)
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException(
+					"Invalid length in dot time format");
 
-		targetDate.set(Calendar.HOUR_OF_DAY, Integer.parseInt(time[0])
-				+ (isDay ? 0 : 12));
-		targetDate.set(Calendar.MINUTE, Integer.parseInt(time[1]));
+		int hour = Integer.parseInt(time[0]) + (isDay ? 0 : 12);
+		if (hour == 24 || hour == 12)
+			hour -= 12;
+		int minute = Integer.parseInt(time[1]);
+		targetDate.set(Calendar.HOUR_OF_DAY, hour);
+		targetDate.set(Calendar.MINUTE, minute);
 		checkTimeBound(targetDate);
 	}
 
@@ -376,15 +381,23 @@ public class CustomDate implements Comparable<CustomDate> {
 			GregorianCalendar targetDate) {
 		int s = Integer.parseInt(timeInfo);
 		if (timeInfo.length() < 3) {
-			targetDate.set(Calendar.HOUR_OF_DAY, s + (isDay ? 0 : 12));
+			int hour = s + (isDay ? 0 : 12);
+			if (hour == 24 || hour == 12)
+				hour -= 12;
+			targetDate.set(Calendar.HOUR_OF_DAY, hour);
 			targetDate.set(Calendar.MINUTE, 0);
 			checkTimeBound(targetDate);
 		} else if (timeInfo.length() == 3 || timeInfo.length() == 4) {
-			targetDate.set(Calendar.HOUR_OF_DAY, s / 100 + (isDay ? 0 : 12));
-			targetDate.set(Calendar.MINUTE, s % 100);
+			int hour = s / 100 + (isDay ? 0 : 12);
+			if (hour == 24 || hour == 12)
+				hour -= 12;
+			int minute = s % 100;
+			targetDate.set(Calendar.HOUR_OF_DAY, hour);
+			targetDate.set(Calendar.MINUTE, minute);
 			checkTimeBound(targetDate);
 		} else {
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException(
+					"Invalid length in time without sign format");
 		}
 	}
 
@@ -402,7 +415,8 @@ public class CustomDate implements Comparable<CustomDate> {
 		int index = getIndexOfColon(infos);
 		String[] time = infos[index].split(":");
 		if (time.length > 2)
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException(
+					"Invalid in time with colon format");
 
 		int hour = Integer.parseInt(time[0]);
 		int minute = Integer.parseInt(time[1]);
@@ -543,6 +557,35 @@ public class CustomDate implements Comparable<CustomDate> {
 		}
 	}
 
+	private static String getMonthString(int i) {
+		if (i == Calendar.JANUARY)
+			return "Jan";
+		else if (i == Calendar.FEBRUARY)
+			return "Feb";
+		else if (i == Calendar.MARCH)
+			return "Mar";
+		else if (i == Calendar.APRIL)
+			return "Apr";
+		else if (i == Calendar.MAY)
+			return "May";
+		else if (i == Calendar.JUNE)
+			return "June";
+		else if (i == Calendar.JULY)
+			return "July";
+		else if (i == Calendar.AUGUST)
+			return "Aug";
+		else if (i == Calendar.SEPTEMBER)
+			return "Sep";
+		else if (i == Calendar.OCTOBER)
+			return "Oct";
+		else if (i == Calendar.NOVEMBER)
+			return "Nov";
+		else if (i == Calendar.DECEMBER)
+			return "Dec";
+		else
+			return "Invalid";
+	}
+
 	private static boolean isJanuary(String s) {
 		return s.equals("jan") || s.equals("1") || s.equals("january");
 	}
@@ -600,7 +643,62 @@ public class CustomDate implements Comparable<CustomDate> {
 		}
 	}
 
-	public String toString() {
-		return dateInfo;
+	public boolean lessThan6Hours() {
+		return (targetDate.getTimeInMillis() - currentDate.getTimeInMillis()) <= 21600000;
+	}
+
+	public boolean beforeCurrentTime() {
+		return (currentDate.getTimeInMillis() - targetDate.getTimeInMillis()) > 0;
+	}
+
+	public boolean hasTime(boolean isStartDate) {
+		if (isStartDate && targetDate.get(Calendar.HOUR_OF_DAY) == 0
+				&& targetDate.get(Calendar.MINUTE) == 0)
+			return false;
+		else if (!isStartDate && targetDate.get(Calendar.HOUR_OF_DAY) == 23
+				&& targetDate.get(Calendar.MINUTE) == 59)
+			return false;
+
+		return true;
+	}
+
+	public boolean isToday() {
+		return targetDate.get(Calendar.YEAR) == currentDate.get(Calendar.YEAR)
+				&& targetDate.get(Calendar.MONTH) == currentDate
+						.get(Calendar.MONTH)
+				&& targetDate.get(Calendar.DATE) == currentDate
+						.get(Calendar.DATE);
+	}
+
+	public String toString(boolean isStartDate) {
+		updateCurrentDate();
+		boolean hasTime = hasTime(isStartDate);
+		if (beforeCurrentTime()) {
+			if (!isStartDate)
+				return "OVERDUE";
+		} else {
+			if (lessThan6Hours()) {
+				int remainingTime = (int) (targetDate.getTimeInMillis() - currentDate
+						.getTimeInMillis()) / (1000 * 60);
+				int remainingHours = remainingTime / 60;
+				int remainingMinutes = remainingTime % 60;
+				return remainingHours + "h " + remainingMinutes + "m";
+			}
+		}
+		String result = "";
+		if (isToday())
+			result += "Today";
+		else {
+			result += targetDate.get(Calendar.DATE) + " "
+					+ getMonthString(targetDate.get(Calendar.MONTH));
+			if (targetDate.get(Calendar.YEAR) != currentDate.get(Calendar.YEAR))
+				result += " " + targetDate.get(Calendar.YEAR);
+		}
+		if (hasTime) {
+			DecimalFormat df = new DecimalFormat("00");
+			result += "\n " + targetDate.get(Calendar.HOUR_OF_DAY) + ":"
+					+ df.format(targetDate.get(Calendar.MINUTE));
+		}
+		return result;
 	}
 }

@@ -1,17 +1,24 @@
 import java.util.ArrayList;
 
-class Model {
-	ArrayList<Task> pending;
-	ArrayList<Task> complete;
-	ArrayList<Task> trash;
-	private ArrayList<Task> search;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+
+public class Model {
+	private ObservableList<Task> pending;
+	private ObservableList<Task> complete;
+	private ObservableList<Task> trash;
+	private ObservableList<Task> searchPending;
+	private ObservableList<Task> searchComplete;
+	private ObservableList<Task> searchTrash;
 
 	// constructor
 	public Model() {
-		pending = new ArrayList<Task>();
-		complete = new ArrayList<Task>();
-		trash = new ArrayList<Task>();
-		search = new ArrayList<Task>();
+		pending = FXCollections.observableArrayList();
+		complete = FXCollections.observableArrayList();
+		trash = FXCollections.observableArrayList();
+		searchPending = FXCollections.observableArrayList();
+		searchComplete = FXCollections.observableArrayList();
+		searchTrash = FXCollections.observableArrayList();
 	}
 
 	// get functions
@@ -27,20 +34,28 @@ class Model {
 		return trash.get(index);
 	}
 
-	public ArrayList<Task> getPendingList() {
+	public ObservableList<Task> getPendingList() {
 		return pending;
 	}
 
-	public ArrayList<Task> getCompleteList() {
+	public ObservableList<Task> getCompleteList() {
 		return complete;
 	}
 
-	public ArrayList<Task> getTrashList() {
+	public ObservableList<Task> getTrashList() {
 		return trash;
 	}
 
-	public ArrayList<Task> getSearchList() {
-		return search;
+	public ObservableList<Task> getSearchPendingList() {
+		return searchPending;
+	}
+
+	public ObservableList<Task> getSearchCompleteList() {
+		return searchComplete;
+	}
+
+	public ObservableList<Task> getSearchTrashList() {
+		return searchTrash;
 	}
 
 	// add new task functions
@@ -56,50 +71,57 @@ class Model {
 		trash.add(newTrashTask);
 	}
 
-	public void addTaskToSearch(Task newSearchTask) {
-		search.add(newSearchTask);
-	}
-
 	// remove task functions return INVALID or VALID when remove a task
-	public int removeTaskFromPending(int index) {
-		if (index > pending.size()) {
-			return Control.INVALID;
-		} else {
-			pending.remove(index);
-			return Control.VALID;
-		}
+	public void removeTask(int index, int listType){
+		if(listType == 0)
+			removeTaskFromPending(index);
+		else if(listType == 1)
+			removeTaskFromComplete(index);
+		else
+			removeTaskFromTrash(index);
+	}
+	
+	public void removeTaskFromPending(int index) {
+		Task t = pending.remove(index);
+		trash.add(t);
 	}
 
-	public int removeTaskFromComplete(int index) {
-		if (index > complete.size()) {
-			return Control.INVALID;
-		} else {
-			complete.remove(index);
-			return Control.VALID;
-		}
+	public void removeTaskFromComplete(int index) {
+		Task t = complete.remove(index);
+		trash.add(t);
+
 	}
 
-	public int removeTaskFromTrash(int index) {
-		if (index > trash.size()) {
-			return Control.INVALID;
-		} else {
-			trash.remove(index);
-			return Control.VALID;
-		}
+	public void removeTaskFromTrash(int index) {
+		trash.remove(index);
+	}
+
+	// set Search List
+	public void setSearchPendingList(ObservableList<Task> searchList) {
+		searchPending = searchList;
+	}
+
+	public void setSearchCompleteList(ObservableList<Task> searchList) {
+		searchComplete = searchList;
+	}
+
+	public void setSearchTrashList(ObservableList<Task> searchList) {
+		searchTrash = searchList;
 	}
 
 	public void clearPendingTasks(){
-//		ArrayList<Task> pendingHistory = pending;
-		pending = new ArrayList<Task>();
+		//ArrayList<Task> pendingHistory = pending;
+		pending.clear();;
 	}
 	
 	public void clearCompleteTasks(){
-//		ArrayList<Task> completeHistory = complete;
-		complete = new ArrayList<Task>();
+		//ArrayList<Task> completeHistory = complete;
+		complete.clear();;
 	}
 	
 	public void clearTrash(){
-//		ArrayList<Task> trashHistory = trash;
-		trash = new ArrayList<Task>();
+		//ArrayList<Task> trashHistory = trash;
+		trash.clear();
 	}
+	
 }
