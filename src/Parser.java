@@ -13,6 +13,9 @@ public class Parser {
 	/* end date keys */
 	private static String[] endDateKeys = { "end on", "end at", "end by",
 			"end before", "to", "till", "until", "by", "due" };
+	
+	private static String[] repeatingTypes = {"hourly","daily","weekly","monthly","yearly","annually","every Monday","every Tuesday",
+			"every Wednesday","every Thursday","every Friday","every Saturday","every Sunday"};
 
 	public static final int INDEX_IS_MATCH = 0;
 	public static final int INDEX_WORK_INFO = 0;
@@ -22,6 +25,7 @@ public class Parser {
 	public static final int INDEX_END_DATE = 3;
 	public static final int INDEX_STRING_AFTER = 4;
 	public static final int INDEX_IS_IMPT = 4;
+	public static final int INDEX_REPEATING = 5;
 
 	/* maximum length of a date. Example: next Monday 4pm */
 	public static final int MAX_DATE_LENGTH = 4;
@@ -200,7 +204,12 @@ public class Parser {
 		String endDateString = NULL;
 		String tag = NULL;
 		String isImpt = FALSE;
-
+		String repeatingType = NULL;
+		
+		String[] result = getRepeatingType(commandString);
+		commandString = result[0];
+		repeatingType = result[1];
+		
 		if (hasMultipleTags(commandString)) {// if contains multiple hash tags
 			throw new IllegalArgumentException(
 					"Invalid Command: multiple hash tags(#).");
@@ -220,7 +229,7 @@ public class Parser {
 					: commandString;
 		}
 
-		String[] result = checkDate(commandString, startDateKeys, START_KEY);
+		result = checkDate(commandString, startDateKeys, START_KEY);
 		commandString = result[0];
 		startDateString = result[1];
 
@@ -244,10 +253,23 @@ public class Parser {
 		parsedCommand[INDEX_END_DATE] = endDateString;
 		parsedCommand[INDEX_TAG] = tag;
 		parsedCommand[INDEX_IS_IMPT] = isImpt;
+		parsedCommand[INDEX_REPEATING] = repeatingType;
 
 		return parsedCommand;
 	}
-
+	
+	private static String[] getRepeatingType(String commandString) {
+		String repeatingType = null;
+		for(int i=0;i<repeatingTypes.length;i++) {
+			if(commandString.contains(repeatingTypes[i])) {
+				repeatingType = repeatingTypes[i];
+				commandString = commandString.replace(repeatingType,"");
+				break;
+			}
+		}
+		return new String[] {commandString, repeatingType};
+	}
+	
 	/**
 	 * This method is used to parse content of commands filled with indexes to
 	 * necessary infos
