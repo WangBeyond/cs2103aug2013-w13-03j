@@ -95,7 +95,7 @@ public class View {
 		setDraggable(root, primaryStage);
 
 		scene = new Scene(root, 700, 530, Color.rgb(45, 45, 48));
-		scene.getStylesheets().addAll(getClass().getResource("starterApp.css").toExternalForm());
+		scene.getStylesheets().addAll(getClass().getResource("customize.css").toExternalForm());
 	}
 
 	public void setDraggable(BorderPane root, final Stage primaryStage) {
