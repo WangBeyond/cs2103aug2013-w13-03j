@@ -272,7 +272,20 @@ public class Control {
 	public static String executeClearAllCommand(String[] clearCommand){
 		String clearMessage = "";
 		
-		if (clearCommand[0].equals("all") || clearCommand[0].equals("")){
+		if (clearCommand[0].equals("")){
+			/** if (getTab().equals("pending"){
+			 * 		modelHandler.clearPendingTasks();
+			 * 		clearMessage = "pending";
+			 *	} else if(getTab().equals("complete"){
+			 *		modelHandler.clearCompleteTasks();
+			 *		clearMessage = "complete";
+			 *	} else {
+			 *		modelHandler.clearTrash();
+			 *		clearMessage = "trash";
+			 *	}
+			 */
+		}
+		else if (clearCommand[0].equals("all")){
 			modelHandler.clearPendingTasks();
 			modelHandler.clearCompleteTasks();
 			modelHandler.clearTrash();
