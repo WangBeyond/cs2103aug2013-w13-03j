@@ -1,4 +1,3 @@
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -6,31 +5,20 @@ import java.util.TimerTask;
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
+
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
-import javafx.scene.control.TabPane;
+
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
 public class Control extends Application {
 	private static final String MESSAGE_INVALID_COMMAND_TYPE = "Invalid Command Type!";
 	private static final String MESSAGE_EMPTY_COMMAND = "Empty Command!";
-	private static final String MESSAGE_SHOW_ALL = "Show all the tasks";
-	private static final String MESSAGE_CLEAR_ALL = "Clear all the tasks";
-	private static final String MESSAGE_SUCCESSFUL_SEARCH = "Successful Search!";
-	private static final String MESSAGE_NO_RESULTS = "Search no results!";
-	private static final String MESSAGE_SUCCESSFUL_ADD = "Task is added successfully";
-	private static final String MESSAGE_SUCCESSFUL_EDIT = "Task is edited successfully";
-	private static final String MESSAGE_SUCCESFUL_REMOVE = "Indicated tasks are removed";
-	private static final String MESSAGE_INVALID_DATE_RANGE = "Invalid date range as start date is after end date";
-	private static final String MESSAGE_DUPLICATE_INDEXES = "There are duplicate indexes";
-	private static final String MESSAGE_INDEX_OUT_OF_BOUNDS = "There is an index outside the range of the list";
 	private static final String MESSAGE_ADD_TIP = "<add> <task info 1> <task info 2> <task info 3> <task info 4> ...";
 	private static final String MESSAGE_EDIT_TIP = "<edit/mod/modify> <index> <task info 1> <task info 2> <task info 3> ...";
 	private static final String MESSAGE_REMOVE_TIP = "<delete/del/remove/rm> <index 1> <index 2> <index 3> ...";
@@ -44,15 +32,6 @@ public class Control extends Application {
 	private static final String MESSAGE_INCOMPLETE_TIP = "<incomplete/undone> <index 1> <index 2> <index 3> ...";
 	private static final String MESSAGE_EXIT_TIP = "<exit>";
 	private static final String MESSAGE_REQUEST_COMMAND = "Please enter a command";
-	private static final String MESSAGE_SUCCESSFUL_MARK = "Task(s) %1$shas/have been marked successfully.";
-	private static final String MESSAGE_FAILED_MARK = "Task(s) %1$shas/have not been successfully marked as index(es) is/are not valid.";
-	private static final String MESSAGE_SUCCESSFUL_UNMARK = "Task(s) %1$shas/have been unmarked successfully.";
-	private static final String MESSAGE_FAILED_UNMARK = "Task(s) %1$shas/have not been successfully unmarked as index(es) is/are not valid.";
-	private static final String MESSAGE_SUCCESSFUL_CLEAR = "All %1$s tasks have been cleared.";
-	private static final String MESSAGE_SUCCESSFUL_COMPLETE = "Task(s) %1$shas/have been marked as complete.";
-	private static final String MESSAGE_FAILED_COMPLETE = "Task(s) %1$shas/have not been marked complete as index(es) is/are not valid.";
-	private static final String MESSAGE_SUCCESSFUL_INCOMPLETE = "Task(s) %1$shas/have been marked as incomplete.";
-	private static final String MESSAGE_FAILED_INCOMPLETE = "Task(s) %1$shas/have not been marked incomplete as index(es) is/are not valid.";
 
 	public static final int VALID = 1;
 	public static final int INVALID = -1;
@@ -256,97 +235,7 @@ public class Control extends Application {
 		}
 	}
 
-	private static String executeExitCommand() {
-		primaryStage.close();
-		System.exit(0);
-		return null;
-	}
-
 	public static void sortList(ObservableList<Task> list) {
 		Collections.sort(list);
 	}
-
-	public static String executeClearAllCommand(String[] clearCommand) {
-		String clearMessage = "";
-
-		if (clearCommand[0].equals("")) {
-			/**
-			 * if (getTab().equals("pending"){ modelHandler.clearPendingTasks();
-			 * clearMessage = "pending"; } else if(getTab().equals("complete"){
-			 * modelHandler.clearCompleteTasks(); clearMessage = "complete"; }
-			 * else { modelHandler.clearTrash(); clearMessage = "trash"; }
-			 */
-		} else if (clearCommand[0].equals("all")) {
-			modelHandler.clearPendingTasks();
-			modelHandler.clearCompleteTasks();
-			modelHandler.clearTrash();
-			clearMessage = "pending, complete and trash";
-		} else if (clearCommand[0].equals("pending")
-				|| clearCommand[0].equals("p")) {
-			modelHandler.clearPendingTasks();
-			clearMessage = "pending";
-		} else if (clearCommand[0].equals("complete")
-				|| clearCommand[0].equals("c")) {
-			modelHandler.clearCompleteTasks();
-			clearMessage = "complete";
-		} else if (clearCommand[0].equals("trash")
-				|| clearCommand[0].equals("t")) {
-			modelHandler.clearTrash();
-			clearMessage = "trash";
-		}
-		return String.format(MESSAGE_SUCCESSFUL_CLEAR, clearMessage);
-	}
-
-	public static String executeUnmarkCommand(String[] splittedUserCommand) {
-		int numPendingTasks = modelHandler.getPendingList().size();
-		int indexCount = splittedUserCommand.length;
-		String successfulUnmark = "", failedUnmark = "";
-
-		for (int i = 0; i < indexCount; i++) {
-			if (i >= numPendingTasks || i < 0) {
-				failedUnmark += i + " ";
-			} else {
-				Task targetTask = modelHandler.getTaskFromPending(i);
-				targetTask.setIsImportant(false);
-				successfulUnmark += i + " ";
-			}
-		}
-
-		if (failedUnmark.equals(""))
-			return String.format(MESSAGE_SUCCESSFUL_UNMARK, successfulUnmark);
-		else if (successfulUnmark.equals(""))
-			return String.format(MESSAGE_FAILED_UNMARK, failedUnmark);
-		else
-			return String.format(MESSAGE_SUCCESSFUL_UNMARK, successfulUnmark)
-					+ String.format(MESSAGE_FAILED_UNMARK, failedUnmark);
-	}
-
-	public static String executeIncompleteCommand(String[] splittedUserCommand) {
-		int numCompleteTasks = modelHandler.getCompleteList().size();
-		String successfulIncomplete = "", failedIncomplete = "";
-
-		for (int i = 0; i < splittedUserCommand.length; i++) {
-			if (Integer.parseInt(splittedUserCommand[i]) < numCompleteTasks
-					&& Integer.parseInt(splittedUserCommand[i]) >= 0) {
-				Task toIncomplete = modelHandler.getTaskFromComplete(i);
-				modelHandler.removeTaskFromComplete(i);
-				modelHandler.addTaskToPending(toIncomplete);
-				// sort pending?
-				successfulIncomplete += i + " ";
-			} else {
-				failedIncomplete += i + " ";
-			}
-		}
-
-		if (successfulIncomplete.equals(""))
-			return String.format(MESSAGE_SUCCESSFUL_INCOMPLETE,
-					successfulIncomplete);
-		else if (successfulIncomplete.equals(""))
-			return String.format(MESSAGE_FAILED_INCOMPLETE, failedIncomplete);
-		else
-			return String.format(MESSAGE_SUCCESSFUL_INCOMPLETE,
-					successfulIncomplete)
-					+ String.format(MESSAGE_FAILED_INCOMPLETE, failedIncomplete);
-	}
-	
 }
