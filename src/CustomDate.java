@@ -88,6 +88,10 @@ public class CustomDate {
 	public long getTimeInMillis() {
 		return targetDate.getTimeInMillis();
 	}
+	
+	public void setTimeInMillis(long millis){
+		targetDate.setTimeInMillis(millis);
+	}
 
 	public Date getTime() {
 		return targetDate.getTime();

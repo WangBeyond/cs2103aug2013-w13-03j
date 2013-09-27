@@ -90,10 +90,10 @@ public class View {
 
 		tabPane = new TabPane();
 		Tab pending = TabBuilder.create().content(taskPendingList)
-				.text("Pending").closable(false).build();
+				.text("PENDING").closable(false).build();
 		Tab complete = TabBuilder.create().content(taskCompleteList)
-				.text("Complete").closable(false).build();
-		Tab trash = TabBuilder.create().content(taskTrashList).text("Trash")
+				.text("COMPLETE").closable(false).build();
+		Tab trash = TabBuilder.create().content(taskTrashList).text("TRASH")
 				.closable(false).build();
 		tabPane.getTabs().addAll(pending, complete, trash);
 
@@ -155,18 +155,24 @@ public class View {
 					}
 				});
 
-		TableColumn<Task, String> tag = TableColumnBuilder
-				.<Task, String> create().text("Tag")
+		TableColumn<Task, Tag> tag = TableColumnBuilder
+				.<Task, Tag> create().text("Tag")
 				.cellValueFactory(new PropertyValueFactory("tag"))
 				.sortable(false).prefWidth(100).build();
-		tag.setCellFactory(new Callback<TableColumn<Task, String>, TableCell<Task, String>>() {
+		tag.setCellFactory(new Callback<TableColumn<Task, Tag>, TableCell<Task, Tag>>() {
 
 			@Override
-			public TableCell<Task, String> call(TableColumn<Task, String> param) {
-				TableCell<Task, String> tc = new TableCell<Task, String>() {
-					public void updateItem(String item, boolean empty) {
-						if (item != null)
-							setText(item);
+			public TableCell<Task, Tag> call(TableColumn<Task, Tag> param) {
+				TableCell<Task, Tag> tc = new TableCell<Task, Tag>() {
+					public void updateItem(Tag item, boolean empty) {
+						if (item != null){
+							String text;
+							if(item.getRepetition().equals("-"))
+								text = item.getTag();
+							else
+								text = item.getTag() + "\n#" + item.getRepetition();
+							setText(text);
+						}
 					}
 				};
 				tc.setAlignment(Pos.CENTER);
