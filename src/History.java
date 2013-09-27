@@ -1,36 +1,30 @@
-class History {
-/*	
-	private final static int BEFORE = 0;	
-	private final static int AFTER = 1;
-	private final static int NUM_CHANGE_HISTORY = 2;
-	
-	private String prevCommand;
-	private String oppositeCommand;
+import java.util.ArrayList;
 
-	// default constructor
-	public History(Parser.COMMAND_TYPES type , UndoableCommand command){
-		if(type == Parser.COMMAND_TYPES.ADD)
-			prevCommand = new AddCommand(command);
-		
+class History {
+
+	private TwoWayCommand prevCommand;
+	private ArrayList<Task> pendingHistory;
+	private ArrayList<Task> completeHistory;
+	private ArrayList<Task> trashHistory;
+	private boolean undoOnce;
+	
+	public History(){
+		prevCommand = null;
+		undoOnce = false;
 	}
 	
-	public String getAfter(){
-		return changeHistory[AFTER];
+	public boolean getUndoOnce(){
+		return undoOnce;
 	}
 	
-	public String getBefore(){
-		return changeHistory[BEFORE];
+	public TwoWayCommand getPrevCommand(){
+		undoOnce = false;		
+		return prevCommand;
+
 	}
 	
-	public void updateChangeHistory(String newChange){
-		if (changeHistory.length < 1)
-			changeHistory[BEFORE] = newChange;
-		else if (changeHistory.length == 1)
-			changeHistory[AFTER] = newChange;
-		else{
-			changeHistory[BEFORE] = changeHistory[AFTER];
-			changeHistory[AFTER] = newChange;
-		}
+	public void updateCommand(TwoWayCommand newCommand){
+		prevCommand = newCommand;
+		undoOnce = true;
 	}
-*/
 }

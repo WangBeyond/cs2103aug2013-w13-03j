@@ -55,7 +55,19 @@ public class Model {
 	public ObservableList<Task> getSearchTrashList() {
 		return searchTrash;
 	}
+	
+	public int getIndexFromPending(Task task){
+		return pending.indexOf(task);
+	}
 
+	public int getIndexFromComplete(Task task){
+		return complete.indexOf(task);
+	}
+	
+	public int getIndexFromTrash(Task task){
+		return trash.indexOf(task);
+	}
+	
 	// add new task functions
 	public void addTaskToPending(Task newPendingTask) {
 		pending.add(newPendingTask);
@@ -94,6 +106,14 @@ public class Model {
 		trash.remove(index);
 	}
 
+	public void removeTaskFromPendingNoTrash(int index) {
+		Task t = pending.remove(index);
+	}
+
+	public void removeTaskFromCompleteNoTrash(int index) {
+		Task t = complete.remove(index);
+	}
+	
 	// set Search List
 	public void setSearchPendingList(ObservableList<Task> searchList) {
 		searchPending = searchList;
@@ -106,19 +126,20 @@ public class Model {
 	public void setSearchTrashList(ObservableList<Task> searchList) {
 		searchTrash = searchList;
 	}
-
+	
+	// clear functions
 	public void clearPendingTasks(){
-		//ArrayList<Task> pendingHistory = pending;
-		pending.clear();;
+//		ArrayList<Task> pendingHistory = pending;
+		pending.clear();
 	}
 	
 	public void clearCompleteTasks(){
-		//ArrayList<Task> completeHistory = complete;
-		complete.clear();;
+//		ArrayList<Task> completeHistory = complete;
+		complete.clear();
 	}
 	
 	public void clearTrash(){
-		//ArrayList<Task> trashHistory = trash;
+//		ArrayList<Task> trashHistory = trash;
 		trash.clear();
 	}
 	

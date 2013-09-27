@@ -1,4 +1,5 @@
 import java.util.Arrays;
+import java.util.ArrayList;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -19,10 +20,11 @@ public abstract class Command {
 	protected static final String MESSAGE_SUCCESSFUL_UNMARK = "Task(s) %1$shas/have been unmarked successfully.";
 	private static final String MESSAGE_FAILED_UNMARK = "Task(s) %1$shas/have not been successfully unmarked as index(es) is/are not valid.";
 	private static final String MESSAGE_SUCCESSFUL_CLEAR = "All %1$s tasks have been cleared.";
-	protected static final String MESSAGE_SUCCESSFUL_COMPLETE = "Task(s) %1$shas/have been marked as complete.";
-	private static final String MESSAGE_FAILED_COMPLETE = "Task(s) %1$shas/have not been marked complete as index(es) is/are not valid.";
+	protected static final String MESSAGE_SUCCESSFUL_COMPLETE = "Indicated task(s) has/have been marked as complete.";
 	protected static final String MESSAGE_SUCCESSFUL_INCOMPLETE = "Task(s) %1$shas/have been marked as incomplete.";
 	private static final String MESSAGE_FAILED_INCOMPLETE = "Task(s) %1$shas/have not been marked incomplete as index(es) is/are not valid.";
+	protected static final String MESSAGE_SUCCESSFUL_UNDO = "Undo is successful.";
+	protected static final String MESSAGE_FAILED_UNDO = "Undo has failed.";
 
 	protected Model model;
 	protected View view;
@@ -31,7 +33,8 @@ public abstract class Command {
 }
 
 abstract class TwoWayCommand extends Command {
-	public abstract String undo();
+	public abstract String undo(Model m, View v);
+//	public abstract String[] getInfoForOppositeCommand();
 }
 
 class AddCommand extends TwoWayCommand {
@@ -41,6 +44,8 @@ class AddCommand extends TwoWayCommand {
 	String endDateString;
 	boolean isImptTask;
 	String repeatingType;
+	Task task;
+	int index;
 
 	public AddCommand(String[] parsedUserCommand, Model model, View view) {
 		workInfo = parsedUserCommand[0];
@@ -52,15 +57,15 @@ class AddCommand extends TwoWayCommand {
 		tag += " "+repeatingType;
 		this.model = model;
 		this.view = view;
-
+//		index = new String[1];
+		
 		if (parsedUserCommand[4].equals(Parser.TRUE)) {
 			isImptTask = true;
 		}
 	}
 
 	public String execute() {
-		Task task = new Task();
-
+		task = new Task();
 		task.setWorkInfo(workInfo);
 
 		if (!startDateString.equals(Parser.NULL)) {
@@ -92,28 +97,34 @@ class AddCommand extends TwoWayCommand {
 		task.setIsImportant(isImptTask);
 
 		model.addTaskToPending(task);
-
 		Control.sortList(model.getPendingList());
-
+		
 		return MESSAGE_SUCCESSFUL_ADD;
 	}
-
-	public String undo() {
-		return null;
+	
+	public String undo(Model model, View view) {
+		this.model = model;
+		this.view = view;
+		index = model.getIndexFromPending(task); 
+		model.removeTaskFromPendingNoTrash(index);
+		return MESSAGE_SUCCESSFUL_UNDO;
 	}
 }
 
 class EditCommand extends TwoWayCommand {
 	int index;
+	int tabIndex;
 	String workInfo;
 	String tag;
 	String startDateString;
 	String endDateString;
 	boolean hasImptTaskToggle;
 	ObservableList<Task> modifiedList;
-
+	Task targetTask;
+	String[] originalTask;
+	
 	public EditCommand(String[] parsedUserCommand, Model model, View view) {
-		int tabIndex = view.tabPane.getSelectionModel().getSelectedIndex();
+		tabIndex = view.tabPane.getSelectionModel().getSelectedIndex();
 		modifiedList = FXCollections.observableArrayList();
 		this.model = model;
 		this.view = view;
@@ -129,15 +140,25 @@ class EditCommand extends TwoWayCommand {
 		endDateString = parsedUserCommand[4];
 		hasImptTaskToggle = (parsedUserCommand[5].equals(Parser.TRUE)) ? true
 				: false;
-		index = Integer.parseInt(parsedUserCommand[0]);
+		index = Integer.parseInt(parsedUserCommand[0]);	
 	}
 
+	private void setOriginalTask(){
+		originalTask = new String[6];
+		originalTask[1] = targetTask.getWorkInfo();
+		originalTask[2] = targetTask.getTag();
+		originalTask[3] = targetTask.getStartDateString();
+		originalTask[4] = targetTask.getEndDateString();
+		originalTask[5] = String.valueOf(targetTask.getIsImportant());
+	}
+	
 	public String execute() {
 		if (index > modifiedList.size())
 			return MESSAGE_INDEX_OUT_OF_BOUNDS;
 
-		Task targetTask = modifiedList.get(index - 1);
-
+		targetTask = modifiedList.get(index - 1);
+		setOriginalTask();
+		
 		CustomDate startDate, endDate;
 		startDate = endDate = null;
 
@@ -173,11 +194,21 @@ class EditCommand extends TwoWayCommand {
 			targetTask.setIsImportant(!targetTask.getIsImportant());
 
 		Control.sortList(modifiedList);
+		
 		return MESSAGE_SUCCESSFUL_EDIT;
 	}
 
-	public String undo() {
-		return null;
+	public String undo(Model model, View view) {
+		this.model = model;
+		this.view = view;
+		originalTask[0] = String.valueOf(model.getIndexFromPending(targetTask) + 1);
+		EditCommand undoEdit = new EditCommand(originalTask, model, view);
+		String feedback = undoEdit.execute();
+		if (feedback.equals("MESSAGE_SUCCESFUL_REMOVE"))
+			return MESSAGE_SUCCESSFUL_UNDO;
+		else
+			return MESSAGE_FAILED_UNDO;
+		// TODO: fix the dates when undoing
 	}
 }
 
@@ -185,8 +216,11 @@ class RemoveCommand extends TwoWayCommand {
 	ObservableList<Task> modifiedList;
 	int[] indexList;
 	int tabIndex;
-
+	int indexCount;
+	ArrayList<Task> removedTaskInfo;
+	
 	public RemoveCommand(String[] userParsedCommand, Model model, View view) {
+		removedTaskInfo = new ArrayList<Task>();
 		this.model = model;
 		this.view = view;
 		tabIndex = this.view.tabPane.getSelectionModel().getSelectedIndex();
@@ -198,7 +232,7 @@ class RemoveCommand extends TwoWayCommand {
 		else
 			modifiedList = this.model.getTrashList();
 
-		int indexCount = userParsedCommand.length;
+		indexCount = userParsedCommand.length;
 		indexList = new int[indexCount];
 		for (int i = 0; i < indexCount; i++) {
 			indexList[i] = Integer.valueOf(userParsedCommand[i]);
@@ -207,7 +241,8 @@ class RemoveCommand extends TwoWayCommand {
 
 	public String execute() {
 		Arrays.sort(indexList);
-		int indexCount = indexList.length;
+		indexCount = indexList.length;
+		
 		for (int i = 0; i < indexCount - 1; i++)
 			if (indexList[i] == indexList[i + 1])
 				return MESSAGE_DUPLICATE_INDEXES;
@@ -216,6 +251,7 @@ class RemoveCommand extends TwoWayCommand {
 			return MESSAGE_INDEX_OUT_OF_BOUNDS;
 
 		for (int i = indexCount - 1; i >= 0; i--) {
+			removedTaskInfo.add(model.getTaskFromPending(indexList[i]-1));
 			model.removeTask(indexList[i] - 1, tabIndex);
 		}
 
@@ -225,11 +261,34 @@ class RemoveCommand extends TwoWayCommand {
 		return MESSAGE_SUCCESFUL_REMOVE;
 	}
 
-	public String undo() {
-		return null;
+	public String undo(Model model, View view) {
+		String feedback;
+		this.model = model;
+		this.view = view;
+		int index;
+		
+		if (tabIndex == 0)
+			modifiedList = this.model.getPendingList();
+		else if (tabIndex == 1)
+			modifiedList = this.model.getCompleteList();
+		else
+			modifiedList = this.model.getTrashList();
+
+		for (int i = 0; i < removedTaskInfo.size(); i++){
+			modifiedList.add(removedTaskInfo.get(i));
+			if (tabIndex == 0 || tabIndex == 1){
+				index = this.model.getIndexFromTrash(removedTaskInfo.get(i));
+				this.model.removeTaskFromTrash(index);
+			}		
+			// TODO: look for more efficient way of coding the undo function
+		}
+		Control.sortList(modifiedList);
+		return MESSAGE_SUCCESSFUL_UNDO;
 	}
 }
 
+// TODO: let clear all support clear pending, clear complete and clear trash functions
+// TODO: undo function
 class ClearAllCommand extends TwoWayCommand {
 	public ClearAllCommand(Model model, View view) {
 		this.model = model;
@@ -255,22 +314,26 @@ class ClearAllCommand extends TwoWayCommand {
 		return MESSAGE_CLEAR_ALL;
 	}
 
-	public String undo() {
+	public String undo(Model model, View view) {
+		this.model = model;
+		this.view = view;
 		return null;
 	}
 }
-
+// TODO: undo needs work on
 class CompleteCommand extends TwoWayCommand {
 	ObservableList<Task> modifiedList;
+	Task[] toCompleteTasks;
 	int[] indexList;
-	int tabIndex;
-
+	int[] indexInCompleteList;
+	int indexCount;
+	
 	public CompleteCommand(String[] userParsedCommand, Model model, View view) {
 		this.model = model;
 		this.view = view;
 		modifiedList = this.model.getPendingList();
 
-		int indexCount = userParsedCommand.length;
+		indexCount = userParsedCommand.length;
 		indexList = new int[indexCount];
 		for (int i = 0; i < indexCount; i++) {
 			indexList[i] = Integer.valueOf(userParsedCommand[i]);
@@ -279,30 +342,43 @@ class CompleteCommand extends TwoWayCommand {
 
 	public String execute() {
 		Arrays.sort(indexList);
-		int indexCount = indexList.length;
 		for (int i = 0; i < indexCount - 1; i++)
 			if (indexList[i] == indexList[i + 1])
 				return MESSAGE_DUPLICATE_INDEXES;
 
 		if (indexList[indexCount - 1] > modifiedList.size())
 			return MESSAGE_INDEX_OUT_OF_BOUNDS;
-
-		String successfulComplete = "";
+		
+		indexInCompleteList = new int[indexCount];
+		toCompleteTasks = new Task[indexCount];
 
 		for (int i = indexCount - 1; i >= 0; i--) {
 			Task toComplete = model.getTaskFromPending(indexList[i] - 1);
+			toCompleteTasks[i] = toComplete;
 			model.getPendingList().remove(indexList[i] - 1);
 			model.addTaskToComplete(toComplete);
-			successfulComplete += i + " ";
 		}
-
+		
 		Control.sortList(model.getCompleteList());
-
-		return String.format(MESSAGE_SUCCESSFUL_COMPLETE, successfulComplete);
+		for (int i = 0; i < indexCount; i++) {
+			indexInCompleteList[i] = model.getIndexFromComplete(toCompleteTasks[i]);
+		}
+		
+		return MESSAGE_SUCCESSFUL_COMPLETE;
 	}
-
-	public String undo() {
-		return null;
+	
+	public String undo(Model model, View view) {
+		this.model = model;
+		this.view = view;
+		
+		for (int i = 0; i < indexCount; i++){
+			model.removeTaskFromComplete(indexInCompleteList[i]);
+			model.addTaskToPending(toCompleteTasks[i]);
+		}
+		Control.sortList(model.getCompleteList());
+		Control.sortList(model.getPendingList());
+		
+		return MESSAGE_SUCCESSFUL_UNDO;
 	}
 }
 
@@ -310,7 +386,7 @@ class IncompleteCommand extends TwoWayCommand {
 	ObservableList<Task> modifiedList;
 	int[] indexList;
 	int tabIndex;
-
+	
 	public IncompleteCommand(String[] userParsedCommand, Model model, View view) {
 		this.model = model;
 		this.view = view;
@@ -347,8 +423,8 @@ class IncompleteCommand extends TwoWayCommand {
 		return String.format(MESSAGE_SUCCESSFUL_INCOMPLETE,
 				successfulIncomplete);
 	}
-
-	public String undo() {
+	
+	public String undo(Model model, View view) {
 		return null;
 	}
 }
@@ -357,7 +433,7 @@ class MarkCommand extends TwoWayCommand {
 	ObservableList<Task> modifiedList;
 	int[] indexList;
 	int tabIndex;
-
+	
 	public MarkCommand(String[] userParsedCommand, Model model, View view) {
 		this.model = model;
 		this.view = view;
@@ -397,8 +473,8 @@ class MarkCommand extends TwoWayCommand {
 
 		return String.format(MESSAGE_SUCCESSFUL_MARK, successfulMark);
 	}
-
-	public String undo() {
+	
+	public String undo(Model model, View view) {
 		return null;
 	}
 }
@@ -407,7 +483,7 @@ class UnmarkCommand extends TwoWayCommand {
 	ObservableList<Task> modifiedList;
 	int[] indexList;
 	int tabIndex;
-
+	
 	public UnmarkCommand(String[] userParsedCommand, Model model, View view) {
 		this.model = model;
 		this.view = view;
@@ -448,7 +524,7 @@ class UnmarkCommand extends TwoWayCommand {
 		return String.format(MESSAGE_SUCCESSFUL_UNMARK, successfulUnmark);
 	}
 
-	public String undo() {
+	public String undo(Model model, View view) {
 		return null;
 	}
 }

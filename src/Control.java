@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -5,10 +6,8 @@ import java.util.TimerTask;
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
-
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
@@ -19,6 +18,7 @@ import javafx.stage.StageStyle;
 public class Control extends Application {
 	private static final String MESSAGE_INVALID_COMMAND_TYPE = "Invalid Command Type!";
 	private static final String MESSAGE_EMPTY_COMMAND = "Empty Command!";
+	private static final String MESSAGE_INVALID_COMMAND = "Invalid Command!";
 	private static final String MESSAGE_ADD_TIP = "<add> <task info 1> <task info 2> <task info 3> <task info 4> ...";
 	private static final String MESSAGE_EDIT_TIP = "<edit/mod/modify> <index> <task info 1> <task info 2> <task info 3> ...";
 	private static final String MESSAGE_REMOVE_TIP = "<delete/del/remove/rm> <index 1> <index 2> <index 3> ...";
@@ -37,6 +37,7 @@ public class Control extends Application {
 	public static final int INVALID = -1;
 
 	static private Model modelHandler = new Model();
+	static private History commandHistory = new History();
 	static private View view;
 	static Stage primaryStage;
 
@@ -164,26 +165,39 @@ public class Control extends Application {
 			String[] parsedUserCommand = Parser.parseCommand(userCommand,
 					commandType);
 			Command s;
+			String feedback;
 			switch (commandType) {
 			case ADD:
 				s = new ShowAllCommand(modelHandler, view);
 				s.execute();
 				s = new AddCommand(parsedUserCommand, modelHandler, view);
-				return s.execute();
+				feedback = s.execute();
+				commandHistory.updateCommand((TwoWayCommand)s);
+				return feedback;
 			case EDIT:
 				s = new ShowAllCommand(modelHandler, view);
 				s.execute();
 				s = new EditCommand(parsedUserCommand, modelHandler, view);
-				return s.execute();
+				feedback = s.execute();
+				commandHistory.updateCommand((TwoWayCommand)s);
+				return feedback;
 			case REMOVE:
 				s = new ShowAllCommand(modelHandler, view);
 				s.execute();
 				s = new RemoveCommand(parsedUserCommand, modelHandler, view);
-				return s.execute();
-				// case UNDO:
-				// return executeUndoCommand(parsedUserCommand);
+				feedback = s.execute();
+				commandHistory.updateCommand((TwoWayCommand)s);
+				return feedback;
+			case UNDO:
+				s = new ShowAllCommand(modelHandler, view);
+				s.execute();
+				if (commandHistory.getUndoOnce()){				
+					TwoWayCommand undoCommand = commandHistory.getPrevCommand();
+					return undoCommand.undo(modelHandler, view);
+				} else return MESSAGE_INVALID_COMMAND;
 				// case REDO:
-				// return executeRedoCommand(parsedUserCommand);
+				// 		TwoWayCommand redoCommand = commandHistory.getPrevCommand();
+				// 		return redoCommand.execute();
 			case SEARCH:
 				s = new SearchCommand(parsedUserCommand, modelHandler, view);
 				return s.execute();
@@ -200,7 +214,9 @@ public class Control extends Application {
 				s = new ShowAllCommand(modelHandler, view);
 				s.execute();
 				s = new CompleteCommand(parsedUserCommand, modelHandler, view);
-				return s.execute();
+				feedback = s.execute();
+				commandHistory.updateCommand((TwoWayCommand)s);
+				return feedback;
 			case INCOMPLETE:
 				s = new ShowAllCommand(modelHandler, view);
 				s.execute();
