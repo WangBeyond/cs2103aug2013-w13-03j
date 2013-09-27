@@ -5,14 +5,14 @@ import java.util.TimerTask;
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-
 import javafx.collections.ObservableList;
+import javafx.collections.SetChangeListener;
 import javafx.event.EventHandler;
-
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
@@ -57,23 +57,24 @@ public class Control extends Application {
 		t.schedule(new TimerTask() {
 			@Override
 			public void run() {
+				CustomDate.updateCurrentDate();
 				updateList(modelHandler.getPendingList());
 				updateList(modelHandler.getCompleteList());
 				updateList(modelHandler.getTrashList());
-				updateList(modelHandler.getSearchPendingList());
-				updateList(modelHandler.getSearchCompleteList());
-				updateList(modelHandler.getSearchTrashList());
 			}
 		}, 0, 60000);
 	}
-	
+
 	public static Model getModel() {
 		return modelHandler;
 	}
 
 	private static void updateList(ObservableList<Task> list) {
-		for (int i = 0; i < list.size(); i++)
+		for (int i = 0; i < list.size(); i++) {
 			list.get(i).updateDateString();
+			if (!list.get(i).getTag().getRepetition().equals("-"))
+				list.get(i).updateDate();
+		}
 	}
 
 	private void hookUpEventForCommandLine() {
@@ -87,46 +88,51 @@ public class Control extends Application {
 						} else {
 							Parser.COMMAND_TYPES commandType = Parser
 									.determineCommandType(command);
-							switch (commandType) {
-							case ADD:
-								view.feedback.setText(MESSAGE_ADD_TIP);
-								break;
-							case EDIT:
-								view.feedback.setText(MESSAGE_EDIT_TIP);
-								break;
-							case REMOVE:
-								view.feedback.setText(MESSAGE_REMOVE_TIP);
-								break;
-							case SEARCH:
-								view.feedback.setText(MESSAGE_SEARCH_TIP);
-								break;
-							case SHOW_ALL:
-								view.feedback.setText(MESSAGE_SHOW_ALL_TIP);
-								break;
-							case MARK:
-								view.feedback.setText(MESSAGE_MARK_TIP);
-								break;
-							case UNMARK:
-								view.feedback.setText(MESSAGE_UNMARK_TIP);
-								break;
-							case COMPLETE:
-								view.feedback.setText(MESSAGE_COMPLETE_TIP);
-								break;
-							case INCOMPLETE:
-								view.feedback.setText(MESSAGE_INCOMPLETE_TIP);
-								break;
-							case TODAY:
-								view.feedback.setText(MESSAGE_TODAY_TIP);
-								break;
-							case CLEAR_ALL:
-								view.feedback.setText(MESSAGE_CLEAR_ALL_TIP);
-								break;
-							case EXIT:
-								view.feedback.setText(MESSAGE_EXIT_TIP);
-								break;
-							case INVALID:
+							if (commandType == Parser.COMMAND_TYPES.INVALID) {
+								view.feedback.setFill(Color.WHITE);
 								view.feedback.setText(MESSAGE_REQUEST_COMMAND);
-								break;
+							} else {
+								view.feedback.setFill(Color.rgb(130, 255, 121));
+								switch (commandType) {
+								case ADD:
+									view.feedback.setText(MESSAGE_ADD_TIP);
+									break;
+								case EDIT:
+									view.feedback.setText(MESSAGE_EDIT_TIP);
+									break;
+								case REMOVE:
+									view.feedback.setText(MESSAGE_REMOVE_TIP);
+									break;
+								case SEARCH:
+									view.feedback.setText(MESSAGE_SEARCH_TIP);
+									break;
+								case SHOW_ALL:
+									view.feedback.setText(MESSAGE_SHOW_ALL_TIP);
+									break;
+								case MARK:
+									view.feedback.setText(MESSAGE_MARK_TIP);
+									break;
+								case UNMARK:
+									view.feedback.setText(MESSAGE_UNMARK_TIP);
+									break;
+								case COMPLETE:
+									view.feedback.setText(MESSAGE_COMPLETE_TIP);
+									break;
+								case INCOMPLETE:
+									view.feedback
+											.setText(MESSAGE_INCOMPLETE_TIP);
+									break;
+								case TODAY:
+									view.feedback.setText(MESSAGE_TODAY_TIP);
+									break;
+								case CLEAR_ALL:
+									view.feedback
+											.setText(MESSAGE_CLEAR_ALL_TIP);
+									break;
+								case EXIT:
+									view.feedback.setText(MESSAGE_EXIT_TIP);
+									break;
+								}
 							}
 						}
 					}
@@ -138,7 +144,9 @@ public class Control extends Application {
 			public void handle(KeyEvent e) {
 				if (e.getCode() == KeyCode.ENTER) {
 					String feedback = executeCommand(view.commandLine.getText());
-					view.commandLine.setText("");
+					if (successfulExecution(feedback))
+						view.commandLine.setText("");
+					view.feedback.setFill(Color.WHITE);
 					view.feedback.setText(feedback);
 				} else if (changeTab.match(e)) {
 					int index = view.tabPane.getSelectionModel()
@@ -150,6 +158,20 @@ public class Control extends Application {
 				}
 			}
 		});
+	}
+
+	private boolean successfulExecution(String feedback) {
+		return feedback.equals(Command.MESSAGE_NO_RESULTS)
+				|| feedback.equals(Command.MESSAGE_SUCCESFUL_REMOVE)
+				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_ADD)
+				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_CLEAR_ALL)
+				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_COMPLETE)
+				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_EDIT)
+				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_INCOMPLETE)
+				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_MARK)
+				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_SEARCH)
+				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_SHOW_ALL)
+				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_UNMARK);
 	}
 
 	private static String executeCommand(String userCommand) {

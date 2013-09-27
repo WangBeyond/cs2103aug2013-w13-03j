@@ -88,7 +88,7 @@ public class DataStorage extends Store {
 		newTask.setWorkInfo(in.readLine());
 		newTask.setStartDate(new CustomDate(in.readLine()));
 		newTask.setEndDate(new CustomDate(in.readLine()));
-		newTask.setTag(in.readLine());
+		//newTask.setTag(in.readLine());
 		newTask.setIsImportant((in.readLine()).equals(TRUE)?true:false);
 		switch(taskType) {
 			case PENDING: Control.getModel().addTaskToPending(newTask); break;
