@@ -13,7 +13,7 @@ public class Task implements Comparable<Task> {
 	private ObjectProperty<CustomDate> endDate;
 	private StringProperty endDateString;
 	private StringProperty workInfo;
-	private StringProperty tag;
+	private ObjectProperty<Tag> tag;
 	private int indexId;
 
 	// default constructor
@@ -32,12 +32,12 @@ public class Task implements Comparable<Task> {
 		setEndDate(null);
 		setStartDateString("-");
 		setWorkInfo("");
-		setTag("");
+		setTag(new Tag("", ""));
 		indexId = 0;
 	}
 
 	public Task(boolean isImportant, CustomDate startDate, CustomDate endDate,
-			String workInfo, String tag, int indexId) {
+			String workInfo, Tag tag, int indexId) {
 		isImportantProperty();
 		workInfoProperty();
 		tagProperty();
@@ -87,9 +87,9 @@ public class Task implements Comparable<Task> {
 		return workInfo;
 	}
 
-	public StringProperty tagProperty() {
+	public ObjectProperty<Tag> tagProperty() {
 		if (tag == null)
-			tag = new SimpleStringProperty(this, "tag");
+			tag = new SimpleObjectProperty<Tag>(this, "tag");
 		return tag;
 	}
 
@@ -142,7 +142,7 @@ public class Task implements Comparable<Task> {
 		return workInfo.get();
 	}
 
-	public String getTag() {
+	public Tag getTag() {
 		return tag.get();
 	}
 
@@ -183,7 +183,7 @@ public class Task implements Comparable<Task> {
 		this.workInfo.set(workInfo);
 	}
 
-	public void setTag(String tag) {
+	public void setTag(Tag tag) {
 		this.tag.set(tag);
 	}
 
@@ -192,10 +192,64 @@ public class Task implements Comparable<Task> {
 	}
 
 	public void updateDateString() {
-		CustomDate.updateCurrentDate();
 		if (getStartDate() != null)
 			setStartDateString(getStartDate().toString(true));
 		if (getEndDate() != null)
 			setEndDateString(getEndDate().toString(false));
+	}
+	
+	public void updateDate(){
+		if(getEndDate().beforeCurrentTime()){
+			long difference = getUpdateDifference(getTag().getRepetition());
+			
+			CustomDate startDate = getStartDate();
+			startDate.setTimeInMillis(startDate.getTimeInMillis() + difference);
+			setStartDate(startDate);
+			setStartDateString(getStartDate().toString(true));
+			
+			CustomDate endDate = getEndDate();
+			endDate.setTimeInMillis(endDate.getTimeInMillis() + difference);
+			setEndDate(endDate);
+			setEndDateString(getEndDate().toString(false));
+		}
+	}
+	
+	public static long getUpdateDifference(String repetition){
+		if(repetition.equals("daily") || repetition.equals("everyday"))
+			return (long)24*60*60*1000;
+		else if(repetition.equals("weekly") || repetition.startsWith("every"))
+			return (long)7*24*60*60*1000;
+		else if(repetition.equals("monthly"))
+			return (long)30*24*60*60*1000;
+		else if(repetition.equals("yearly") || repetition.equals("annually"))
+			return (long)365*24*60*60*1000;
+		else
+			throw new IllegalArgumentException("Invalid repetitive tag");
+	}
+}
+
+class Tag{
+	private String tag;
+	private String repetition;
+	
+	public Tag(String tag, String repetition){
+		setTag(tag);
+		setRepetition(repetition);
+	}
+	
+	public void setTag(String tag){
+		this.tag = tag;
+	}
+	
+	public void setRepetition(String repetition){
+		this.repetition = repetition;
+	}
+	
+	public String getTag(){
+		return this.tag;
+	}
+	
+	public String getRepetition(){
+		return this.repetition;
 	}
 }

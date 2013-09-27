@@ -6,8 +6,8 @@ import javafx.collections.ObservableList;
 import javafx.stage.Stage;
 
 public abstract class Command {
-	protected static final String MESSAGE_SHOW_ALL = "Show all the tasks";
-	protected static final String MESSAGE_CLEAR_ALL = "Clear all the tasks";
+	protected static final String MESSAGE_SUCCESSFUL_SHOW_ALL = "Show all the tasks";
+	protected static final String MESSAGE_SUCCESSFUL_CLEAR_ALL = "Clear all the tasks";
 	protected static final String MESSAGE_SUCCESSFUL_SEARCH = "Successful Search!";
 	protected static final String MESSAGE_NO_RESULTS = "Search no results!";
 	protected static final String MESSAGE_SUCCESSFUL_ADD = "Task is added successfully";
@@ -18,11 +18,8 @@ public abstract class Command {
 	protected static final String MESSAGE_INDEX_OUT_OF_BOUNDS = "There is an index outside the range of the list";
 	protected static final String MESSAGE_SUCCESSFUL_MARK = "Task(s) %1$shas/have been marked successfully.";
 	protected static final String MESSAGE_SUCCESSFUL_UNMARK = "Task(s) %1$shas/have been unmarked successfully.";
-	private static final String MESSAGE_FAILED_UNMARK = "Task(s) %1$shas/have not been successfully unmarked as index(es) is/are not valid.";
-	private static final String MESSAGE_SUCCESSFUL_CLEAR = "All %1$s tasks have been cleared.";
 	protected static final String MESSAGE_SUCCESSFUL_COMPLETE = "Indicated task(s) has/have been marked as complete.";
 	protected static final String MESSAGE_SUCCESSFUL_INCOMPLETE = "Task(s) %1$shas/have been marked as incomplete.";
-	private static final String MESSAGE_FAILED_INCOMPLETE = "Task(s) %1$shas/have not been marked incomplete as index(es) is/are not valid.";
 	protected static final String MESSAGE_SUCCESSFUL_UNDO = "Undo is successful.";
 	protected static final String MESSAGE_FAILED_UNDO = "Undo has failed.";
 
@@ -54,7 +51,6 @@ class AddCommand extends TwoWayCommand {
 		endDateString = parsedUserCommand[3];
 		isImptTask = false;
 		repeatingType = parsedUserCommand[5];
-		tag += " "+repeatingType;
 		this.model = model;
 		this.view = view;
 //		index = new String[1];
@@ -67,6 +63,12 @@ class AddCommand extends TwoWayCommand {
 	public String execute() {
 		task = new Task();
 		task.setWorkInfo(workInfo);
+
+		if (!repeatingType.equals(Parser.NULL)
+				&& (startDateString.equals(Parser.NULL) || endDateString
+						.equals(Parser.NULL)))
+			throw new IllegalArgumentException(
+					"There must be both start and end dates for repetitive task");
 
 		if (!startDateString.equals(Parser.NULL)) {
 			CustomDate startDate = new CustomDate(startDateString);
@@ -89,11 +91,17 @@ class AddCommand extends TwoWayCommand {
 				return MESSAGE_INVALID_DATE_RANGE;
 		}
 
-		if (!tag.equals(Parser.NULL)) {
-			task.setTag(tag);
-		} else {
-			task.setTag("-");
+		if (!repeatingType.equals(Parser.NULL)) {
+			long expectedDifference = Task.getUpdateDifference(repeatingType);
+			long actualDifference = task.getEndDate().getTimeInMillis()
+					- task.getStartDate().getTimeInMillis();
+			if (actualDifference > expectedDifference)
+				throw new IllegalArgumentException(
+						"Invalid command: The difference between times is larger than the limit of repetitive period");
 		}
+
+		task.setTag(new Tag(tag.equals(Parser.NULL) ? "-" : tag, repeatingType
+				.equals(Parser.NULL) ? "-" : repeatingType));
 		task.setIsImportant(isImptTask);
 
 		model.addTaskToPending(task);
@@ -119,6 +127,7 @@ class EditCommand extends TwoWayCommand {
 	String startDateString;
 	String endDateString;
 	boolean hasImptTaskToggle;
+	String repeatingType;
 	ObservableList<Task> modifiedList;
 	Task targetTask;
 	String[] originalTask;
@@ -140,6 +149,7 @@ class EditCommand extends TwoWayCommand {
 		endDateString = parsedUserCommand[4];
 		hasImptTaskToggle = (parsedUserCommand[5].equals(Parser.TRUE)) ? true
 				: false;
+		repeatingType = parsedUserCommand[6];
 		index = Integer.parseInt(parsedUserCommand[0]);	
 	}
 
@@ -161,10 +171,14 @@ class EditCommand extends TwoWayCommand {
 		
 		CustomDate startDate, endDate;
 		startDate = endDate = null;
-
+		
+		if(repeatingType.equals(Parser.NULL))
+			repeatingType = targetTask.getTag().getRepetition();
+		
 		if (!startDateString.equals(Parser.NULL)) {
 			startDate = new CustomDate(startDateString);
-		}
+		} else
+			startDate = targetTask.getStartDate();
 
 		if (!endDateString.equals(Parser.NULL)) {
 			endDate = new CustomDate(endDateString);
@@ -172,11 +186,26 @@ class EditCommand extends TwoWayCommand {
 				endDate.setHour(23);
 				endDate.setMinute(59);
 			}
-		}
+		} else
+			endDate = targetTask.getEndDate();
 
 		if (startDate != null && endDate != null
 				&& CustomDate.compare(endDate, startDate) < 0)
 			return MESSAGE_INVALID_DATE_RANGE;
+
+		if (!repeatingType.equals(Parser.NULL)
+				&& (startDate == null || endDate == null))
+			throw new IllegalArgumentException(
+					"There must be both start and end dates for repetitive task");
+
+		if (!repeatingType.equals(Parser.NULL)) {
+			long expectedDifference = Task.getUpdateDifference(repeatingType);
+			long actualDifference = endDate.getTimeInMillis()
+					- startDate.getTimeInMillis();
+			if (actualDifference > expectedDifference)
+				throw new IllegalArgumentException(
+						"Invalid command: The difference between times is larger than the limit of repetitive period");
+		}
 
 		if (!workInfo.equals(Parser.NULL))
 			targetTask.setWorkInfo(workInfo);
@@ -187,9 +216,11 @@ class EditCommand extends TwoWayCommand {
 		if (endDate != null)
 			targetTask.setEndDate(endDate);
 
-		if (tag != Parser.NULL)
-			targetTask.setTag(tag);
-
+		if(tag != Parser.NULL)
+			targetTask.setTag(new Tag(tag, repeatingType));
+		else
+			targetTask.setTag(new Tag(targetTask.getTag().getTag(), repeatingType));
+		
 		if (hasImptTaskToggle)
 			targetTask.setIsImportant(!targetTask.getIsImportant());
 
@@ -305,13 +336,13 @@ class ClearAllCommand extends TwoWayCommand {
 		else
 			modifiedList = model.getTrashList();
 
-		for (int i = 0; i < modifiedList.size(); i++)
+		for (int i = modifiedList.size() - 1; i >= 0; i--)
 			model.removeTask(i, tabIndex);
 
 		if (tabIndex == 1 || tabIndex == 0)
 			Control.sortList(model.getTrashList());
 
-		return MESSAGE_CLEAR_ALL;
+		return MESSAGE_SUCCESSFUL_CLEAR_ALL;
 	}
 
 	public String undo(Model model, View view) {
@@ -541,11 +572,11 @@ class SearchCommand extends Command {
 		this.model = model;
 		this.view = view;
 		tabIndex = view.tabPane.getSelectionModel().getSelectedIndex();
-		String workInfo = parsedUserCommand[0];
-		String tag = parsedUserCommand[1];
-		String startDateString = parsedUserCommand[2];
-		String endDateString = parsedUserCommand[3];
-		String isImpt = parsedUserCommand[4];
+		workInfo = parsedUserCommand[0];
+		tag = parsedUserCommand[1];
+		startDateString = parsedUserCommand[2];
+		endDateString = parsedUserCommand[3];
+		isImpt = parsedUserCommand[4];
 	}
 
 	public String execute() {
@@ -622,7 +653,7 @@ class SearchCommand extends Command {
 			String tagName) {
 		ObservableList<Task> result = FXCollections.observableArrayList();
 		for (int i = 0; i < list.size(); i++) {
-			String tag = list.get(i).getTag();
+			String tag = list.get(i).getTag().getTag();
 			if (tag.toLowerCase().contains(tagName.toLowerCase()))
 				result.add(list.get(i));
 		}
@@ -712,19 +743,20 @@ class ShowAllCommand extends Command {
 			view.taskCompleteList.setItems(model.getCompleteList());
 		else
 			view.taskTrashList.setItems(model.getTrashList());
-		return MESSAGE_SHOW_ALL;
+		return MESSAGE_SUCCESSFUL_SHOW_ALL;
 	}
 }
 
-class ExitCommand extends Command{
+class ExitCommand extends Command {
 	Stage stage;
-	public ExitCommand(Model model, View view, Stage primaryStage){
+
+	public ExitCommand(Model model, View view, Stage primaryStage) {
 		this.model = model;
 		this.view = view;
 		this.stage = primaryStage;
 	}
-	
-	public String execute(){
+
+	public String execute() {
 		stage.close();
 		System.exit(0);
 		return null;

@@ -13,17 +13,16 @@ public class Parser {
 	/* end date keys */
 	private static String[] endDateKeys = { "end on", "end at", "end by",
 			"end before", "to", "till", "until", "by", "due" };
-	
-	private static String[] repeatingTypes = {"hourly","daily","weekly","monthly","yearly","annually","every Monday","every Tuesday",
-			"every Wednesday","every Thursday","every Friday","every Saturday","every Sunday"};
 
-	public static final int INDEX_IS_MATCH = 0;
+	private static String[] repeatingTypes = { "daily", "weekly", "monthly",
+			"yearly", "annually", "every Monday", "every Tuesday",
+			"every Wednesday", "every Thursday", "every Friday",
+			"every Saturday", "every Sunday" };
+
 	public static final int INDEX_WORK_INFO = 0;
-	public static final int INDEX_STRING_BEFORE = 1;
 	public static final int INDEX_TAG = 1;
 	public static final int INDEX_START_DATE = 2;
 	public static final int INDEX_END_DATE = 3;
-	public static final int INDEX_STRING_AFTER = 4;
 	public static final int INDEX_IS_IMPT = 4;
 	public static final int INDEX_REPEATING = 5;
 
@@ -37,26 +36,6 @@ public class Parser {
 	public static final String NULL = "null";
 	public static final String START_KEY = "start key";
 	public static final String END_KEY = "end key";
-
-	public static void main(String[] args) {
-		Scanner sc = new Scanner(System.in);
-		String s;
-		while (sc.hasNextLine()) {
-			s = sc.nextLine();
-			try {
-				COMMAND_TYPES type = determineCommandType(s);
-				if (type == COMMAND_TYPES.INVALID)
-					System.out.println("Invalid Command Type");
-				else {
-					String[] result = parseCommand(s, type);
-					for (String u : result)
-						System.out.println(u);
-				}
-			} catch (Exception e) {
-				System.out.println(e.getMessage());
-			}
-		}
-	}
 
 	/**
 	 * This function is used to determine the command type of the command input
@@ -174,7 +153,7 @@ public class Parser {
 		String[] temp = parseCommandWithInfo(removeFirstWord(content),
 				COMMAND_TYPES.EDIT);
 
-		String[] parsedCommand = new String[6];
+		String[] parsedCommand = new String[7];
 		parsedCommand[0] = String.valueOf(index);
 		for (int i = 1; i < parsedCommand.length; i++) {
 			parsedCommand[i] = temp[i - 1];
@@ -205,12 +184,12 @@ public class Parser {
 		String tag = NULL;
 		String isImpt = FALSE;
 		String repeatingType = NULL;
-		
+
 		String[] result = getRepeatingType(commandString);
 		commandString = result[0];
-		repeatingType = result[1];
-		System.out.println(repeatingType+" "+commandString);
-		
+		if (result[1] != null)
+			repeatingType = result[1];
+		System.out.println(result[1]);
 		if (hasMultipleTags(commandString)) {// if contains multiple hash tags
 			throw new IllegalArgumentException(
 					"Invalid Command: multiple hash tags(#).");
@@ -247,30 +226,39 @@ public class Parser {
 		} else
 			workInfo = commandString.trim();
 
-		String[] parsedCommand = new String[] { NULL, NULL, NULL, NULL, FALSE, NULL };
-		
-		parsedCommand[INDEX_WORK_INFO] = workInfo==NULL?NULL:workInfo;
-		parsedCommand[INDEX_START_DATE] = startDateString==NULL?NULL:startDateString;
-		parsedCommand[INDEX_END_DATE] = endDateString == NULL? NULL:endDateString;
-		parsedCommand[INDEX_TAG] = tag == NULL? NULL:tag;
+		String[] parsedCommand = new String[] { NULL, NULL, NULL, NULL, FALSE,
+				NULL };
+
+		parsedCommand[INDEX_WORK_INFO] = workInfo.equals(NULL) ? NULL : workInfo;
+		parsedCommand[INDEX_START_DATE] = startDateString.equals(NULL) ? NULL
+				: startDateString;
+		parsedCommand[INDEX_END_DATE] = endDateString.equals(NULL) ? NULL
+				: endDateString;
+		parsedCommand[INDEX_TAG] = tag.equals(NULL) ? NULL : tag;
 		parsedCommand[INDEX_IS_IMPT] = isImpt;
-		parsedCommand[INDEX_REPEATING] = repeatingType ==NULL?NULL:repeatingType;
+		parsedCommand[INDEX_REPEATING] = repeatingType.equals(NULL) ? NULL
+				: repeatingType;
 
 		return parsedCommand;
 	}
-	
+
 	private static String[] getRepeatingType(String commandString) {
 		String repeatingType = null;
-		for(int i=0;i<repeatingTypes.length;i++) {
-			if(commandString.contains(repeatingTypes[i])) {
-				repeatingType = repeatingTypes[i];
-				commandString = commandString.replace(repeatingType,"");
+		for (int i = 0; i < repeatingTypes.length; i++) {
+			if (commandString.toLowerCase().contains(
+					repeatingTypes[i].toLowerCase())) {
+				if (repeatingType == null)
+					repeatingType = repeatingTypes[i];
+				else
+					throw new IllegalArgumentException(
+							"Invalid Command: More than 1 repetitive signals");
+				commandString = commandString.replace(repeatingType, "");
 				break;
 			}
 		}
-		return new String[] {commandString, repeatingType};
+		return new String[] { commandString, repeatingType };
 	}
-	
+
 	/**
 	 * This method is used to parse content of commands filled with indexes to
 	 * necessary infos
@@ -281,9 +269,9 @@ public class Parser {
 	 */
 	private static String[] parseCommandWithIndex(String content) {
 		String[] splittedUserCommand = splitBySpace(content);
-		if(splittedUserCommand.length < 1)
+		if (splittedUserCommand.length < 1)
 			throw new IllegalArgumentException("No indexes");
-		
+
 		try {
 			for (String s : splittedUserCommand)
 				Integer.parseInt(s);
@@ -314,7 +302,7 @@ public class Parser {
 		String dateString = NULL;
 		for (int i = 0; i < keys.length; i++) {
 			// find first occurrence of a <key>
-			int keyIndex = temp.indexOf(keys[i]);
+			int keyIndex = temp.toLowerCase().indexOf(keys[i]);
 			int keyLength = keys[i].length();
 			while (keyIndex >= 0) {
 				// get string before the date key
@@ -379,8 +367,9 @@ public class Parser {
 			int result = dateTester.convert(tester);
 			if (result == Control.VALID) {
 				return tester.length();
-			} else if(result == CustomDate.OUT_OF_BOUNDS){
-				throw new IllegalArgumentException("The time is out of bounds. Please recheck!");
+			} else if (result == CustomDate.OUT_OF_BOUNDS) {
+				throw new IllegalArgumentException(
+						"The time is out of bounds. Please recheck!");
 			}
 			tester = removeLastWord(tester);
 		}
