@@ -107,13 +107,13 @@ public class Model {
 	}
 
 	public void removeTaskFromPendingNoTrash(int index) {
-		Task t = pending.remove(index);
+		pending.remove(index);
 	}
 
 	public void removeTaskFromCompleteNoTrash(int index) {
-		Task t = complete.remove(index);
+		complete.remove(index);
 	}
-	
+
 	// set Search List
 	public void setSearchPendingList(ObservableList<Task> searchList) {
 		searchPending = searchList;
@@ -126,21 +126,4 @@ public class Model {
 	public void setSearchTrashList(ObservableList<Task> searchList) {
 		searchTrash = searchList;
 	}
-	
-	// clear functions
-	public void clearPendingTasks(){
-//		ArrayList<Task> pendingHistory = pending;
-		pending.clear();
-	}
-	
-	public void clearCompleteTasks(){
-//		ArrayList<Task> completeHistory = complete;
-		complete.clear();
-	}
-	
-	public void clearTrash(){
-//		ArrayList<Task> trashHistory = trash;
-		trash.clear();
-	}
-	
 }
