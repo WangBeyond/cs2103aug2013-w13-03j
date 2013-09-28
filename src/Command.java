@@ -10,16 +10,16 @@ public abstract class Command {
 	protected static final String MESSAGE_SUCCESSFUL_CLEAR_ALL = "Clear all the tasks";
 	protected static final String MESSAGE_SUCCESSFUL_SEARCH = "Successful Search!";
 	protected static final String MESSAGE_NO_RESULTS = "Search no results!";
-	protected static final String MESSAGE_SUCCESSFUL_ADD = "Task is added successfully";
-	protected static final String MESSAGE_SUCCESSFUL_EDIT = "Task is edited successfully";
-	protected static final String MESSAGE_SUCCESFUL_REMOVE = "Indicated tasks are removed";
+	protected static final String MESSAGE_SUCCESSFUL_ADD = "One task has been added successfully";
+	protected static final String MESSAGE_SUCCESSFUL_EDIT = "Indicated task has been edited successfully";
+	protected static final String MESSAGE_SUCCESFUL_REMOVE = "Indicated tasks has/have been removed";
 	protected static final String MESSAGE_INVALID_DATE_RANGE = "Invalid date range as start date is after end date";
 	protected static final String MESSAGE_DUPLICATE_INDEXES = "There are duplicate indexes";
 	protected static final String MESSAGE_INDEX_OUT_OF_BOUNDS = "There is an index outside the range of the list";
-	protected static final String MESSAGE_SUCCESSFUL_MARK = "Task(s) %1$shas/have been marked successfully.";
-	protected static final String MESSAGE_SUCCESSFUL_UNMARK = "Task(s) %1$shas/have been unmarked successfully.";
+	protected static final String MESSAGE_SUCCESSFUL_MARK = "Indicated task(s) has/have been marked successfully.";
+	protected static final String MESSAGE_SUCCESSFUL_UNMARK = "Indicated task(s) has/have been unmarked successfully.";
 	protected static final String MESSAGE_SUCCESSFUL_COMPLETE = "Indicated task(s) has/have been marked as complete.";
-	protected static final String MESSAGE_SUCCESSFUL_INCOMPLETE = "Task(s) %1$shas/have been marked as incomplete.";
+	protected static final String MESSAGE_SUCCESSFUL_INCOMPLETE = "Indicated task(s) has/have been marked as incomplete.";
 	protected static final String MESSAGE_SUCCESSFUL_UNDO = "Undo is successful.";
 	protected static final String MESSAGE_FAILED_UNDO = "Undo has failed.";
 
@@ -31,7 +31,7 @@ public abstract class Command {
 
 abstract class TwoWayCommand extends Command {
 	public abstract String undo(Model m, View v);
-//	public abstract String[] getInfoForOppositeCommand();
+	// public abstract String[] getInfoForOppositeCommand();
 }
 
 class AddCommand extends TwoWayCommand {
@@ -53,8 +53,8 @@ class AddCommand extends TwoWayCommand {
 		repeatingType = parsedUserCommand[5];
 		this.model = model;
 		this.view = view;
-//		index = new String[1];
-		
+		// index = new String[1];
+
 		if (parsedUserCommand[4].equals(Parser.TRUE)) {
 			isImptTask = true;
 		}
@@ -103,17 +103,18 @@ class AddCommand extends TwoWayCommand {
 		task.setTag(new Tag(tag.equals(Parser.NULL) ? "-" : tag, repeatingType
 				.equals(Parser.NULL) ? "-" : repeatingType));
 		task.setIsImportant(isImptTask);
-
+		if (!repeatingType.equals(Parser.NULL))
+			task.updateDate();
 		model.addTaskToPending(task);
 		Control.sortList(model.getPendingList());
-		
+
 		return MESSAGE_SUCCESSFUL_ADD;
 	}
-	
+
 	public String undo(Model model, View view) {
 		this.model = model;
 		this.view = view;
-		index = model.getIndexFromPending(task); 
+		index = model.getIndexFromPending(task);
 		model.removeTaskFromPendingNoTrash(index);
 		return MESSAGE_SUCCESSFUL_UNDO;
 	}
@@ -131,7 +132,7 @@ class EditCommand extends TwoWayCommand {
 	ObservableList<Task> modifiedList;
 	Task targetTask;
 	String[] originalTask;
-	
+
 	public EditCommand(String[] parsedUserCommand, Model model, View view) {
 		tabIndex = view.tabPane.getSelectionModel().getSelectedIndex();
 		modifiedList = FXCollections.observableArrayList();
@@ -150,31 +151,31 @@ class EditCommand extends TwoWayCommand {
 		hasImptTaskToggle = (parsedUserCommand[5].equals(Parser.TRUE)) ? true
 				: false;
 		repeatingType = parsedUserCommand[6];
-		index = Integer.parseInt(parsedUserCommand[0]);	
+		index = Integer.parseInt(parsedUserCommand[0]);
 	}
 
-	private void setOriginalTask(){
+	private void setOriginalTask() {
 		originalTask = new String[6];
 		originalTask[1] = targetTask.getWorkInfo();
-		originalTask[2] = targetTask.getTag();
+		originalTask[2] = targetTask.getTag().getTag();
 		originalTask[3] = targetTask.getStartDateString();
 		originalTask[4] = targetTask.getEndDateString();
 		originalTask[5] = String.valueOf(targetTask.getIsImportant());
 	}
-	
+
 	public String execute() {
 		if (index > modifiedList.size())
 			return MESSAGE_INDEX_OUT_OF_BOUNDS;
 
 		targetTask = modifiedList.get(index - 1);
 		setOriginalTask();
-		
+
 		CustomDate startDate, endDate;
 		startDate = endDate = null;
-		
-		if(repeatingType.equals(Parser.NULL))
+
+		if (repeatingType.equals(Parser.NULL) && workInfo.equals(Parser.NULL))
 			repeatingType = targetTask.getTag().getRepetition();
-		
+
 		if (!startDateString.equals(Parser.NULL)) {
 			startDate = new CustomDate(startDateString);
 		} else
@@ -216,23 +217,30 @@ class EditCommand extends TwoWayCommand {
 		if (endDate != null)
 			targetTask.setEndDate(endDate);
 
-		if(tag != Parser.NULL)
+		if (!repeatingType.equals(Parser.NULL))
+			targetTask.updateDate();
+		if (repeatingType.equals(Parser.NULL))
+			repeatingType = "-";
+
+		if (tag != Parser.NULL)
 			targetTask.setTag(new Tag(tag, repeatingType));
 		else
-			targetTask.setTag(new Tag(targetTask.getTag().getTag(), repeatingType));
-		
+			targetTask.setTag(new Tag(targetTask.getTag().getTag(),
+					repeatingType));
+
 		if (hasImptTaskToggle)
 			targetTask.setIsImportant(!targetTask.getIsImportant());
 
 		Control.sortList(modifiedList);
-		
+
 		return MESSAGE_SUCCESSFUL_EDIT;
 	}
 
 	public String undo(Model model, View view) {
 		this.model = model;
 		this.view = view;
-		originalTask[0] = String.valueOf(model.getIndexFromPending(targetTask) + 1);
+		originalTask[0] = String
+				.valueOf(model.getIndexFromPending(targetTask) + 1);
 		EditCommand undoEdit = new EditCommand(originalTask, model, view);
 		String feedback = undoEdit.execute();
 		if (feedback.equals("MESSAGE_SUCCESFUL_REMOVE"))
@@ -249,7 +257,7 @@ class RemoveCommand extends TwoWayCommand {
 	int tabIndex;
 	int indexCount;
 	ArrayList<Task> removedTaskInfo;
-	
+
 	public RemoveCommand(String[] userParsedCommand, Model model, View view) {
 		removedTaskInfo = new ArrayList<Task>();
 		this.model = model;
@@ -273,7 +281,7 @@ class RemoveCommand extends TwoWayCommand {
 	public String execute() {
 		Arrays.sort(indexList);
 		indexCount = indexList.length;
-		
+
 		for (int i = 0; i < indexCount - 1; i++)
 			if (indexList[i] == indexList[i + 1])
 				return MESSAGE_DUPLICATE_INDEXES;
@@ -282,7 +290,7 @@ class RemoveCommand extends TwoWayCommand {
 			return MESSAGE_INDEX_OUT_OF_BOUNDS;
 
 		for (int i = indexCount - 1; i >= 0; i--) {
-			removedTaskInfo.add(model.getTaskFromPending(indexList[i]-1));
+			removedTaskInfo.add(model.getTaskFromPending(indexList[i] - 1));
 			model.removeTask(indexList[i] - 1, tabIndex);
 		}
 
@@ -297,7 +305,7 @@ class RemoveCommand extends TwoWayCommand {
 		this.model = model;
 		this.view = view;
 		int index;
-		
+
 		if (tabIndex == 0)
 			modifiedList = this.model.getPendingList();
 		else if (tabIndex == 1)
@@ -305,12 +313,12 @@ class RemoveCommand extends TwoWayCommand {
 		else
 			modifiedList = this.model.getTrashList();
 
-		for (int i = 0; i < removedTaskInfo.size(); i++){
+		for (int i = 0; i < removedTaskInfo.size(); i++) {
 			modifiedList.add(removedTaskInfo.get(i));
-			if (tabIndex == 0 || tabIndex == 1){
+			if (tabIndex == 0 || tabIndex == 1) {
 				index = this.model.getIndexFromTrash(removedTaskInfo.get(i));
 				this.model.removeTaskFromTrash(index);
-			}		
+			}
 			// TODO: look for more efficient way of coding the undo function
 		}
 		Control.sortList(modifiedList);
@@ -318,7 +326,8 @@ class RemoveCommand extends TwoWayCommand {
 	}
 }
 
-// TODO: let clear all support clear pending, clear complete and clear trash functions
+// TODO: let clear all support clear pending, clear complete and clear trash
+// functions
 // TODO: undo function
 class ClearAllCommand extends TwoWayCommand {
 	public ClearAllCommand(Model model, View view) {
@@ -351,6 +360,7 @@ class ClearAllCommand extends TwoWayCommand {
 		return null;
 	}
 }
+
 // TODO: undo needs work on
 class CompleteCommand extends TwoWayCommand {
 	ObservableList<Task> modifiedList;
@@ -358,7 +368,7 @@ class CompleteCommand extends TwoWayCommand {
 	int[] indexList;
 	int[] indexInCompleteList;
 	int indexCount;
-	
+
 	public CompleteCommand(String[] userParsedCommand, Model model, View view) {
 		this.model = model;
 		this.view = view;
@@ -379,7 +389,7 @@ class CompleteCommand extends TwoWayCommand {
 
 		if (indexList[indexCount - 1] > modifiedList.size())
 			return MESSAGE_INDEX_OUT_OF_BOUNDS;
-		
+
 		indexInCompleteList = new int[indexCount];
 		toCompleteTasks = new Task[indexCount];
 
@@ -389,26 +399,27 @@ class CompleteCommand extends TwoWayCommand {
 			model.getPendingList().remove(indexList[i] - 1);
 			model.addTaskToComplete(toComplete);
 		}
-		
+
 		Control.sortList(model.getCompleteList());
 		for (int i = 0; i < indexCount; i++) {
-			indexInCompleteList[i] = model.getIndexFromComplete(toCompleteTasks[i]);
+			indexInCompleteList[i] = model
+					.getIndexFromComplete(toCompleteTasks[i]);
 		}
-		
+
 		return MESSAGE_SUCCESSFUL_COMPLETE;
 	}
-	
+
 	public String undo(Model model, View view) {
 		this.model = model;
 		this.view = view;
-		
-		for (int i = 0; i < indexCount; i++){
+
+		for (int i = 0; i < indexCount; i++) {
 			model.removeTaskFromComplete(indexInCompleteList[i]);
 			model.addTaskToPending(toCompleteTasks[i]);
 		}
 		Control.sortList(model.getCompleteList());
 		Control.sortList(model.getPendingList());
-		
+
 		return MESSAGE_SUCCESSFUL_UNDO;
 	}
 }
@@ -417,7 +428,7 @@ class IncompleteCommand extends TwoWayCommand {
 	ObservableList<Task> modifiedList;
 	int[] indexList;
 	int tabIndex;
-	
+
 	public IncompleteCommand(String[] userParsedCommand, Model model, View view) {
 		this.model = model;
 		this.view = view;
@@ -440,21 +451,17 @@ class IncompleteCommand extends TwoWayCommand {
 		if (indexList[indexCount - 1] > modifiedList.size())
 			return MESSAGE_INDEX_OUT_OF_BOUNDS;
 
-		String successfulIncomplete = "";
-
 		for (int i = indexCount - 1; i >= 0; i--) {
 			Task toPending = model.getTaskFromComplete(indexList[i] - 1);
 			model.getCompleteList().remove(indexList[i] - 1);
 			model.addTaskToPending(toPending);
-			successfulIncomplete += i + " ";
 		}
 
 		Control.sortList(model.getPendingList());
 
-		return String.format(MESSAGE_SUCCESSFUL_INCOMPLETE,
-				successfulIncomplete);
+		return MESSAGE_SUCCESSFUL_INCOMPLETE;
 	}
-	
+
 	public String undo(Model model, View view) {
 		return null;
 	}
@@ -464,7 +471,7 @@ class MarkCommand extends TwoWayCommand {
 	ObservableList<Task> modifiedList;
 	int[] indexList;
 	int tabIndex;
-	
+
 	public MarkCommand(String[] userParsedCommand, Model model, View view) {
 		this.model = model;
 		this.view = view;
@@ -494,17 +501,14 @@ class MarkCommand extends TwoWayCommand {
 		if (indexList[indexCount - 1] > modifiedList.size())
 			return MESSAGE_INDEX_OUT_OF_BOUNDS;
 
-		String successfulMark = "";
-
 		for (int i = 0; i < indexCount; i++) {
 			Task targetTask = modifiedList.get(indexList[i] - 1);
 			targetTask.setIsImportant(true);
-			successfulMark += indexList[i] + " ";
 		}
 
-		return String.format(MESSAGE_SUCCESSFUL_MARK, successfulMark);
+		return MESSAGE_SUCCESSFUL_MARK;
 	}
-	
+
 	public String undo(Model model, View view) {
 		return null;
 	}
@@ -514,7 +518,7 @@ class UnmarkCommand extends TwoWayCommand {
 	ObservableList<Task> modifiedList;
 	int[] indexList;
 	int tabIndex;
-	
+
 	public UnmarkCommand(String[] userParsedCommand, Model model, View view) {
 		this.model = model;
 		this.view = view;
@@ -544,15 +548,12 @@ class UnmarkCommand extends TwoWayCommand {
 		if (indexList[indexCount - 1] > modifiedList.size())
 			return MESSAGE_INDEX_OUT_OF_BOUNDS;
 
-		String successfulUnmark = "";
-
 		for (int i = 0; i < indexCount; i++) {
 			Task targetTask = modifiedList.get(indexList[i] - 1);
 			targetTask.setIsImportant(false);
-			successfulUnmark += indexList[i] + " ";
 		}
 
-		return String.format(MESSAGE_SUCCESSFUL_UNMARK, successfulUnmark);
+		return MESSAGE_SUCCESSFUL_UNMARK;
 	}
 
 	public String undo(Model model, View view) {
@@ -565,6 +566,7 @@ class SearchCommand extends Command {
 	String tag;
 	String startDateString;
 	String endDateString;
+	String repeatingType;
 	String isImpt;
 	int tabIndex;
 
@@ -577,6 +579,7 @@ class SearchCommand extends Command {
 		startDateString = parsedUserCommand[2];
 		endDateString = parsedUserCommand[3];
 		isImpt = parsedUserCommand[4];
+		repeatingType = parsedUserCommand[5];
 	}
 
 	public String execute() {
@@ -623,6 +626,12 @@ class SearchCommand extends Command {
 					: searchList);
 		}
 
+		if (!repeatingType.equals(Parser.NULL)) {
+			searchList = searchRepeatingType((isFirstTimeSearch) ? initialList
+					: searchList, repeatingType);
+			isFirstTimeSearch = false;
+		}
+
 		if (searchList.isEmpty())
 			return MESSAGE_NO_RESULTS;
 
@@ -657,6 +666,17 @@ class SearchCommand extends Command {
 			if (tag.toLowerCase().contains(tagName.toLowerCase()))
 				result.add(list.get(i));
 		}
+		return result;
+	}
+	
+	public static ObservableList<Task> searchRepeatingType(ObservableList<Task> list, String repeatingType){
+		ObservableList<Task> result = FXCollections.observableArrayList();
+		for(int i = 0; i < list.size(); i++){
+			String repetition = list.get(i).getTag().getRepetition();
+			if(repetition.equalsIgnoreCase(repeatingType))
+				result.add(list.get(i));
+		}
+		
 		return result;
 	}
 

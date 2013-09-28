@@ -14,10 +14,11 @@ public class Parser {
 	private static String[] endDateKeys = { "end on", "end at", "end by",
 			"end before", "to", "till", "until", "by", "due" };
 
-	private static String[] repeatingTypes = { "daily", "weekly", "monthly",
-			"yearly", "annually", "every Monday", "every Tuesday",
-			"every Wednesday", "every Thursday", "every Friday",
-			"every Saturday", "every Sunday" };
+	private static String[] repeatingKeys = { "daily", "weekly", "monthly",
+			"yearly", "annually", "every monday", "every tuesday",
+			"every wednesday", "every thursday", "every friday",
+			"every saturday", "every sunday", "every day", "every month",
+			"every year", "everyday", "every week" };
 
 	public static final int INDEX_WORK_INFO = 0;
 	public static final int INDEX_TAG = 1;
@@ -187,9 +188,8 @@ public class Parser {
 
 		String[] result = getRepeatingType(commandString);
 		commandString = result[0];
-		if (result[1] != null)
-			repeatingType = result[1];
-		System.out.println(result[1]);
+		repeatingType = result[1];
+	
 		if (hasMultipleTags(commandString)) {// if contains multiple hash tags
 			throw new IllegalArgumentException(
 					"Invalid Command: multiple hash tags(#).");
@@ -229,7 +229,8 @@ public class Parser {
 		String[] parsedCommand = new String[] { NULL, NULL, NULL, NULL, FALSE,
 				NULL };
 
-		parsedCommand[INDEX_WORK_INFO] = workInfo.equals(NULL) ? NULL : workInfo;
+		parsedCommand[INDEX_WORK_INFO] = workInfo.equals(NULL) ? NULL
+				: workInfo;
 		parsedCommand[INDEX_START_DATE] = startDateString.equals(NULL) ? NULL
 				: startDateString;
 		parsedCommand[INDEX_END_DATE] = endDateString.equals(NULL) ? NULL
@@ -243,20 +244,34 @@ public class Parser {
 	}
 
 	private static String[] getRepeatingType(String commandString) {
-		String repeatingType = null;
-		for (int i = 0; i < repeatingTypes.length; i++) {
+		String repeatingKey = null;
+		for (int i = 0; i < repeatingKeys.length; i++) {
 			if (commandString.toLowerCase().contains(
-					repeatingTypes[i].toLowerCase())) {
-				if (repeatingType == null)
-					repeatingType = repeatingTypes[i];
+					repeatingKeys[i])) {
+				if (repeatingKey == null)
+					repeatingKey = repeatingKeys[i];
 				else
 					throw new IllegalArgumentException(
 							"Invalid Command: More than 1 repetitive signals");
-				commandString = commandString.replace(repeatingType, "");
+				commandString = commandString.replace(repeatingKey, "");
 				break;
 			}
 		}
-		return new String[] { commandString, repeatingType };
+		return new String[] { commandString, getRepeatingTag(repeatingKey) };
+	}
+
+	private static String getRepeatingTag(String key) {
+		if (key == null)
+			return Parser.NULL;
+		if (key.equals("every day") || key.equals("daily") || key.equals("everyday"))
+			return "daily";
+		else if (key.equals("monthly") || key.equals("every month"))
+			return "monthly";
+		else if (key.equals("yearly") || key.equals("every year")
+				|| key.equals("annually"))
+			return "yearly";
+		else
+			return "weekly";
 	}
 
 	/**
