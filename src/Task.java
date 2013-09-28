@@ -199,9 +199,8 @@ public class Task implements Comparable<Task> {
 	}
 	
 	public void updateDate(){
-		if(getEndDate().beforeCurrentTime()){
-			long difference = getUpdateDifference(getTag().getRepetition());
-			
+		long difference = getUpdateDifference(getTag().getRepetition());
+		while(getEndDate().beforeCurrentTime()){
 			CustomDate startDate = getStartDate();
 			startDate.setTimeInMillis(startDate.getTimeInMillis() + difference);
 			setStartDate(startDate);
@@ -215,16 +214,16 @@ public class Task implements Comparable<Task> {
 	}
 	
 	public static long getUpdateDifference(String repetition){
-		if(repetition.equals("daily") || repetition.equals("everyday"))
+		if(repetition.equals("daily"))
 			return (long)24*60*60*1000;
-		else if(repetition.equals("weekly") || repetition.startsWith("every"))
+		else if(repetition.equals("weekly"))
 			return (long)7*24*60*60*1000;
 		else if(repetition.equals("monthly"))
 			return (long)30*24*60*60*1000;
-		else if(repetition.equals("yearly") || repetition.equals("annually"))
+		else if(repetition.equals("yearly"))
 			return (long)365*24*60*60*1000;
 		else
-			throw new IllegalArgumentException("Invalid repetitive tag");
+			return 0;
 	}
 }
 
