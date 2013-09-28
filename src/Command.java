@@ -20,8 +20,7 @@ public abstract class Command {
 	protected static final String MESSAGE_SUCCESSFUL_UNMARK = "Indicated task(s) has/have been unmarked successfully.";
 	protected static final String MESSAGE_SUCCESSFUL_COMPLETE = "Indicated task(s) has/have been marked as complete.";
 	protected static final String MESSAGE_SUCCESSFUL_INCOMPLETE = "Indicated task(s) has/have been marked as incomplete.";
-	protected static final String MESSAGE_SUCCESSFUL_UNDO = "Undo is successful.";
-	protected static final String MESSAGE_FAILED_UNDO = "Undo has failed.";
+	protected static final String MESSAGE_SUCCESSFUL_UNDO = "Undo was successful.";
 
 	protected Model model;
 	protected View view;
@@ -31,7 +30,6 @@ public abstract class Command {
 
 abstract class TwoWayCommand extends Command {
 	public abstract String undo(Model m, View v);
-	// public abstract String[] getInfoForOppositeCommand();
 }
 
 class AddCommand extends TwoWayCommand {
@@ -53,7 +51,6 @@ class AddCommand extends TwoWayCommand {
 		repeatingType = parsedUserCommand[5];
 		this.model = model;
 		this.view = view;
-		// index = new String[1];
 
 		if (parsedUserCommand[4].equals(Parser.TRUE)) {
 			isImptTask = true;
@@ -120,6 +117,7 @@ class AddCommand extends TwoWayCommand {
 	}
 }
 
+// TODO: redo does not work because task is changed directly instead of remove then add edited task
 class EditCommand extends TwoWayCommand {
 	int index;
 	int tabIndex;
@@ -160,7 +158,7 @@ class EditCommand extends TwoWayCommand {
 			return MESSAGE_INDEX_OUT_OF_BOUNDS;
 
 		targetTask = modifiedList.get(index - 1);
-		originalTask = targetTask;
+		setOriginalTask();
 
 		CustomDate startDate, endDate;
 		startDate = endDate = null;
@@ -227,34 +225,42 @@ class EditCommand extends TwoWayCommand {
 
 		return MESSAGE_SUCCESSFUL_EDIT;
 	}
+	
+	public void setOriginalTask(){
+		originalTask = new Task();
+		originalTask.setIsImportant(targetTask.getIsImportant());
+		originalTask.setStartDate(targetTask.getStartDate());
+		originalTask.setEndDate(targetTask.getEndDate());
+		originalTask.setStartDateString(targetTask.getStartDateString());
+		originalTask.setEndDateString(targetTask.getEndDateString());
+		originalTask.setWorkInfo(targetTask.getWorkInfo());
+		originalTask.setTag(targetTask.getTag());
+		originalTask.setIndexId(targetTask.getIndexId());
+	}
 
-	//TODO: undo does not work
 	public String undo(Model model, View view) {
 		this.model = model;
 		this.view = view;
-		
+				
 		if (tabIndex == 0){
 			index = model.getIndexFromPending(targetTask);
 			model.removeTaskFromPendingNoTrash(index);
 			model.addTaskToPending(originalTask);
 			Control.sortList(model.getPendingList());
-			return String.valueOf(index);
 		}
 		else if (tabIndex == 1){
 			index = model.getIndexFromComplete(targetTask);
 			model.removeTaskFromCompleteNoTrash(index);
 			model.addTaskToComplete(originalTask);
 			Control.sortList(model.getCompleteList());
-			return "complete";
 		}
 		else{
 			index = model.getIndexFromTrash(targetTask);
 			model.removeTaskFromTrash(index);
 			model.addTaskToTrash(originalTask);
 			Control.sortList(model.getTrashList());
-			return "trash";
 		}
-//		return MESSAGE_SUCCESSFUL_UNDO;
+		return MESSAGE_SUCCESSFUL_UNDO;
 	}
 }
 
