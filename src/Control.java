@@ -22,7 +22,7 @@ public class Control extends Application {
 	private static final String MESSAGE_EMPTY_COMMAND = "Empty Command!";
 	private static final String MESSAGE_INVALID_UNDO = "Undo is not valid.";
 	private static final String MESSAGE_INVALID_REDO = "Redo is not valid.";
-	private static final String MESSAGE_SUCCESSFUL_REDO = "Redo is successful.";
+	private static final String MESSAGE_SUCCESSFUL_REDO = "Redo was successful.";
 	private static final String MESSAGE_ADD_TIP = "<add> <task info 1> <task info 2> <task info 3> <task info 4> ...";
 	private static final String MESSAGE_EDIT_TIP = "<edit/mod/modify> <index> <task info 1> <task info 2> <task info 3> ...";
 	private static final String MESSAGE_REMOVE_TIP = "<delete/del/remove/rm> <index 1> <index 2> <index 3> ...";
