@@ -1,24 +1,26 @@
-import java.util.ArrayList;
-
 class History {
 
 	private TwoWayCommand prevCommand;
-	private ArrayList<Task> pendingHistory;
-	private ArrayList<Task> completeHistory;
-	private ArrayList<Task> trashHistory;
 	private boolean undoOnce;
+	private boolean redoOnce;
 	
 	public History(){
 		prevCommand = null;
 		undoOnce = false;
+		redoOnce = false;
 	}
 	
 	public boolean getUndoOnce(){
 		return undoOnce;
 	}
 	
+	public boolean getRedoOnce(){
+		return redoOnce;
+	}
+	
 	public TwoWayCommand getPrevCommand(){
-		undoOnce = false;		
+		undoOnce = false;
+		redoOnce = true;
 		return prevCommand;
 
 	}
@@ -26,5 +28,6 @@ class History {
 	public void updateCommand(TwoWayCommand newCommand){
 		prevCommand = newCommand;
 		undoOnce = true;
+		redoOnce = false;
 	}
 }

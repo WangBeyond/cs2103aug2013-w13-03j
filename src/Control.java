@@ -20,7 +20,9 @@ import javafx.stage.StageStyle;
 public class Control extends Application {
 	private static final String MESSAGE_INVALID_COMMAND_TYPE = "Invalid Command Type!";
 	private static final String MESSAGE_EMPTY_COMMAND = "Empty Command!";
-	private static final String MESSAGE_INVALID_COMMAND = "Invalid Command!";
+	private static final String MESSAGE_INVALID_UNDO = "Undo is not valid.";
+	private static final String MESSAGE_INVALID_REDO = "Redo is not valid.";
+	private static final String MESSAGE_SUCCESSFUL_REDO = "Redo is successful.";
 	private static final String MESSAGE_ADD_TIP = "<add> <task info 1> <task info 2> <task info 3> <task info 4> ...";
 	private static final String MESSAGE_EDIT_TIP = "<edit/mod/modify> <index> <task info 1> <task info 2> <task info 3> ...";
 	private static final String MESSAGE_REMOVE_TIP = "<delete/del/remove/rm> <index 1> <index 2> <index 3> ...";
@@ -28,6 +30,8 @@ public class Control extends Application {
 	private static final String MESSAGE_TODAY_TIP = "<today>";
 	private static final String MESSAGE_SHOW_ALL_TIP = "<show/all/list/ls>";
 	private static final String MESSAGE_CLEAR_ALL_TIP = "<clear/clr>";
+	private static final String MESSAGE_UNDO_TIP = "<undo>";
+	private static final String MESSAGE_REDO_TIP = "<redo>";
 	private static final String MESSAGE_MARK_TIP = "<mark> <index 1> <index 2> <index 3> ...";
 	private static final String MESSAGE_UNMARK_TIP = "<unmark> <index 1> <index 2> <index 3> ...";
 	private static final String MESSAGE_COMPLETE_TIP = "<complete/done> <index 1> <index 2> <index 3> ...";
@@ -112,6 +116,10 @@ public class Control extends Application {
 								case SHOW_ALL:
 									view.feedback.setText(MESSAGE_SHOW_ALL_TIP);
 									break;
+								case UNDO:
+									view.feedback.setText(MESSAGE_UNDO_TIP);
+								case REDO:
+									view.feedback.setText(MESSAGE_REDO_TIP);
 								case MARK:
 									view.feedback.setText(MESSAGE_MARK_TIP);
 									break;
@@ -122,15 +130,13 @@ public class Control extends Application {
 									view.feedback.setText(MESSAGE_COMPLETE_TIP);
 									break;
 								case INCOMPLETE:
-									view.feedback
-											.setText(MESSAGE_INCOMPLETE_TIP);
+									view.feedback.setText(MESSAGE_INCOMPLETE_TIP);
 									break;
 								case TODAY:
 									view.feedback.setText(MESSAGE_TODAY_TIP);
 									break;
 								case CLEAR_ALL:
-									view.feedback
-											.setText(MESSAGE_CLEAR_ALL_TIP);
+									view.feedback.setText(MESSAGE_CLEAR_ALL_TIP);
 									break;
 								case EXIT:
 									view.feedback.setText(MESSAGE_EXIT_TIP);
@@ -218,10 +224,15 @@ public class Control extends Application {
 				if (commandHistory.getUndoOnce()){				
 					TwoWayCommand undoCommand = commandHistory.getPrevCommand();
 					return undoCommand.undo(modelHandler, view);
-				} else return MESSAGE_INVALID_COMMAND;
-				// case REDO:
-				// 		TwoWayCommand redoCommand = commandHistory.getPrevCommand();
-				// 		return redoCommand.execute();
+				} else return MESSAGE_INVALID_UNDO;
+			case REDO:
+				s = new ShowAllCommand(modelHandler, view);
+				s.execute();
+				if (commandHistory.getRedoOnce()){
+					TwoWayCommand redoCommand = commandHistory.getPrevCommand();
+					redoCommand.execute();
+					return MESSAGE_SUCCESSFUL_REDO;	
+				} else return MESSAGE_INVALID_REDO;
 			case SEARCH:
 				s = new SearchCommand(parsedUserCommand, modelHandler, view);
 				return s.execute();
@@ -233,7 +244,9 @@ public class Control extends Application {
 				return s.execute();
 			case CLEAR_ALL:
 				s = new ClearAllCommand(modelHandler, view);
-				return s.execute();
+				feedback = s.execute();
+				commandHistory.updateCommand((TwoWayCommand)s);
+				return feedback;
 			case COMPLETE:
 				s = new ShowAllCommand(modelHandler, view);
 				s.execute();
@@ -245,17 +258,23 @@ public class Control extends Application {
 				s = new ShowAllCommand(modelHandler, view);
 				s.execute();
 				s = new IncompleteCommand(parsedUserCommand, modelHandler, view);
-				return s.execute();
+				feedback = s.execute();
+				commandHistory.updateCommand((TwoWayCommand)s);
+				return feedback;
 			case MARK:
 				s = new ShowAllCommand(modelHandler, view);
 				s.execute();
 				s = new MarkCommand(parsedUserCommand, modelHandler, view);
-				return s.execute();
+				feedback = s.execute();
+				commandHistory.updateCommand((TwoWayCommand)s);
+				return feedback;
 			case UNMARK:
 				s = new ShowAllCommand(modelHandler, view);
 				s.execute();
 				s = new UnmarkCommand(parsedUserCommand, modelHandler, view);
-				return s.execute();
+				feedback = s.execute();
+				commandHistory.updateCommand((TwoWayCommand)s);
+				return feedback;
 				// case SETTINGS:
 				// return executeSettingsCommand(parsedUserCommand);
 				// case HELP:
