@@ -189,7 +189,7 @@ public class Parser {
 		String[] result = getRepeatingType(commandString);
 		commandString = result[0];
 		repeatingType = result[1];
-	
+
 		if (hasMultipleTags(commandString)) {// if contains multiple hash tags
 			throw new IllegalArgumentException(
 					"Invalid Command: multiple hash tags(#).");
@@ -246,8 +246,7 @@ public class Parser {
 	private static String[] getRepeatingType(String commandString) {
 		String repeatingKey = null;
 		for (int i = 0; i < repeatingKeys.length; i++) {
-			if (commandString.toLowerCase().contains(
-					repeatingKeys[i])) {
+			if (commandString.toLowerCase().contains(repeatingKeys[i])) {
 				if (repeatingKey == null)
 					repeatingKey = repeatingKeys[i];
 				else
@@ -263,7 +262,8 @@ public class Parser {
 	private static String getRepeatingTag(String key) {
 		if (key == null)
 			return Parser.NULL;
-		if (key.equals("every day") || key.equals("daily") || key.equals("everyday"))
+		if (key.equals("every day") || key.equals("daily")
+				|| key.equals("everyday"))
 			return "daily";
 		else if (key.equals("monthly") || key.equals("every month"))
 			return "monthly";

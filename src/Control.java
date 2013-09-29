@@ -3,6 +3,8 @@ import java.util.Collections;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.omg.PortableInterceptor.SUCCESSFUL;
+
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -118,8 +120,10 @@ public class Control extends Application {
 									break;
 								case UNDO:
 									view.feedback.setText(MESSAGE_UNDO_TIP);
+									break;
 								case REDO:
 									view.feedback.setText(MESSAGE_REDO_TIP);
+									break;
 								case MARK:
 									view.feedback.setText(MESSAGE_MARK_TIP);
 									break;
@@ -130,13 +134,15 @@ public class Control extends Application {
 									view.feedback.setText(MESSAGE_COMPLETE_TIP);
 									break;
 								case INCOMPLETE:
-									view.feedback.setText(MESSAGE_INCOMPLETE_TIP);
+									view.feedback
+											.setText(MESSAGE_INCOMPLETE_TIP);
 									break;
 								case TODAY:
 									view.feedback.setText(MESSAGE_TODAY_TIP);
 									break;
 								case CLEAR_ALL:
-									view.feedback.setText(MESSAGE_CLEAR_ALL_TIP);
+									view.feedback
+											.setText(MESSAGE_CLEAR_ALL_TIP);
 									break;
 								case EXIT:
 									view.feedback.setText(MESSAGE_EXIT_TIP);
@@ -171,7 +177,7 @@ public class Control extends Application {
 
 	private boolean successfulExecution(String feedback) {
 		return feedback.equals(Command.MESSAGE_NO_RESULTS)
-				|| feedback.equals(Command.MESSAGE_SUCCESFUL_REMOVE)
+				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_REMOVE)
 				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_ADD)
 				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_CLEAR_ALL)
 				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_COMPLETE)
@@ -180,7 +186,9 @@ public class Control extends Application {
 				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_MARK)
 				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_SEARCH)
 				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_SHOW_ALL)
-				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_UNMARK);
+				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_UNMARK)
+				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_UNDO)
+				|| feedback.equals(MESSAGE_SUCCESSFUL_REDO);
 	}
 
 	private static String executeCommand(String userCommand) {
@@ -202,37 +210,42 @@ public class Control extends Application {
 				s.execute();
 				s = new AddCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
-				commandHistory.updateCommand((TwoWayCommand)s);
+				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_ADD))
+					commandHistory.updateCommand((TwoWayCommand) s);
 				return feedback;
 			case EDIT:
 				s = new ShowAllCommand(modelHandler, view);
 				s.execute();
 				s = new EditCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
-				commandHistory.updateCommand((TwoWayCommand)s);
+				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_EDIT))
+					commandHistory.updateCommand((TwoWayCommand) s);
 				return feedback;
 			case REMOVE:
 				s = new ShowAllCommand(modelHandler, view);
 				s.execute();
 				s = new RemoveCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
-				commandHistory.updateCommand((TwoWayCommand)s);
+				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_REMOVE))
+					commandHistory.updateCommand((TwoWayCommand) s);
 				return feedback;
 			case UNDO:
 				s = new ShowAllCommand(modelHandler, view);
 				s.execute();
-				if (commandHistory.getUndoOnce()){				
+				if (commandHistory.isUndoable()) {
 					TwoWayCommand undoCommand = commandHistory.getPrevCommand();
-					return undoCommand.undo(modelHandler, view);
-				} else return MESSAGE_INVALID_UNDO;
+					return undoCommand.undo();
+				} else
+					return MESSAGE_INVALID_UNDO;
 			case REDO:
 				s = new ShowAllCommand(modelHandler, view);
 				s.execute();
-				if (commandHistory.getRedoOnce()){
+				if (commandHistory.isRedoable()) {
 					TwoWayCommand redoCommand = commandHistory.getPrevCommand();
 					redoCommand.execute();
-					return MESSAGE_SUCCESSFUL_REDO;	
-				} else return MESSAGE_INVALID_REDO;
+					return MESSAGE_SUCCESSFUL_REDO;
+				} else
+					return MESSAGE_INVALID_REDO;
 			case SEARCH:
 				s = new SearchCommand(parsedUserCommand, modelHandler, view);
 				return s.execute();
@@ -245,35 +258,40 @@ public class Control extends Application {
 			case CLEAR_ALL:
 				s = new ClearAllCommand(modelHandler, view);
 				feedback = s.execute();
-				commandHistory.updateCommand((TwoWayCommand)s);
+				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_CLEAR_ALL))
+					commandHistory.updateCommand((TwoWayCommand) s);
 				return feedback;
 			case COMPLETE:
 				s = new ShowAllCommand(modelHandler, view);
 				s.execute();
 				s = new CompleteCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
-				commandHistory.updateCommand((TwoWayCommand)s);
+				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_COMPLETE))
+					commandHistory.updateCommand((TwoWayCommand) s);
 				return feedback;
 			case INCOMPLETE:
 				s = new ShowAllCommand(modelHandler, view);
 				s.execute();
 				s = new IncompleteCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
-				commandHistory.updateCommand((TwoWayCommand)s);
+				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_INCOMPLETE))
+					commandHistory.updateCommand((TwoWayCommand) s);
 				return feedback;
 			case MARK:
 				s = new ShowAllCommand(modelHandler, view);
 				s.execute();
 				s = new MarkCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
-				commandHistory.updateCommand((TwoWayCommand)s);
+				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_MARK))
+					commandHistory.updateCommand((TwoWayCommand) s);
 				return feedback;
 			case UNMARK:
 				s = new ShowAllCommand(modelHandler, view);
 				s.execute();
 				s = new UnmarkCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
-				commandHistory.updateCommand((TwoWayCommand)s);
+				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_UNMARK))
+					commandHistory.updateCommand((TwoWayCommand) s);
 				return feedback;
 				// case SETTINGS:
 				// return executeSettingsCommand(parsedUserCommand);

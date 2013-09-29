@@ -1,33 +1,40 @@
 class History {
-
 	private TwoWayCommand prevCommand;
-	private boolean undoOnce;
-	private boolean redoOnce;
-	
-	public History(){
+	private boolean undoable;
+	private boolean redoable;
+
+	public History() {
 		prevCommand = null;
-		undoOnce = false;
-		redoOnce = false;
+		undoable = false;
+		redoable = false;
 	}
-	
-	public boolean getUndoOnce(){
-		return undoOnce;
+
+	public boolean isUndoable() {
+		return undoable;
 	}
-	
-	public boolean getRedoOnce(){
-		return redoOnce;
+
+	public void setUndoable(boolean undoable) {
+		this.undoable = undoable;
 	}
-	
-	public TwoWayCommand getPrevCommand(){
-		undoOnce = false;
-		redoOnce = true;
+
+	public void setRedoable(boolean redoable) {
+		this.redoable = redoable;
+	}
+
+	public boolean isRedoable() {
+		return redoable;
+	}
+
+	public TwoWayCommand getPrevCommand() {
+		undoable = !undoable;
+		redoable = !redoable;
 		return prevCommand;
 
 	}
-	
-	public void updateCommand(TwoWayCommand newCommand){
+
+	public void updateCommand(TwoWayCommand newCommand) {
 		prevCommand = newCommand;
-		undoOnce = true;
-		redoOnce = false;
+		undoable = true;
+		redoable = false;
 	}
 }
