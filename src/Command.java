@@ -98,7 +98,7 @@ class AddCommand extends TwoWayCommand {
 		}
 
 		task.setTag(new Tag(tag.equals(Parser.NULL) ? "-" : tag, repeatingType
-				.equals(Parser.NULL) ? "-" : repeatingType));
+				.equals(Parser.NULL) ? Parser.NULL : repeatingType));
 		task.setIsImportant(isImptTask);
 		if (!repeatingType.equals(Parser.NULL))
 			task.updateDate();

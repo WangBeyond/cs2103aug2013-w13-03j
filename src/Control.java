@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Timer;
@@ -48,13 +49,20 @@ public class Control extends Application {
 	static private History commandHistory = new History();
 	static private View view;
 	static Stage primaryStage;
-
+	static Store dataFile = new DataStorage("dataStorage.txt");
+	
 	public static void main(String[] args) {
 		Application.launch(args);
 	}
 
 	@Override
 	public void start(final Stage primaryStage) {
+		try{
+			dataFile.loadFromFile();
+		} catch(IOException e){
+			System.out.println("Cannot read the given file");
+		}
+		
 		Control.primaryStage = primaryStage;
 		primaryStage.initStyle(StageStyle.UNDECORATED);
 		view = new View(modelHandler, primaryStage);
@@ -81,7 +89,7 @@ public class Control extends Application {
 	private static void updateList(ObservableList<Task> list) {
 		for (int i = 0; i < list.size(); i++) {
 			list.get(i).updateDateString();
-			if (!list.get(i).getTag().getRepetition().equals("-"))
+			if (!list.get(i).getTag().getRepetition().equals(Parser.NULL))
 				list.get(i).updateDate();
 		}
 	}
@@ -196,6 +204,7 @@ public class Control extends Application {
 		if (isEmptyCommand) {
 			return MESSAGE_EMPTY_COMMAND;
 		}
+
 		try {
 			Parser.COMMAND_TYPES commandType = Parser
 					.determineCommandType(userCommand);
@@ -210,31 +219,39 @@ public class Control extends Application {
 				s.execute();
 				s = new AddCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
-				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_ADD))
+				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_ADD)){
 					commandHistory.updateCommand((TwoWayCommand) s);
+					dataFile.storeToFile();
+				}
 				return feedback;
 			case EDIT:
 				s = new ShowAllCommand(modelHandler, view);
 				s.execute();
 				s = new EditCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
-				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_EDIT))
+				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_EDIT)){
 					commandHistory.updateCommand((TwoWayCommand) s);
+					dataFile.storeToFile();
+				}
 				return feedback;
 			case REMOVE:
 				s = new ShowAllCommand(modelHandler, view);
 				s.execute();
 				s = new RemoveCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
-				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_REMOVE))
+				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_REMOVE)){
 					commandHistory.updateCommand((TwoWayCommand) s);
+					dataFile.storeToFile();
+				}
 				return feedback;
 			case UNDO:
 				s = new ShowAllCommand(modelHandler, view);
 				s.execute();
 				if (commandHistory.isUndoable()) {
 					TwoWayCommand undoCommand = commandHistory.getPrevCommand();
-					return undoCommand.undo();
+					feedback = undoCommand.undo();
+					dataFile.storeToFile();
+					return feedback;
 				} else
 					return MESSAGE_INVALID_UNDO;
 			case REDO:
@@ -243,6 +260,7 @@ public class Control extends Application {
 				if (commandHistory.isRedoable()) {
 					TwoWayCommand redoCommand = commandHistory.getPrevCommand();
 					redoCommand.execute();
+					dataFile.storeToFile();
 					return MESSAGE_SUCCESSFUL_REDO;
 				} else
 					return MESSAGE_INVALID_REDO;
@@ -258,40 +276,50 @@ public class Control extends Application {
 			case CLEAR_ALL:
 				s = new ClearAllCommand(modelHandler, view);
 				feedback = s.execute();
-				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_CLEAR_ALL))
+				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_CLEAR_ALL)){
 					commandHistory.updateCommand((TwoWayCommand) s);
+					dataFile.storeToFile();
+				}
 				return feedback;
 			case COMPLETE:
 				s = new ShowAllCommand(modelHandler, view);
 				s.execute();
 				s = new CompleteCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
-				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_COMPLETE))
+				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_COMPLETE)){
 					commandHistory.updateCommand((TwoWayCommand) s);
+					dataFile.storeToFile();
+				}
 				return feedback;
 			case INCOMPLETE:
 				s = new ShowAllCommand(modelHandler, view);
 				s.execute();
 				s = new IncompleteCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
-				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_INCOMPLETE))
+				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_INCOMPLETE)){
 					commandHistory.updateCommand((TwoWayCommand) s);
+					dataFile.storeToFile();
+				}
 				return feedback;
 			case MARK:
 				s = new ShowAllCommand(modelHandler, view);
 				s.execute();
 				s = new MarkCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
-				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_MARK))
+				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_MARK)){
 					commandHistory.updateCommand((TwoWayCommand) s);
+					dataFile.storeToFile();
+				}
 				return feedback;
 			case UNMARK:
 				s = new ShowAllCommand(modelHandler, view);
 				s.execute();
 				s = new UnmarkCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
-				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_UNMARK))
+				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_UNMARK)){
 					commandHistory.updateCommand((TwoWayCommand) s);
+					dataFile.storeToFile();
+				}
 				return feedback;
 				// case SETTINGS:
 				// return executeSettingsCommand(parsedUserCommand);

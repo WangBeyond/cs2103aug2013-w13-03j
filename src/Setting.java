@@ -42,7 +42,7 @@ public class Setting extends Store {
 		fontSize = 14;
 	}
 	
-	public static void loadFromFile() throws IOException{
+	public void loadFromFile() throws IOException{
 		in = new BufferedReader(new FileReader(fileName));
 		googleAccount = in.readLine();
 		password = in.readLine();
@@ -54,7 +54,7 @@ public class Setting extends Store {
 		in.close();
 	}
 	
-	public static void storeToFile() throws IOException {
+	public void storeToFile() throws IOException {
 		out = new BufferedWriter(new FileWriter(fileName,false));
 		out.write(googleAccount+"\r\n");
 		out.write(password+"\r\n");

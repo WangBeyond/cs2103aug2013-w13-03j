@@ -1,116 +1,126 @@
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.BufferedReader; 
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.lang.String;
+
 import javafx.collections.ObservableList;
 
-
 public class DataStorage extends Store {
-	
-	static enum TASK_TYPES { PENDING, COMPLETE, TRASH };
-	
+
+	static enum TASK_TYPES {
+		PENDING, COMPLETE, TRASH
+	};
+
 	private final static String TRUE = "true";
 	private final static String FALSE = "false";
-	private final static String PENDING_TITLE = "pending\r\n";
-	private final static String COMPLETE_TITLE = "complete\r\n";
-	private final static String TRASH_TITLE = "trash\r\n";
-	
+	private final static String PENDING_TITLE = "pending";
+	private final static String COMPLETE_TITLE = "complete";
+	private final static String TRASH_TITLE = "trash";
+
 	private static BufferedReader in;
-	private static BufferedWriter out;
-	
-	private static String fileName;
-	
-	//Just for test
-	/*public static void main(String[] args){
-		try{
-			fileName = "taskData.txt";
-			File f = new File(fileName);
-			if(!f.exists()) 
-				System.out.println(fileName+"does not exist!");
-			//Control.executeCommand("add go home from 3:00 to 4:00 *");
-			//Control.executeCommand("add play football start from 13:00 to 16:00 #cs2100");
-			//Control.executeCommand("add do CCA start from 5:00 to 8:00");
-			//storeToFile();
-			loadFromFile();
-			System.out.println(Control.modelHandler.pending.size());
-			System.out.println(Control.modelHandler.pending.get(0).getWorkInfo());
-			System.out.println(Control.modelHandler.pending.get(1).getWorkInfo());
-			System.out.println(Control.modelHandler.pending.get(2).getWorkInfo());
-		} catch(Exception e){
-			System.out.println(e);
-		}
-	}*/
-	
-	public static void initialize(String fileNameInput) {
-		fileName = fileNameInput;
-		
+	private static PrintWriter out;
+
+	private File textFile;
+
+	public DataStorage(String fileName) {
+		textFile = new File(fileName);
+		checkIfFileExists(textFile);
 	}
-	
-	public static void loadFromFile() throws IOException{
-		in = new BufferedReader(new FileReader(fileName));
-		int lineCount=0;
+
+	private static void checkIfFileExists(File file) {
+		if (!file.exists()) {
+			try {
+				file.createNewFile();
+			} catch (IOException e) {
+				System.out.println("Cannot create the text file");
+			}
+		}
+	}
+
+	public void loadFromFile() throws IOException {
+		in = new BufferedReader(new FileReader(textFile));
+
 		String newLine = in.readLine();
-		while (!(newLine = in.readLine()).equals("complete")) {
-			in = addTaskToModel(newLine,in,TASK_TYPES.PENDING);
+		
+		while (newLine != null &&!newLine.equals(COMPLETE_TITLE)){
+			addTaskToModel(in, TASK_TYPES.PENDING);
+			newLine = in.readLine();
 		}
 		
-		lineCount = 0;
-		while (!( newLine = in.readLine()).equals("trash")) {
-			in = addTaskToModel(newLine,in,TASK_TYPES.COMPLETE);
+		while (newLine != null && !newLine.equals(TRASH_TITLE)) {
+			addTaskToModel(in, TASK_TYPES.COMPLETE);
+			newLine = in.readLine();
 		}
 		
-		lineCount = 0;
-		while (( newLine = in.readLine())!= null) {
-			in = addTaskToModel(newLine,in,TASK_TYPES.TRASH);
+		while (newLine != null) {
+			addTaskToModel(in, TASK_TYPES.TRASH);
+			newLine = in.readLine();
 		}
-		
 		in.close();
 	}
-	
-	//write to file
-	public static void storeToFile() throws IOException{
-		out = new BufferedWriter(new FileWriter(fileName,false));
-		out.write(PENDING_TITLE);
-		out = addTaskinfoToWriter(out,Control.getModel().getPendingList());
-		out.write(COMPLETE_TITLE);
-		out = addTaskinfoToWriter(out,Control.getModel().getCompleteList());
-		out.write(TRASH_TITLE);
-		out = addTaskinfoToWriter(out,Control.getModel().getTrashList());		
-		out.flush();		
+
+	// write to file
+	public void storeToFile() throws IOException {
+		try {
+			out = new PrintWriter(new FileWriter(textFile, false));
+
+			out.println(PENDING_TITLE);
+			addTaskinfoToWriter(out, Control.getModel().getPendingList());
+			out.println(COMPLETE_TITLE);
+			addTaskinfoToWriter(out, Control.getModel().getCompleteList());
+			out.println(TRASH_TITLE);
+			addTaskinfoToWriter(out, Control.getModel().getTrashList());
+			out.close();
+
+		} catch (IOException e) {
+			throw new IllegalArgumentException();
+		}
 	}
-	
-	private static BufferedReader addTaskToModel(String newLine, BufferedReader in, TASK_TYPES taskType) throws IOException{
+
+	private void addTaskToModel(BufferedReader in,
+			TASK_TYPES taskType) throws IOException {
 		Task newTask = new Task();
-		newTask.setIndexId(Integer.valueOf(newLine));
+		String textLine = in.readLine();
+		if(textLine.equals(COMPLETE_TITLE)|| textLine.equals(TRASH_TITLE))
+			return;
+		newTask.setIndexId(Integer.parseInt(textLine));
 		newTask.setWorkInfo(in.readLine());
-		newTask.setStartDate(new CustomDate(in.readLine()));
-		newTask.setEndDate(new CustomDate(in.readLine()));
-		//newTask.setTag(in.readLine());
-		newTask.setIsImportant((in.readLine()).equals(TRUE)?true:false);
-		switch(taskType) {
-			case PENDING: Control.getModel().addTaskToPending(newTask); break;
-			case COMPLETE: Control.getModel().addTaskToComplete(newTask); break;
-			case TRASH: Control.getModel().addTaskToTrash(newTask); break;
-		}		
-		in.readLine();
-		return in;
+		if (!(textLine = in.readLine()).equals("-"))
+			newTask.setStartDate(new CustomDate(textLine));
+		if (!(textLine = in.readLine()).equals("-"))
+			newTask.setEndDate(new CustomDate(textLine));
+		newTask.setTag(new Tag(in.readLine(), in.readLine()));
+		newTask.setIsImportant((in.readLine()).equals(TRUE) ? true : false);
+		switch (taskType) {
+		case PENDING:
+			Control.getModel().addTaskToPending(newTask);
+			break;
+		case COMPLETE:
+			Control.getModel().addTaskToComplete(newTask);
+			break;
+		case TRASH:
+			Control.getModel().addTaskToTrash(newTask);
+			break;
+		}
 	}
-	
-	private static BufferedWriter addTaskinfoToWriter(BufferedWriter out, ObservableList<Task> taskList) throws IOException{
+
+	private void addTaskinfoToWriter(PrintWriter out,
+			ObservableList<Task> taskList) {
 		for (int i = 0; i < taskList.size(); i++) {
 			Task targetTask = taskList.get(i);
-			out.write(targetTask.getIndexId()+"\r\n");
-			out.write(targetTask.getWorkInfo()+"\r\n");
-			out.write(targetTask.getStartDate().toString()+"\r\n");
-			out.write(targetTask.getEndDate().toString()+"\r\n");
-			out.write(targetTask.getTag()+"\r\n");
-			out.write((targetTask.getIsImportant()==true?TRUE:FALSE)+"\r\n\r\n");
+			out.println(targetTask.getIndexId());
+			out.println(targetTask.getWorkInfo());
+			out.println(CustomDate.convertString(targetTask.getStartDate()));
+			out.println(CustomDate.convertString(targetTask.getEndDate()));
+			out.println(targetTask.getTag().getTag());
+			out.println(targetTask.getTag().getRepetition());
+			out.println((targetTask.getIsImportant() == true ? TRUE : FALSE));
+			if(i != taskList.size() -1)
+			out.println();
 		}
-		return out;
 	}
-	
-	
 }
