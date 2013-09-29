@@ -23,6 +23,18 @@ public class CustomDate {
 		convert(s);
 	}
 
+	public static String convertString(CustomDate v) {
+		if(v == null)
+			return "-";
+		GregorianCalendar target = v.targetDate;
+		int date = target.get(Calendar.DATE);
+		int month = target.get(Calendar.MONTH);
+		int year = target.get(Calendar.YEAR);
+		int hour = target.get(Calendar.HOUR_OF_DAY);
+		int minute = target.get(Calendar.MINUTE);
+		return date + "/" + (month + 1) + "/" + year + " " + hour + ":" + minute;
+	}
+
 	// compareTo Function
 	public static int compare(CustomDate date1, CustomDate date2) {
 		int difference = 0;
@@ -88,8 +100,8 @@ public class CustomDate {
 	public long getTimeInMillis() {
 		return targetDate.getTimeInMillis();
 	}
-	
-	public void setTimeInMillis(long millis){
+
+	public void setTimeInMillis(long millis) {
 		targetDate.setTimeInMillis(millis);
 	}
 

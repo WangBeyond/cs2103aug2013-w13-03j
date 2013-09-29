@@ -167,7 +167,7 @@ public class View {
 					public void updateItem(Tag item, boolean empty) {
 						if (item != null){
 							String text;
-							if(item.getRepetition().equals("-"))
+							if(item.getRepetition().equals(Parser.NULL))
 								text = item.getTag();
 							else
 								text = item.getTag() + "\n#" + item.getRepetition();
