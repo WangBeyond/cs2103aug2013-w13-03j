@@ -232,6 +232,8 @@ class Tag{
 	private String repetition;
 	
 	public Tag(String tag, String repetition){
+		if(repetition.equals(Parser.NULL))
+			repetition = "-";
 		setTag(tag);
 		setRepetition(repetition);
 	}

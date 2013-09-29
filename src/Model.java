@@ -55,19 +55,19 @@ public class Model {
 	public ObservableList<Task> getSearchTrashList() {
 		return searchTrash;
 	}
-	
-	public int getIndexFromPending(Task task){
+
+	public int getIndexFromPending(Task task) {
 		return pending.indexOf(task);
 	}
 
-	public int getIndexFromComplete(Task task){
+	public int getIndexFromComplete(Task task) {
 		return complete.indexOf(task);
 	}
-	
-	public int getIndexFromTrash(Task task){
+
+	public int getIndexFromTrash(Task task) {
 		return trash.indexOf(task);
 	}
-	
+
 	// add new task functions
 	public void addTaskToPending(Task newPendingTask) {
 		pending.add(newPendingTask);
@@ -82,15 +82,15 @@ public class Model {
 	}
 
 	// remove task functions return INVALID or VALID when remove a task
-	public void removeTask(int index, int listType){
-		if(listType == 0)
+	public void removeTask(int index, int listType) {
+		if (listType == 0)
 			removeTaskFromPending(index);
-		else if(listType == 1)
+		else if (listType == 1)
 			removeTaskFromComplete(index);
 		else
 			removeTaskFromTrash(index);
 	}
-	
+
 	public void removeTaskFromPending(int index) {
 		Task t = pending.remove(index);
 		trash.add(t);
