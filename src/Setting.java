@@ -5,10 +5,9 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.lang.String;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 
 public class Setting extends Store {
+
 
 	private final static String TRUE = "true";
 	private final static String FALSE = "false";
@@ -39,7 +38,7 @@ public class Setting extends Store {
 		try {
 			System.out.println(System.getProperty("user.home"));
 			// settingStore.setFontSize(20);
-			// settingStore.storeToFile();
+			 settingStore.storeToFile();
 			// settingStore.encryptFile();
 			// System.out.println(settingStore.getFontSize());
 			// settingStore.decryptFile();
@@ -56,8 +55,8 @@ public class Setting extends Store {
 	}
 
 	public Setting(String fileNameInput) {
-		fileName = fileNameInput;
 		createDir();
+		fileName = findUserDocDir()+FOLDERNAME+"\\"+fileNameInput;
 		//fileName = findUserDocDir()+ fileNameInput;
 		googleAccount = "";
 		password = "";
@@ -69,8 +68,7 @@ public class Setting extends Store {
 	}
 
 	private void createDir() {
-		File theDir = new File(findUserDocDir()+"iDo Files");
-
+		File theDir = new File(findUserDocDir()+FOLDERNAME);
 		// if the directory does not exist, create it
 		if (!theDir.exists()) {
 			System.out.println("creating directory: ");

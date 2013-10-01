@@ -24,12 +24,38 @@ public class DataStorage extends Store {
 	private static PrintWriter out;
 
 	private File textFile;
+	
+	public static void main(String args[]) {
 
+		DataStorage dataStorage = new DataStorage("dataStorage.txt");
+		try {
+			dataStorage.storeToFile();
+		} catch (Exception e) {
+			System.out.println(e);
+		}
+	}
+	
 	public DataStorage(String fileName) {
-		textFile = new File(fileName);
+		textFile = new File(findUserDocDir()+FOLDERNAME+"\\"+fileName);
 		checkIfFileExists(textFile);
 	}
+	
+	private void createDir() {
+		File theDir = new File(findUserDocDir()+FOLDERNAME);
+		// if the directory does not exist, create it
+		if (!theDir.exists()) {
+			System.out.println("creating directory: ");
+			boolean result = theDir.mkdir();
+			if (result) {
+				System.out.println("DIR created");
+			}
+		}
+	}
 
+	private String findUserDocDir() {
+		return System.getProperty("user.home") + "\\Documents\\" ;
+	}
+	
 	private static void checkIfFileExists(File file) {
 		if (!file.exists()) {
 			try {
