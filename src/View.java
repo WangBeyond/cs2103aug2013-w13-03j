@@ -1,4 +1,5 @@
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -24,6 +25,10 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.HBoxBuilder;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.LinearGradient;
+import javafx.scene.paint.LinearGradientBuilder;
+import javafx.scene.paint.Stop;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextBuilder;
@@ -41,49 +46,63 @@ public class View {
 	public TabPane tabPane;
 	double dragAnchorX;
 	double dragAnchorY;
-	
+
 	public View(final Model model, final Stage primaryStage) {
 		/* Bottom */
 		VBox bottom = new VBox();
 		bottom.setSpacing(5);
-		bottom.setPadding(new Insets(10, 30, 20, 30));
+		bottom.setPadding(new Insets(10, 44, 20, 44));
 		commandLine = new TextField();
 		commandLine.setMaxWidth(600);
-		feedback = TextBuilder.create().styleClass("feedback").fill(Color.WHITE)
-				.text("Please enter a command").build();
+		feedback = TextBuilder.create().styleClass("feedback")
+				.fill(Color.WHITE).text("Please enter a command").build();
 		bottom.getChildren().addAll(commandLine, feedback);
 
 		/* Top */
 		AnchorPane top = new AnchorPane();
-		top.setPadding(new Insets(30, 30, 5, 30));
-		Image iDo = new Image(getClass().getResourceAsStream("iDo.png"), 110, 54, true, true);
-		ImageView title = new ImageView(iDo);
+		top.setPadding(new Insets(10, 15, 5, 44));
+		Image iDo = new Image(getClass().getResourceAsStream("iDo.png"), 110,
+				54, true, true);
+		ImageView title = new ImageView(iDo); 
+
+		Button minimizeButton = new Button("");
+		minimizeButton.setPrefSize(20, 20);
+		minimizeButton.setId("minimize");
+		minimizeButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
+			public void handle(MouseEvent e){
+				primaryStage.setIconified(true);
+			}
+		});
 		
-		/* Buttons */
-		Image minimize = new Image(getClass().getResourceAsStream("minimise.png"), 26, 26, true, true);
-		Button minimizeButton = new Button("", new ImageView(minimize));
-		minimizeButton.setStyle("-fx-background-color:transparent");
-		Image cross = new Image(getClass().getResourceAsStream("close.png"), 26, 26, true, true);
-		Button closeButton = new Button("", new ImageView(cross));
-		closeButton.setStyle("-fx-background-color:transparent");
-//		closeButton.cancelButtonProperty();
+		Button closeButton = new Button("");
+		closeButton.setPrefSize(20,20);
+		closeButton.setId("close");
+		closeButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
+			public void handle(MouseEvent e){
+				primaryStage.close();
+				System.exit(0);
+			}
+		});
 		HBox hb = new HBox();
 		hb.getChildren().add(minimizeButton);
 		hb.getChildren().add(closeButton);
+		hb.setSpacing(10);
 		hb.setAlignment(Pos.BOTTOM_CENTER);
-		
+
 		top.getChildren().addAll(title, hb);
 		AnchorPane.setLeftAnchor(title, 10.0);
-		AnchorPane.setTopAnchor(hb, 0.0);
-		AnchorPane.setTopAnchor(title, 0.0);
-		AnchorPane.setRightAnchor(hb, -5.0); 
+		AnchorPane.setTopAnchor(hb, 5.0);
+		AnchorPane.setTopAnchor(title, 30.0);
+		AnchorPane.setRightAnchor(hb, 5.0);
 
 		/* Center */
 		taskPendingList = new TableView<Task>();
-		createTable(taskPendingList, (ObservableList<Task>) model.getPendingList());
+		createTable(taskPendingList,
+				(ObservableList<Task>) model.getPendingList());
 
 		taskCompleteList = new TableView<Task>();
-		createTable(taskCompleteList, (ObservableList<Task>) model.getCompleteList());
+		createTable(taskCompleteList,
+				(ObservableList<Task>) model.getCompleteList());
 
 		taskTrashList = new TableView<Task>();
 		createTable(taskTrashList, (ObservableList<Task>) model.getTrashList());
@@ -97,7 +116,7 @@ public class View {
 				.closable(false).build();
 		tabPane.getTabs().addAll(pending, complete, trash);
 
-		HBox center = HBoxBuilder.create().padding(new Insets(0, 30, -20, 30))
+		HBox center = HBoxBuilder.create().padding(new Insets(0, 44, -30, 44))
 				.children(tabPane).build();
 
 		BorderPane root = BorderPaneBuilder.create().top(top).center(center)
@@ -105,8 +124,9 @@ public class View {
 
 		setDraggable(root, primaryStage);
 
-		scene = new Scene(root, 730, 530, Color.rgb(45, 45, 48));
-		scene.getStylesheets().addAll(getClass().getResource("customize.css").toExternalForm());
+		scene = new Scene(root, 760, 530, Color.rgb(70, 70, 70));
+		scene.getStylesheets().addAll(
+				getClass().getResource("customize.css").toExternalForm());
 	}
 
 	public void setDraggable(BorderPane root, final Stage primaryStage) {
@@ -155,22 +175,22 @@ public class View {
 					}
 				});
 
-		TableColumn<Task, Tag> tag = TableColumnBuilder
-				.<Task, Tag> create().text("Tag")
-				.cellValueFactory(new PropertyValueFactory("tag"))
-				.sortable(false).prefWidth(100).build();
+		TableColumn<Task, Tag> tag = TableColumnBuilder.<Task, Tag> create()
+				.text("Tag").cellValueFactory(new PropertyValueFactory("tag"))
+				.sortable(false).prefWidth(120).build();
 		tag.setCellFactory(new Callback<TableColumn<Task, Tag>, TableCell<Task, Tag>>() {
 
 			@Override
 			public TableCell<Task, Tag> call(TableColumn<Task, Tag> param) {
 				TableCell<Task, Tag> tc = new TableCell<Task, Tag>() {
 					public void updateItem(Tag item, boolean empty) {
-						if (item != null){
+						if (item != null) {
 							String text;
-							if(item.getRepetition().equals(Parser.NULL))
+							if (item.getRepetition().equals(Parser.NULL))
 								text = item.getTag();
 							else
-								text = item.getTag() + "\n#" + item.getRepetition();
+								text = item.getTag() + "\n#"
+										+ item.getRepetition();
 							setText(text);
 						}
 					}
@@ -221,40 +241,48 @@ public class View {
 				return tc;
 			}
 		});
-		
-		TableColumn<Task, Boolean> isImportant = TableColumnBuilder.<Task, Boolean> create().visible(true).prefWidth(20).build();
-		isImportant.setCellValueFactory(new PropertyValueFactory("isImportant"));
-		isImportant.setCellFactory(new Callback<TableColumn<Task,Boolean>, TableCell<Task,Boolean>>() {
-			
-			@Override
-			public TableCell<Task, Boolean> call(TableColumn<Task, Boolean> param) {
-				TableCell<Task, Boolean> tc = new TableCell<Task, Boolean>(){
+
+		TableColumn<Task, Boolean> isImportant = TableColumnBuilder
+				.<Task, Boolean> create().visible(true).prefWidth(10).build();
+		isImportant
+				.setCellValueFactory(new PropertyValueFactory("isImportant"));
+		isImportant
+				.setCellFactory(new Callback<TableColumn<Task, Boolean>, TableCell<Task, Boolean>>() {
+
 					@Override
-					public void updateItem(Boolean item, boolean empty){
-						super.updateItem(item, empty);
-						if(item != null){
-							clearStyle();
-							setStyle(item);
-						}
+					public TableCell<Task, Boolean> call(
+							TableColumn<Task, Boolean> param) {
+						TableCell<Task, Boolean> tc = new TableCell<Task, Boolean>() {
+							@Override
+							public void updateItem(Boolean item, boolean empty) {
+								super.updateItem(item, empty);
+								if (item != null) {
+									clearStyle();
+									setStyle(item);
+								}
+							}
+
+							private void clearStyle() {
+								getTableRow().getStyleClass().removeAll(
+										"table-row-cell", "unimportant",
+										"important");
+							}
+
+							private void setStyle(boolean isImportant) {
+								if (isImportant)
+									getTableRow().getStyleClass().add(
+											"important");
+								else
+									getTableRow().getStyleClass().add(
+											"unimportant");
+							}
+						};
+						return tc;
 					}
-					
-					private void clearStyle(){
-						getTableRow().getStyleClass().removeAll("table-row-cell", "unimportant", "important");
-					}
-					
-					private void setStyle(boolean isImportant){
-						if(isImportant)
-							getTableRow().getStyleClass().add("important");
-						else
-							getTableRow().getStyleClass().add("unimportant");
-					}
-				};
-				return tc;
-			}
-		});
-		
-		
+				});
+
 		taskList.setStyle("-fx-table-cell-border-color: transparent;");
-		taskList.getColumns().addAll(taskColumn, startDate, endDate, tag, isImportant);
+		taskList.getColumns().addAll(taskColumn, startDate, endDate, tag,
+				isImportant);
 	}
 }

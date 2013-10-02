@@ -17,6 +17,7 @@ import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
@@ -62,6 +63,7 @@ public class Control extends Application {
 		} catch(IOException e){
 			System.out.println("Cannot read the given file");
 		}
+		
 		
 		Control.primaryStage = primaryStage;
 		primaryStage.initStyle(StageStyle.UNDECORATED);
