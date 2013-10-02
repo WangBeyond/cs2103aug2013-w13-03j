@@ -19,6 +19,7 @@ public class DataStorage extends Store {
 	private final static String PENDING_TITLE = "pending";
 	private final static String COMPLETE_TITLE = "complete";
 	private final static String TRASH_TITLE = "trash";
+	private final static String SPLITLINE = "**************";
 
 	private static BufferedReader in;
 	private static PrintWriter out;
@@ -29,15 +30,19 @@ public class DataStorage extends Store {
 
 		DataStorage dataStorage = new DataStorage("dataStorage.txt");
 		try {
+			//System.out.println(Control.executeCommand("add go to library from 12:00 to 13:00"));
+			//System.out.println(Control.getModel().getPendingList().size());
 			dataStorage.storeToFile();
+			dataStorage.loadFromFile();
 		} catch (Exception e) {
 			System.out.println(e);
 		}
 	}
 	
 	public DataStorage(String fileName) {
+		createDir();
 		textFile = new File(findUserDocDir()+FOLDERNAME+"\\"+fileName);
-		checkIfFileExists(textFile);
+		//checkIfFileExists(textFile);
 	}
 	
 	private void createDir() {
@@ -72,16 +77,19 @@ public class DataStorage extends Store {
 		String newLine = in.readLine();
 		
 		while (newLine != null &&!newLine.equals(COMPLETE_TITLE)){
+			System.out.println(PENDING_TITLE);
 			addTaskToModel(in, TASK_TYPES.PENDING);
 			newLine = in.readLine();
 		}
 		
 		while (newLine != null && !newLine.equals(TRASH_TITLE)) {
+			System.out.println(COMPLETE_TITLE);
 			addTaskToModel(in, TASK_TYPES.COMPLETE);
 			newLine = in.readLine();
 		}
 		
 		while (newLine != null) {
+			System.out.println(TRASH_TITLE);
 			addTaskToModel(in, TASK_TYPES.TRASH);
 			newLine = in.readLine();
 		}
@@ -95,10 +103,13 @@ public class DataStorage extends Store {
 
 			out.println(PENDING_TITLE);
 			addTaskinfoToWriter(out, Control.getModel().getPendingList());
+			out.println(SPLITLINE);
 			out.println(COMPLETE_TITLE);
 			addTaskinfoToWriter(out, Control.getModel().getCompleteList());
+			out.println(SPLITLINE);
 			out.println(TRASH_TITLE);
 			addTaskinfoToWriter(out, Control.getModel().getTrashList());
+			out.println(SPLITLINE);
 			out.close();
 
 		} catch (IOException e) {
@@ -110,7 +121,7 @@ public class DataStorage extends Store {
 			TASK_TYPES taskType) throws IOException {
 		Task newTask = new Task();
 		String textLine = in.readLine();
-		if(textLine.equals(COMPLETE_TITLE)|| textLine.equals(TRASH_TITLE))
+		if(textLine.equals(SPLITLINE))
 			return;
 		newTask.setIndexId(Integer.parseInt(textLine));
 		newTask.setWorkInfo(in.readLine());
@@ -120,6 +131,7 @@ public class DataStorage extends Store {
 			newTask.setEndDate(new CustomDate(textLine));
 		newTask.setTag(new Tag(in.readLine(), in.readLine()));
 		newTask.setIsImportant((in.readLine()).equals(TRUE) ? true : false);
+		in.readLine();
 		switch (taskType) {
 		case PENDING:
 			Control.getModel().addTaskToPending(newTask);
@@ -144,7 +156,6 @@ public class DataStorage extends Store {
 			out.println(targetTask.getTag().getTag());
 			out.println(targetTask.getTag().getRepetition());
 			out.println((targetTask.getIsImportant() == true ? TRUE : FALSE));
-			if(i != taskList.size() -1)
 			out.println();
 		}
 	}
