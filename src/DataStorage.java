@@ -41,7 +41,7 @@ public class DataStorage extends Store {
 	
 	public DataStorage(String fileName) {
 		createDir();
-		textFile = new File(findUserDocDir()+FOLDERNAME+"\\"+fileName);
+		textFile = new File(findUserDocDir()+FOLDERNAME+"/"+fileName);
 		//checkIfFileExists(textFile);
 	}
 	
@@ -58,7 +58,7 @@ public class DataStorage extends Store {
 	}
 
 	private String findUserDocDir() {
-		return System.getProperty("user.home") + "\\Documents\\" ;
+		return System.getProperty("user.home") + "/Documents/" ;
 	}
 	
 	private static void checkIfFileExists(File file) {
@@ -76,22 +76,28 @@ public class DataStorage extends Store {
 
 		String newLine = in.readLine();
 		
-		while (newLine != null &&!newLine.equals(COMPLETE_TITLE)){
+		while (!newLine.equals(COMPLETE_TITLE)){
 			//System.out.println(PENDING_TITLE);
-			addTaskToModel(in, TASK_TYPES.PENDING);
+			boolean meetSplitLine = addTaskToModel(in, TASK_TYPES.PENDING);
 			newLine = in.readLine();
+			if(meetSplitLine)
+				break;
 		}
 		
-		while (newLine != null && !newLine.equals(TRASH_TITLE)) {
+		while (!newLine.equals(TRASH_TITLE)) {
 			//System.out.println(COMPLETE_TITLE);
-			addTaskToModel(in, TASK_TYPES.COMPLETE);
+			boolean meetSplitLine = addTaskToModel(in, TASK_TYPES.COMPLETE);
 			newLine = in.readLine();
+			if(meetSplitLine)
+				break;
 		}
 		
 		while (newLine != null) {
 			//System.out.println(TRASH_TITLE);
-			addTaskToModel(in, TASK_TYPES.TRASH);
+			boolean meetSplitLine = addTaskToModel(in, TASK_TYPES.TRASH);
 			newLine = in.readLine();
+			if(meetSplitLine)
+				break;
 		}
 		in.close();
 	}
@@ -117,12 +123,12 @@ public class DataStorage extends Store {
 		}
 	}
 
-	private void addTaskToModel(BufferedReader in,
+	private boolean addTaskToModel(BufferedReader in,
 			TASK_TYPES taskType) throws IOException {
 		Task newTask = new Task();
 		String textLine = in.readLine();
-		if(textLine.equals(SPLITLINE))
-			return;
+		if(textLine == null || textLine.equals(SPLITLINE))
+			return true;
 		newTask.setIndexId(Integer.parseInt(textLine));
 		newTask.setWorkInfo(in.readLine());
 		if (!(textLine = in.readLine()).equals("-"))
@@ -131,7 +137,6 @@ public class DataStorage extends Store {
 			newTask.setEndDate(new CustomDate(textLine));
 		newTask.setTag(new Tag(in.readLine(), in.readLine()));
 		newTask.setIsImportant((in.readLine()).equals(TRUE) ? true : false);
-		in.readLine();
 		switch (taskType) {
 		case PENDING:
 			Control.getModel().addTaskToPending(newTask);
@@ -143,6 +148,7 @@ public class DataStorage extends Store {
 			Control.getModel().addTaskToTrash(newTask);
 			break;
 		}
+		return false;
 	}
 
 	private void addTaskinfoToWriter(PrintWriter out,

@@ -38,7 +38,6 @@ import javafx.util.Callback;
 public class View {
 	public TextField commandLine;
 	public Text feedback;
-	public Text title;
 	public TableView<Task> taskPendingList;
 	public TableView<Task> taskCompleteList;
 	public TableView<Task> taskTrashList;
