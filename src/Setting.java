@@ -10,7 +10,6 @@ public class Setting extends Store {
 
 
 	private final static String TRUE = "true";
-	private final static String FALSE = "false";
 
 	private String googleAccount;
 	private String password;
@@ -28,7 +27,6 @@ public class Setting extends Store {
 	private BufferedWriter out;
 
 	private String fileName;
-	private File textFile;
 
 	public static void main(String args[]) {
 

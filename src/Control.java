@@ -50,7 +50,7 @@ public class Control extends Application {
 	static private History commandHistory = new History();
 	static private View view;
 	static Stage primaryStage;
-	static Store dataFile = new DataStorage("dataStorage.txt");
+	static Store dataFile;
 	
 	public static void main(String[] args) {
 		Application.launch(args);
@@ -59,6 +59,8 @@ public class Control extends Application {
 	@Override
 	public void start(final Stage primaryStage) {
 		try{
+			dataFile = new DataStorage("dataStorage.txt");
+			//System.out.println(1);
 			dataFile.loadFromFile();
 		} catch(IOException e){
 			System.out.println("Cannot read the given file");
@@ -201,7 +203,7 @@ public class Control extends Application {
 				|| feedback.equals(MESSAGE_SUCCESSFUL_REDO);
 	}
 
-	private static String executeCommand(String userCommand) {
+	static String executeCommand(String userCommand) {
 		boolean isEmptyCommand = Parser.checkEmptyCommand(userCommand);
 		if (isEmptyCommand) {
 			return MESSAGE_EMPTY_COMMAND;
