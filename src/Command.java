@@ -153,7 +153,7 @@ class EditCommand extends TwoWayCommand {
 	}
 
 	public String execute() {
-		if (index > modifiedList.size())
+		if (index > modifiedList.size() || index <= 0)
 			return MESSAGE_INDEX_OUT_OF_BOUNDS;
 
 		targetTask = modifiedList.get(index - 1);
@@ -284,7 +284,7 @@ class RemoveCommand extends TwoWayCommand {
 			if (indexList[i] == indexList[i + 1])
 				return MESSAGE_DUPLICATE_INDEXES;
 
-		if (indexList[indexCount - 1] > modifiedList.size())
+		if (indexList[indexCount - 1] > modifiedList.size() || indexList[0] <= 0)
 			return MESSAGE_INDEX_OUT_OF_BOUNDS;
 
 		for (int i = indexCount - 1; i >= 0; i--) {
@@ -398,7 +398,7 @@ class CompleteCommand extends TwoWayCommand {
 			if (indexList[i] == indexList[i + 1])
 				return MESSAGE_DUPLICATE_INDEXES;
 
-		if (indexList[indexCount - 1] > modifiedList.size())
+		if (indexList[indexCount - 1] > modifiedList.size() || indexList[0] <= 0)
 			return MESSAGE_INDEX_OUT_OF_BOUNDS;
 
 		indexInCompleteList = new int[indexCount];
@@ -459,7 +459,7 @@ class IncompleteCommand extends TwoWayCommand {
 			if (indexList[i] == indexList[i + 1])
 				return MESSAGE_DUPLICATE_INDEXES;
 
-		if (indexList[indexCount - 1] > modifiedList.size())
+		if (indexList[indexCount - 1] > modifiedList.size() || indexList[0] <= 0)
 			return MESSAGE_INDEX_OUT_OF_BOUNDS;
 
 		indexInIncompleteList = new int[indexCount];
@@ -528,7 +528,7 @@ class MarkCommand extends TwoWayCommand {
 			if (indexList[i] == indexList[i + 1])
 				return MESSAGE_DUPLICATE_INDEXES;
 
-		if (indexList[indexCount - 1] > modifiedList.size())
+		if (indexList[indexCount - 1] > modifiedList.size() || indexList[0] <= 0)
 			return MESSAGE_INDEX_OUT_OF_BOUNDS;
 
 		for (int i = 0; i < indexCount; i++) {
@@ -580,7 +580,7 @@ class UnmarkCommand extends TwoWayCommand {
 			if (indexList[i] == indexList[i + 1])
 				return MESSAGE_DUPLICATE_INDEXES;
 
-		if (indexList[indexCount - 1] > modifiedList.size())
+		if (indexList[indexCount - 1] > modifiedList.size() || indexList[0] <= 0)
 			return MESSAGE_INDEX_OUT_OF_BOUNDS;
 
 		for (int i = 0; i < indexCount; i++) {
