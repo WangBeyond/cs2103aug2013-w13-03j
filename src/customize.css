@@ -4,7 +4,7 @@
 }
 
 .tab-pane:top *.tab-header-area {
-    -fx-padding: 0.0 0.0  0.0 0.0;
+    -fx-padding: 40.0 0.0 0.0 0.0;
     -fx-translate-x: 403; 
     -fx-font-weight: bold; 
 }
@@ -22,13 +22,13 @@
 
 .tab {
 	-fx-background-color: rgb(39, 216, 110);
-    -fx-background-insets: 0.0, 0.0, 0.0;
+    -fx-background-insets: -10.0, 0.0, 0.0;
     -fx-background-radius: 0.0 0.0 0.0 0.0, 0.0 0.0 0.0 0.0, 0.0 0.0 0.0 0.0;
-    -fx-padding: 5.0 0.0 0.0 0.0;
-    -fx-spacing: 30.0;
+    -fx-padding: 0.0 0.0 0.0 0.0;
 }
 .tab:hover {
     	-fx-background-color: rgb(43, 235, 120);
+
 }
 
 .tab:selected:hover{
@@ -37,11 +37,9 @@
 
 .tab:selected {
     -fx-background-color: rgb(255, 255, 255);
-    -fx-background-radius: 0.0 0.0 0.0 0.0, 0.0 0.0 0.0 0.0, 0.0 0.0 0.0 0.0, 0.0 0.0 0.0 0.0;
-    -fx-background-insets: 0.0 0.0 0.0 0.0, 0.0, 0.0, 0.0;
-    -fx-background-insets: 0.0, 0.0, 0.0;
+    -fx-background-insets: -10.0, 0.0, 0.0 ;
     -fx-background-radius: 0.0 0.0 0.0 0.0, 0.0 0.0 0.0 0.0, 0.0 0.0 0.0 0.0;
-    -fx-padding: 5.0 0.0 0.0 0.0;
+    -fx-padding: 0.0 0.0 0.0 0.0;
 }
 
 .tab-pane{
@@ -49,7 +47,7 @@
     -fx-tab-max-width: 90.0; 
     -fx-tab-min-height: 35.0;
     -fx-tab-max-height: 35.0;
-    -fx-translate-y: -40.0;
+    -fx-translate-y: -10;
 }
 
 /************************************* Text Field *****************************************************/
@@ -142,10 +140,6 @@
  
 .text{
 	-fx-font-size: 15.0;
-}
-
-.title{
-	-fx-font-size: 70.0;
 }
 
 .feedback{

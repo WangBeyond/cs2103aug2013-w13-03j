@@ -60,11 +60,12 @@ public class View {
 
 		/* Top */
 		AnchorPane top = new AnchorPane();
-		top.setPadding(new Insets(10, 15, 5, 44));
+		top.setPadding(new Insets(-15, 15, -30, 44));
 		Image iDo = new Image(getClass().getResourceAsStream("iDo.png"), 110,
 				54, true, true);
 		ImageView title = new ImageView(iDo); 
-
+		title.getStyleClass().add("title");
+		
 		Button minimizeButton = new Button("");
 		minimizeButton.setPrefSize(20, 20);
 		minimizeButton.setId("minimize");
@@ -91,7 +92,7 @@ public class View {
 
 		top.getChildren().addAll(title, hb);
 		AnchorPane.setLeftAnchor(title, 10.0);
-		AnchorPane.setTopAnchor(hb, 5.0);
+		AnchorPane.setTopAnchor(hb, 25.0);
 		AnchorPane.setTopAnchor(title, 30.0);
 		AnchorPane.setRightAnchor(hb, 5.0);
 
@@ -116,7 +117,7 @@ public class View {
 				.closable(false).build();
 		tabPane.getTabs().addAll(pending, complete, trash);
 
-		HBox center = HBoxBuilder.create().padding(new Insets(0, 44, -30, 44))
+		HBox center = HBoxBuilder.create().padding(new Insets(0, 44, 0, 44))
 				.children(tabPane).build();
 
 		BorderPane root = BorderPaneBuilder.create().top(top).center(center)
