@@ -85,7 +85,7 @@ public class DataStorage extends Store {
 			TASK_TYPES taskType) throws IOException {
 		Task newTask = new Task();
 		String textLine = in.readLine();
-		if(textLine.equals(COMPLETE_TITLE)|| textLine.equals(TRASH_TITLE))
+		if(textLine == null || textLine.equals(COMPLETE_TITLE)|| textLine.equals(TRASH_TITLE))
 			return;
 		newTask.setIndexId(Integer.parseInt(textLine));
 		newTask.setWorkInfo(in.readLine());
