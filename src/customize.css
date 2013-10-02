@@ -1,0 +1,224 @@
+/** Tab Pane **/
+.tab-pane *.tab-header-background {
+    -fx-background-color: transparent;
+}
+
+.tab-pane:top *.tab-header-area {
+    -fx-padding: 0.0 0.0  0.0 0.0;
+    -fx-translate-x: 403; 
+    -fx-font-weight: bold; 
+}
+
+.control-buttons-tab {
+    -fx-background-color: -fx-tab-border-color, -fx-inner-border, -fx-body-color;
+    -fx-padding: 0.0 0.0 -30.0 -30.0; 
+    visibility: hidden;
+}
+
+.tab-down-button .arrow {
+    -fx-background-color: transparent;
+    -fx-shape: null;
+}
+
+.tab {
+	-fx-background-color: rgb(39, 216, 110);
+    -fx-background-insets: 0.0, 0.0, 0.0;
+    -fx-background-radius: 0.0 0.0 0.0 0.0, 0.0 0.0 0.0 0.0, 0.0 0.0 0.0 0.0;
+    -fx-padding: 5.0 0.0 0.0 0.0;
+    -fx-spacing: 30.0;
+}
+.tab:hover {
+    	-fx-background-color: rgb(43, 235, 120);
+}
+
+.tab:selected:hover{
+	-fx-background-color: rgb(255, 255, 255);
+}
+
+.tab:selected {
+    -fx-background-color: rgb(255, 255, 255);
+    -fx-background-radius: 0.0 0.0 0.0 0.0, 0.0 0.0 0.0 0.0, 0.0 0.0 0.0 0.0, 0.0 0.0 0.0 0.0;
+    -fx-background-insets: 0.0 0.0 0.0 0.0, 0.0, 0.0, 0.0;
+    -fx-background-insets: 0.0, 0.0, 0.0;
+    -fx-background-radius: 0.0 0.0 0.0 0.0, 0.0 0.0 0.0 0.0, 0.0 0.0 0.0 0.0;
+    -fx-padding: 5.0 0.0 0.0 0.0;
+}
+
+.tab-pane{
+	-fx-tab-min-width: 90.0; 
+    -fx-tab-max-width: 90.0; 
+    -fx-tab-min-height: 35.0;
+    -fx-tab-max-height: 35.0;
+    -fx-translate-y: -40.0;
+}
+
+/************************************* Text Field *****************************************************/
+.text-field {
+    -fx-skin: "com.sun.javafx.scene.control.skin.TextFieldSkin";
+    -fx-background-color: rgb(247.0,247.0,247.0), black, -fx-control-inner-background;
+    -fx-background-insets: -1.0, 1.0, 1.0;
+    -fx-background-radius: 0.0, 0.0, 0.0;
+    -fx-padding: 4.5 5.0 4.5 5.0;
+    -fx-font-size: 15.0;
+    -fx-font-family: "Ubuntu";
+    -fx-prompt-text-fill: derive(-fx-control-inner-background,-30.0%);
+    -fx-cursor: text;
+}
+ 
+.text-field:focused {
+    -fx-background-color: rgb(247.0, 247.0, 247.0) , white, white;
+    -fx-background-insets: -1.0, 1.0, 1.0;
+    -fx-background-radius: 0.0, 0.0, 0.0;
+    -fx-prompt-text-fill: transparent;
+}
+
+/************************************************************************************************************ */
+
+/* Table View */
+.table-view {
+    -fx-background-color: white;
+    -fx-background-insets: 0.0,0.0;
+    -fx-border-radius: 2.0 2.0 2.0;
+
+    /* There is some oddness if padding is in em values rather than pixels,
+       in particular, the left border of the control doesn't show. */
+    -fx-padding: 1.0; /* 0.083333em; */
+
+    /* Constants used throughout the tableview.
+     * TODO: Should these be derived from the palette in .scene?
+     */
+    -fx-table-header-border-color: black;
+/*    -fx-table-header-background-color: linear (0%,0%) to (0%,100%) stops (80%, #bbbbbb) (10%, #f6f6f6);*/
+    -fx-table-cell-border-color: #bbbbbb;
+}
+
+.table-row-cell {
+    -fx-skin: "com.sun.javafx.scene.control.skin.TableRowSkin";
+    -fx-background-color: -fx-table-cell-border-color, -fx-control-inner-background;
+    -fx-background-insets: 0.0, 0.0 0.0 1.0 0.0;
+    -fx-padding: 0.0em; /* 0 */
+    -fx-text-fill: -fx-text-inner-color;
+}
+ 
+.table-row-cell:odd {
+    -fx-background-color: -fx-table-cell-border-color, -fx-control-inner-background;
+    -fx-background-insets: 0.0, 0.0 0.0 1.0 0.0;
+}
+.table-cell {
+    -fx-skin: "com.sun.javafx.scene.control.skin.TableCellSkin";
+    -fx-padding: 0.166667em; /* 2px, plus border adds 1px */
+
+    -fx-background-color: null;
+    -fx-border-color: transparent -fx-table-cell-border-color transparent transparent;
+    -fx-border-width: 0.083333em; /* 1 */
+    -fx-cell-size: 2.0em; /* 24 */
+    -fx-text-fill: -fx-text-inner-color;
+}
+
+
+/* This is the area behind the column headers. An ideal place to specify background
+   and border colors for the whole area (not individual column-header's). */
+.table-view .column-header-background {
+    -fx-background-color: white;
+    -fx-padding: 0.0;
+}
+
+/* The column header row is made up of a number of column-header, one for each
+   TableColumn, and a 'filler' area that extends from the right-most column
+   to the edge of the tableview, or up to the 'column control' button. */
+.table-view .column-header, .table-view .filler {
+    -fx-text-fill: -fx-selection-bar-text;
+	
+    /* TODO: for some reason, this doesn't scale. */
+    -fx-font-size: 1.083333em; /* 13pt - 1 more than the default font */
+    -fx-font-weight: bold;
+    -fx-size: 25.0;
+    -fx-border-style: hidden hidden solid hidden ;
+    -fx-border-color: black;
+    -fx-border-insets: 0.0 0.0 0.0 0.0, 0.0 0.0 0.0 0.0;
+    -fx-border-width: 0.083333em, 0.083333em;
+}
+
+ 
+.text{
+	-fx-font-size: 15.0;
+}
+
+.title{
+	-fx-font-size: 70.0;
+}
+
+.feedback{
+	-fx-font-family: "Ubuntu";
+	-fx-font-weight: bold;
+	-fx-font-size: 16.0;	
+}
+
+.feedback-tip{
+	-fx-font-size: 16.0;
+	-fx-text-fill: rgb(130.0, 255.0, 121.0);
+}
+
+.important{
+	-fx-background-color:  rgb(43, 235, 120);
+}
+
+.unimportant {
+	-fx-background-color:  white;
+}
+
+/********************************************* Button  ***********************************************/
+.button {
+    -fx-skin: "com.sun.javafx.scene.control.skin.ButtonSkin";
+    -fx-background-color: transparent;
+    -fx-background-insets: 0 0 0 0, 0, 0,0;
+    -fx-background-radius: 0, 0, 0, 0;
+    -fx-text-fill: -fx-text-base-color;
+    -fx-alignment: CENTER;
+    -fx-content-display: graphic-only;
+}
+
+.button:focused {
+    -fx-background-color: transparent ;
+    -fx-background-radius:  0, 0, 0, 0;
+}
+
+.button:hover {
+	-fx-background-color: transparent;
+}
+
+.button:armed {
+    -fx-background-color: transparent;
+}
+ 
+.button:default {
+    -fx-base: transparent;
+}
+
+.button:show-mnemonics .mnemonic-underline {
+    -fx-stroke: -fx-text-fill;
+} 
+
+#close{
+	-fx-background-repeat: no-repeat;
+	-fx-background-size: 20 20; 
+	-fx-background-image: url("close.png") ;
+}
+
+#close:hover{
+	-fx-background-repeat: no-repeat;
+	-fx-background-size: 20 20; 
+	-fx-background-image: url("closeHover.png");
+}
+
+#minimize{
+	-fx-background-repeat: no-repeat;
+	-fx-background-size: 20 20; 
+	-fx-background-image: url("minimise.png") ;
+}
+
+#minimize:hover{
+	-fx-background-repeat: no-repeat;
+	-fx-background-size: 20 20; 
+	-fx-background-image: url("minimizeHover.png");
+}
