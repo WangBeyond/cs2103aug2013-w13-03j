@@ -1,16 +1,15 @@
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Timer;
 import java.util.TimerTask;
-
-import org.omg.PortableInterceptor.SUCCESSFUL;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
-import javafx.collections.SetChangeListener;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
@@ -51,6 +50,7 @@ public class Control extends Application {
 	static private View view;
 	static Stage primaryStage;
 	static Store dataFile;
+	static  public Lock lock;
 	
 	public static void main(String[] args) {
 		Application.launch(args);
@@ -58,6 +58,7 @@ public class Control extends Application {
 
 	@Override
 	public void start(final Stage primaryStage) {
+		lock = new ReentrantLock(true);
 		try{
 			dataFile = new DataStorage("dataStorage.txt");
 			//System.out.println(1);
@@ -68,10 +69,13 @@ public class Control extends Application {
 		
 		
 		Control.primaryStage = primaryStage;
+		primaryStage.setWidth(760);
+		primaryStage.setHeight(540);
 		primaryStage.initStyle(StageStyle.UNDECORATED);
 		view = new View(modelHandler, primaryStage);
-		primaryStage.setTitle("iDo Prototype");
+		primaryStage.setTitle("iDo V0.1");
 		hookUpEventForCommandLine();
+
 		primaryStage.setScene(view.scene);
 		primaryStage.show();
 		Timer t = new Timer();
@@ -89,7 +93,7 @@ public class Control extends Application {
 	public static Model getModel() {
 		return modelHandler;
 	}
-
+	
 	private static void updateList(ObservableList<Task> list) {
 		for (int i = 0; i < list.size(); i++) {
 			list.get(i).updateDateString();

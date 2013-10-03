@@ -137,6 +137,23 @@
     -fx-border-width: 0.083333em, 0.083333em;
 }
 
+.table-view *.scroll-bar:horizontal *.increment-button,
+.table-view *.scroll-bar:horizontal *.decrement-button {
+    -fx-background-color: null;
+    -fx-background-radius: 0;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.table-view *.scroll-bar:horizontal *.increment-arrow, 
+.table-view *.scroll-bar:horizontal *.decrement-arrow {
+    -fx-background-color: null;
+    -fx-background-radius: 0;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+    -fx-shape: null;
+}
+
  
 .text{
 	-fx-font-size: 15.0;
@@ -216,3 +233,29 @@
 	-fx-background-size: 20 20; 
 	-fx-background-image: url("minimizeHover.png");
 }
+
+#smaller{
+	-fx-background-repeat:no-repeat ;
+	-fx-background-size: 30 30;
+	-fx-background-image: url("makeSmaller.png");
+}
+
+#smaller:hover{
+	-fx-background-repeat:no-repeat ;
+	-fx-background-size: 30 30;
+	-fx-background-image: url("makeSmallerHover.png");
+}
+
+#larger{
+	-fx-background-repeat:no-repeat ;
+	-fx-background-size: 30 30;
+	-fx-background-image: url("makeLarger.png");
+	
+}
+
+#larger:hover{
+	-fx-background-repeat:no-repeat ;
+	-fx-background-size: 30 30;
+	-fx-background-image: url("makeLargerHover.png");
+}
+

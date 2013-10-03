@@ -1,3 +1,7 @@
+import java.util.Timer;
+import java.util.TimerTask;
+
+import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -7,13 +11,13 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabBuilder;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumnBuilder;
-import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -25,11 +29,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.HBoxBuilder;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.CycleMethod;
-import javafx.scene.paint.LinearGradient;
-import javafx.scene.paint.LinearGradientBuilder;
-import javafx.scene.paint.Stop;
-import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextBuilder;
 import javafx.stage.Stage;
@@ -38,47 +37,45 @@ import javafx.util.Callback;
 public class View {
 	public TextField commandLine;
 	public Text feedback;
+	public Button showOrHide;
 	public TableView<Task> taskPendingList;
 	public TableView<Task> taskCompleteList;
 	public TableView<Task> taskTrashList;
 	public Scene scene;
+	public BorderPane root;
 	public TabPane tabPane;
 	double dragAnchorX;
 	double dragAnchorY;
+	VBox bottom;
+	HBox center;
+	AnchorPane top;
+
+	Stage stage;
 
 	public View(final Model model, final Stage primaryStage) {
-		/* Bottom */
-		VBox bottom = new VBox();
-		bottom.setSpacing(5);
-		bottom.setPadding(new Insets(10, 44, 20, 44));
-		commandLine = new TextField();
-		commandLine.setMaxWidth(600);
-		feedback = TextBuilder.create().styleClass("feedback")
-				.fill(Color.WHITE).text("Please enter a command").build();
-		bottom.getChildren().addAll(commandLine, feedback);
-
+		stage = primaryStage;
 		/* Top */
-		AnchorPane top = new AnchorPane();
+		top = new AnchorPane();
 		top.setPadding(new Insets(-15, 15, -30, 44));
 		Image iDo = new Image(getClass().getResourceAsStream("iDo.png"), 110,
 				54, true, true);
-		ImageView title = new ImageView(iDo); 
+		ImageView title = new ImageView(iDo);
 		title.getStyleClass().add("title");
-		
+
 		Button minimizeButton = new Button("");
 		minimizeButton.setPrefSize(20, 20);
 		minimizeButton.setId("minimize");
 		minimizeButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
-			public void handle(MouseEvent e){
+			public void handle(MouseEvent e) {
 				primaryStage.setIconified(true);
 			}
 		});
-		
+
 		Button closeButton = new Button("");
-		closeButton.setPrefSize(20,20);
+		closeButton.setPrefSize(20, 20);
 		closeButton.setId("close");
 		closeButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
-			public void handle(MouseEvent e){
+			public void handle(MouseEvent e) {
 				primaryStage.close();
 				System.exit(0);
 			}
@@ -116,15 +113,35 @@ public class View {
 				.closable(false).build();
 		tabPane.getTabs().addAll(pending, complete, trash);
 
-		HBox center = HBoxBuilder.create().padding(new Insets(0, 44, 0, 44))
+		center = HBoxBuilder.create().padding(new Insets(0, 44, 0, 44))
 				.children(tabPane).build();
 
-		BorderPane root = BorderPaneBuilder.create().top(top).center(center)
+		/* Bottom */
+		bottom = new VBox();
+		bottom.setSpacing(5);
+		bottom.setPadding(new Insets(0, 0, 5,44));
+
+		HBox temp = new HBox();
+		temp.setSpacing(10);
+		commandLine = new TextField();
+		commandLine.setPrefWidth(670);
+		showOrHide = new Button();
+		showOrHide.setPrefSize(30, 30);
+		showOrHide.setId("smaller");
+		hookUpEventForCheckBox();
+
+		temp.getChildren().addAll(commandLine, showOrHide);
+
+		feedback = TextBuilder.create().styleClass("feedback")
+				.fill(Color.WHITE).text("Please enter a command").build();
+		bottom.getChildren().addAll(temp, feedback);
+
+		root = BorderPaneBuilder.create().top(top).center(center)
 				.bottom(bottom).build();
 
 		setDraggable(root, primaryStage);
 
-		scene = new Scene(root, 760, 530, Color.rgb(70, 70, 70));
+		scene = new Scene(root, Color.rgb(70, 70, 70));
 		scene.getStylesheets().addAll(
 				getClass().getResource("customize.css").toExternalForm());
 	}
@@ -284,5 +301,59 @@ public class View {
 		taskList.setStyle("-fx-table-cell-border-color: transparent;");
 		taskList.getColumns().addAll(taskColumn, startDate, endDate, tag,
 				isImportant);
+	}
+
+	private void hookUpEventForCheckBox() {
+		showOrHide.setOnAction(new EventHandler<ActionEvent>() {
+			public void handle(ActionEvent e) {
+				if (stage.getHeight() > 500) {
+					root.setTop(null);
+					root.setCenter(null);
+					showOrHide.setId("larger");
+					collapseAnimation();
+				} else {
+					showOrHide.setId("smaller");
+					expandAnimation();
+				}
+			}
+		});
+	}
+
+	private void collapseAnimation() {
+		Timer animTimer = new Timer();
+
+		animTimer.scheduleAtFixedRate(new TimerTask() {
+			@Override
+			public void run() {
+				if (stage.getHeight() != 70) {
+					stage.setHeight(stage.getHeight() - 10);
+				} else {
+					this.cancel();
+				}
+			}
+		}, 0, 3);
+	}
+
+	private void expandAnimation() {
+		Timer animTimer = new Timer();
+		root.setTop(top);
+		animTimer.schedule(new TimerTask() {
+			@Override
+			public void run() {
+				if (stage.getHeight() > 450) {
+					Platform.runLater(new Runnable() {
+						public void run() {
+							root.setCenter(center);
+						}
+					});
+				}
+
+				if (stage.getHeight() < 540) {
+					stage.setHeight(stage.getHeight() + 10);
+				} else {
+					this.cancel();
+				}
+			}
+		}, 0, 3);
 	}
 }
