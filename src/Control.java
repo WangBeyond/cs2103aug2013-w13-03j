@@ -2,21 +2,16 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
@@ -45,39 +40,35 @@ public class Control extends Application {
 	public static final int VALID = 1;
 	public static final int INVALID = -1;
 
-	static private Model modelHandler = new Model();
-	static private History commandHistory = new History();
-	static private View view;
-	static Stage primaryStage;
-	static Store dataFile;
-	static  public Lock lock;
-	
+	private Model modelHandler = new Model();
+	private History commandHistory = new History();
+	private View view;
+	private Store dataFile;
+
 	public static void main(String[] args) {
 		Application.launch(args);
 	}
 
 	@Override
 	public void start(final Stage primaryStage) {
-		lock = new ReentrantLock(true);
-		try{
-			dataFile = new DataStorage("dataStorage.txt");
-			//System.out.println(1);
+		try {
+			dataFile = new DataStorage("dataStorage.txt", modelHandler);
 			dataFile.loadFromFile();
-		} catch(IOException e){
+		} catch (IOException e) {
 			System.out.println("Cannot read the given file");
 		}
-		
-		
-		Control.primaryStage = primaryStage;
+
 		primaryStage.setWidth(760);
 		primaryStage.setHeight(540);
 		primaryStage.initStyle(StageStyle.UNDECORATED);
-		view = new View(modelHandler, primaryStage);
 		primaryStage.setTitle("iDo V0.1");
+		
+		view = new View(modelHandler, primaryStage);
 		hookUpEventForCommandLine();
 
 		primaryStage.setScene(view.scene);
 		primaryStage.show();
+		
 		Timer t = new Timer();
 		t.schedule(new TimerTask() {
 			@Override
@@ -90,10 +81,6 @@ public class Control extends Application {
 		}, 0, 60000);
 	}
 
-	public static Model getModel() {
-		return modelHandler;
-	}
-	
 	private static void updateList(ObservableList<Task> list) {
 		for (int i = 0; i < list.size(); i++) {
 			list.get(i).updateDateString();
@@ -207,7 +194,7 @@ public class Control extends Application {
 				|| feedback.equals(MESSAGE_SUCCESSFUL_REDO);
 	}
 
-	static String executeCommand(String userCommand) {
+	private String executeCommand(String userCommand) {
 		boolean isEmptyCommand = Parser.checkEmptyCommand(userCommand);
 		if (isEmptyCommand) {
 			return MESSAGE_EMPTY_COMMAND;
@@ -227,7 +214,7 @@ public class Control extends Application {
 				s.execute();
 				s = new AddCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
-				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_ADD)){
+				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_ADD)) {
 					commandHistory.updateCommand((TwoWayCommand) s);
 					dataFile.storeToFile();
 				}
@@ -237,7 +224,7 @@ public class Control extends Application {
 				s.execute();
 				s = new EditCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
-				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_EDIT)){
+				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_EDIT)) {
 					commandHistory.updateCommand((TwoWayCommand) s);
 					dataFile.storeToFile();
 				}
@@ -247,7 +234,7 @@ public class Control extends Application {
 				s.execute();
 				s = new RemoveCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
-				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_REMOVE)){
+				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_REMOVE)) {
 					commandHistory.updateCommand((TwoWayCommand) s);
 					dataFile.storeToFile();
 				}
@@ -284,7 +271,7 @@ public class Control extends Application {
 			case CLEAR_ALL:
 				s = new ClearAllCommand(modelHandler, view);
 				feedback = s.execute();
-				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_CLEAR_ALL)){
+				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_CLEAR_ALL)) {
 					commandHistory.updateCommand((TwoWayCommand) s);
 					dataFile.storeToFile();
 				}
@@ -294,7 +281,7 @@ public class Control extends Application {
 				s.execute();
 				s = new CompleteCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
-				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_COMPLETE)){
+				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_COMPLETE)) {
 					commandHistory.updateCommand((TwoWayCommand) s);
 					dataFile.storeToFile();
 				}
@@ -304,7 +291,7 @@ public class Control extends Application {
 				s.execute();
 				s = new IncompleteCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
-				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_INCOMPLETE)){
+				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_INCOMPLETE)) {
 					commandHistory.updateCommand((TwoWayCommand) s);
 					dataFile.storeToFile();
 				}
@@ -314,7 +301,7 @@ public class Control extends Application {
 				s.execute();
 				s = new MarkCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
-				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_MARK)){
+				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_MARK)) {
 					commandHistory.updateCommand((TwoWayCommand) s);
 					dataFile.storeToFile();
 				}
@@ -324,7 +311,7 @@ public class Control extends Application {
 				s.execute();
 				s = new UnmarkCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
-				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_UNMARK)){
+				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_UNMARK)) {
 					commandHistory.updateCommand((TwoWayCommand) s);
 					dataFile.storeToFile();
 				}
@@ -336,7 +323,7 @@ public class Control extends Application {
 				// case SYNC:
 				// return executeSyncCommand(parsedUserCommand);
 			case EXIT:
-				s = new ExitCommand(modelHandler, view, primaryStage);
+				s = new ExitCommand(modelHandler, view);
 				return s.execute();
 			case INVALID:
 				return MESSAGE_INVALID_COMMAND_TYPE;
