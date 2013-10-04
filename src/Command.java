@@ -3,7 +3,6 @@ import java.util.ArrayList;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.stage.Stage;
 
 public abstract class Command {
 	protected static final String MESSAGE_SUCCESSFUL_SHOW_ALL = "Show all the tasks";
@@ -808,16 +807,12 @@ class ShowAllCommand extends Command {
 }
 
 class ExitCommand extends Command {
-	Stage stage;
-
-	public ExitCommand(Model model, View view, Stage primaryStage) {
+	public ExitCommand(Model model, View view) {
 		this.model = model;
 		this.view = view;
-		this.stage = primaryStage;
 	}
 
 	public String execute() {
-		stage.close();
 		System.exit(0);
 		return null;
 	}

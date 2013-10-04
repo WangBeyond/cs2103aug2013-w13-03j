@@ -21,11 +21,11 @@ public class DataStorage extends Store {
 	private final static String TRASH_TITLE = "trash";
 	private final static String SPLITLINE = "**************";
 
-	private static BufferedReader in;
-	private static PrintWriter out;
-
+	private BufferedReader in;
+	private PrintWriter out;
+	private Model model;
 	private File textFile;
-	
+	/*
 	public static void main(String args[]) {
 
 		DataStorage dataStorage = new DataStorage("dataStorage.txt");
@@ -38,11 +38,12 @@ public class DataStorage extends Store {
 			System.out.println(e);
 		}
 	}
-	
-	public DataStorage(String fileName) {
+	*/
+	public DataStorage(String fileName, Model model) {
 		createDir();
 		textFile = new File(findUserDocDir()+FOLDERNAME+"/"+fileName);
-		//checkIfFileExists(textFile);
+		checkIfFileExists(textFile);
+		this.model = model;
 	}
 	
 	private void createDir() {
@@ -75,9 +76,9 @@ public class DataStorage extends Store {
 		in = new BufferedReader(new FileReader(textFile));
 
 		String newLine = in.readLine();
-		
+		if(newLine == null)
+			return;
 		while (!newLine.equals(COMPLETE_TITLE)){
-			//System.out.println(PENDING_TITLE);
 			boolean meetSplitLine = addTaskToModel(in, TASK_TYPES.PENDING);
 			newLine = in.readLine();
 			if(meetSplitLine)
@@ -85,7 +86,6 @@ public class DataStorage extends Store {
 		}
 		
 		while (!newLine.equals(TRASH_TITLE)) {
-			//System.out.println(COMPLETE_TITLE);
 			boolean meetSplitLine = addTaskToModel(in, TASK_TYPES.COMPLETE);
 			newLine = in.readLine();
 			if(meetSplitLine)
@@ -93,7 +93,6 @@ public class DataStorage extends Store {
 		}
 		
 		while (newLine != null) {
-			//System.out.println(TRASH_TITLE);
 			boolean meetSplitLine = addTaskToModel(in, TASK_TYPES.TRASH);
 			newLine = in.readLine();
 			if(meetSplitLine)
@@ -108,13 +107,13 @@ public class DataStorage extends Store {
 			out = new PrintWriter(new FileWriter(textFile, false));
 
 			out.println(PENDING_TITLE);
-			addTaskinfoToWriter(out, Control.getModel().getPendingList());
+			addTaskinfoToWriter(out, model.getPendingList());
 			out.println(SPLITLINE);
 			out.println(COMPLETE_TITLE);
-			addTaskinfoToWriter(out, Control.getModel().getCompleteList());
+			addTaskinfoToWriter(out, model.getCompleteList());
 			out.println(SPLITLINE);
 			out.println(TRASH_TITLE);
-			addTaskinfoToWriter(out, Control.getModel().getTrashList());
+			addTaskinfoToWriter(out, model.getTrashList());
 			out.println(SPLITLINE);
 			out.close();
 
@@ -139,13 +138,13 @@ public class DataStorage extends Store {
 		newTask.setIsImportant((in.readLine()).equals(TRUE) ? true : false);
 		switch (taskType) {
 		case PENDING:
-			Control.getModel().addTaskToPending(newTask);
+			model.addTaskToPending(newTask);
 			break;
 		case COMPLETE:
-			Control.getModel().addTaskToComplete(newTask);
+			model.addTaskToComplete(newTask);
 			break;
 		case TRASH:
-			Control.getModel().addTaskToTrash(newTask);
+			model.addTaskToTrash(newTask);
 			break;
 		}
 		return false;
