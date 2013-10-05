@@ -50,7 +50,6 @@ abstract class TwoWayCommand extends Command {
 				searchList = model.getSearchCompleteList();
 			else
 				searchList = model.getSearchTrashList();
-			System.out.println(prevIndex+" "+searchList.get(prevIndex).getIndexInList());
 			return searchList.get(prevIndex).getIndexInList();
 		} else 
 			return prevIndex;
@@ -181,7 +180,6 @@ class EditCommand extends TwoWayCommand {
 	public String execute() {
 		if (index > modifiedList.size() || index <= 0)
 			return MESSAGE_INDEX_OUT_OF_BOUNDS;
-		System.out.println("execute "+TwoWayCommand.listedIndexType);
 		targetTask = modifiedList.get(convertIndex(index - 1));
 		setOriginalTask();
 		CustomDate startDate, endDate;
@@ -244,7 +242,7 @@ class EditCommand extends TwoWayCommand {
 			targetTask.setIsImportant(!targetTask.getIsImportant());
 
 		Control.sortList(modifiedList);
-		System.out.println("execute "+TwoWayCommand.listedIndexType);
+		//System.out.println("execute "+TwoWayCommand.listedIndexType);
 		return MESSAGE_SUCCESSFUL_EDIT;
 	}
 
@@ -668,7 +666,6 @@ class SearchCommand extends Command {
 	public String execute() {
 		ObservableList<Task> initialList;
 		TwoWayCommand.setIndexType(TwoWayCommand.SEARCHED);
-		System.out.println("search "+TwoWayCommand.listedIndexType);
 		if (tabIndex == 0)
 			initialList = model.getPendingList();
 		else if (tabIndex == 1)
@@ -844,7 +841,6 @@ class ShowAllCommand extends Command {
 
 	public String execute() {
 		TwoWayCommand.setIndexType(TwoWayCommand.SHOWN);
-		System.out.println("show "+TwoWayCommand.listedIndexType);
 		int tabIndex = view.tabPane.getSelectionModel().getSelectedIndex();
 		if (tabIndex == 0)
 			view.taskPendingList.setItems(model.getPendingList());
