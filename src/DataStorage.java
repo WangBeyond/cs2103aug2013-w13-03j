@@ -136,6 +136,7 @@ public class DataStorage extends Store {
 			newTask.setEndDate(new CustomDate(textLine));
 		newTask.setTag(new Tag(in.readLine(), in.readLine()));
 		newTask.setIsImportant((in.readLine()).equals(TRUE) ? true : false);
+		newTask.setIndexInList(Integer.parseInt(in.readLine()));
 		switch (taskType) {
 		case PENDING:
 			model.addTaskToPending(newTask);
@@ -161,6 +162,7 @@ public class DataStorage extends Store {
 			out.println(targetTask.getTag().getTag());
 			out.println(targetTask.getTag().getRepetition());
 			out.println((targetTask.getIsImportant() == true ? TRUE : FALSE));
+			out.println(targetTask.getIndexInList());
 			out.println();
 		}
 	}
