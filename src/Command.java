@@ -385,7 +385,7 @@ class ClearAllCommand extends TwoWayCommand {
 					clearedTasks[i] = model.getTaskFromPending(convertIndex(i));
 				else if (tabIndex == 1)
 					clearedTasks[i] = model.getTaskFromComplete(convertIndex(i));
-				model.removeTask(i, tabIndex);
+				model.removeTask(convertIndex(i), tabIndex);
 			}
 
 		if (tabIndex == 1 || tabIndex == 0)

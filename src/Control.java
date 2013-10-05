@@ -213,6 +213,7 @@ public class Control extends Application {
 			Command showCommand;
 			Command s;
 			String feedback;
+			boolean isAfterSearch;
 			switch (commandType) {
 			case ADD:
 				s = new ShowAllCommand(modelHandler, view);
@@ -225,22 +226,24 @@ public class Control extends Application {
 				}
 				return feedback;
 			case EDIT:
+				isAfterSearch = TwoWayCommand.listedIndexType;
 				showCommand = new ShowAllCommand(modelHandler, view);
 				s = new EditCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
 				showCommand.execute();
 				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_EDIT)) {
-					commandHistory.updateCommand((TwoWayCommand) s);
+					commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
 					dataFile.storeToFile();
 				}
 				return feedback;
 			case REMOVE:
+				isAfterSearch = TwoWayCommand.listedIndexType;
 				showCommand = new ShowAllCommand(modelHandler, view);
 				s = new RemoveCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
 				showCommand.execute();
 				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_REMOVE)) {
-					commandHistory.updateCommand((TwoWayCommand) s);
+					commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
 					dataFile.storeToFile();
 				}
 				return feedback;
@@ -258,6 +261,8 @@ public class Control extends Application {
 				s = new ShowAllCommand(modelHandler, view);
 				s.execute();
 				if (commandHistory.isRedoable()) {
+					if(commandHistory.isAfterSearch())
+						TwoWayCommand.setIndexType(TwoWayCommand.SEARCHED);
 					TwoWayCommand redoCommand = commandHistory.getPrevCommand();
 					redoCommand.execute();
 					dataFile.storeToFile();
@@ -274,50 +279,57 @@ public class Control extends Application {
 				s = new ShowAllCommand(modelHandler, view);
 				return s.execute();
 			case CLEAR_ALL:
+				isAfterSearch = TwoWayCommand.listedIndexType;
+				showCommand = new ShowAllCommand(modelHandler, view);
 				s = new ClearAllCommand(modelHandler, view);
 				feedback = s.execute();
 				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_CLEAR_ALL)) {
-					commandHistory.updateCommand((TwoWayCommand) s);
+					commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
 					dataFile.storeToFile();
 				}
+				showCommand.execute();
 				return feedback;
 			case COMPLETE:
+				isAfterSearch = TwoWayCommand.listedIndexType;
 				showCommand = new ShowAllCommand(modelHandler, view);
 				s = new CompleteCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
 				showCommand.execute();
 				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_COMPLETE)) {
-					commandHistory.updateCommand((TwoWayCommand) s);
+					commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
 					dataFile.storeToFile();
 				}
 				return feedback;
 			case INCOMPLETE:
+				isAfterSearch = TwoWayCommand.listedIndexType;
 				showCommand = new ShowAllCommand(modelHandler, view);
 				s = new IncompleteCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
 				showCommand.execute();
 				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_INCOMPLETE)) {
-					commandHistory.updateCommand((TwoWayCommand) s);
+					commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
 					dataFile.storeToFile();
 				}
 				return feedback;
 			case MARK:
+				isAfterSearch = TwoWayCommand.listedIndexType;
 				showCommand = new ShowAllCommand(modelHandler, view);
 				s = new MarkCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
 				showCommand.execute();
 				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_MARK)) {
-					commandHistory.updateCommand((TwoWayCommand) s);
+					commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
 					dataFile.storeToFile();
 				}
 				return feedback;
 			case UNMARK:
+				isAfterSearch = TwoWayCommand.listedIndexType;
 				showCommand = new ShowAllCommand(modelHandler, view);
 				s = new UnmarkCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
 				showCommand.execute();
 				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_UNMARK)) {
-					commandHistory.updateCommand((TwoWayCommand) s);
+					commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
 					dataFile.storeToFile();
 				}
 				return feedback;
