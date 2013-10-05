@@ -25,10 +25,36 @@ public abstract class Command {
 	protected View view;
 
 	public abstract String execute();
+
 }
 
 abstract class TwoWayCommand extends Command {
+	protected static boolean listedIndexType;
+	protected static final boolean SEARCHED = true;
+	protected static final boolean SHOWN = false;
+	protected int tabIndex;
 	public abstract String undo();
+	
+	public static void setIndexType (boolean type) {
+		listedIndexType = type;
+	}
+	
+	public int convertIndex (int prevIndex) {
+		if (listedIndexType == SEARCHED) {
+			tabIndex = view.tabPane.getSelectionModel().getSelectedIndex();
+			ObservableList<Task> searchList;
+			TwoWayCommand.setIndexType(TwoWayCommand.SEARCHED);
+			if (tabIndex == 0)
+				searchList = model.getSearchPendingList();
+			else if (tabIndex == 1)
+				searchList = model.getSearchCompleteList();
+			else
+				searchList = model.getSearchTrashList();
+			System.out.println(prevIndex+" "+searchList.get(prevIndex).getIndexInList());
+			return searchList.get(prevIndex).getIndexInList();
+		} else 
+			return prevIndex;
+	}
 }
 
 class AddCommand extends TwoWayCommand {
@@ -110,6 +136,7 @@ class AddCommand extends TwoWayCommand {
 	public String undo() {
 		index = model.getIndexFromPending(task);
 		model.removeTaskFromPendingNoTrash(index);
+		Control.sortList(model.getPendingList());
 		return MESSAGE_SUCCESSFUL_UNDO;
 	}
 }
@@ -154,10 +181,9 @@ class EditCommand extends TwoWayCommand {
 	public String execute() {
 		if (index > modifiedList.size() || index <= 0)
 			return MESSAGE_INDEX_OUT_OF_BOUNDS;
-
-		targetTask = modifiedList.get(index - 1);
+		System.out.println("execute "+TwoWayCommand.listedIndexType);
+		targetTask = modifiedList.get(convertIndex(index - 1));
 		setOriginalTask();
-
 		CustomDate startDate, endDate;
 		startDate = endDate = null;
 
@@ -218,7 +244,7 @@ class EditCommand extends TwoWayCommand {
 			targetTask.setIsImportant(!targetTask.getIsImportant());
 
 		Control.sortList(modifiedList);
-
+		System.out.println("execute "+TwoWayCommand.listedIndexType);
 		return MESSAGE_SUCCESSFUL_EDIT;
 	}
 
@@ -243,7 +269,8 @@ class EditCommand extends TwoWayCommand {
 		targetTask.setWorkInfo(originalTask.getWorkInfo());
 		targetTask.setTag(originalTask.getTag());
 		targetTask.setIndexId(originalTask.getIndexId());
-
+		
+		Control.sortList(modifiedList);
 		return MESSAGE_SUCCESSFUL_UNDO;
 	}
 }
@@ -287,12 +314,18 @@ class RemoveCommand extends TwoWayCommand {
 			return MESSAGE_INDEX_OUT_OF_BOUNDS;
 
 		for (int i = indexCount - 1; i >= 0; i--) {
-			removedTaskInfo.add(modifiedList.get(indexList[i] - 1));
-			model.removeTask(indexList[i] - 1, tabIndex);
+			removedTaskInfo.add(modifiedList.get(convertIndex(indexList[i] - 1)));
+			model.removeTask(convertIndex(indexList[i] - 1), tabIndex);
 		}
 
-		if (tabIndex == 1 || tabIndex == 0)
-			Control.sortList(model.getTrashList());
+		//if (tabIndex == 1 || tabIndex == 0)
+		//	Control.sortList(model.getTrashList());
+		if(tabIndex == 0) {
+			Control.sortList(model.getPendingList());
+		} else if (tabIndex == 1) {
+			Control.sortList(model.getCompleteList());
+		}
+		Control.sortList(model.getTrashList());
 
 		return MESSAGE_SUCCESSFUL_REMOVE;
 	}
@@ -330,22 +363,30 @@ class ClearAllCommand extends TwoWayCommand {
 		originalTrashTasks = new Task[model.getTrashList().size()];
 		for (int i = 0; i < model.getTrashList().size(); i++)
 			originalTrashTasks[i] = model.getTaskFromTrash(i);
-
-		if (tabIndex == 0)
-			modifiedList = model.getPendingList();
-		else if (tabIndex == 1)
-			modifiedList = model.getCompleteList();
-		else
-			modifiedList = model.getTrashList();
-
-		clearedTasks = new Task[modifiedList.size()];
-		for (int i = modifiedList.size() - 1; i >= 0; i--) {
+		//If the operation is after search, should delete list of tasks in the searched result
+		if (listedIndexType == TwoWayCommand.SEARCHED) {
 			if (tabIndex == 0)
-				clearedTasks[i] = model.getTaskFromPending(i);
+				modifiedList = model.getSearchPendingList();
 			else if (tabIndex == 1)
-				clearedTasks[i] = model.getTaskFromComplete(i);
-			model.removeTask(i, tabIndex);
+				modifiedList = model.getSearchCompleteList();
+			else
+				modifiedList = model.getSearchTrashList();
+		} else {
+			if (tabIndex == 0)
+				modifiedList = model.getPendingList();
+			else if (tabIndex == 1)
+				modifiedList = model.getCompleteList();
+			else
+				modifiedList = model.getTrashList();
 		}
+			clearedTasks = new Task[modifiedList.size()];
+			for (int i = modifiedList.size() - 1; i >= 0; i--) {
+				if (tabIndex == 0)
+					clearedTasks[i] = model.getTaskFromPending(convertIndex(i));
+				else if (tabIndex == 1)
+					clearedTasks[i] = model.getTaskFromComplete(convertIndex(i));
+				model.removeTask(i, tabIndex);
+			}
 
 		if (tabIndex == 1 || tabIndex == 0)
 			Control.sortList(model.getTrashList());
@@ -404,11 +445,12 @@ class CompleteCommand extends TwoWayCommand {
 		toCompleteTasks = new Task[indexCount];
 
 		for (int i = indexCount - 1; i >= 0; i--) {
-			Task toComplete = model.getTaskFromPending(indexList[i] - 1);
+			Task toComplete = model.getTaskFromPending(convertIndex(indexList[i] - 1));
 			toCompleteTasks[i] = toComplete;
-			model.getPendingList().remove(indexList[i] - 1);
+			model.getPendingList().remove(convertIndex(indexList[i] - 1));
 			model.addTaskToComplete(toComplete);
 		}
+		Control.sortList(model.getPendingList());
 		Control.sortList(model.getCompleteList());
 
 		for (int i = 0; i < indexCount; i++) {
@@ -427,7 +469,8 @@ class CompleteCommand extends TwoWayCommand {
 			model.addTaskToPending(toPending);
 		}
 		Control.sortList(model.getPendingList());
-
+		Control.sortList(model.getCompleteList());
+		
 		return MESSAGE_SUCCESSFUL_UNDO;
 	}
 }
@@ -465,12 +508,13 @@ class IncompleteCommand extends TwoWayCommand {
 		toIncompleteTasks = new Task[indexCount];
 
 		for (int i = indexCount - 1; i >= 0; i--) {
-			Task toPending = model.getTaskFromComplete(indexList[i] - 1);
+			Task toPending = model.getTaskFromComplete(convertIndex(indexList[i] - 1));
 			toIncompleteTasks[i] = toPending;
-			model.getCompleteList().remove(indexList[i] - 1);
+			model.getCompleteList().remove(convertIndex(indexList[i] - 1));
 			model.addTaskToPending(toPending);
 		}
 		Control.sortList(model.getPendingList());
+		Control.sortList(model.getCompleteList());
 
 		for (int i = 0; i < indexCount; i++) {
 			indexInIncompleteList[i] = model
@@ -490,6 +534,7 @@ class IncompleteCommand extends TwoWayCommand {
 			model.addTaskToComplete(toComplete);
 		}
 		Control.sortList(model.getCompleteList());
+		Control.sortList(model.getPendingList());
 
 		return MESSAGE_SUCCESSFUL_UNDO;
 	}
@@ -531,7 +576,7 @@ class MarkCommand extends TwoWayCommand {
 			return MESSAGE_INDEX_OUT_OF_BOUNDS;
 
 		for (int i = 0; i < indexCount; i++) {
-			Task targetTask = modifiedList.get(indexList[i] - 1);
+			Task targetTask = modifiedList.get(convertIndex(indexList[i] - 1));
 			targetTask.setIsImportant(true);
 		}
 
@@ -540,7 +585,7 @@ class MarkCommand extends TwoWayCommand {
 
 	public String undo() {
 		for (int i = 0; i < indexCount; i++) {
-			Task targetTask = modifiedList.get(indexList[i] - 1);
+			Task targetTask = modifiedList.get(convertIndex(indexList[i] - 1));
 			targetTask.setIsImportant(false);
 		}
 		return MESSAGE_SUCCESSFUL_UNDO;
@@ -583,7 +628,7 @@ class UnmarkCommand extends TwoWayCommand {
 			return MESSAGE_INDEX_OUT_OF_BOUNDS;
 
 		for (int i = 0; i < indexCount; i++) {
-			Task targetTask = modifiedList.get(indexList[i] - 1);
+			Task targetTask = modifiedList.get(convertIndex(indexList[i] - 1));
 			targetTask.setIsImportant(false);
 		}
 
@@ -592,7 +637,7 @@ class UnmarkCommand extends TwoWayCommand {
 
 	public String undo() {
 		for (int i = 0; i < indexCount; i++) {
-			Task targetTask = modifiedList.get(indexList[i] - 1);
+			Task targetTask = modifiedList.get(convertIndex(indexList[i] - 1));
 			targetTask.setIsImportant(true);
 		}
 		return MESSAGE_SUCCESSFUL_UNDO;
@@ -622,6 +667,8 @@ class SearchCommand extends Command {
 
 	public String execute() {
 		ObservableList<Task> initialList;
+		TwoWayCommand.setIndexType(TwoWayCommand.SEARCHED);
+		System.out.println("search "+TwoWayCommand.listedIndexType);
 		if (tabIndex == 0)
 			initialList = model.getPendingList();
 		else if (tabIndex == 1)
@@ -784,6 +831,7 @@ class TodayCommand extends Command {
 	public String execute() {
 		Command s = new SearchCommand(new String[] { "null", "null", "null",
 				"today", "false" }, model, view);
+		TwoWayCommand.setIndexType(TwoWayCommand.SHOWN);
 		return s.execute();
 	}
 }
@@ -795,6 +843,8 @@ class ShowAllCommand extends Command {
 	}
 
 	public String execute() {
+		TwoWayCommand.setIndexType(TwoWayCommand.SHOWN);
+		System.out.println("show "+TwoWayCommand.listedIndexType);
 		int tabIndex = view.tabPane.getSelectionModel().getSelectedIndex();
 		if (tabIndex == 0)
 			view.taskPendingList.setItems(model.getPendingList());

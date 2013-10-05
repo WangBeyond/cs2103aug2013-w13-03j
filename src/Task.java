@@ -15,6 +15,7 @@ public class Task implements Comparable<Task> {
 	private StringProperty workInfo;
 	private ObjectProperty<Tag> tag;
 	private int indexId;
+	private int indexInList;
 
 	// default constructor
 	public Task() {
@@ -34,6 +35,7 @@ public class Task implements Comparable<Task> {
 		setWorkInfo("");
 		setTag(new Tag("", ""));
 		indexId = 0;
+		indexInList = 0;
 	}
 
 	public Task(boolean isImportant, CustomDate startDate, CustomDate endDate,
@@ -191,6 +193,14 @@ public class Task implements Comparable<Task> {
 		this.indexId = indexId;
 	}
 
+	public int getIndexInList() {
+		return indexInList;
+	}
+	
+	public void setIndexInList(int index) {
+		indexInList = index;
+	}
+	
 	public void updateDateString() {
 		if (getStartDate() != null)
 			setStartDateString(getStartDate().toString(true));

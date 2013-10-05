@@ -44,7 +44,11 @@ public class Control extends Application {
 	private History commandHistory = new History();
 	private View view;
 	private Store dataFile;
-
+	
+	static boolean listedIndexType;
+	static final boolean SEARCHED = true;
+	static final boolean SHOWN = false;
+	
 	public static void main(String[] args) {
 		Application.launch(args);
 	}
@@ -206,6 +210,7 @@ public class Control extends Application {
 
 			String[] parsedUserCommand = Parser.parseCommand(userCommand,
 					commandType);
+			Command showCommand;
 			Command s;
 			String feedback;
 			switch (commandType) {
@@ -220,20 +225,20 @@ public class Control extends Application {
 				}
 				return feedback;
 			case EDIT:
-				s = new ShowAllCommand(modelHandler, view);
-				s.execute();
+				showCommand = new ShowAllCommand(modelHandler, view);
 				s = new EditCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
+				showCommand.execute();
 				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_EDIT)) {
 					commandHistory.updateCommand((TwoWayCommand) s);
 					dataFile.storeToFile();
 				}
 				return feedback;
 			case REMOVE:
-				s = new ShowAllCommand(modelHandler, view);
-				s.execute();
+				showCommand = new ShowAllCommand(modelHandler, view);
 				s = new RemoveCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
+				showCommand.execute();
 				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_REMOVE)) {
 					commandHistory.updateCommand((TwoWayCommand) s);
 					dataFile.storeToFile();
@@ -277,40 +282,40 @@ public class Control extends Application {
 				}
 				return feedback;
 			case COMPLETE:
-				s = new ShowAllCommand(modelHandler, view);
-				s.execute();
+				showCommand = new ShowAllCommand(modelHandler, view);
 				s = new CompleteCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
+				showCommand.execute();
 				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_COMPLETE)) {
 					commandHistory.updateCommand((TwoWayCommand) s);
 					dataFile.storeToFile();
 				}
 				return feedback;
 			case INCOMPLETE:
-				s = new ShowAllCommand(modelHandler, view);
-				s.execute();
+				showCommand = new ShowAllCommand(modelHandler, view);
 				s = new IncompleteCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
+				showCommand.execute();
 				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_INCOMPLETE)) {
 					commandHistory.updateCommand((TwoWayCommand) s);
 					dataFile.storeToFile();
 				}
 				return feedback;
 			case MARK:
-				s = new ShowAllCommand(modelHandler, view);
-				s.execute();
+				showCommand = new ShowAllCommand(modelHandler, view);
 				s = new MarkCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
+				showCommand.execute();
 				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_MARK)) {
 					commandHistory.updateCommand((TwoWayCommand) s);
 					dataFile.storeToFile();
 				}
 				return feedback;
 			case UNMARK:
-				s = new ShowAllCommand(modelHandler, view);
-				s.execute();
+				showCommand = new ShowAllCommand(modelHandler, view);
 				s = new UnmarkCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
+				showCommand.execute();
 				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_UNMARK)) {
 					commandHistory.updateCommand((TwoWayCommand) s);
 					dataFile.storeToFile();
@@ -337,5 +342,8 @@ public class Control extends Application {
 
 	public static void sortList(ObservableList<Task> list) {
 		Collections.sort(list);
+		for(int i = 0;i<list.size();i++) {
+			list.get(i).setIndexInList(i);
+		}
 	}
 }
