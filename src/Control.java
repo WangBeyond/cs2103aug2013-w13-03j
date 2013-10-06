@@ -2,16 +2,19 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Timer;
 import java.util.TimerTask;
+
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
@@ -61,17 +64,9 @@ public class Control extends Application {
 		} catch (IOException e) {
 			System.out.println("Cannot read the given file");
 		}
-
-		primaryStage.setWidth(760);
-		primaryStage.setHeight(540);
-		primaryStage.initStyle(StageStyle.UNDECORATED);
-		primaryStage.setTitle("iDo V0.1");
 		
 		view = new View(modelHandler, primaryStage);
 		hookUpEventForCommandLine();
-
-		primaryStage.setScene(view.scene);
-		primaryStage.show();
 		
 		Timer t = new Timer();
 		t.schedule(new TimerTask() {
@@ -159,8 +154,6 @@ public class Control extends Application {
 						}
 					}
 				});
-		final KeyCombination changeTab = new KeyCodeCombination(KeyCode.TAB,
-				KeyCombination.CONTROL_DOWN);
 
 		view.commandLine.setOnKeyPressed(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent e) {
@@ -170,14 +163,7 @@ public class Control extends Application {
 						view.commandLine.setText("");
 					view.feedback.setFill(Color.WHITE);
 					view.feedback.setText(feedback);
-				} else if (changeTab.match(e)) {
-					int index = view.tabPane.getSelectionModel()
-							.getSelectedIndex();
-					if (index != 2)
-						view.tabPane.getSelectionModel().selectNext();
-					else
-						view.tabPane.getSelectionModel().selectFirst();
-				}
+				} 
 			}
 		});
 	}
