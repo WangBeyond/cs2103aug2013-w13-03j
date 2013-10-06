@@ -21,6 +21,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -36,6 +37,8 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
@@ -49,11 +52,22 @@ import javafx.scene.paint.Paint;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextBuilder;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.util.Callback;
 import javafx.util.Duration;
 
 public class View implements HotkeyListener {
+	final KeyCombination collapseWindow = new KeyCodeCombination(KeyCode.UP,
+			KeyCombination.CONTROL_DOWN);
+	final KeyCombination expandWindow = new KeyCodeCombination(KeyCode.DOWN,
+			KeyCombination.CONTROL_DOWN);
+	final KeyCombination hideWindow = new KeyCodeCombination(KeyCode.H,
+			KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN);
+	final KeyCombination changeTab = new KeyCodeCombination(KeyCode.TAB,
+			KeyCombination.CONTROL_DOWN);
+
 	// Command Line for user to input command
 	public TextField commandLine;
 	// Instant feedback
@@ -106,6 +120,7 @@ public class View implements HotkeyListener {
 		stage = primaryStage;
 		this.model = model;
 
+		setupStage();
 		loadLibrary();
 		checkIntellitype();
 		initGlobalHotKey();
@@ -122,9 +137,30 @@ public class View implements HotkeyListener {
 		setDraggable();
 		setupScene();
 	}
-	
-	private void setupShortcuts(){
-		
+
+	private void setupShortcuts() {
+		root.setOnKeyPressed(new EventHandler<KeyEvent>() {
+			public void handle(KeyEvent e) {
+				if (changeTab.match(e)) {
+					int index = tabPane.getSelectionModel().getSelectedIndex();
+					if (index != 2)
+						tabPane.getSelectionModel().selectNext();
+					else
+						tabPane.getSelectionModel().selectFirst();
+				}
+				if (collapseWindow.match(e)) {
+					collapseAnimation();
+				} else if (expandWindow.match(e)) {
+					expandAnimation();
+				} else if (hideWindow.match(e)) {
+					hide();
+				} else if (!e.isAltDown() && !e.isControlDown()
+						&& !e.isShiftDown() && !e.isShortcutDown()) {
+					commandLine.requestFocus();
+					commandLine.appendText(e.getCharacter());
+				}
+			}
+		});
 	}
 
 	private void createContent() {
@@ -136,9 +172,24 @@ public class View implements HotkeyListener {
 				.bottom(bottom).build();
 	}
 
+	private void setupStage() {
+		stage.setWidth(760);
+		stage.setHeight(540);
+		Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
+		stage.setX((primaryScreenBounds.getWidth() - stage.getWidth()) / 2);
+		stage.setY((primaryScreenBounds.getHeight() - stage.getHeight()) / 2);
+		stage.initStyle(StageStyle.UNDECORATED);
+		stage.setTitle("iDo V0.1");
+	}
+
 	private void setupScene() {
 		scene = new Scene(root, Color.rgb(70, 70, 70));
 		customizeGUIWithCSS();
+		stage.setScene(scene);
+		stage.show();
+		removeTopAndCenter();
+		showOrHide.setId("larger");
+		stage.setHeight(70);
 	}
 
 	private void customizeGUIWithCSS() {
@@ -167,6 +218,7 @@ public class View implements HotkeyListener {
 
 	private HBox createUpperPartInBottom() {
 		HBox temp = new HBox();
+		temp.setSpacing(5);
 		commandLine = new TextField();
 		commandLine.setPrefWidth(670);
 
@@ -594,11 +646,8 @@ public class View implements HotkeyListener {
 		showOrHide.setOnAction(new EventHandler<ActionEvent>() {
 			public void handle(ActionEvent e) {
 				if (stage.getHeight() > 500) {
-					removeTopAndCenter();
-					showOrHide.setId("larger");
 					collapseAnimation();
 				} else {
-					showOrHide.setId("smaller");
 					expandAnimation();
 				}
 			}
@@ -611,8 +660,9 @@ public class View implements HotkeyListener {
 	}
 
 	private void collapseAnimation() {
+		removeTopAndCenter();
+		showOrHide.setId("larger");
 		Timer animTimer = new Timer();
-
 		animTimer.scheduleAtFixedRate(new TimerTask() {
 			@Override
 			public void run() {
@@ -628,7 +678,7 @@ public class View implements HotkeyListener {
 	private void expandAnimation() {
 		Timer animTimer = new Timer();
 		root.setTop(top);
-
+		showOrHide.setId("smaller");
 		animTimer.schedule(new TimerTask() {
 			@Override
 			public void run() {
@@ -775,7 +825,7 @@ public class View implements HotkeyListener {
 			// be attached to this window
 			JIntellitype.getInstance().addHotKeyListener(this);
 			JIntellitype.getInstance().registerHotKey(90,
-					JIntellitype.MOD_CONTROL + JIntellitype.MOD_ALT, 'D');
+					JIntellitype.MOD_CONTROL + JIntellitype.MOD_SHIFT, 'D');
 		} catch (RuntimeException ex) {
 			System.out
 					.println("Either you are not on Windows, or there is a problem with the JIntellitype library!");
