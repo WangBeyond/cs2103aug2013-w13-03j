@@ -7,6 +7,8 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.ArrayList;
+import java.util.Random;
 
 import javax.imageio.ImageIO;
 import javax.swing.UIManager;
@@ -19,6 +21,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
@@ -32,6 +35,8 @@ import javafx.scene.control.TableColumnBuilder;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
@@ -40,12 +45,15 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.HBoxBuilder;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextBuilder;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import javafx.util.Callback;
 import javafx.util.Duration;
+
 
 public class View {
 	// Command Line for user to input command
@@ -70,7 +78,12 @@ public class View {
 	// Store the coordinates of the anchor of the window
 	double dragAnchorX;
 	double dragAnchorY;
-
+	
+	//colored text sequences
+	private Text text1;
+	public ArrayList<Text> textList = new ArrayList<Text>();
+	public Paint[] colors = {Color.BLUE , Color.DARKCYAN , Color.ORANGE , Color.RED , Color.GREEN , Color.PURPLE};
+	public static boolean isTextColored = true;
 	// The 3 sections
 	VBox bottom;
 	HBox center;
@@ -93,7 +106,11 @@ public class View {
 	public View(final Model model, final Stage primaryStage) {
 		stage = primaryStage;
 		this.model = model;
-
+		//add 10 texts to textList
+		textList.clear();
+		for(int i=0;i<10;i++) {
+			textList.add(new Text());
+		}
 		hideInSystemTray();
 		Platform.setImplicitExit(false);
 		createContent();
@@ -124,28 +141,105 @@ public class View {
 		bottom = new VBox();
 		bottom.setSpacing(5);
 		bottom.setPadding(new Insets(0, 0, 5, 44));
-
-		HBox upperPart = createUpperPartInBottom();
+		
+		Group upperPart1 = new Group();
+		HBox upperPart2 = new HBox(); 
+		if(isTextColored)
+			upperPart1 = createNewUpperPartInBottom();
+		else
+			upperPart2 = createUpperPartInBottom();
 
 		feedback = TextBuilder.create().styleClass("feedback")
 				.fill(Color.WHITE).text("Please enter a command").build();
 
-		bottom.getChildren().addAll(upperPart, feedback);
+		bottom.getChildren().addAll(isTextColored? upperPart1:upperPart2, feedback);
 	}
-
+	
 	private HBox createUpperPartInBottom() {
 		HBox temp = new HBox();
-		temp.setSpacing(10);
-
 		commandLine = new TextField();
 		commandLine.setPrefWidth(670);
-
+		
 		showOrHide = new Button();
 		showOrHide.setPrefSize(30, 30);
 		showOrHide.setId("smaller");
 		hookUpEventForShowOrHide();
+		temp.getChildren().addAll(commandLine,showOrHide);
 
-		temp.getChildren().addAll(commandLine, showOrHide);
+		return temp;
+	}
+	
+	private Group createNewUpperPartInBottom() {
+		HBox temp2 = new HBox();
+		HBox texts = new HBox();
+		Group temp = new Group();
+		//temp.setSpacing(10);
+
+		commandLine = new TextField();
+		commandLine.setPrefWidth(670);
+		commandLine.setStyle("-fx-text-fill: white;");
+		text1 = new Text("");
+		text1.setTextAlignment(TextAlignment.LEFT);
+		//Text text2 = new Text("happy");
+		commandLine.setOnKeyReleased(new EventHandler<KeyEvent>() {
+			public void handle(KeyEvent e) {
+					if(e.getCode() == KeyCode.ENTER) {
+						for(int i=0;i<textList.size();i++)
+							textList.get(i).setText("");
+						text1.setText("");
+					}
+					System.out.println(commandLine.getText());
+					String temporaryCommand = commandLine.getText();
+					try{
+						ArrayList<InfoWithIndex> infoList = Parser.parseForView(temporaryCommand);
+						for(int i=infoList.size();i<10;i++)
+							textList.get(i).setText("");
+					int colorCounter = 0;
+					int endIndex = 0;
+					for(int i=0;i<infoList.size();i++) {
+						System.out.print(infoList.get(i).getInfo()+" "+infoList.get(i).getIsKeyInfo()+"  ");
+						InfoWithIndex info = infoList.get(i);
+						Text text = textList.get(i);
+						text.setText(info.getInfo());
+						text.setStyle("-fx-font: 15.0px Ubantu;");
+						text.setTextAlignment(TextAlignment.LEFT);
+						//text.setLayoutX(40);
+						//text.setLayoutY(40);
+						text1.setFill(Color.TRANSPARENT);
+						if(info.getIsKeyInfo()) {
+							text.setFill(colors[colorCounter]);
+							colorCounter=(colorCounter+1)%colors.length;
+						} else 
+							text.setFill(Color.BLACK);
+
+					}
+					System.out.println();
+					}
+					catch (Exception ex) {
+						for(int i=0;i<textList.size();i++)
+							textList.get(i).setFill(Color.GREY);
+						text1.setText(commandLine.getText());
+						text1.setFill(Color.DARKGRAY);
+						text1.setStyle("-fx-font: 15.0px Ubantu;");
+						text1.setLayoutX(20);
+						text1.setLayoutY(20);
+						System.out.println(commandLine.getLayoutX()+" "+commandLine.getLayoutY()+" ");
+						//textList.add(text1);
+					}
+
+		}});
+		showOrHide = new Button();
+		showOrHide.setPrefSize(30, 30);
+		showOrHide.setId("smaller");
+		hookUpEventForShowOrHide();
+		for(Text text : textList)
+			texts.getChildren().add(text);
+		texts.setLayoutX(20);
+		texts.setLayoutY(0);
+		//text2.localToScene(text2.getLayoutBounds().getMinX(), text2.getLayoutBounds().getMinY());
+		temp2.getChildren().addAll(commandLine, showOrHide);
+		temp.getChildren().addAll(temp2,text1,texts);
+
 		return temp;
 	}
 
@@ -638,4 +732,5 @@ public class View {
 			}
 		});
 	}
+
 }
