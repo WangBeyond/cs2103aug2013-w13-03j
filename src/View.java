@@ -8,11 +8,11 @@ import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.ArrayList;
-import java.util.Random;
 
 import javax.imageio.ImageIO;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
+
+import com.melloware.jintellitype.HotkeyListener;
+import com.melloware.jintellitype.JIntellitype;
 
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
@@ -50,12 +50,10 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextBuilder;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
 import javafx.util.Callback;
 import javafx.util.Duration;
 
-
-public class View {
+public class View implements HotkeyListener {
 	// Command Line for user to input command
 	public TextField commandLine;
 	// Instant feedback
@@ -78,12 +76,13 @@ public class View {
 	// Store the coordinates of the anchor of the window
 	double dragAnchorX;
 	double dragAnchorY;
-	
-	//colored text sequences
+
+	// colored text sequences
 	private Text text1;
 	public ArrayList<Text> textList = new ArrayList<Text>();
-	public Paint[] colors = {Color.BLUE , Color.DARKCYAN , Color.ORANGE , Color.RED , Color.GREEN , Color.PURPLE};
-	public static boolean isTextColored = true;
+	public Paint[] colors = { Color.BLUE, Color.DARKCYAN, Color.ORANGE,
+			Color.RED, Color.GREEN, Color.PURPLE };
+	public static boolean isTextColored = false;
 	// The 3 sections
 	VBox bottom;
 	HBox center;
@@ -106,16 +105,26 @@ public class View {
 	public View(final Model model, final Stage primaryStage) {
 		stage = primaryStage;
 		this.model = model;
-		//add 10 texts to textList
+
+		loadLibrary();
+		checkIntellitype();
+		initGlobalHotKey();
+
+		// add 10 texts to textList
 		textList.clear();
-		for(int i=0;i<10;i++) {
+		for (int i = 0; i < 10; i++) {
 			textList.add(new Text());
 		}
 		hideInSystemTray();
 		Platform.setImplicitExit(false);
 		createContent();
+		setupShortcuts();
 		setDraggable();
 		setupScene();
+	}
+	
+	private void setupShortcuts(){
+		
 	}
 
 	private void createContent() {
@@ -141,10 +150,10 @@ public class View {
 		bottom = new VBox();
 		bottom.setSpacing(5);
 		bottom.setPadding(new Insets(0, 0, 5, 44));
-		
+
 		Group upperPart1 = new Group();
-		HBox upperPart2 = new HBox(); 
-		if(isTextColored)
+		HBox upperPart2 = new HBox();
+		if (isTextColored)
 			upperPart1 = createNewUpperPartInBottom();
 		else
 			upperPart2 = createUpperPartInBottom();
@@ -152,93 +161,97 @@ public class View {
 		feedback = TextBuilder.create().styleClass("feedback")
 				.fill(Color.WHITE).text("Please enter a command").build();
 
-		bottom.getChildren().addAll(isTextColored? upperPart1:upperPart2, feedback);
+		bottom.getChildren().addAll(isTextColored ? upperPart1 : upperPart2,
+				feedback);
 	}
-	
+
 	private HBox createUpperPartInBottom() {
 		HBox temp = new HBox();
 		commandLine = new TextField();
 		commandLine.setPrefWidth(670);
-		
+
 		showOrHide = new Button();
 		showOrHide.setPrefSize(30, 30);
 		showOrHide.setId("smaller");
 		hookUpEventForShowOrHide();
-		temp.getChildren().addAll(commandLine,showOrHide);
+		temp.getChildren().addAll(commandLine, showOrHide);
 
 		return temp;
 	}
-	
+
 	private Group createNewUpperPartInBottom() {
 		HBox temp2 = new HBox();
 		HBox texts = new HBox();
 		Group temp = new Group();
-		//temp.setSpacing(10);
+		// temp.setSpacing(10);
 
 		commandLine = new TextField();
 		commandLine.setPrefWidth(670);
 		commandLine.setStyle("-fx-text-fill: white;");
 		text1 = new Text("");
 		text1.setTextAlignment(TextAlignment.LEFT);
-		//Text text2 = new Text("happy");
+		// Text text2 = new Text("happy");
 		commandLine.setOnKeyReleased(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent e) {
-					if(e.getCode() == KeyCode.ENTER) {
-						for(int i=0;i<textList.size();i++)
-							textList.get(i).setText("");
-						text1.setText("");
-					}
-					System.out.println(commandLine.getText());
-					String temporaryCommand = commandLine.getText();
-					try{
-						ArrayList<InfoWithIndex> infoList = Parser.parseForView(temporaryCommand);
-						for(int i=infoList.size();i<10;i++)
-							textList.get(i).setText("");
+				if (e.getCode() == KeyCode.ENTER) {
+					for (int i = 0; i < textList.size(); i++)
+						textList.get(i).setText("");
+					text1.setText("");
+				}
+				System.out.println(commandLine.getText());
+				String temporaryCommand = commandLine.getText();
+				try {
+					ArrayList<InfoWithIndex> infoList = Parser
+							.parseForView(temporaryCommand);
+					for (int i = infoList.size(); i < 10; i++)
+						textList.get(i).setText("");
 					int colorCounter = 0;
-					int endIndex = 0;
-					for(int i=0;i<infoList.size();i++) {
-						System.out.print(infoList.get(i).getInfo()+" "+infoList.get(i).getIsKeyInfo()+"  ");
+					for (int i = 0; i < infoList.size(); i++) {
+						System.out.print(infoList.get(i).getInfo() + " "
+								+ infoList.get(i).getIsKeyInfo() + "  ");
 						InfoWithIndex info = infoList.get(i);
 						Text text = textList.get(i);
 						text.setText(info.getInfo());
 						text.setStyle("-fx-font: 15.0px Ubantu;");
 						text.setTextAlignment(TextAlignment.LEFT);
-						//text.setLayoutX(40);
-						//text.setLayoutY(40);
+						// text.setLayoutX(40);
+						// text.setLayoutY(40);
 						text1.setFill(Color.TRANSPARENT);
-						if(info.getIsKeyInfo()) {
+						if (info.getIsKeyInfo()) {
 							text.setFill(colors[colorCounter]);
-							colorCounter=(colorCounter+1)%colors.length;
-						} else 
+							colorCounter = (colorCounter + 1) % colors.length;
+						} else
 							text.setFill(Color.BLACK);
 
 					}
 					System.out.println();
-					}
-					catch (Exception ex) {
-						for(int i=0;i<textList.size();i++)
-							textList.get(i).setFill(Color.GREY);
-						text1.setText(commandLine.getText());
-						text1.setFill(Color.DARKGRAY);
-						text1.setStyle("-fx-font: 15.0px Ubantu;");
-						text1.setLayoutX(20);
-						text1.setLayoutY(20);
-						System.out.println(commandLine.getLayoutX()+" "+commandLine.getLayoutY()+" ");
-						//textList.add(text1);
-					}
+				} catch (Exception ex) {
+					for (int i = 0; i < textList.size(); i++)
+						textList.get(i).setFill(Color.GREY);
+					text1.setText(commandLine.getText());
+					text1.setFill(Color.DARKGRAY);
+					text1.setStyle("-fx-font: 15.0px Ubantu;");
+					text1.setLayoutX(20);
+					text1.setLayoutY(20);
+					System.out.println(commandLine.getLayoutX() + " "
+							+ commandLine.getLayoutY() + " ");
+					// textList.add(text1);
+				}
 
-		}});
+			}
+		});
 		showOrHide = new Button();
 		showOrHide.setPrefSize(30, 30);
 		showOrHide.setId("smaller");
 		hookUpEventForShowOrHide();
-		for(Text text : textList)
+		for (Text text : textList)
 			texts.getChildren().add(text);
 		texts.setLayoutX(20);
 		texts.setLayoutY(0);
-		//text2.localToScene(text2.getLayoutBounds().getMinX(), text2.getLayoutBounds().getMinY());
+		// text2.localToScene(text2.getLayoutBounds().getMinX(),
+		// text2.getLayoutBounds().getMinY());
 		temp2.getChildren().addAll(commandLine, showOrHide);
-		temp.getChildren().addAll(temp2,text1,texts);
+		temp.getChildren().addAll(temp2, text1, texts);
 
 		return temp;
 	}
@@ -350,6 +363,7 @@ public class View {
 		targetButton.setId("close");
 		targetButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
 			public void handle(MouseEvent e) {
+				JIntellitype.getInstance().cleanUp();
 				System.exit(0);
 			}
 		});
@@ -693,6 +707,7 @@ public class View {
 				Platform.runLater(new Runnable() {
 					@Override
 					public void run() {
+						stage.toFront();
 						stage.show();
 					}
 				});
@@ -704,6 +719,7 @@ public class View {
 		return new ActionListener() {
 			@Override
 			public void actionPerformed(java.awt.event.ActionEvent e) {
+				JIntellitype.getInstance().cleanUp();
 				System.exit(0);
 			}
 		};
@@ -727,10 +743,52 @@ public class View {
 				if (SystemTray.isSupported()) {
 					stage.hide();
 				} else {
+					JIntellitype.getInstance().cleanUp();
 					System.exit(0);
 				}
 			}
 		});
 	}
 
+	private void loadLibrary() {
+		System.loadLibrary("JIntellitype");
+	}
+
+	private void checkIntellitype() {
+		// first check to see if an instance of this application is already
+		// running, use the name of the window title of this JFrame for checking
+		if (JIntellitype.checkInstanceAlreadyRunning("iDo V0.1")) {
+			System.exit(1);
+		}
+
+		// next check to make sure JIntellitype DLL can be found and we are on
+		// a Windows operating System
+		if (!JIntellitype.isJIntellitypeSupported()) {
+			System.exit(1);
+		}
+	}
+
+	private void initGlobalHotKey() {
+		try {
+			// initialize JIntellitype with the frame so all windows commands
+			// can
+			// be attached to this window
+			JIntellitype.getInstance().addHotKeyListener(this);
+			JIntellitype.getInstance().registerHotKey(90,
+					JIntellitype.MOD_CONTROL + JIntellitype.MOD_ALT, 'D');
+		} catch (RuntimeException ex) {
+			System.out
+					.println("Either you are not on Windows, or there is a problem with the JIntellitype library!");
+		}
+	}
+
+	public void onHotKey(int keyIdentifier) {
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				stage.toFront();
+				stage.show();
+			}
+		});
+	}
 }
