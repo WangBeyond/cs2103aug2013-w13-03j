@@ -50,10 +50,6 @@
     -fx-translate-y: -10;
 }
 
-.text {
-    -fx-font: 15.0px Ubantu;
-}
-
 /************************************* Text Field *****************************************************/
 .text-field {
     -fx-skin: "com.sun.javafx.scene.control.skin.TextFieldSkin";
