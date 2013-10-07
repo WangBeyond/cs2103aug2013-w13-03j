@@ -154,7 +154,7 @@ public class Control extends Application {
 						}
 					}
 				});
-
+		final KeyCombination undo_hot_key = new KeyCodeCombination(KeyCode.Z, KeyCodeCombination.CONTROL_DOWN, KeyCodeCombination.ALT_DOWN);
 		view.commandLine.setOnKeyPressed(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent e) {
 				if (e.getCode() == KeyCode.ENTER) {
@@ -163,7 +163,14 @@ public class Control extends Application {
 						view.commandLine.setText("");
 					view.feedback.setFill(Color.WHITE);
 					view.feedback.setText(feedback);
-				} 
+				} else if(undo_hot_key.match(e)){
+					String feedback = executeCommand("undo");
+					if (successfulExecution(feedback))
+						view.commandLine.setText("");
+					view.feedback.setFill(Color.WHITE);
+					view.feedback.setText(feedback);
+					e.consume();
+				}
 			}
 		});
 	}

@@ -218,7 +218,7 @@ public class View implements HotkeyListener {
 
 	private HBox createUpperPartInBottom() {
 		HBox temp = new HBox();
-		temp.setSpacing(5);
+		temp.setSpacing(10);
 		commandLine = new TextField();
 		commandLine.setPrefWidth(670);
 
@@ -378,10 +378,13 @@ public class View implements HotkeyListener {
 	}
 
 	private ImageView createTitle() {
-		Image iDo = new Image(getClass().getResourceAsStream("iDo.png"));	// does not work
+		Image iDo = new Image("iDo_new.png");
 		ImageView title = new ImageView();
 		title.setImage(iDo);
-		title.getStyleClass().add("title");
+		title.setFitWidth(110);
+		title.setPreserveRatio(true);
+		title.setSmooth(true);
+		title.setCache(true);
 		return title;
 	}
 
@@ -726,7 +729,7 @@ public class View implements HotkeyListener {
 	}
 
 	private void createTrayIcon(java.awt.Image iconImage, PopupMenu popupMenu) {
-		trayIcon = new TrayIcon(iconImage, "iDo_traybar", popupMenu);
+		trayIcon = new TrayIcon(iconImage, "iDo V0.1", popupMenu);
 		trayIcon.setImageAutoSize(true);
 		trayIcon.addActionListener(createShowListener());
 	}
@@ -778,7 +781,7 @@ public class View implements HotkeyListener {
 	private java.awt.Image getIconImage() {
 		try {
 			java.awt.Image image = ImageIO.read(getClass().getResource(
-					"close.png"));
+					"iDo_traybar.png"));
 			return image;
 		} catch (IOException e) {
 			System.out.println(e);
