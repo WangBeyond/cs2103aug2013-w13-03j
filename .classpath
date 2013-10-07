@@ -9,5 +9,11 @@
 			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="D:/CS2103 Project/cs2103aug2013-w13-03j/src"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="C:/ProgrammingTools/eclipse/gdata/java/deps/guava-11.0.2.jar"/>
+	<classpathentry kind="lib" path="C:/ProgrammingTools/eclipse/gdata/java/lib/gdata-calendar-2.0.jar"/>
+	<classpathentry kind="lib" path="C:/ProgrammingTools/eclipse/gdata/java/lib/gdata-calendar-meta-2.0.jar"/>
+	<classpathentry kind="lib" path="C:/ProgrammingTools/eclipse/gdata/java/lib/gdata-client-1.0.jar"/>
+	<classpathentry kind="lib" path="C:/ProgrammingTools/eclipse/gdata/java/lib/gdata-client-meta-1.0.jar"/>
+	<classpathentry kind="lib" path="C:/ProgrammingTools/eclipse/gdata/java/lib/gdata-core-1.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
