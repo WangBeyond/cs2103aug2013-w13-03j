@@ -180,6 +180,7 @@ public class View implements HotkeyListener {
 		stage.setY((primaryScreenBounds.getHeight() - stage.getHeight()) / 2);
 		stage.initStyle(StageStyle.UNDECORATED);
 		stage.setTitle("iDo V0.1");
+		stage.getIcons().add(new Image(getClass().getResource("iDo_traybar.png").toExternalForm()));
 	}
 
 	private void setupScene() {
@@ -782,7 +783,8 @@ public class View implements HotkeyListener {
 		try {
 			java.awt.Image image = ImageIO.read(getClass().getResource(
 					"iDo_traybar.png"));
-			return image;
+			java.awt.Image rescaled = image.getScaledInstance(15, 15, java.awt.Image.SCALE_SMOOTH);  
+			return rescaled;
 		} catch (IOException e) {
 			System.out.println(e);
 			return null;
