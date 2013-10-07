@@ -378,9 +378,9 @@ public class View implements HotkeyListener {
 	}
 
 	private ImageView createTitle() {
-		Image iDo = new Image(getClass().getResourceAsStream("iDo.png"), 110,
-				54, true, true);
-		ImageView title = new ImageView(iDo);
+		Image iDo = new Image(getClass().getResourceAsStream("iDo.png"));
+		ImageView title = new ImageView();
+		title.setImage(iDo);
 		title.getStyleClass().add("title");
 		return title;
 	}
