@@ -378,7 +378,7 @@ public class View implements HotkeyListener {
 	}
 
 	private ImageView createTitle() {
-		Image iDo = new Image(getClass().getResourceAsStream("iDo.png"));
+		Image iDo = new Image(getClass().getResourceAsStream("iDo.png"));	// does not work
 		ImageView title = new ImageView();
 		title.setImage(iDo);
 		title.getStyleClass().add("title");
@@ -726,7 +726,7 @@ public class View implements HotkeyListener {
 	}
 
 	private void createTrayIcon(java.awt.Image iconImage, PopupMenu popupMenu) {
-		trayIcon = new TrayIcon(iconImage, "iDo", popupMenu);
+		trayIcon = new TrayIcon(iconImage, "iDo_traybar", popupMenu);
 		trayIcon.setImageAutoSize(true);
 		trayIcon.addActionListener(createShowListener());
 	}
