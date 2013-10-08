@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
+	<classpathentry kind="con" path="org.eclipse.fx.ide.jdt.core.JAVAFX_CONTAINER"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre7/lib/jfxrt.jar"/>
+	<classpathentry kind="lib" path="D:/CS2103 Project/cs2103aug2013-w13-03j/src/jintellitype-1.3.8.jar">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="D:/CS2103 Project/cs2103aug2013-w13-03j/src"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="C:/ProgrammingTools/eclipse/gdata/java/deps/guava-11.0.2.jar"/>
+	<classpathentry kind="lib" path="C:/ProgrammingTools/eclipse/gdata/java/lib/gdata-calendar-2.0.jar"/>
+	<classpathentry kind="lib" path="C:/ProgrammingTools/eclipse/gdata/java/lib/gdata-calendar-meta-2.0.jar"/>
+	<classpathentry kind="lib" path="C:/ProgrammingTools/eclipse/gdata/java/lib/gdata-client-1.0.jar"/>
+	<classpathentry kind="lib" path="C:/ProgrammingTools/eclipse/gdata/java/lib/gdata-client-meta-1.0.jar"/>
+	<classpathentry kind="lib" path="C:/ProgrammingTools/eclipse/gdata/java/lib/gdata-core-1.0.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
