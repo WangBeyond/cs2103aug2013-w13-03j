@@ -1,7 +1,6 @@
 import java.util.ArrayList;
 import java.util.Collections;
 
-
 public class Parser {
 	static enum COMMAND_TYPES {
 		ADD, REMOVE, SEARCH, EDIT, COMPLETE, INCOMPLETE, UNDO, REDO, CLEAR_ALL, TODAY, SHOW_ALL, SYNC, SETTINGS, HELP, EXIT, INVALID, MARK, UNMARK
@@ -14,7 +13,8 @@ public class Parser {
 
 	/* end date keys */
 	private static String[] endDateKeys = { "end on", "end at", "end by",
-			"end before", "to", "till", "until", "by", "due" };
+			"end before", "to", "till", "until", "by", "due", "next", "today",
+			"tonight" };
 
 	private static String[] repeatingKeys = { "daily", "weekly", "monthly",
 			"yearly", "annually", "every monday", "every tuesday",
@@ -39,7 +39,7 @@ public class Parser {
 	public static final String NULL = "null";
 	public static final String START_KEY = "start key";
 	public static final String END_KEY = "end key";
-	
+
 	/**
 	 * This function is used to determine the command type of the command input
 	 * from the user
@@ -244,54 +244,56 @@ public class Parser {
 
 		return parsedCommand;
 	}
-	
-	/*public static void main(String args[]) {
-		ArrayList<InfoWithIndex> result = parseForView("add playing football from 1:00 to 2:00 always");
-		for(int i=0;i<result.size();i++)
-			System.out.println(result.get(i));
-	}*/
-	
+
+	/*
+	 * public static void main(String args[]) { ArrayList<InfoWithIndex> result
+	 * = parseForView("add playing football from 1:00 to 2:00 always"); for(int
+	 * i=0;i<result.size();i++) System.out.println(result.get(i)); }
+	 */
+
 	public static ArrayList<InfoWithIndex> parseForView(String command) {
 		COMMAND_TYPES commandType = determineCommandType(command);
-		String[] result = parseCommand(command,commandType);
+		String[] result = parseCommand(command, commandType);
 		ArrayList<InfoWithIndex> infoList = new ArrayList<InfoWithIndex>();
 		ArrayList<String> splittedCommand = new ArrayList<String>();
 		//Add the commandType first
 		InfoWithIndex commandTypeInfo = new InfoWithIndex(getFirstWord(command),0, true);
 		infoList.add(commandTypeInfo);
-		for(int i =0; i<result.length;i++)	{
+		for (int i = 0; i < result.length; i++) {
 			String info = result[i];
-			if(command.contains(info)) {
+			if (command.contains(info)) {
 				int startIndex = command.indexOf(info);
-				InfoWithIndex ci = new InfoWithIndex(info,startIndex, true);
+				InfoWithIndex ci = new InfoWithIndex(info, startIndex, true);
 				infoList.add(ci);
 			}
 		}
 		Collections.sort(infoList);
-		
+
 		int keyInfoCount = infoList.size();
-		//Add the command type
-		if(infoList.get(0).getStartIndex()>0)
-			infoList.add(new InfoWithIndex(command.substring(0, infoList.get(0).getStartIndex()),0,true));
-		System.out.println(infoList.get(infoList.size()-1));
-		for(int i=0;i<keyInfoCount;i++) {
+		// Add the command type
+		if (infoList.get(0).getStartIndex() > 0)
+			infoList.add(new InfoWithIndex(command.substring(0, infoList.get(0)
+					.getStartIndex()), 0, true));
+		System.out.println(infoList.get(infoList.size() - 1));
+		for (int i = 0; i < keyInfoCount; i++) {
 			int startIndex = infoList.get(i).getEndIndex();
 			int endIndex;
-			if(i!=(keyInfoCount-1))
-				endIndex = infoList.get(i+1).getStartIndex();
-			else 
+			if (i != (keyInfoCount - 1))
+				endIndex = infoList.get(i + 1).getStartIndex();
+			else
 				endIndex = command.length();
-			if(startIndex < endIndex)
-				infoList.add(new InfoWithIndex(command.substring(startIndex,endIndex),startIndex,false));
+			if (startIndex < endIndex)
+				infoList.add(new InfoWithIndex(command.substring(startIndex,
+						endIndex), startIndex, false));
 		}
 		Collections.sort(infoList);
-		/*for(int i = 0;i<infoList.size();i++) {
-			splittedCommand.add(infoList.get(i).getInfo());
-		}*/
+		/*
+		 * for(int i = 0;i<infoList.size();i++) {
+		 * splittedCommand.add(infoList.get(i).getInfo()); }
+		 */
 		return infoList;
 	}
 
-	
 	private static String[] getRepeatingType(String commandString) {
 		String repeatingKey = null;
 		for (int i = 0; i < repeatingKeys.length; i++) {
@@ -372,8 +374,14 @@ public class Parser {
 				// get string before the date key
 				String stringBeforeKey = temp.substring(0, keyIndex).trim();
 				// get string after the date key
-				String stringAfterKey = temp.substring(keyIndex + keyLength)
-						.trim();
+				String stringAfterKey;
+				if (keys[i].equals("today") || keys[i].equals("tonight")
+						|| keys[i].equals("tomorrow") || keys[i].equals("next"))
+					stringAfterKey = keys[i] + " "
+							+ temp.substring(keyIndex + keyLength).trim();
+				else
+					stringAfterKey = temp.substring(keyIndex + keyLength)
+							.trim();
 
 				int dateIndex = isValidDate(stringAfterKey);
 				if (dateIndex == Control.INVALID) {
@@ -707,45 +715,44 @@ public class Parser {
 	}
 }
 
-
 class InfoWithIndex implements Comparable<InfoWithIndex> {
 	String info;
 	int startIndex;
 	int endIndex;
 	boolean isKeyInfo;
-	
+
 	InfoWithIndex(String s, int ind, boolean isKeyInfo) {
 		info = s;
 		startIndex = ind;
-		endIndex = startIndex+info.length();
+		endIndex = startIndex + info.length();
 		this.isKeyInfo = isKeyInfo;
 	}
-	
+
 	public String getInfo() {
 		return info;
 	}
-	
+
 	public int getStartIndex() {
 		return startIndex;
 	}
-	
+
 	public int getEndIndex() {
 		return endIndex;
 	}
-	
+
 	public boolean getIsKeyInfo() {
 		return isKeyInfo;
 	}
-	
+
 	public int compareTo(InfoWithIndex c) {
 		if (startIndex > c.startIndex)
 			return 1;
 		else if (startIndex == c.startIndex)
 			return 0;
-		else 
+		else
 			return -1;
 	}
-	
+
 	public String toString() {
 		return info;
 	}

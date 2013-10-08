@@ -16,6 +16,8 @@ import com.melloware.jintellitype.JIntellitype;
 
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -96,7 +98,7 @@ public class View implements HotkeyListener {
 	public ArrayList<Text> textList = new ArrayList<Text>();
 	public Paint[] colors = { Color.BLUE, Color.DARKCYAN, Color.ORANGE,
 			Color.RED, Color.GREEN, Color.PURPLE };
-	public static boolean isTextColored = true;
+	public static boolean isTextColored = false;
 	// The 3 sections
 	VBox bottom;
 	HBox center;
@@ -143,8 +145,7 @@ public class View implements HotkeyListener {
 			public void handle(KeyEvent e) {
 				if (changeTab.match(e)) {
 					int index = tabPane.getSelectionModel().getSelectedIndex();
-					TwoWayCommand.setIndexType(TwoWayCommand.SHOWN);
-					if (index != 2) 
+					if (index != 2)
 						tabPane.getSelectionModel().selectNext();
 					else
 						tabPane.getSelectionModel().selectFirst();
@@ -181,7 +182,9 @@ public class View implements HotkeyListener {
 		stage.setY((primaryScreenBounds.getHeight() - stage.getHeight()) / 2);
 		stage.initStyle(StageStyle.UNDECORATED);
 		stage.setTitle("iDo V0.1");
-		stage.getIcons().add(new Image(getClass().getResource("iDo_traybar.png").toExternalForm()));
+		stage.getIcons().add(
+				new Image(getClass().getResource("iDo_traybar.png")
+						.toExternalForm()));
 	}
 
 	private void setupScene() {
@@ -286,13 +289,13 @@ public class View implements HotkeyListener {
 					textList.get(0).setFill(Color.DARKGRAY);
 					textList.get(0).setStyle("-fx-font: 15.0px Ubantu;");
 					/*
-					text1.setText(commandLine.getText());
-					text1.setFill(Color.DARKGRAY);
-					text1.setStyle("-fx-font: 15.0px Ubantu;");
-					text1.setLayoutX(20);
-					text1.setLayoutY(20);
-					System.out.println(commandLine.getLayoutX() + " "
-							+ commandLine.getLayoutY() + " ");*/
+					 * text1.setText(commandLine.getText());
+					 * text1.setFill(Color.DARKGRAY);
+					 * text1.setStyle("-fx-font: 15.0px Ubantu;");
+					 * text1.setLayoutX(20); text1.setLayoutY(20);
+					 * System.out.println(commandLine.getLayoutX() + " " +
+					 * commandLine.getLayoutY() + " ");
+					 */
 				}
 
 			}
@@ -339,6 +342,7 @@ public class View implements HotkeyListener {
 				.closable(false).build();
 
 		tabPane.getTabs().addAll(pending, complete, trash);
+		setTabChangeListener();
 	}
 
 	private void createTopSection() {
@@ -602,7 +606,7 @@ public class View implements HotkeyListener {
 											.equals(Parser.NULL))
 										text = item.getTag();
 									else
-										text = item.getTag() + "\n#"
+										text = (item.getTag().equals("-") ? "" : item.getTag()+ "\n") + "#"
 												+ item.getRepetition();
 									setText(text);
 								}
@@ -787,7 +791,8 @@ public class View implements HotkeyListener {
 		try {
 			java.awt.Image image = ImageIO.read(getClass().getResource(
 					"iDo_traybar.png"));
-			java.awt.Image rescaled = image.getScaledInstance(15, 15, java.awt.Image.SCALE_SMOOTH);  
+			java.awt.Image rescaled = image.getScaledInstance(15, 15,
+					java.awt.Image.SCALE_SMOOTH);
 			return rescaled;
 		} catch (IOException e) {
 			System.out.println(e);
@@ -849,5 +854,22 @@ public class View implements HotkeyListener {
 				stage.show();
 			}
 		});
+	}
+
+	private void setTabChangeListener() {
+		tabPane.getSelectionModel().selectedIndexProperty()
+				.addListener(new ChangeListener<Number>() {
+					public void changed(ObservableValue<? extends Number> ov,
+							Number oldValue, Number newValue) {
+						TwoWayCommand.setIndexType(TwoWayCommand.SHOWN);
+						taskPendingList.setItems(model.getPendingList());
+						taskCompleteList.setItems(model.getCompleteList());
+						taskTrashList.setItems(model.getTrashList());
+					}
+				});
+	}
+
+	public void setTab(int tabIndex) {
+		tabPane.getSelectionModel().select(tabIndex);
 	}
 }
