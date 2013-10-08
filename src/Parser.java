@@ -1,11 +1,14 @@
 import java.util.ArrayList;
 import java.util.Collections;
 
+
 public class Parser {
 	static enum COMMAND_TYPES {
 		ADD, REMOVE, SEARCH, EDIT, COMPLETE, INCOMPLETE, UNDO, REDO, CLEAR_ALL, TODAY, SHOW_ALL, SYNC, SETTINGS, HELP, EXIT, INVALID, MARK, UNMARK
 	}
-
+	
+	//static enum INFO_TYPES { COMMANDTYPE, WROKFLOW, START_TIME, END_TIME, TAG, IMPORTANCE, REPEATING, INDEX, SEARCH_INFO }
+	
 	/* start date keys */
 	private static String[] startDateKeys = { "start from", "start at",
 			"start on", "begin from", "begin at", "begin on", "from", "on",
@@ -21,13 +24,16 @@ public class Parser {
 			"every wednesday", "every thursday", "every friday",
 			"every saturday", "every sunday", "every day", "every month",
 			"every year", "everyday", "every week" };
-
+	
+	public static final int INDEX_USELESS_INFO = -2;
+	public static final int INDEX_COMMAND_TYPE = -1;
 	public static final int INDEX_WORK_INFO = 0;
 	public static final int INDEX_TAG = 1;
 	public static final int INDEX_START_DATE = 2;
 	public static final int INDEX_END_DATE = 3;
 	public static final int INDEX_IS_IMPT = 4;
 	public static final int INDEX_REPEATING = 5;
+	public static final int INDEX_INDEX_INFO = 6;
 
 	/* maximum length of a date. Example: next Monday 4pm */
 	public static final int MAX_DATE_LENGTH = 4;
@@ -245,55 +251,75 @@ public class Parser {
 		return parsedCommand;
 	}
 
-	/*
-	 * public static void main(String args[]) { ArrayList<InfoWithIndex> result
-	 * = parseForView("add playing football from 1:00 to 2:00 always"); for(int
-	 * i=0;i<result.size();i++) System.out.println(result.get(i)); }
+	/**
+	 * This method is used to parse the command when any key event occurs and highlight the command
+	 * to indicate the understanding of the command by the program to user to assist user to type more
+	 * exact command in real-time before the user presses Enter
+	 * @param command
+	
 	 */
-
 	public static ArrayList<InfoWithIndex> parseForView(String command) {
 		COMMAND_TYPES commandType = determineCommandType(command);
 		String[] result = parseCommand(command, commandType);
 		ArrayList<InfoWithIndex> infoList = new ArrayList<InfoWithIndex>();
-		ArrayList<String> splittedCommand = new ArrayList<String>();
 		//Add the commandType first
-		InfoWithIndex commandTypeInfo = new InfoWithIndex(getFirstWord(command),0, true);
+		InfoWithIndex commandTypeInfo = new InfoWithIndex(getFirstWord(command),0, INDEX_COMMAND_TYPE);
 		infoList.add(commandTypeInfo);
-		for (int i = 0; i < result.length; i++) {
-			String info = result[i];
-			if (command.contains(info)) {
-				int startIndex = command.indexOf(info);
-				InfoWithIndex ci = new InfoWithIndex(info, startIndex, true);
-				infoList.add(ci);
-			}
+		//Add * if command has
+		if(command.contains(IMPT_MARK)) {
+			InfoWithIndex imptInfo = new InfoWithIndex(IMPT_MARK, command.indexOf(IMPT_MARK), INDEX_IS_IMPT);
+			infoList.add(imptInfo);
 		}
-		Collections.sort(infoList);
+		
+		if(commandType == COMMAND_TYPES.EDIT) {
+			String index = getFirstWord(removeFirstWord(command));
+			InfoWithIndex indexInfo = new InfoWithIndex(index, command.indexOf(index), INDEX_INDEX_INFO);
+			infoList.add(indexInfo);
+		}
 
-		int keyInfoCount = infoList.size();
-		// Add the command type
-		if (infoList.get(0).getStartIndex() > 0)
-			infoList.add(new InfoWithIndex(command.substring(0, infoList.get(0)
+		//First consider command with info
+		if (commandType == COMMAND_TYPES.ADD || commandType == COMMAND_TYPES.SEARCH || commandType == COMMAND_TYPES.EDIT) {
+			for(int infoIndex = 0; infoIndex<result.length;infoIndex++)	{
+				String info = result[infoIndex];
+				if(command.contains(info)) {
+					int startIndex = command.indexOf(info);
+					int endIndex = startIndex + info.length();
+					int i = 0;
+					while( (endIndex+i)<command.length() && command.charAt(endIndex + i) == ' ' ) {
+							info += " ";
+							i++;
+					}
+					InfoWithIndex ci = new InfoWithIndex(info,startIndex, infoIndex);
+					infoList.add(ci);
+				}
+			}
+			Collections.sort(infoList);
+			
+			int keyInfoCount = infoList.size();
 					.getStartIndex()), 0, true));
-		System.out.println(infoList.get(infoList.size() - 1));
-		for (int i = 0; i < keyInfoCount; i++) {
-			int startIndex = infoList.get(i).getEndIndex();
-			int endIndex;
-			if (i != (keyInfoCount - 1))
-				endIndex = infoList.get(i + 1).getStartIndex();
-			else
-				endIndex = command.length();
-			if (startIndex < endIndex)
-				infoList.add(new InfoWithIndex(command.substring(startIndex,
+			System.out.println(infoList.get(infoList.size()-1));
+			for(int i=0;i<keyInfoCount;i++) {
+				int startIndex = infoList.get(i).getEndIndex();
+				int endIndex;
+				if(i!=(keyInfoCount-1))
+					endIndex = infoList.get(i+1).getStartIndex();
+				else 
+					endIndex = command.length();
+				if(startIndex < endIndex)
+					infoList.add(new InfoWithIndex(command.substring(startIndex,endIndex),startIndex, INDEX_USELESS_INFO));
 						endIndex), startIndex, false));
+			}
+			Collections.sort(infoList);
+		} else { //Consider command with index, just add the part except commandType, since the command is verified
+			int beginIndex = getFirstWord(command).length();
+			String indices=command.substring(beginIndex);
+			infoList.add(new InfoWithIndex(indices, 1 ,INDEX_INDEX_INFO));
 		}
-		Collections.sort(infoList);
-		/*
-		 * for(int i = 0;i<infoList.size();i++) {
-		 * splittedCommand.add(infoList.get(i).getInfo()); }
-		 */
+		
 		return infoList;
 	}
 
+	
 	private static String[] getRepeatingType(String commandString) {
 		String repeatingKey = null;
 		for (int i = 0; i < repeatingKeys.length; i++) {
@@ -719,13 +745,13 @@ class InfoWithIndex implements Comparable<InfoWithIndex> {
 	String info;
 	int startIndex;
 	int endIndex;
-	boolean isKeyInfo;
+	int infoType;
 
-	InfoWithIndex(String s, int ind, boolean isKeyInfo) {
+	InfoWithIndex(String s, int ind, int infoType) {
 		info = s;
 		startIndex = ind;
 		endIndex = startIndex + info.length();
-		this.isKeyInfo = isKeyInfo;
+		this.infoType = infoType;
 	}
 
 	public String getInfo() {
@@ -740,8 +766,8 @@ class InfoWithIndex implements Comparable<InfoWithIndex> {
 		return endIndex;
 	}
 
-	public boolean getIsKeyInfo() {
-		return isKeyInfo;
+	public int getInfoType() {
+		return infoType;
 	}
 
 	public int compareTo(InfoWithIndex c) {
