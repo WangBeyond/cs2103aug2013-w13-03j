@@ -41,12 +41,14 @@ import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.BorderPaneBuilder;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.HBoxBuilder;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.text.Text;
@@ -92,10 +94,11 @@ public class View implements HotkeyListener {
 	double dragAnchorY;
 
 	// colored text sequences
-	private Text text1;
 	public ArrayList<Text> textList = new ArrayList<Text>();
-	public Paint[] colors = { Color.BLUE, Color.DARKCYAN, Color.ORANGE,
-			Color.RED, Color.GREEN, Color.PURPLE };
+	//Color indicatin: darkgrey: uselessInfo, green: commandType, black: workflow, orange: TAG,  blue: startTime,
+	//					darkcyan: endTime, red: impt, darkkhaki: repeating, purple: index
+	public Paint[] colors = { Color.DARKGREY, Color.GREEN, Color.BLACK, Color.ORANGE, Color.BLUE, Color.DARKCYAN, 
+			Color.RED,  Color.DARKKHAKI, Color.PURPLE};
 	public static boolean isTextColored = true;
 	// The 3 sections
 	VBox bottom;
@@ -127,7 +130,7 @@ public class View implements HotkeyListener {
 
 		// add 10 texts to textList
 		textList.clear();
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 15; i++) {
 			textList.add(new Text());
 		}
 		hideInSystemTray();
@@ -204,7 +207,7 @@ public class View implements HotkeyListener {
 		bottom.setSpacing(5);
 		bottom.setPadding(new Insets(0, 0, 5, 44));
 
-		Group upperPart1 = new Group();
+		HBox upperPart1 = new HBox();
 		HBox upperPart2 = new HBox();
 		if (isTextColored)
 			upperPart1 = createNewUpperPartInBottom();
@@ -217,7 +220,7 @@ public class View implements HotkeyListener {
 		bottom.getChildren().addAll(isTextColored ? upperPart1 : upperPart2,
 				feedback);
 	}
-
+	
 	private HBox createUpperPartInBottom() {
 		HBox temp = new HBox();
 		temp.setSpacing(10);
@@ -232,25 +235,38 @@ public class View implements HotkeyListener {
 
 		return temp;
 	}
-
-	private Group createNewUpperPartInBottom() {
+	
+	void hideCursor() {
+		commandLine.setStyle("-fx-text-fill: white;");
+	}
+	
+	void displayCursor() {
+		commandLine.setStyle("-fx-text-fill: darkgrey;");
+	}
+	
+	private HBox createNewUpperPartInBottom() {
 		HBox temp2 = new HBox();
-		HBox texts = new HBox();
-		Group temp = new Group();
+		HBox multiColorCommand = new HBox();
+		Pane temp = new Pane();
+		temp2.setSpacing(10);
 		// temp.setSpacing(10);
 
 		commandLine = new TextField();
 		commandLine.setPrefWidth(670);
-		commandLine.setStyle("-fx-text-fill: white;");
-		text1 = new Text("");
-		text1.setTextAlignment(TextAlignment.LEFT);
+		commandLine.setStyle("-fx-text-fill: darkgrey;");
 		// Text text2 = new Text("happy");
+		commandLine.setOnKeyPressed(new EventHandler<KeyEvent>() {
+			public void handle(KeyEvent e) {
+				for (int i = 0; i < textList.size(); i++)
+					textList.get(i).setText("");
+				System.out.println("pressed");
+				}
+			});
 		commandLine.setOnKeyReleased(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent e) {
 				if (e.getCode() == KeyCode.ENTER) {
 					for (int i = 0; i < textList.size(); i++)
 						textList.get(i).setText("");
-					text1.setText("");
 				}
 				System.out.println(commandLine.getText());
 				String temporaryCommand = commandLine.getText();
@@ -259,32 +275,24 @@ public class View implements HotkeyListener {
 							.parseForView(temporaryCommand);
 					for (int i = infoList.size(); i < 10; i++)
 						textList.get(i).setText("");
-					int colorCounter = 0;
 					for (int i = 0; i < infoList.size(); i++) {
 						System.out.print(infoList.get(i).getInfo() + " "
-								+ infoList.get(i).getIsKeyInfo() + "  ");
+								+ infoList.get(i).getInfoType() + "  ");
 						InfoWithIndex info = infoList.get(i);
 						Text text = textList.get(i);
 						text.setText(info.getInfo());
 						text.setStyle("-fx-font: 15.0px Ubantu;");
 						text.setTextAlignment(TextAlignment.LEFT);
-						// text.setLayoutX(40);
-						// text.setLayoutY(40);
-						text1.setFill(Color.TRANSPARENT);
-						if (info.getIsKeyInfo()) {
-							text.setFill(colors[colorCounter]);
-							colorCounter = (colorCounter + 1) % colors.length;
-						} else
-							text.setFill(Color.BLACK);
-
+						text.setFill(colors[info.getInfoType()+2]);
 					}
+					displayCursor();
 					System.out.println();
 				} catch (Exception ex) {
 					for (int i = 1; i < 10; i++)
 						textList.get(i).setText("");
+					textList.get(0).setStyle("-fx-font: 15.0px Ubantu;");
 					textList.get(0).setText(temporaryCommand);
 					textList.get(0).setFill(Color.DARKGRAY);
-					textList.get(0).setStyle("-fx-font: 15.0px Ubantu;");
 					/*
 					text1.setText(commandLine.getText());
 					text1.setFill(Color.DARKGRAY);
@@ -301,16 +309,25 @@ public class View implements HotkeyListener {
 		showOrHide.setPrefSize(30, 30);
 		showOrHide.setId("smaller");
 		hookUpEventForShowOrHide();
-		for (Text text : textList)
-			texts.getChildren().add(text);
-		texts.setLayoutX(20);
-		texts.setLayoutY(0);
+		//temp.setAutoSizeChildren(false);
+		for (Text text : textList) {
+			multiColorCommand.getChildren().add(text);
+		}
+		System.out.println(multiColorCommand.getBoundsInParent());
+		multiColorCommand.setLayoutX(7);
+		multiColorCommand.setLayoutY(5);
+		multiColorCommand.setSpacing(-0.50000001);
 		// text2.localToScene(text2.getLayoutBounds().getMinX(),
 		// text2.getLayoutBounds().getMinY());
-		temp2.getChildren().addAll(commandLine, showOrHide);
-		temp.getChildren().addAll(temp2, text1, texts);
+		StackPane.setMargin(multiColorCommand, new Insets(0,100,0,0));
+		temp.getChildren().addAll(commandLine,multiColorCommand);
+		temp2.getChildren().addAll(temp,showOrHide);
+		/*temp2.getChildren().addAll(commandLine, showOrHide);
+		//temp2.setLayoutX(0);
+		temp.setAlignment(Pos.CENTER_LEFT);
+		temp.getChildren().addAll(temp2, multiColorCommand);*/
 
-		return temp;
+		return temp2;
 	}
 
 	private void createCenterSection() {
