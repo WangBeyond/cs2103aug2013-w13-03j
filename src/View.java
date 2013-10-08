@@ -24,7 +24,6 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
-import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
@@ -53,6 +52,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextBuilder;
@@ -453,7 +453,9 @@ public class View implements HotkeyListener {
 
 	public void createTable(TableView<Task> taskList, ObservableList<Task> list) {
 		taskList.setItems(list);
-
+		final Text emptyTableSign = new Text("There is currently no tasks in this tab");
+		emptyTableSign.setFont(new Font(15));
+		taskList.setPlaceholder(emptyTableSign);
 		TableColumn<Task, String> taskInfoColumn = createTaskInfoColumn();
 		TableColumn<Task, Tag> tagColumn = createTagColumn();
 		TableColumn<Task, String> startDateColumn = createStartDateColumn();

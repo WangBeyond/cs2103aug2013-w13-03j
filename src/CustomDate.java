@@ -329,7 +329,7 @@ public class CustomDate {
 			numElements = updateTimeWith24Format(infos, targetDate, numElements);
 		}
 		if(dateInfo.contains("tonight")){
-			if(targetDate.get(Calendar.HOUR) * 60 + targetDate.get(Calendar.MINUTE) < 12*60)
+			if(targetDate.get(Calendar.HOUR_OF_DAY) * 60 + targetDate.get(Calendar.MINUTE) < 12*60)
 				targetDate.setTimeInMillis(targetDate.getTimeInMillis() + 24*60*60*1000);
 		}
 		targetDate.set(Calendar.SECOND, 0);
