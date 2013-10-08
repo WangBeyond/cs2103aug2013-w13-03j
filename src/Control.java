@@ -163,6 +163,8 @@ public class Control extends Application {
 						view.commandLine.setText("");
 					view.feedback.setFill(Color.WHITE);
 					view.feedback.setText(feedback);
+				} else if(e.getCode() == KeyCode.BACK_SPACE) {
+					view.hideCursor();
 				} else if(undo_hot_key.match(e)){
 					String feedback = executeCommand("undo");
 					if (successfulExecution(feedback))
