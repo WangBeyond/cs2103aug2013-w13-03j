@@ -296,7 +296,6 @@ public class Parser {
 			Collections.sort(infoList);
 			
 			int keyInfoCount = infoList.size();
-					.getStartIndex()), 0, true));
 			System.out.println(infoList.get(infoList.size()-1));
 			for(int i=0;i<keyInfoCount;i++) {
 				int startIndex = infoList.get(i).getEndIndex();
@@ -307,7 +306,6 @@ public class Parser {
 					endIndex = command.length();
 				if(startIndex < endIndex)
 					infoList.add(new InfoWithIndex(command.substring(startIndex,endIndex),startIndex, INDEX_USELESS_INFO));
-						endIndex), startIndex, false));
 			}
 			Collections.sort(infoList);
 		} else { //Consider command with index, just add the part except commandType, since the command is verified
