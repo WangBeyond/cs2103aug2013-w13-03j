@@ -96,7 +96,7 @@ public class View implements HotkeyListener {
 	public ArrayList<Text> textList = new ArrayList<Text>();
 	public Paint[] colors = { Color.BLUE, Color.DARKCYAN, Color.ORANGE,
 			Color.RED, Color.GREEN, Color.PURPLE };
-	public static boolean isTextColored = false;
+	public static boolean isTextColored = true;
 	// The 3 sections
 	VBox bottom;
 	HBox center;
@@ -143,7 +143,8 @@ public class View implements HotkeyListener {
 			public void handle(KeyEvent e) {
 				if (changeTab.match(e)) {
 					int index = tabPane.getSelectionModel().getSelectedIndex();
-					if (index != 2)
+					TwoWayCommand.setIndexType(TwoWayCommand.SHOWN);
+					if (index != 2) 
 						tabPane.getSelectionModel().selectNext();
 					else
 						tabPane.getSelectionModel().selectFirst();
@@ -279,16 +280,19 @@ public class View implements HotkeyListener {
 					}
 					System.out.println();
 				} catch (Exception ex) {
-					for (int i = 0; i < textList.size(); i++)
-						textList.get(i).setFill(Color.GREY);
+					for (int i = 1; i < 10; i++)
+						textList.get(i).setText("");
+					textList.get(0).setText(temporaryCommand);
+					textList.get(0).setFill(Color.DARKGRAY);
+					textList.get(0).setStyle("-fx-font: 15.0px Ubantu;");
+					/*
 					text1.setText(commandLine.getText());
 					text1.setFill(Color.DARKGRAY);
 					text1.setStyle("-fx-font: 15.0px Ubantu;");
 					text1.setLayoutX(20);
 					text1.setLayoutY(20);
 					System.out.println(commandLine.getLayoutX() + " "
-							+ commandLine.getLayoutY() + " ");
-					// textList.add(text1);
+							+ commandLine.getLayoutY() + " ");*/
 				}
 
 			}

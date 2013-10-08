@@ -665,7 +665,7 @@ class SearchCommand extends Command {
 
 	public String execute() {
 		ObservableList<Task> initialList;
-		TwoWayCommand.setIndexType(TwoWayCommand.SEARCHED);
+
 		if (tabIndex == 0)
 			initialList = model.getPendingList();
 		else if (tabIndex == 1)
@@ -716,7 +716,7 @@ class SearchCommand extends Command {
 
 		if (searchList.isEmpty())
 			return MESSAGE_NO_RESULTS;
-
+		TwoWayCommand.setIndexType(TwoWayCommand.SEARCHED);
 		if (tabIndex == 0) {
 			model.setSearchPendingList(searchList);
 			view.taskPendingList.setItems(model.getSearchPendingList());
