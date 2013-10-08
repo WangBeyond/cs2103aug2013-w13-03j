@@ -256,6 +256,9 @@ public class Parser {
 		String[] result = parseCommand(command,commandType);
 		ArrayList<InfoWithIndex> infoList = new ArrayList<InfoWithIndex>();
 		ArrayList<String> splittedCommand = new ArrayList<String>();
+		//Add the commandType first
+		InfoWithIndex commandTypeInfo = new InfoWithIndex(getFirstWord(command),0, true);
+		infoList.add(commandTypeInfo);
 		for(int i =0; i<result.length;i++)	{
 			String info = result[i];
 			if(command.contains(info)) {
