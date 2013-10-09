@@ -2,6 +2,7 @@ import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import com.google.gdata.data.DateTime;
 
 // Note: 3 public functions are getTime(), constructor and convert()
 public class CustomDate {
@@ -22,7 +23,11 @@ public class CustomDate {
 		targetDate = new GregorianCalendar();
 		convert(s);
 	}
-
+	
+	public DateTime returnInDateTimeFormat(){
+		return new DateTime(targetDate.getTime());
+	}
+	
 	public static String convertString(CustomDate v) {
 		if (v == null)
 			return "-";
