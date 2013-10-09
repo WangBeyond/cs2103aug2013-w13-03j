@@ -101,7 +101,7 @@ public class View implements HotkeyListener {
 	//					darkcyan: endTime, red: impt, darkkhaki: repeating, purple: index
 	public Paint[] colors = { Color.DARKGREY, Color.GREEN, Color.BLACK, Color.ORANGE, Color.BLUE, Color.DARKCYAN, 
 			Color.RED,  Color.DARKKHAKI, Color.PURPLE};
-	public static boolean isTextColored = false;
+	public static boolean isTextColored = true;
 	// The 3 sections
 	VBox bottom;
 	HBox center;
@@ -252,12 +252,10 @@ public class View implements HotkeyListener {
 		HBox multiColorCommand = new HBox();
 		Pane temp = new Pane();
 		temp2.setSpacing(10);
-		// temp.setSpacing(10);
 
 		commandLine = new TextField();
 		commandLine.setPrefWidth(670);
 		commandLine.setStyle("-fx-text-fill: darkgrey;");
-		// Text text2 = new Text("happy");
 		commandLine.setOnKeyPressed(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent e) {
 				for (int i = 0; i < textList.size(); i++)
@@ -296,14 +294,6 @@ public class View implements HotkeyListener {
 					textList.get(0).setStyle("-fx-font: 15.0px Ubantu;");
 					textList.get(0).setText(temporaryCommand);
 					textList.get(0).setFill(Color.DARKGRAY);
-					/*
-					 * text1.setText(commandLine.getText());
-					 * text1.setFill(Color.DARKGRAY);
-					 * text1.setStyle("-fx-font: 15.0px Ubantu;");
-					 * text1.setLayoutX(20); text1.setLayoutY(20);
-					 * System.out.println(commandLine.getLayoutX() + " " +
-					 * commandLine.getLayoutY() + " ");
-					 */
 				}
 
 			}
@@ -312,16 +302,14 @@ public class View implements HotkeyListener {
 		showOrHide.setPrefSize(30, 30);
 		showOrHide.setId("smaller");
 		hookUpEventForShowOrHide();
-		//temp.setAutoSizeChildren(false);
+		
 		for (Text text : textList) {
 			multiColorCommand.getChildren().add(text);
 		}
 		System.out.println(multiColorCommand.getBoundsInParent());
 		multiColorCommand.setLayoutX(7);
 		multiColorCommand.setLayoutY(5);
-		multiColorCommand.setSpacing(-0.50000001);
-		// text2.localToScene(text2.getLayoutBounds().getMinX(),
-		// text2.getLayoutBounds().getMinY());
+		multiColorCommand.setSpacing(-0.50001);
 		StackPane.setMargin(multiColorCommand, new Insets(0,100,0,0));
 		temp.getChildren().addAll(commandLine,multiColorCommand);
 		temp2.getChildren().addAll(temp,showOrHide);

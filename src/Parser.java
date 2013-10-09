@@ -288,6 +288,40 @@ public class Parser {
 				|| commandType == COMMAND_TYPES.EDIT) {
 			for (int infoIndex = 0; infoIndex < result.length; infoIndex++) {
 				String info = result[infoIndex];
+				
+				//append the preposition of startDate keys to date info
+				if(infoIndex == INDEX_START_DATE && info!=NULL){
+					int startIndex = command.indexOf(info);
+					int secondSpaceIndex = startIndex-2;
+					while(secondSpaceIndex>0 && command.charAt(secondSpaceIndex)!=' '){
+						secondSpaceIndex--;
+					}
+					int firstSpaceIndex = secondSpaceIndex-1;
+					while(firstSpaceIndex>0 && command.charAt(firstSpaceIndex)!=' '){
+						firstSpaceIndex--;
+					}
+					if (getDoesArrayContain(startDateKeys,command.substring(firstSpaceIndex+1,startIndex)))
+						info = command.substring(firstSpaceIndex+1,startIndex) + info;
+					else if (getDoesArrayContain(startDateKeys,command.substring(secondSpaceIndex+1,startIndex)))
+						info = command.substring(secondSpaceIndex+1,startIndex) + info;
+				}
+				
+				//append the preposition of endDate keys to date info
+				if(infoIndex == INDEX_END_DATE && info!=NULL){
+					int startIndex = command.indexOf(info);
+					int secondSpaceIndex = startIndex-2;
+					while(secondSpaceIndex>0 && command.charAt(secondSpaceIndex)!=' '){
+						secondSpaceIndex--;
+					}
+					int firstSpaceIndex = secondSpaceIndex-1;
+					while(firstSpaceIndex>0 && command.charAt(firstSpaceIndex)!=' '){
+						firstSpaceIndex--;
+					}
+					if (getDoesArrayContain(endDateKeys,command.substring(firstSpaceIndex+1,startIndex)))
+						info = command.substring(firstSpaceIndex+1,startIndex) + info;
+					else if (getDoesArrayContain(endDateKeys,command.substring(secondSpaceIndex+1,startIndex)))
+						info = command.substring(secondSpaceIndex+1,startIndex) + info;
+				}
 				if (command.contains(info)) {
 					int startIndex = command.indexOf(info);
 					int endIndex = startIndex + info.length();
@@ -329,6 +363,14 @@ public class Parser {
 		return infoList;
 	}
 
+	private static boolean getDoesArrayContain(String[] array, String element) {
+		element = element.trim();
+		for(int i = 0; i<array.length;i++) 
+			if(array[i].equals(element))
+				return true;
+		return false;
+	}
+	
 	private static String[] getRepeatingType(String commandString) {
 		String repeatingKey = null;
 		for (int i = 0; i < repeatingKeys.length; i++) {
