@@ -339,7 +339,6 @@ public class Parser {
 			Collections.sort(infoList);
 
 			int keyInfoCount = infoList.size();
-			System.out.println(infoList.get(infoList.size() - 1));
 			for (int i = 0; i < keyInfoCount; i++) {
 				int startIndex = infoList.get(i).getEndIndex();
 				int endIndex;

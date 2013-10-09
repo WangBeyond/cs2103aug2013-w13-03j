@@ -268,7 +268,6 @@ class EditCommand extends TwoWayCommand {
 		}
 
 		Control.sortList(modifiedList);
-		// System.out.println("execute "+TwoWayCommand.listedIndexType);
 		return MESSAGE_SUCCESSFUL_EDIT;
 	}
 

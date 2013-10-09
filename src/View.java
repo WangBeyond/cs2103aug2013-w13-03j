@@ -97,11 +97,21 @@ public class View implements HotkeyListener {
 
 	// colored text sequences
 	public ArrayList<Text> textList = new ArrayList<Text>();
-	//Color indicatin: darkgrey: uselessInfo, green: commandType, black: workflow, orange: TAG,  blue: startTime,
-	//					darkcyan: endTime, red: impt, darkkhaki: repeating, purple: index
-	public Paint[] colors = { Color.DARKGREY, Color.GREEN, Color.BLACK, Color.ORANGE, Color.BLUE, Color.DARKCYAN, 
-			Color.RED,  Color.DARKKHAKI, Color.PURPLE};
+	// Color indicatin: darkgrey: uselessInfo, green: commandType, black:
+	// workflow, orange: TAG, blue: startTime,
+	// darkcyan: endTime, red: impt, darkkhaki: repeating, purple: index
+	public Paint[] colors = { Color.DARKGREY, Color.GREEN, Color.BLACK,
+			Color.ORANGE, Color.BLUE, Color.DARKCYAN, Color.RED,
+			Color.DARKKHAKI, Color.PURPLE };
 	public static boolean isTextColored = true;
+	public ArrayList<Text> feedbackList = new ArrayList<Text>();
+	private static String[] COMMAND_TYPES = {"add", "remove", "rm", "delete","del", "edit", "mod", 
+		"modify", "search", "find", "clear", "clr", "undo", "redo", "mark", "unmark", 
+		"complete", "done", "incomplete", "undone", "exit", "sync", "show", "all", "list", "ls",
+		"today"  };
+	public HBox feedbacks;
+	private static Color IDO_GREEN = Color.rgb(130, 255, 121);
+
 	// The 3 sections
 	VBox bottom;
 	HBox center;
@@ -217,13 +227,29 @@ public class View implements HotkeyListener {
 		else
 			upperPart2 = createUpperPartInBottom();
 
-		feedback = TextBuilder.create().styleClass("feedback")
-				.fill(Color.WHITE).text("Please enter a command").build();
+		if (!isTextColored) {
+			feedback = TextBuilder.create().styleClass("feedback")
+					.fill(Color.WHITE).text("Please enter a command").build();
 
-		bottom.getChildren().addAll(isTextColored ? upperPart1 : upperPart2,
-				feedback);
+			bottom.getChildren().addAll(
+					isTextColored ? upperPart1 : upperPart2, feedback);
+		} else {
+			feedbacks = new HBox();
+			feedbacks.setSpacing(5);
+			feedbackList.clear();
+			for (int i = 0; i < 10; i++) {
+				Text feedbackPiece = TextBuilder.create()
+						.styleClass("feedback").fill(Color.WHITE).text("")
+						.build();
+				feedbackList.add(feedbackPiece);
+				feedbacks.getChildren().add(feedbackList.get(i));
+			}
+			feedbackList.get(0).setText("Please enter a command");
+			bottom.getChildren().addAll(
+					isTextColored ? upperPart1 : upperPart2, feedbacks);
+		}
 	}
-	
+
 	private HBox createUpperPartInBottom() {
 		HBox temp = new HBox();
 		temp.setSpacing(10);
@@ -238,15 +264,15 @@ public class View implements HotkeyListener {
 
 		return temp;
 	}
-	
+
 	void hideCursor() {
 		commandLine.setStyle("-fx-text-fill: white;");
 	}
-	
+
 	void displayCursor() {
 		commandLine.setStyle("-fx-text-fill: darkgrey;");
 	}
-	
+
 	private HBox createNewUpperPartInBottom() {
 		HBox temp2 = new HBox();
 		HBox multiColorCommand = new HBox();
@@ -260,16 +286,14 @@ public class View implements HotkeyListener {
 			public void handle(KeyEvent e) {
 				for (int i = 0; i < textList.size(); i++)
 					textList.get(i).setText("");
-				System.out.println("pressed");
-				}
-			});
+			}
+		});
 		commandLine.setOnKeyReleased(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent e) {
 				if (e.getCode() == KeyCode.ENTER) {
 					for (int i = 0; i < textList.size(); i++)
 						textList.get(i).setText("");
 				}
-				System.out.println(commandLine.getText());
 				String temporaryCommand = commandLine.getText();
 				try {
 					ArrayList<InfoWithIndex> infoList = Parser
@@ -277,17 +301,14 @@ public class View implements HotkeyListener {
 					for (int i = infoList.size(); i < 10; i++)
 						textList.get(i).setText("");
 					for (int i = 0; i < infoList.size(); i++) {
-						System.out.print(infoList.get(i).getInfo() + " "
-								+ infoList.get(i).getInfoType() + "  ");
 						InfoWithIndex info = infoList.get(i);
 						Text text = textList.get(i);
 						text.setText(info.getInfo());
 						text.setStyle("-fx-font: 15.0px Ubantu;");
 						text.setTextAlignment(TextAlignment.LEFT);
-						text.setFill(colors[info.getInfoType()+2]);
+						text.setFill(colors[info.getInfoType() + 2]);
 					}
 					displayCursor();
-					System.out.println();
 				} catch (Exception ex) {
 					for (int i = 1; i < 10; i++)
 						textList.get(i).setText("");
@@ -302,21 +323,21 @@ public class View implements HotkeyListener {
 		showOrHide.setPrefSize(30, 30);
 		showOrHide.setId("smaller");
 		hookUpEventForShowOrHide();
-		
+
 		for (Text text : textList) {
 			multiColorCommand.getChildren().add(text);
 		}
-		System.out.println(multiColorCommand.getBoundsInParent());
 		multiColorCommand.setLayoutX(7);
 		multiColorCommand.setLayoutY(5);
 		multiColorCommand.setSpacing(-0.50001);
-		StackPane.setMargin(multiColorCommand, new Insets(0,100,0,0));
-		temp.getChildren().addAll(commandLine,multiColorCommand);
-		temp2.getChildren().addAll(temp,showOrHide);
-		/*temp2.getChildren().addAll(commandLine, showOrHide);
-		//temp2.setLayoutX(0);
-		temp.setAlignment(Pos.CENTER_LEFT);
-		temp.getChildren().addAll(temp2, multiColorCommand);*/
+		StackPane.setMargin(multiColorCommand, new Insets(0, 100, 0, 0));
+		temp.getChildren().addAll(commandLine, multiColorCommand);
+		temp2.getChildren().addAll(temp, showOrHide);
+		/*
+		 * temp2.getChildren().addAll(commandLine, showOrHide);
+		 * //temp2.setLayoutX(0); temp.setAlignment(Pos.CENTER_LEFT);
+		 * temp.getChildren().addAll(temp2, multiColorCommand);
+		 */
 
 		return temp2;
 	}
@@ -441,7 +462,8 @@ public class View implements HotkeyListener {
 
 	public void createTable(TableView<Task> taskList, ObservableList<Task> list) {
 		taskList.setItems(list);
-		final Text emptyTableSign = new Text("There is currently no tasks in this tab");
+		final Text emptyTableSign = new Text(
+				"There is currently no tasks in this tab");
 		emptyTableSign.setFont(new Font(15));
 		taskList.setPlaceholder(emptyTableSign);
 		TableColumn<Task, String> taskInfoColumn = createTaskInfoColumn();
@@ -613,7 +635,9 @@ public class View implements HotkeyListener {
 											.equals(Parser.NULL))
 										text = item.getTag();
 									else
-										text = (item.getTag().equals("-") ? "" : item.getTag()+ "\n") + "#"
+										text = (item.getTag().equals("-") ? ""
+												: item.getTag() + "\n")
+												+ "#"
 												+ item.getRepetition();
 									setText(text);
 								}
@@ -802,7 +826,6 @@ public class View implements HotkeyListener {
 					java.awt.Image.SCALE_SMOOTH);
 			return rescaled;
 		} catch (IOException e) {
-			System.out.println(e);
 			return null;
 		}
 	}
@@ -848,8 +871,7 @@ public class View implements HotkeyListener {
 			JIntellitype.getInstance().registerHotKey(90,
 					JIntellitype.MOD_CONTROL + JIntellitype.MOD_SHIFT, 'D');
 		} catch (RuntimeException ex) {
-			System.out
-					.println("Either you are not on Windows, or there is a problem with the JIntellitype library!");
+			System.out.println("Either you are not on Windows, or there is a problem with the JIntellitype library!");
 		}
 	}
 
@@ -878,5 +900,112 @@ public class View implements HotkeyListener {
 
 	public void setTab(int tabIndex) {
 		tabPane.getSelectionModel().select(tabIndex);
+	}
+
+	void setFeedback(String feedback) {
+		if (feedback.equals(Control.MESSAGE_INVALID_COMMAND_TYPE)
+				|| feedback.equals(Control.MESSAGE_REQUEST_COMMAND)
+				|| feedback.equals(Control.MESSAGE_INVALID_UNDO)
+				|| feedback.equals(Control.MESSAGE_INVALID_REDO)
+				|| feedback.equals(Control.MESSAGE_EXIT_TIP)
+				|| feedback.equals(Control.MESSAGE_TODAY_TIP)) {
+			setFeedbackStyle(0, feedback, Color.WHITE);
+			emptyFeedback(1);
+		} else {
+			switch (feedback) {
+			case Control.MESSAGE_ADD_TIP:
+				setFeedbackStyle(0, "add", IDO_GREEN);
+				setFeedbackStyle(1, "<workflow>", Color.WHITE);
+				setFeedbackStyle(2, "<start time>", Color.LIGHTBLUE);
+				setFeedbackStyle(3, "<end time>", Color.DARKCYAN);
+				setFeedbackStyle(4, "<importance *>", Color.RED);
+				setFeedbackStyle(5, "<#tag>", Color.ORANGE);
+				emptyFeedback(6);
+				break;
+			case Control.MESSAGE_EDIT_TIP:
+				setFeedbackStyle(0, "edit", IDO_GREEN);
+				setFeedbackStyle(1, "<index>", Color.ORCHID);
+				setFeedbackStyle(2, "<workflow>", Color.WHITE);
+				setFeedbackStyle(3, "<start time>", Color.LIGHTBLUE);
+				setFeedbackStyle(4, "<end time>", Color.DARKCYAN);
+				setFeedbackStyle(5, "<importance *>", Color.RED);
+				setFeedbackStyle(6, "<#tag>", Color.ORANGE);
+				emptyFeedback(7);
+				break;
+			case Control.MESSAGE_REMOVE_TIP:
+				setFeedbackStyle(0, "remove", IDO_GREEN);
+				setFeedbackStyle(1, "<index>", Color.ORCHID);
+				emptyFeedback(2);
+				break;
+			case Control.MESSAGE_SEARCH_TIP:
+				setFeedbackStyle(0, "search", IDO_GREEN);
+				setFeedbackStyle(1, "<workflow>", Color.WHITE);
+				setFeedbackStyle(2, "<start time>", Color.LIGHTBLUE);
+				setFeedbackStyle(3, "<end time>", Color.DARKCYAN);
+				setFeedbackStyle(4, "<importance *>", Color.RED);
+				setFeedbackStyle(5, "<#tag>", Color.ORANGE);
+				emptyFeedback(6);
+				break;
+			case Control.MESSAGE_SHOW_ALL_TIP:
+				setFeedbackStyle(0, Control.MESSAGE_SHOW_ALL_TIP, IDO_GREEN);
+				emptyFeedback(1);
+				break;
+			case Control.MESSAGE_UNDO_TIP:
+				setFeedbackStyle(0, Control.MESSAGE_UNDO_TIP, IDO_GREEN);
+				emptyFeedback(1);
+				break;
+			case Control.MESSAGE_REDO_TIP:
+				setFeedbackStyle(0, Control.MESSAGE_UNDO_TIP, IDO_GREEN);
+				emptyFeedback(1);
+				break;
+			case Control.MESSAGE_MARK_TIP:
+				setFeedbackStyle(0, "<mark>", IDO_GREEN);
+				setFeedbackStyle(1, "<index1> <index2> <index3> ...",
+						Color.ORCHID);
+				emptyFeedback(2);
+				break;
+			case Control.MESSAGE_UNMARK_TIP:
+				setFeedbackStyle(0, "<unmark>", IDO_GREEN);
+				setFeedbackStyle(1, "<index1> <index2> <index3> ...",
+						Color.ORCHID);
+				emptyFeedback(2);
+				break;
+			case Control.MESSAGE_COMPLETE_TIP:
+				setFeedbackStyle(0, "<complete/done>", IDO_GREEN);
+				setFeedbackStyle(1, "<index1> <index2> <index3> ...",
+						Color.ORCHID);
+				emptyFeedback(2);
+				break;
+			case Control.MESSAGE_INCOMPLETE_TIP:
+				setFeedbackStyle(0, "<incomplete/undone>", IDO_GREEN);
+				setFeedbackStyle(1, "<index1> <index2> <index3> ...",
+						Color.ORCHID);
+				emptyFeedback(2);
+				break;
+			default: 			
+			int listIndex = 1;
+			boolean isCommandExisting = false;
+			for( int i = 0; i<COMMAND_TYPES.length;i++) {
+				String command = COMMAND_TYPES[i];
+				if(command.indexOf(feedback) == 0 && !command.equals(feedback)) {
+					setFeedbackStyle(listIndex, command, IDO_GREEN);
+					listIndex ++;
+					isCommandExisting = true;
+				}
+			}
+			emptyFeedback(listIndex); 
+			setFeedbackStyle(0, isCommandExisting? "available commands: ": Control.MESSAGE_REQUEST_COMMAND, Color.WHITE); break;
+			}
+		}
+	}
+
+	void setFeedbackStyle(int index, String text, Color color) {
+		feedbackList.get(index).setText(text);
+		feedbackList.get(index).setFill(color);
+	}
+
+	private void emptyFeedback(int startIndex) {
+		for (int i = startIndex; i < feedbackList.size(); i++)
+			feedbackList.get(i).setText("");
 	}
 }
