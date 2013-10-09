@@ -246,7 +246,7 @@ public class Control extends Application {
 				if (commandHistory.isUndoable()) {
 					s = new ShowAllCommand(modelHandler, view);
 					s.execute();
-					TwoWayCommand undoCommand = commandHistory.getPrevCommand();
+					TwoWayCommand undoCommand = commandHistory.getPrevCommandForUndo();
 					feedback = undoCommand.undo();
 					dataFile.storeToFile();
 					return feedback;
@@ -259,7 +259,7 @@ public class Control extends Application {
 						TwoWayCommand.setIndexType(TwoWayCommand.SEARCHED);
 					showCommand = new ShowAllCommand(modelHandler, view);
 					showCommand.execute();
-					TwoWayCommand redoCommand = commandHistory.getPrevCommand();
+					TwoWayCommand redoCommand = commandHistory.getPrevCommandForRedo();
 					redoCommand.execute();
 					dataFile.storeToFile();
 					return MESSAGE_SUCCESSFUL_REDO;

@@ -1,11 +1,15 @@
+import java.util.Stack;
+
 class History {
-	private TwoWayCommand prevCommand;
+	private Stack<TwoWayCommand> prevCommandsForUndo;
+	private Stack<TwoWayCommand> prevCommandsForRedo;
 	private boolean undoable;
 	private boolean redoable;
 	private boolean isOperatedAfterSearch;
 
 	public History() {
-		prevCommand = null;
+		prevCommandsForUndo = new Stack<TwoWayCommand>();
+		prevCommandsForRedo = new Stack<TwoWayCommand>();
 		undoable = false;
 		redoable = false;
 		isOperatedAfterSearch = false;
@@ -35,23 +39,42 @@ class History {
 		return isOperatedAfterSearch;
 	}
 	
-	public TwoWayCommand getPrevCommand() {
-		undoable = !undoable;
-		redoable = !redoable;
-		return prevCommand;
-
+	public TwoWayCommand getPrevCommandForUndo() {
+		TwoWayCommand previousCommand = prevCommandsForUndo.pop();
+		prevCommandsForRedo.push(previousCommand);
+		redoable = true;
+		if (prevCommandsForUndo.empty()){
+			undoable = false;
+		}
+		return previousCommand;
+	}
+	
+	public TwoWayCommand getPrevCommandForRedo(){
+		TwoWayCommand previousCommand = prevCommandsForRedo.pop();
+		prevCommandsForUndo.push(previousCommand);
+		undoable = true;
+		if (prevCommandsForRedo.empty()){
+			redoable = false;
+		}
+		return previousCommand;
 	}
 
 	public void updateCommand(TwoWayCommand newCommand) {
-		prevCommand = newCommand;
+		prevCommandsForUndo.push(newCommand);
+		if (!prevCommandsForRedo.empty()){
+			prevCommandsForRedo.clear();
+		}
 		undoable = true;
 		redoable = false;
 	}
 	
 	public void updateCommand(TwoWayCommand newCommand,boolean isAfter) {
-		prevCommand = newCommand;
+		prevCommandsForUndo.push(newCommand);
+		if (!prevCommandsForRedo.empty()){
+			prevCommandsForRedo.clear();
+		}
 		undoable = true;
 		redoable = false;
-		isOperatedAfterSearch =  isAfter;
+		isOperatedAfterSearch = isAfter;
 	}
 }
