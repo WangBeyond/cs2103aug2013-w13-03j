@@ -8,15 +8,12 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
-import javafx.stage.Screen;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 
 public class Control extends Application {
 	private static final String MESSAGE_INVALID_COMMAND_TYPE = "Invalid Command Type!";
@@ -47,11 +44,11 @@ public class Control extends Application {
 	private History commandHistory = new History();
 	private View view;
 	private Store dataFile;
-	
+
 	static boolean listedIndexType;
 	static final boolean SEARCHED = true;
 	static final boolean SHOWN = false;
-	
+
 	public static void main(String[] args) {
 		Application.launch(args);
 	}
@@ -64,10 +61,10 @@ public class Control extends Application {
 		} catch (IOException e) {
 			System.out.println("Cannot read the given file");
 		}
-		
+
 		view = new View(modelHandler, primaryStage);
 		hookUpEventForCommandLine();
-		
+
 		Timer t = new Timer();
 		t.schedule(new TimerTask() {
 			@Override
@@ -95,6 +92,7 @@ public class Control extends Application {
 							String oldValue, String newValue) {
 						String command = view.commandLine.getText();
 						if (Parser.checkEmptyCommand(command)) {
+							view.feedback.setFill(Color.WHITE);
 							view.feedback.setText(MESSAGE_REQUEST_COMMAND);
 						} else {
 							Parser.COMMAND_TYPES commandType = Parser
@@ -154,7 +152,8 @@ public class Control extends Application {
 						}
 					}
 				});
-
+		final KeyCombination undo_hot_key = new KeyCodeCombination(KeyCode.Z,
+				KeyCodeCombination.CONTROL_DOWN, KeyCodeCombination.ALT_DOWN);
 		view.commandLine.setOnKeyPressed(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent e) {
 				if (e.getCode() == KeyCode.ENTER) {
@@ -163,7 +162,14 @@ public class Control extends Application {
 						view.commandLine.setText("");
 					view.feedback.setFill(Color.WHITE);
 					view.feedback.setText(feedback);
-				} 
+				} else if (undo_hot_key.match(e)) {
+					String feedback = executeCommand("undo");
+					if (successfulExecution(feedback))
+						view.commandLine.setText("");
+					view.feedback.setFill(Color.WHITE);
+					view.feedback.setText(feedback);
+					e.consume();
+				}
 			}
 		});
 	}
@@ -200,43 +206,46 @@ public class Control extends Application {
 			Command s;
 			String feedback;
 			boolean isAfterSearch;
+
 			switch (commandType) {
 			case ADD:
-				s = new ShowAllCommand(modelHandler, view);
-				s.execute();
 				s = new AddCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
 				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_ADD)) {
 					commandHistory.updateCommand((TwoWayCommand) s);
 					dataFile.storeToFile();
+					showCommand = new ShowAllCommand(modelHandler, view);
+					showCommand.execute();
 				}
 				return feedback;
 			case EDIT:
 				isAfterSearch = TwoWayCommand.listedIndexType;
-				showCommand = new ShowAllCommand(modelHandler, view);
 				s = new EditCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
-				showCommand.execute();
 				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_EDIT)) {
-					commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
+					commandHistory.updateCommand((TwoWayCommand) s,
+							isAfterSearch);
 					dataFile.storeToFile();
+					showCommand = new ShowAllCommand(modelHandler, view);
+					showCommand.execute();
 				}
 				return feedback;
 			case REMOVE:
 				isAfterSearch = TwoWayCommand.listedIndexType;
-				showCommand = new ShowAllCommand(modelHandler, view);
 				s = new RemoveCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
-				showCommand.execute();
 				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_REMOVE)) {
-					commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
+					commandHistory.updateCommand((TwoWayCommand) s,
+							isAfterSearch);
 					dataFile.storeToFile();
+					showCommand = new ShowAllCommand(modelHandler, view);
+					showCommand.execute();
 				}
 				return feedback;
 			case UNDO:
-				s = new ShowAllCommand(modelHandler, view);
-				s.execute();
 				if (commandHistory.isUndoable()) {
+					s = new ShowAllCommand(modelHandler, view);
+					s.execute();
 					TwoWayCommand undoCommand = commandHistory.getPrevCommand();
 					feedback = undoCommand.undo();
 					dataFile.storeToFile();
@@ -244,11 +253,12 @@ public class Control extends Application {
 				} else
 					return MESSAGE_INVALID_UNDO;
 			case REDO:
-				s = new ShowAllCommand(modelHandler, view);
-				s.execute();
+
 				if (commandHistory.isRedoable()) {
-					if(commandHistory.isAfterSearch())
+					if (commandHistory.isAfterSearch())
 						TwoWayCommand.setIndexType(TwoWayCommand.SEARCHED);
+					showCommand = new ShowAllCommand(modelHandler, view);
+					showCommand.execute();
 					TwoWayCommand redoCommand = commandHistory.getPrevCommand();
 					redoCommand.execute();
 					dataFile.storeToFile();
@@ -266,57 +276,72 @@ public class Control extends Application {
 				return s.execute();
 			case CLEAR_ALL:
 				isAfterSearch = TwoWayCommand.listedIndexType;
-				showCommand = new ShowAllCommand(modelHandler, view);
+
 				s = new ClearAllCommand(modelHandler, view);
 				feedback = s.execute();
 				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_CLEAR_ALL)) {
-					commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
+					commandHistory.updateCommand((TwoWayCommand) s,
+							isAfterSearch);
 					dataFile.storeToFile();
+					showCommand = new ShowAllCommand(modelHandler, view);
+					showCommand.execute();
 				}
-				showCommand.execute();
+
 				return feedback;
 			case COMPLETE:
 				isAfterSearch = TwoWayCommand.listedIndexType;
-				showCommand = new ShowAllCommand(modelHandler, view);
+
 				s = new CompleteCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
-				showCommand.execute();
+
 				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_COMPLETE)) {
-					commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
+					commandHistory.updateCommand((TwoWayCommand) s,
+							isAfterSearch);
 					dataFile.storeToFile();
+					showCommand = new ShowAllCommand(modelHandler, view);
+					showCommand.execute();
 				}
 				return feedback;
 			case INCOMPLETE:
 				isAfterSearch = TwoWayCommand.listedIndexType;
-				showCommand = new ShowAllCommand(modelHandler, view);
+
 				s = new IncompleteCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
-				showCommand.execute();
+
 				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_INCOMPLETE)) {
-					commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
+					commandHistory.updateCommand((TwoWayCommand) s,
+							isAfterSearch);
 					dataFile.storeToFile();
+					showCommand = new ShowAllCommand(modelHandler, view);
+					showCommand.execute();
 				}
 				return feedback;
 			case MARK:
 				isAfterSearch = TwoWayCommand.listedIndexType;
-				showCommand = new ShowAllCommand(modelHandler, view);
+
 				s = new MarkCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
-				showCommand.execute();
+
 				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_MARK)) {
-					commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
+					commandHistory.updateCommand((TwoWayCommand) s,
+							isAfterSearch);
 					dataFile.storeToFile();
+					showCommand = new ShowAllCommand(modelHandler, view);
+					showCommand.execute();
 				}
 				return feedback;
 			case UNMARK:
 				isAfterSearch = TwoWayCommand.listedIndexType;
-				showCommand = new ShowAllCommand(modelHandler, view);
+
 				s = new UnmarkCommand(parsedUserCommand, modelHandler, view);
 				feedback = s.execute();
-				showCommand.execute();
+
 				if (feedback.equals(Command.MESSAGE_SUCCESSFUL_UNMARK)) {
-					commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
+					commandHistory.updateCommand((TwoWayCommand) s,
+							isAfterSearch);
 					dataFile.storeToFile();
+					showCommand = new ShowAllCommand(modelHandler, view);
+					showCommand.execute();
 				}
 				return feedback;
 				// case SETTINGS:
@@ -340,7 +365,7 @@ public class Control extends Application {
 
 	public static void sortList(ObservableList<Task> list) {
 		Collections.sort(list);
-		for(int i = 0;i<list.size();i++) {
+		for (int i = 0; i < list.size(); i++) {
 			list.get(i).setIndexInList(i);
 		}
 	}
