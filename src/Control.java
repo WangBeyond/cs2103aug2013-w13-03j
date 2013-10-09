@@ -16,26 +16,26 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 public class Control extends Application {
-	private static final String MESSAGE_INVALID_COMMAND_TYPE = "Invalid Command Type!";
-	private static final String MESSAGE_EMPTY_COMMAND = "Empty Command!";
-	private static final String MESSAGE_INVALID_UNDO = "You cannot undo anymore!";
-	private static final String MESSAGE_INVALID_REDO = "You cannot redo anymore!";
-	private static final String MESSAGE_SUCCESSFUL_REDO = "Redo was successful.";
-	private static final String MESSAGE_ADD_TIP = "<add> <task info 1> <task info 2> <task info 3> <task info 4> ...";
-	private static final String MESSAGE_EDIT_TIP = "<edit/mod/modify> <index> <task info 1> <task info 2> <task info 3> ...";
-	private static final String MESSAGE_REMOVE_TIP = "<delete/del/remove/rm> <index 1> <index 2> <index 3> ...";
-	private static final String MESSAGE_SEARCH_TIP = "<search/find> <task info 1> <task info 2> <task info 3> ...";
-	private static final String MESSAGE_TODAY_TIP = "<today>";
-	private static final String MESSAGE_SHOW_ALL_TIP = "<show/all/list/ls>";
-	private static final String MESSAGE_CLEAR_ALL_TIP = "<clear/clr>";
-	private static final String MESSAGE_UNDO_TIP = "<undo>";
-	private static final String MESSAGE_REDO_TIP = "<redo>";
-	private static final String MESSAGE_MARK_TIP = "<mark> <index 1> <index 2> <index 3> ...";
-	private static final String MESSAGE_UNMARK_TIP = "<unmark> <index 1> <index 2> <index 3> ...";
-	private static final String MESSAGE_COMPLETE_TIP = "<complete/done> <index 1> <index 2> <index 3> ...";
-	private static final String MESSAGE_INCOMPLETE_TIP = "<incomplete/undone> <index 1> <index 2> <index 3> ...";
-	private static final String MESSAGE_EXIT_TIP = "<exit>";
-	private static final String MESSAGE_REQUEST_COMMAND = "Please enter a command";
+	static final String MESSAGE_INVALID_COMMAND_TYPE = "Invalid Command Type!";
+	static final String MESSAGE_EMPTY_COMMAND = "Empty Command!";
+	static final String MESSAGE_INVALID_UNDO = "You cannot undo anymore!";
+	static final String MESSAGE_INVALID_REDO = "You cannot redo anymore!";
+	static final String MESSAGE_SUCCESSFUL_REDO = "Redo was successful.";
+	static final String MESSAGE_ADD_TIP = "<add> <task info 1> <task info 2> <task info 3> <task info 4> ...";
+	static final String MESSAGE_EDIT_TIP = "<edit/mod/modify> <index> <task info 1> <task info 2> <task info 3> ...";
+	static final String MESSAGE_REMOVE_TIP = "<delete/del/remove/rm> <index 1> <index 2> <index 3> ...";
+	static final String MESSAGE_SEARCH_TIP = "<search/find> <task info 1> <task info 2> <task info 3> ...";
+	static final String MESSAGE_TODAY_TIP = "<today>";
+	static final String MESSAGE_SHOW_ALL_TIP = "<show/all/list/ls>";
+	static final String MESSAGE_CLEAR_ALL_TIP = "<clear/clr>";
+	static final String MESSAGE_UNDO_TIP = "<undo>";
+	static final String MESSAGE_REDO_TIP = "<redo>";
+	static final String MESSAGE_MARK_TIP = "<mark> <index 1> <index 2> <index 3> ...";
+	static final String MESSAGE_UNMARK_TIP = "<unmark> <index 1> <index 2> <index 3> ...";
+	static final String MESSAGE_COMPLETE_TIP = "<complete/done> <index 1> <index 2> <index 3> ...";
+	static final String MESSAGE_INCOMPLETE_TIP = "<incomplete/undone> <index 1> <index 2> <index 3> ...";
+	static final String MESSAGE_EXIT_TIP = "<exit>";
+	static final String MESSAGE_REQUEST_COMMAND = "Please enter a command";
 
 	public static final int VALID = 1;
 	public static final int INVALID = -1;
@@ -91,61 +91,116 @@ public class Control extends Application {
 					public void changed(ObservableValue<? extends String> ov,
 							String oldValue, String newValue) {
 						String command = view.commandLine.getText();
-						if (Parser.checkEmptyCommand(command)) {
-							view.feedback.setFill(Color.WHITE);
-							view.feedback.setText(MESSAGE_REQUEST_COMMAND);
+						if(!View.isTextColored) {
+							if (Parser.checkEmptyCommand(command)) {
+								view.feedback.setFill(Color.WHITE);
+								view.feedback.setText(MESSAGE_REQUEST_COMMAND);
+							} else {
+								Parser.COMMAND_TYPES commandType = Parser
+										.determineCommandType(command);
+								if (commandType == Parser.COMMAND_TYPES.INVALID) {
+									view.feedback.setFill(Color.WHITE);
+									view.feedback.setText(MESSAGE_REQUEST_COMMAND);
+								} else {
+									view.feedback.setFill(Color.rgb(130, 255, 121));
+									switch (commandType) {
+									case ADD:
+										view.feedback.setText(MESSAGE_ADD_TIP);
+										break;
+									case EDIT:
+										view.feedback.setText(MESSAGE_EDIT_TIP);
+										break;
+									case REMOVE:
+										view.feedback.setText(MESSAGE_REMOVE_TIP);
+										break;
+									case SEARCH:
+										view.feedback.setText(MESSAGE_SEARCH_TIP);
+										break;
+									case SHOW_ALL:
+										view.feedback.setText(MESSAGE_SHOW_ALL_TIP);
+										break;
+									case UNDO:
+										view.feedback.setText(MESSAGE_UNDO_TIP);
+										break;
+									case REDO:
+										view.feedback.setText(MESSAGE_REDO_TIP);
+										break;
+									case MARK:
+										view.feedback.setText(MESSAGE_MARK_TIP);
+										break;
+									case UNMARK:
+										view.feedback.setText(MESSAGE_UNMARK_TIP);
+										break;
+									case COMPLETE:
+										view.feedback.setText(MESSAGE_COMPLETE_TIP);
+										break;
+									case INCOMPLETE:
+										view.feedback.setText(MESSAGE_INCOMPLETE_TIP);
+										break;
+									case TODAY:
+										view.feedback.setText(MESSAGE_TODAY_TIP);
+										break;
+									case CLEAR_ALL:
+										view.feedback
+												.setText(MESSAGE_CLEAR_ALL_TIP);
+										break;
+									case EXIT:
+										view.feedback.setText(MESSAGE_EXIT_TIP);
+										break;
+									}
+								}
+								} 
+							}
+						else if (Parser.checkEmptyCommand(command)) {
+							view.setFeedback(MESSAGE_REQUEST_COMMAND);
 						} else {
 							Parser.COMMAND_TYPES commandType = Parser
 									.determineCommandType(command);
 							if (commandType == Parser.COMMAND_TYPES.INVALID) {
-								view.feedback.setFill(Color.WHITE);
-								view.feedback.setText(MESSAGE_REQUEST_COMMAND);
+								view.setFeedback(command);
 							} else {
-								view.feedback.setFill(Color.rgb(130, 255, 121));
 								switch (commandType) {
 								case ADD:
-									view.feedback.setText(MESSAGE_ADD_TIP);
+									view.setFeedback(MESSAGE_ADD_TIP);
 									break;
 								case EDIT:
-									view.feedback.setText(MESSAGE_EDIT_TIP);
+									view.setFeedback(MESSAGE_EDIT_TIP);
 									break;
 								case REMOVE:
-									view.feedback.setText(MESSAGE_REMOVE_TIP);
+									view.setFeedback(MESSAGE_REMOVE_TIP);
 									break;
 								case SEARCH:
-									view.feedback.setText(MESSAGE_SEARCH_TIP);
+									view.setFeedback(MESSAGE_SEARCH_TIP);
 									break;
 								case SHOW_ALL:
-									view.feedback.setText(MESSAGE_SHOW_ALL_TIP);
+									view.setFeedback(MESSAGE_SHOW_ALL_TIP);
 									break;
 								case UNDO:
-									view.feedback.setText(MESSAGE_UNDO_TIP);
+									view.setFeedback(MESSAGE_UNDO_TIP);
 									break;
 								case REDO:
-									view.feedback.setText(MESSAGE_REDO_TIP);
+									view.setFeedback(MESSAGE_REDO_TIP);
 									break;
 								case MARK:
-									view.feedback.setText(MESSAGE_MARK_TIP);
+									view.setFeedback(MESSAGE_MARK_TIP);
 									break;
 								case UNMARK:
-									view.feedback.setText(MESSAGE_UNMARK_TIP);
+									view.setFeedback(MESSAGE_UNMARK_TIP);
 									break;
 								case COMPLETE:
-									view.feedback.setText(MESSAGE_COMPLETE_TIP);
+									view.setFeedback(MESSAGE_COMPLETE_TIP);
 									break;
 								case INCOMPLETE:
-									view.feedback
-											.setText(MESSAGE_INCOMPLETE_TIP);
+									view.setFeedback(MESSAGE_INCOMPLETE_TIP);
 									break;
 								case TODAY:
-									view.feedback.setText(MESSAGE_TODAY_TIP);
+									view.setFeedback(MESSAGE_TODAY_TIP);
 									break;
 								case CLEAR_ALL:
-									view.feedback
-											.setText(MESSAGE_CLEAR_ALL_TIP);
+									view.setFeedback(MESSAGE_CLEAR_ALL_TIP);
 									break;
 								case EXIT:
-									view.feedback.setText(MESSAGE_EXIT_TIP);
+									view.setFeedback(MESSAGE_EXIT_TIP);
 									break;
 								}
 							}
@@ -160,14 +215,22 @@ public class Control extends Application {
 					String feedback = executeCommand(view.commandLine.getText());
 					if (successfulExecution(feedback))
 						view.commandLine.setText("");
-					view.feedback.setFill(Color.WHITE);
-					view.feedback.setText(feedback);
+					if (!view.isTextColored) {
+						view.feedback.setFill(Color.WHITE);
+						view.feedback.setText(feedback);
+					} else {
+						view.setFeedbackStyle(0,feedback,Color.WHITE);
+					}
 				} else if (undo_hot_key.match(e)) {
 					String feedback = executeCommand("undo");
 					if (successfulExecution(feedback))
 						view.commandLine.setText("");
-					view.feedback.setFill(Color.WHITE);
-					view.feedback.setText(feedback);
+					if (!view.isTextColored) {
+						view.feedback.setFill(Color.WHITE);
+						view.feedback.setText(feedback);
+					} else {
+						view.setFeedbackStyle(0,feedback,Color.WHITE);
+					}
 					e.consume();
 				}
 			}
