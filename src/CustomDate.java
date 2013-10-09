@@ -24,7 +24,7 @@ public class CustomDate {
 	}
 
 	public static String convertString(CustomDate v) {
-		if(v == null)
+		if (v == null)
 			return "-";
 		GregorianCalendar target = v.targetDate;
 		int date = target.get(Calendar.DATE);
@@ -32,7 +32,8 @@ public class CustomDate {
 		int year = target.get(Calendar.YEAR);
 		int hour = target.get(Calendar.HOUR_OF_DAY);
 		int minute = target.get(Calendar.MINUTE);
-		return date + "/" + (month + 1) + "/" + year + " " + hour + ":" + minute;
+		return date + "/" + (month + 1) + "/" + year + " " + hour + ":"
+				+ minute;
 	}
 
 	// compareTo Function
@@ -278,6 +279,8 @@ public class CustomDate {
 			numElements = updateTomorrow(targetDate, numElements);
 		} else if (isTodayKeyWord(infos[startIndex])) {
 			numElements--;
+		} else if (isTonightKeyWord(infos[startIndex])) {
+			numElements--;
 		} else if (hasDayWord()) {
 			numElements = updateDateWithDay(infos, targetDate, numElements,
 					startIndex);
@@ -325,7 +328,10 @@ public class CustomDate {
 		} else {
 			numElements = updateTimeWith24Format(infos, targetDate, numElements);
 		}
-
+		if(dateInfo.contains("tonight")){
+			if(targetDate.get(Calendar.HOUR_OF_DAY) * 60 + targetDate.get(Calendar.MINUTE) < 12*60)
+				targetDate.setTimeInMillis(targetDate.getTimeInMillis() + 24*60*60*1000);
+		}
 		targetDate.set(Calendar.SECOND, 0);
 		return numElements;
 	}
@@ -447,6 +453,10 @@ public class CustomDate {
 		targetDate.set(Calendar.HOUR_OF_DAY, 0);
 		targetDate.set(Calendar.MINUTE, 0);
 		targetDate.set(Calendar.SECOND, 0);
+		if(dateInfo.contains("tonight")){
+			targetDate.set(Calendar.HOUR_OF_DAY, 23);
+			targetDate.set(Calendar.MINUTE, 59);
+		}
 	}
 
 	private static boolean isTomorrowKeyWord(String s) {
@@ -455,6 +465,10 @@ public class CustomDate {
 
 	private static boolean isTodayKeyWord(String s) {
 		return s.equals("today");
+	}
+
+	private static boolean isTonightKeyWord(String s) {
+		return s.equals("tonight");
 	}
 
 	private boolean hasTimeFormat() {
@@ -466,8 +480,9 @@ public class CustomDate {
 		boolean hasToday = dateInfo.contains("today");
 		boolean hasTomorrow = dateInfo.contains("tomorrow")
 				|| dateInfo.contains("tmr");
+		boolean hasTonight = dateInfo.contains("tonight");
 
-		return hasToday || hasTomorrow || hasDayWord();
+		return hasToday || hasTomorrow || hasDayWord() || hasTonight;
 	}
 
 	private boolean hasDayWord() {
@@ -686,6 +701,16 @@ public class CustomDate {
 						.get(Calendar.DATE);
 	}
 
+	public boolean isTonight() {
+		return targetDate.get(Calendar.YEAR) == currentDate.get(Calendar.YEAR)
+				&& targetDate.get(Calendar.MONTH) == currentDate
+						.get(Calendar.MONTH)
+				&& targetDate.get(Calendar.DATE) == currentDate
+						.get(Calendar.DATE)
+				&& targetDate.get(Calendar.HOUR_OF_DAY) == 23
+				&& targetDate.get(Calendar.MINUTE) == 59;
+	}
+
 	public String toString(boolean isStartDate) {
 		updateCurrentDate();
 		boolean hasTime = hasTime(isStartDate);
@@ -702,6 +727,9 @@ public class CustomDate {
 			}
 		}
 		String result = "";
+		if(isTonight())
+			return "Tonight";
+		
 		if (isToday())
 			result += "Today";
 		else {
