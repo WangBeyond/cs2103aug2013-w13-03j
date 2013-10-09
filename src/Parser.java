@@ -1,14 +1,15 @@
 import java.util.ArrayList;
 import java.util.Collections;
-
+import java.util.Vector;
 
 public class Parser {
 	static enum COMMAND_TYPES {
 		ADD, REMOVE, SEARCH, EDIT, COMPLETE, INCOMPLETE, UNDO, REDO, CLEAR_ALL, TODAY, SHOW_ALL, SYNC, SETTINGS, HELP, EXIT, INVALID, MARK, UNMARK
 	}
-	
-	//static enum INFO_TYPES { COMMANDTYPE, WROKFLOW, START_TIME, END_TIME, TAG, IMPORTANCE, REPEATING, INDEX, SEARCH_INFO }
-	
+
+	// static enum INFO_TYPES { COMMANDTYPE, WROKFLOW, START_TIME, END_TIME,
+	// TAG, IMPORTANCE, REPEATING, INDEX, SEARCH_INFO }
+
 	/* start date keys */
 	private static String[] startDateKeys = { "start from", "start at",
 			"start on", "begin from", "begin at", "begin on", "from", "on",
@@ -24,7 +25,7 @@ public class Parser {
 			"every wednesday", "every thursday", "every friday",
 			"every saturday", "every sunday", "every day", "every month",
 			"every year", "everyday", "every week" };
-	
+
 	public static final int INDEX_USELESS_INFO = -2;
 	public static final int INDEX_COMMAND_TYPE = -1;
 	public static final int INDEX_WORK_INFO = 0;
@@ -252,72 +253,82 @@ public class Parser {
 	}
 
 	/**
-	 * This method is used to parse the command when any key event occurs and highlight the command
-	 * to indicate the understanding of the command by the program to user to assist user to type more
-	 * exact command in real-time before the user presses Enter
+	 * This method is used to parse the command when any key event occurs and
+	 * highlight the command to indicate the understanding of the command by the
+	 * program to user to assist user to type more exact command in real-time
+	 * before the user presses Enter
+	 * 
 	 * @param command
-	
 	 */
 	public static ArrayList<InfoWithIndex> parseForView(String command) {
 		COMMAND_TYPES commandType = determineCommandType(command);
 		String[] result = parseCommand(command, commandType);
 		ArrayList<InfoWithIndex> infoList = new ArrayList<InfoWithIndex>();
-		//Add the commandType first
-		InfoWithIndex commandTypeInfo = new InfoWithIndex(getFirstWord(command),0, INDEX_COMMAND_TYPE);
+		// Add the commandType first
+		InfoWithIndex commandTypeInfo = new InfoWithIndex(
+				getFirstWord(command), 0, INDEX_COMMAND_TYPE);
 		infoList.add(commandTypeInfo);
-		//Add * if command has
-		if(command.contains(IMPT_MARK)) {
-			InfoWithIndex imptInfo = new InfoWithIndex(IMPT_MARK, command.indexOf(IMPT_MARK), INDEX_IS_IMPT);
+		// Add * if command has
+		if (command.contains(IMPT_MARK)) {
+			InfoWithIndex imptInfo = new InfoWithIndex(IMPT_MARK,
+					command.indexOf(IMPT_MARK), INDEX_IS_IMPT);
 			infoList.add(imptInfo);
 		}
-		
-		if(commandType == COMMAND_TYPES.EDIT) {
+
+		if (commandType == COMMAND_TYPES.EDIT) {
 			String index = getFirstWord(removeFirstWord(command));
-			InfoWithIndex indexInfo = new InfoWithIndex(index, command.indexOf(index), INDEX_INDEX_INFO);
+			InfoWithIndex indexInfo = new InfoWithIndex(index,
+					command.indexOf(index), INDEX_INDEX_INFO);
 			infoList.add(indexInfo);
 		}
 
-		//First consider command with info
-		if (commandType == COMMAND_TYPES.ADD || commandType == COMMAND_TYPES.SEARCH || commandType == COMMAND_TYPES.EDIT) {
-			for(int infoIndex = 0; infoIndex<result.length;infoIndex++)	{
+		// First consider command with info
+		if (commandType == COMMAND_TYPES.ADD
+				|| commandType == COMMAND_TYPES.SEARCH
+				|| commandType == COMMAND_TYPES.EDIT) {
+			for (int infoIndex = 0; infoIndex < result.length; infoIndex++) {
 				String info = result[infoIndex];
-				if(command.contains(info)) {
+				if (command.contains(info)) {
 					int startIndex = command.indexOf(info);
 					int endIndex = startIndex + info.length();
 					int i = 0;
-					while( (endIndex+i)<command.length() && command.charAt(endIndex + i) == ' ' ) {
-							info += " ";
-							i++;
+					while ((endIndex + i) < command.length()
+							&& command.charAt(endIndex + i) == ' ') {
+						info += " ";
+						i++;
 					}
-					InfoWithIndex ci = new InfoWithIndex(info,startIndex, infoIndex);
+					InfoWithIndex ci = new InfoWithIndex(info, startIndex,
+							infoIndex);
 					infoList.add(ci);
 				}
 			}
 			Collections.sort(infoList);
-			
+
 			int keyInfoCount = infoList.size();
-			System.out.println(infoList.get(infoList.size()-1));
-			for(int i=0;i<keyInfoCount;i++) {
+			System.out.println(infoList.get(infoList.size() - 1));
+			for (int i = 0; i < keyInfoCount; i++) {
 				int startIndex = infoList.get(i).getEndIndex();
 				int endIndex;
-				if(i!=(keyInfoCount-1))
-					endIndex = infoList.get(i+1).getStartIndex();
-				else 
+				if (i != (keyInfoCount - 1))
+					endIndex = infoList.get(i + 1).getStartIndex();
+				else
 					endIndex = command.length();
-				if(startIndex < endIndex)
-					infoList.add(new InfoWithIndex(command.substring(startIndex,endIndex),startIndex, INDEX_USELESS_INFO));
+				if (startIndex < endIndex)
+					infoList.add(new InfoWithIndex(command.substring(
+							startIndex, endIndex), startIndex,
+							INDEX_USELESS_INFO));
 			}
 			Collections.sort(infoList);
-		} else { //Consider command with index, just add the part except commandType, since the command is verified
+		} else { // Consider command with index, just add the part except
+					// commandType, since the command is verified
 			int beginIndex = getFirstWord(command).length();
-			String indices=command.substring(beginIndex);
-			infoList.add(new InfoWithIndex(indices, 1 ,INDEX_INDEX_INFO));
+			String indices = command.substring(beginIndex);
+			infoList.add(new InfoWithIndex(indices, 1, INDEX_INDEX_INFO));
 		}
-		
+
 		return infoList;
 	}
 
-	
 	private static String[] getRepeatingType(String commandString) {
 		String repeatingKey = null;
 		for (int i = 0; i < repeatingKeys.length; i++) {
@@ -359,16 +370,38 @@ public class Parser {
 	 */
 	private static String[] parseCommandWithIndex(String content) {
 		String[] splittedUserCommand = splitBySpace(content);
+		Vector<String> indexList = new Vector<String>();
+
 		if (splittedUserCommand.length < 1)
 			throw new IllegalArgumentException("No indexes");
 
 		try {
-			for (String s : splittedUserCommand)
-				Integer.parseInt(s);
+			for (String s : splittedUserCommand) {
+				if (s.contains("-"))
+					processRange(indexList, s);
+				else
+					indexList.add(String.valueOf(Integer.parseInt(s)));
+			}
 		} catch (NumberFormatException e) {
 			throw new IllegalArgumentException("Index is invalid");
 		}
+
+		splittedUserCommand = indexList.toArray(new String[0]);
 		return splittedUserCommand;
+	}
+
+	private static void processRange(Vector<String> indexList, String s) {
+		String[] limits = s.split("-");
+		if (limits.length > 2)
+			throw new IllegalArgumentException("Invalid Range");
+		int startPoint, endPoint;
+		startPoint = Integer.parseInt(limits[0]);
+		endPoint = Integer.parseInt(limits[1]);
+		if (startPoint > endPoint)
+			throw new IllegalArgumentException(
+					"Invalid range as end point is smaller than start point");
+		for (int i = startPoint; i <= endPoint; i++)
+			indexList.add(String.valueOf(i));
 	}
 
 	/**
