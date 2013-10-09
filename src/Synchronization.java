@@ -38,7 +38,7 @@ public class Synchronization {
 	/*types of task status*/
 	
 	static enum Status {
-		UNCHANGED, NEWLY_ADDED, MODIFIED, DELETED
+		UNCHANGED, NEWLY_ADDED, DELETED
 	}
 	
 	/*use username and password to login*/
