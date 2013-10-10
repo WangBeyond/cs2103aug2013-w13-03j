@@ -258,7 +258,7 @@ public class View implements HotkeyListener {
 		HBox temp = new HBox();
 		temp.setSpacing(10);
 		commandLine = new TextField();
-		commandLine.setPrefWidth(670);
+		commandLine.setPrefWidth(630);
 
 		showOrHide = new Button();
 		showOrHide.setPrefSize(30, 30);
@@ -284,7 +284,7 @@ public class View implements HotkeyListener {
 		temp2.setSpacing(10);
 
 		commandLine = new TextField();
-		commandLine.setPrefWidth(670);
+		commandLine.setPrefWidth(630);
 		commandLine.setStyle("-fx-text-fill: darkgrey;");
 		commandLine.setOnKeyPressed(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent e) {

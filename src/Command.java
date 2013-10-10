@@ -38,7 +38,6 @@ public abstract class Command {
 	}
 	
 	public abstract String execute();
-
 }
 
 abstract class TwoWayCommand extends Command {
@@ -64,18 +63,21 @@ abstract class TwoWayCommand extends Command {
 			tabIndex = view.tabPane.getSelectionModel().getSelectedIndex();
 			ObservableList<Task> searchList;
 			TwoWayCommand.setIndexType(TwoWayCommand.SEARCHED);
-			if (tabIndex == PENDING_TAB)
+			if (tabIndex == PENDING_TAB) {
 				searchList = model.getSearchPendingList();
-			else if (tabIndex == COMPLETE_TAB)
+			} else if (tabIndex == COMPLETE_TAB) {
 				searchList = model.getSearchCompleteList();
-			else
+			} else{
 				searchList = model.getSearchTrashList();
-			if (prevIndex < 0 || prevIndex >= searchList.size())
+			}
+			if (prevIndex < 0 || prevIndex >= searchList.size()){
 				return INVALID;
+			}
 			return searchList.get(prevIndex).getIndexInList();
 		} else {
-			if (prevIndex < 0 || prevIndex >= modifiedList.size())
+			if (prevIndex < 0 || prevIndex >= modifiedList.size()) {
 				return INVALID;
+			}
 			return prevIndex;
 		}
 	}
