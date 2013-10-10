@@ -13,6 +13,7 @@ import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 public class Control extends Application {
@@ -156,6 +157,17 @@ public class Control extends Application {
 				if (e.getCode() == KeyCode.ENTER) {
 					String feedback = executeCommand(view.commandLine.getText());
 					updateFeedback(feedback);
+				} else if(e.getCode() == KeyCode.BACK_SPACE) {
+					//view.hideCursor();
+					for(int i = view.textList.size()-1 ; i>=0 ;i-- ) {
+						String str = view.textList.get(i).getText();
+						if(!str.equals("")) {
+							view.textList.get(i).setText(str.substring(0,str.length()));
+							System.out.println(view.textList.get(i).getText());
+							break;
+						} else if(i==0)
+							break;
+					}
 				} else if (undo_hot_key.match(e)) {
 					String feedback = executeCommand("undo");
 					updateFeedback(feedback);

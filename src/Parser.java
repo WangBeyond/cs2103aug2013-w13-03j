@@ -46,7 +46,10 @@ public class Parser {
 	public static final String NULL = "null";
 	public static final String START_KEY = "start key";
 	public static final String END_KEY = "end key";
-
+	
+	private static final int START_DATE = 0;
+	private static final int END_DATE = 1;
+	
 	private static final int VALID = 1;
 	private static final int INVALID = -1;
 	/**
@@ -254,166 +257,8 @@ public class Parser {
 		return parsedCommand;
 	}
 
-	/**
-	 * This method is used to parse the command when any key event occurs and
-	 * highlight the command to indicate the understanding of the command by the
-	 * program to user to assist user to type more exact command in real-time
-	 * before the user presses Enter
-	 * 
-	 * @param command
-	 */
-	public static ArrayList<InfoWithIndex> parseForView(String command) {
-		COMMAND_TYPES commandType = determineCommandType(command);
-		String[] result = parseCommand(command, commandType);
-		ArrayList<InfoWithIndex> infoList = new ArrayList<InfoWithIndex>();
-		// Add the commandType first
-		InfoWithIndex commandTypeInfo = new InfoWithIndex(
-				getFirstWord(command), 0, INDEX_COMMAND_TYPE);
-		infoList.add(commandTypeInfo);
-		// Add * if command has
-		if (command.contains(IMPT_MARK)) {
-			InfoWithIndex imptInfo = new InfoWithIndex(IMPT_MARK,
-					command.indexOf(IMPT_MARK), INDEX_IS_IMPT);
-			infoList.add(imptInfo);
-		}
+	
 
-		if (commandType == COMMAND_TYPES.EDIT) {
-			String index = getFirstWord(removeFirstWord(command));
-			InfoWithIndex indexInfo = new InfoWithIndex(index,
-					command.indexOf(index), INDEX_INDEX_INFO);
-			infoList.add(indexInfo);
-		}
-
-		// First consider command with info
-		if (commandType == COMMAND_TYPES.ADD
-				|| commandType == COMMAND_TYPES.SEARCH
-				|| commandType == COMMAND_TYPES.EDIT) {
-			for (int infoIndex = 0; infoIndex < result.length; infoIndex++) {
-				String info = result[infoIndex];
-
-				// append the preposition of startDate keys to date info
-				if (infoIndex == INDEX_START_DATE && info != NULL) {
-					int startIndex = command.indexOf(info);
-					int secondSpaceIndex = startIndex - 2;
-					while (secondSpaceIndex > 0
-							&& command.charAt(secondSpaceIndex) != ' ') {
-						secondSpaceIndex--;
-					}
-					int firstSpaceIndex = secondSpaceIndex - 1;
-					while (firstSpaceIndex > 0
-							&& command.charAt(firstSpaceIndex) != ' ') {
-						firstSpaceIndex--;
-					}
-					if (getDoesArrayContain(startDateKeys,
-							command.substring(firstSpaceIndex + 1, startIndex)))
-						info = command.substring(firstSpaceIndex + 1,
-								startIndex) + info;
-					else if (getDoesArrayContain(startDateKeys,
-							command.substring(secondSpaceIndex + 1, startIndex)))
-						info = command.substring(secondSpaceIndex + 1,
-								startIndex) + info;
-				}
-
-				// append the preposition of endDate keys to date info
-				if (infoIndex == INDEX_END_DATE && info != NULL) {
-					int startIndex = command.indexOf(info);
-					int secondSpaceIndex = startIndex - 2;
-					while (secondSpaceIndex > 0
-							&& command.charAt(secondSpaceIndex) != ' ') {
-						secondSpaceIndex--;
-					}
-					int firstSpaceIndex = secondSpaceIndex - 1;
-					while (firstSpaceIndex > 0
-							&& command.charAt(firstSpaceIndex) != ' ') {
-						firstSpaceIndex--;
-					}
-					if (getDoesArrayContain(endDateKeys,
-							command.substring(firstSpaceIndex + 1, startIndex)))
-						info = command.substring(firstSpaceIndex + 1,
-								startIndex) + info;
-					else if (getDoesArrayContain(endDateKeys,
-							command.substring(secondSpaceIndex + 1, startIndex)))
-						info = command.substring(secondSpaceIndex + 1,
-								startIndex) + info;
-				}
-				if (command.contains(info)) {
-					int startIndex = command.indexOf(info);
-					int endIndex = startIndex + info.length();
-					int i = 0;
-					while ((endIndex + i) < command.length()
-							&& command.charAt(endIndex + i) == ' ') {
-						info += " ";
-						i++;
-					}
-					InfoWithIndex ci = new InfoWithIndex(info, startIndex,
-							infoIndex);
-					infoList.add(ci);
-				}
-			}
-			Collections.sort(infoList);
-
-			int keyInfoCount = infoList.size();
-			for (int i = 0; i < keyInfoCount; i++) {
-				int startIndex = infoList.get(i).getEndIndex();
-				int endIndex;
-				if (i != (keyInfoCount - 1))
-					endIndex = infoList.get(i + 1).getStartIndex();
-				else
-					endIndex = command.length();
-				if (startIndex < endIndex)
-					infoList.add(new InfoWithIndex(command.substring(
-							startIndex, endIndex), startIndex,
-							INDEX_USELESS_INFO));
-			}
-			Collections.sort(infoList);
-		} else { // Consider command with index, just add the part except
-					// commandType, since the command is verified
-			int beginIndex = getFirstWord(command).length();
-			String indices = command.substring(beginIndex);
-			infoList.add(new InfoWithIndex(indices, 1, INDEX_INDEX_INFO));
-		}
-
-		return infoList;
-	}
-
-	private static boolean getDoesArrayContain(String[] array, String element) {
-		element = element.trim();
-		for (int i = 0; i < array.length; i++)
-			if (array[i].equals(element))
-				return true;
-		return false;
-	}
-
-	private static String[] getRepeatingType(String commandString) {
-		String repeatingKey = null;
-		for (int i = 0; i < repeatingKeys.length; i++) {
-			if (commandString.toLowerCase().contains(repeatingKeys[i])) {
-				if (repeatingKey == null)
-					repeatingKey = repeatingKeys[i];
-				else
-					throw new IllegalArgumentException(
-							"Invalid Command: More than 1 repetitive signals");
-				commandString = commandString.replace(repeatingKey, "");
-				break;
-			}
-		}
-		return new String[] { commandString, getRepeatingTag(repeatingKey) };
-	}
-
-	private static String getRepeatingTag(String key) {
-		if (key == null)
-			return Parser.NULL;
-		if (key.equals("every day") || key.equals("daily")
-				|| key.equals("everyday"))
-			return "daily";
-		else if (key.equals("monthly") || key.equals("every month"))
-			return "monthly";
-		else if (key.equals("yearly") || key.equals("every year")
-				|| key.equals("annually"))
-			return "yearly";
-		else
-			return "weekly";
-	}
 
 	/**
 	 * This method is used to parse content of commands filled with indexes to
@@ -459,6 +304,74 @@ public class Parser {
 			indexList.add(String.valueOf(i));
 	}
 
+
+	/**
+	 * This method is used to parse the command when any key event occurs and
+	 * highlight the command to indicate the understanding of the command by the
+	 * program to user to assist user to type more exact command in real-time
+	 * before the user presses Enter
+	 * 
+	 * @param command
+	 */
+	public static ArrayList<InfoWithIndex> parseForView(String command) {
+		COMMAND_TYPES commandType = determineCommandType(command);
+		String[] result = parseCommand(command, commandType);
+		ArrayList<InfoWithIndex> infoList = new ArrayList<InfoWithIndex>();
+		// Add the commandType first
+		String commandTypeStr = completeWithSpace(getFirstWord(command), command, 0);
+		InfoWithIndex commandTypeInfo = new InfoWithIndex(commandTypeStr, 0, INDEX_COMMAND_TYPE);
+		infoList.add(commandTypeInfo);
+		// Add * if command has
+		if (command.contains(IMPT_MARK)) {
+			String markStr = completeWithSpace(IMPT_MARK, command, command.indexOf(IMPT_MARK));
+			System.out.println(markStr+" mark");
+			InfoWithIndex imptInfo = new InfoWithIndex(markStr,command.indexOf(IMPT_MARK), INDEX_IS_IMPT);
+			infoList.add(imptInfo);
+		}
+
+		if (commandType == COMMAND_TYPES.EDIT) {
+			String index = getFirstWord(removeFirstWord(command));
+			String indexWithSpace = completeWithSpace(index ,command, command.indexOf(index));
+			InfoWithIndex indexInfo = new InfoWithIndex(indexWithSpace, command.indexOf(index), INDEX_INDEX_INFO);
+			infoList.add(indexInfo);
+		}
+
+		// First consider command with info
+		if (commandType == COMMAND_TYPES.ADD
+				|| commandType == COMMAND_TYPES.SEARCH
+				|| commandType == COMMAND_TYPES.EDIT) {
+			for (int infoIndex = 0; infoIndex < result.length; infoIndex++) {
+				String info = result[infoIndex];
+				// append the preposition or date keys with date info
+				if (infoIndex == INDEX_START_DATE && info != NULL) 
+					info = appendWithDateKey(info,command, START_DATE);
+				if (infoIndex == INDEX_END_DATE && info != NULL) 
+					info = appendWithDateKey(info,command, END_DATE);
+				
+				if (command.contains(info)) {
+					//To get the index of workflow, we need to get rid of the commandType string first,
+					//otherwise some mistakes make occur: eg: add ad will return workflow index 1
+					int startIndex;
+					if(infoIndex == INDEX_WORK_INFO) {
+						String temp = command.substring(commandTypeStr.length());
+						startIndex = temp.indexOf(info) + commandTypeStr.length();
+					} else
+						startIndex = command.indexOf(info);
+					info = completeWithSpace(info, command, startIndex);
+					InfoWithIndex ci = new InfoWithIndex(info, startIndex, infoIndex);
+					infoList.add(ci);
+				}
+			}
+			infoList = addInUselessInfo(infoList, command);
+		} else { // Consider command with index, just add the part except commandType
+			int beginIndex = commandTypeStr.length();
+			String indices = command.substring(beginIndex);
+			infoList.add(new InfoWithIndex(indices, 1, INDEX_INDEX_INFO));
+		}
+		return infoList;
+	}
+	
+	
 	/**
 	 * This method is used to check a command string for valid date and remove
 	 * the valid date from this command string. If the command string contains
@@ -519,6 +432,143 @@ public class Parser {
 			return new String[] { commandString, dateString };
 	}
 
+	
+	/*********************** some methods used for parseView ***********************************************/
+	
+	/**
+	 * append the date with its front preposition like start from or so on
+	 * @param date
+	 * @param command
+	 * @param startOrEnd 
+	 * 				is the date type start date or end date
+	 * @return the date with preposition in front
+	 */
+	private static String appendWithDateKey(String date, String command, int startOrEnd) {
+		int startIndex = command.indexOf(date);
+		int secondSpaceIndex = startIndex - 2;
+		String dateWithPreposition = date;
+		while (secondSpaceIndex > 0
+				&& command.charAt(secondSpaceIndex) != ' ') {
+			secondSpaceIndex--;
+		}
+		int firstSpaceIndex = secondSpaceIndex - 1;
+		while (firstSpaceIndex > 0
+				&& command.charAt(firstSpaceIndex) != ' ') {
+			firstSpaceIndex--;
+		}
+		if (getDoesArrayContain(startOrEnd == START_DATE? startDateKeys :endDateKeys ,
+				command.substring(firstSpaceIndex + 1, startIndex)))
+			dateWithPreposition = command.substring(firstSpaceIndex + 1,
+					startIndex) + date;
+		else if (getDoesArrayContain(startOrEnd == START_DATE? startDateKeys :endDateKeys ,
+				command.substring(secondSpaceIndex + 1, startIndex)))
+			dateWithPreposition = command.substring(secondSpaceIndex + 1,
+					startIndex) + date;
+		return dateWithPreposition;
+	}
+	
+	/**
+	 * add the remaining info without highlighted by parser to infoList with InfoType: INDEX_USELESS_INFO
+	 * @param infoList
+	 * @param command
+	 * @return complete infoList
+	 */
+	private static ArrayList<InfoWithIndex> addInUselessInfo(ArrayList<InfoWithIndex> infoList, String command) {
+		Collections.sort(infoList);
+		int keyInfoCount = infoList.size();
+		for (int i = 0; i < keyInfoCount; i++) {
+			int startIndex = infoList.get(i).getEndIndex();
+			int endIndex;
+			if (i != (keyInfoCount - 1))
+				endIndex = infoList.get(i + 1).getStartIndex();
+			else
+				endIndex = command.length();
+			if (startIndex < endIndex)
+				infoList.add(new InfoWithIndex(command.substring(
+						startIndex, endIndex), startIndex,
+						INDEX_USELESS_INFO));
+		}
+		Collections.sort(infoList);
+		return infoList;
+	}
+	
+	
+	/**
+	 * complete a info with its rear spaces
+	 * @param info
+	 * @param command
+	 * @param startIndex
+	 * @return info with space
+	 */
+	private static String completeWithSpace(String info, String command, int startIndex) {
+		int endIndex = startIndex + info.length();
+		int i = 0;
+		while ((endIndex + i) < command.length()
+			&& command.charAt(endIndex + i) == ' ') {
+		info += " ";
+		i++;
+		}
+		return info;
+	}
+	
+	/**
+	 * Justify does the array contain one specific string
+	 * @param array
+	 * @param element
+	 * @return boolean result
+	 */
+	private static boolean getDoesArrayContain(String[] array, String element) {
+		element = element.trim();
+		for (int i = 0; i < array.length; i++)
+			if (array[i].equals(element))
+				return true;
+		return false;
+	}
+	
+	
+	/************************** assisting methods for parseCommandWithInfo****************************************/
+	
+	/**
+	 * retrieve the repeating type from the command string
+	 * @param commandString
+	 * @return a string array including command string and repeating tag
+	 */	
+	private static String[] getRepeatingType(String commandString) {
+		String repeatingKey = null;
+		for (int i = 0; i < repeatingKeys.length; i++) {
+			if (commandString.toLowerCase().contains(repeatingKeys[i])) {
+				if (repeatingKey == null)
+					repeatingKey = repeatingKeys[i];
+				else
+					throw new IllegalArgumentException(
+							"Invalid Command: More than 1 repetitive signals");
+				commandString = commandString.replace(repeatingKey, "");
+				break;
+			}
+		}
+		return new String[] { commandString, getRepeatingTag(repeatingKey) };
+	}
+	
+	/**
+	 * Get the repeating tag of the task by the repeating key
+	 * @param key
+	 * @return repeating tag
+	 */
+	private static String getRepeatingTag(String key) {
+		if (key == null)
+			return Parser.NULL;
+		if (key.equals("every day") || key.equals("daily")
+				|| key.equals("everyday"))
+			return "daily";
+		else if (key.equals("monthly") || key.equals("every month"))
+			return "monthly";
+		else if (key.equals("yearly") || key.equals("every year")
+				|| key.equals("annually"))
+			return "yearly";
+		else
+			return "weekly";
+	}
+	
 	/**
 	 * Checks whether a string is a valid date or not.
 	 * 
@@ -827,6 +877,12 @@ public class Parser {
 	}
 }
 
+/**
+ * class infoWithIndex is assisting parseForView to install the information of parsed command
+ * and reflects on commandLine and feedback
+ *
+ *
+ */
 class InfoWithIndex implements Comparable<InfoWithIndex> {
 	String info;
 	int startIndex;

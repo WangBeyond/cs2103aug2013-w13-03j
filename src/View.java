@@ -111,10 +111,11 @@ public class View implements HotkeyListener {
 	private static String[] COMMAND_TYPES = { "add", "remove", "rm", "delete",
 			"del", "edit", "mod", "modify", "search", "find", "clear", "clr",
 			"undo", "redo", "mark", "unmark", "complete", "done", "incomplete",
-			"undone", "exit", "sync", "show", "all", "list", "ls", "today" };
+			"undone", "exit", "sync", "show", "all", "list", "ls", "today" ,"help"};
 	public HBox feedbacks;
 	private static Color IDO_GREEN = Color.rgb(130, 255, 121);
-
+	//private HBox multiColorCommand;
+	
 	// The 3 sections
 	VBox bottom;
 	HBox center;
@@ -146,7 +147,7 @@ public class View implements HotkeyListener {
 
 		// add 10 texts to textList
 		textList.clear();
-		for (int i = 0; i < 15; i++) {
+		for (int i = 0; i < 10; i++) {
 			textList.add(new Text());
 		}
 		hideInSystemTray();
@@ -232,12 +233,11 @@ public class View implements HotkeyListener {
 		bottom.setSpacing(5);
 		bottom.setPadding(new Insets(0, 0, 5, 44));
 
-		HBox upperPart1 = new HBox();
-		HBox upperPart2 = new HBox();
+		HBox upperPart = new HBox();
 		if (isTextColored)
-			upperPart1 = createNewUpperPartInBottom();
+			upperPart = createNewUpperPartInBottom();
 		else
-			upperPart2 = createUpperPartInBottom();
+			upperPart = createUpperPartInBottom();
 
 		feedbacks = new HBox();
 		feedbacks.setSpacing(5);
@@ -249,9 +249,8 @@ public class View implements HotkeyListener {
 			feedbacks.getChildren().add(feedbackList.get(i));
 		}
 		feedbackList.get(0).setText("Please enter a command");
-		bottom.getChildren().addAll(isTextColored ? upperPart1 : upperPart2,
+		bottom.getChildren().addAll(upperPart,
 				feedbacks);
-
 	}
 
 	private HBox createUpperPartInBottom() {
@@ -279,10 +278,12 @@ public class View implements HotkeyListener {
 
 	private HBox createNewUpperPartInBottom() {
 		HBox temp2 = new HBox();
+		HBox multiColorCommandFront = new HBox();
+		HBox multiColorCommandRear = new HBox();
 		HBox multiColorCommand = new HBox();
 		Pane temp = new Pane();
 		temp2.setSpacing(10);
-
+		
 		commandLine = new TextField();
 		commandLine.setPrefWidth(670);
 		commandLine.setStyle("-fx-text-fill: darkgrey;");
@@ -299,6 +300,8 @@ public class View implements HotkeyListener {
 						textList.get(i).setText("");
 				}
 				String temporaryCommand = commandLine.getText();
+				System.out.println("command " + temporaryCommand);
+				//displayCursor();
 				try {
 					ArrayList<InfoWithIndex> infoList = Parser
 							.parseForView(temporaryCommand);
@@ -311,6 +314,10 @@ public class View implements HotkeyListener {
 						text.setStyle("-fx-font: 15.0px Ubantu;");
 						text.setTextAlignment(TextAlignment.LEFT);
 						text.setFill(colors[info.getInfoType() + 2]);
+						System.out.print(info.getInfo()+" "+info.getInfoType()+"  ");
+					}
+					for(int i =5;i<textList.size();i++) {
+						textList.get(i).setLayoutX(10);
 					}
 					displayCursor();
 				} catch (Exception ex) {
@@ -323,26 +330,26 @@ public class View implements HotkeyListener {
 
 			}
 		});
+		
 		showOrHide = new Button();
 		showOrHide.setPrefSize(30, 30);
 		showOrHide.setId("smaller");
 		hookUpEventForShowOrHide();
-
-		for (Text text : textList) {
-			multiColorCommand.getChildren().add(text);
+		//multiColorCommand add texts of different colors.
+		for (int i =0 ;i<4;i++) {
+			multiColorCommandFront.getChildren().add(textList.get(i));
 		}
+		for (int i=4;i<textList.size();i++) {
+			multiColorCommandRear.getChildren().add(textList.get(i));
+		}
+		multiColorCommand.getChildren().addAll(multiColorCommandFront,multiColorCommandRear);
+		multiColorCommandFront.setSpacing(-0.50001);
+		multiColorCommandRear.setSpacing(-0.50001);
 		multiColorCommand.setLayoutX(7);
 		multiColorCommand.setLayoutY(5);
-		multiColorCommand.setSpacing(-0.50001);
-		StackPane.setMargin(multiColorCommand, new Insets(0, 100, 0, 0));
+		multiColorCommand.setSpacing(1);
 		temp.getChildren().addAll(commandLine, multiColorCommand);
 		temp2.getChildren().addAll(temp, showOrHide);
-		/*
-		 * temp2.getChildren().addAll(commandLine, showOrHide);
-		 * //temp2.setLayoutX(0); temp.setAlignment(Pos.CENTER_LEFT);
-		 * temp.getChildren().addAll(temp2, multiColorCommand);
-		 */
-
 		return temp2;
 	}
 
@@ -913,7 +920,10 @@ public class View implements HotkeyListener {
 				|| feedback.equals(Control.MESSAGE_INVALID_UNDO)
 				|| feedback.equals(Control.MESSAGE_INVALID_REDO)
 				|| feedback.equals(Control.MESSAGE_EXIT_TIP)
-				|| feedback.equals(Control.MESSAGE_TODAY_TIP)) {
+				|| feedback.equals(Control.MESSAGE_TODAY_TIP)
+				|| feedback.equals(Control.MESSAGE_SHOW_ALL_TIP)
+				|| feedback.equals(Control.MESSAGE_UNDO_TIP)
+				|| feedback.equals(Control.MESSAGE_REDO_TIP)) {
 			setFeedbackStyle(0, feedback, Color.WHITE);
 			emptyFeedback(1);
 		} else {
@@ -950,18 +960,6 @@ public class View implements HotkeyListener {
 				setFeedbackStyle(4, "<importance *>", Color.RED);
 				setFeedbackStyle(5, "<#tag>", Color.ORANGE);
 				emptyFeedback(6);
-				break;
-			case Control.MESSAGE_SHOW_ALL_TIP:
-				setFeedbackStyle(0, Control.MESSAGE_SHOW_ALL_TIP, IDO_GREEN);
-				emptyFeedback(1);
-				break;
-			case Control.MESSAGE_UNDO_TIP:
-				setFeedbackStyle(0, Control.MESSAGE_UNDO_TIP, IDO_GREEN);
-				emptyFeedback(1);
-				break;
-			case Control.MESSAGE_REDO_TIP:
-				setFeedbackStyle(0, Control.MESSAGE_UNDO_TIP, IDO_GREEN);
-				emptyFeedback(1);
 				break;
 			case Control.MESSAGE_MARK_TIP:
 				setFeedbackStyle(0, "<mark>", IDO_GREEN);
