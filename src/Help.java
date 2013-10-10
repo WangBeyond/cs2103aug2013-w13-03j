@@ -1,17 +1,23 @@
+import javafx.event.EventHandler;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
+// TODO: close function, show the alternate time formats
 public class Help {
 
 	private Scene helpScene;
 	private Stage helpStage;
 	private StackPane root;
+	
+	double dragAnchorX;
+	double dragAnchorY;
 	
 	public Help(){
 		setupStage();
@@ -19,6 +25,7 @@ public class Help {
 		root.getChildren().add(getHelpImage());
 		helpScene = new Scene(root, 600, 730);
 		helpStage.setScene(helpScene);
+		setupDraggable();
 	}
 	
 	public void showHelpPage(){
@@ -45,5 +52,23 @@ public class Help {
 		helpPage.setCache(true);
 		
 		return helpPage;
+	}
+	
+	private void setupDraggable() {
+		root.setOnMousePressed(new EventHandler<MouseEvent>() {
+			@Override
+			public void handle(MouseEvent me) {
+				dragAnchorX = me.getScreenX() - helpStage.getX();
+				dragAnchorY = me.getScreenY() - helpStage.getY();
+			}
+		});
+
+		root.setOnMouseDragged(new EventHandler<MouseEvent>() {
+			@Override
+			public void handle(MouseEvent me) {
+				helpStage.setX(me.getScreenX() - dragAnchorX);
+				helpStage.setY(me.getScreenY() - dragAnchorY);
+			}
+		});
 	}
 }
