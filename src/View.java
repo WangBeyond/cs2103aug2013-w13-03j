@@ -42,7 +42,6 @@ import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.BorderPaneBuilder;
@@ -214,13 +213,13 @@ public class View implements HotkeyListener {
 	}
 
 	private void setupScene() {
+		stage.setHeight(70);
 		scene = new Scene(root, Color.rgb(70, 70, 70));
 		customizeGUIWithCSS();
 		stage.setScene(scene);
 		stage.show();
 		removeTopAndCenter();
 		showOrHide.setId("larger");
-		stage.setHeight(70);
 	}
 
 	private void customizeGUIWithCSS() {
@@ -707,23 +706,27 @@ public class View implements HotkeyListener {
 	private void collapseAnimation() {
 		removeTopAndCenter();
 		showOrHide.setId("larger");
+		stage.setMinHeight(70.0);
 		Timer animTimer = new Timer();
-		animTimer.scheduleAtFixedRate(new TimerTask() {
+		animTimer.schedule(new TimerTask() {
 			@Override
 			public void run() {
-				if (stage.getHeight() > 70) {
-					stage.setHeight(stage.getHeight() - 10);
+				if (stage.getHeight() > 70.0) {
+					double i = stage.getHeight() - 10.0;
+					stage.setHeight(i);
+					stage.setMaxHeight(i);
 				} else {
 					this.cancel();
 				}
 			}
-		}, 0, 3);
+		}, 0, 5);
 	}
 
 	private void expandAnimation() {
 		Timer animTimer = new Timer();
 		root.setTop(top);
 		showOrHide.setId("smaller");
+		stage.setMaxHeight(540.0);
 		animTimer.schedule(new TimerTask() {
 			@Override
 			public void run() {
@@ -731,13 +734,15 @@ public class View implements HotkeyListener {
 					setCenterWithFadeTransition();
 				}
 
-				if (stage.getHeight() < 540) {
-					stage.setHeight(stage.getHeight() + 10);
+				if (stage.getHeight() < 540.0) {
+					double i = stage.getHeight() + 10.0;
+					stage.setHeight(i);
+					stage.setMinHeight(i);
 				} else {
 					this.cancel();
 				}
 			}
-		}, 0, 3);
+		}, 0, 5);
 	}
 
 	private void setCenterWithFadeTransition() {
@@ -1015,8 +1020,8 @@ public class View implements HotkeyListener {
 		for (int i = startIndex; i < feedbackList.size(); i++)
 			feedbackList.get(i).setText("");
 	}
-	
-	public int getTabIndex(){
+
+	public int getTabIndex() {
 		return tabPane.getSelectionModel().getSelectedIndex();
 	}
 }
