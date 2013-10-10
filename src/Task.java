@@ -19,13 +19,7 @@ public class Task implements Comparable<Task> {
 
 	// default constructor
 	public Task() {
-		isImportantProperty();
-		workInfoProperty();
-		tagProperty();
-		startDateProperty();
-		startDateStringProperty();
-		endDateStringProperty();
-		endDateProperty();
+		checkProperty();
 
 		setIsImportant(false);
 		setStartDate(null);
@@ -40,14 +34,8 @@ public class Task implements Comparable<Task> {
 
 	public Task(boolean isImportant, CustomDate startDate, CustomDate endDate,
 			String workInfo, Tag tag, int indexId) {
-		isImportantProperty();
-		workInfoProperty();
-		tagProperty();
-		startDateProperty();
-		startDateStringProperty();
-		endDateStringProperty();
-		endDateProperty();
-
+		checkProperty();
+		
 		setIsImportant(isImportant);
 		setStartDate(startDate);
 		if (startDate != null)
@@ -62,6 +50,16 @@ public class Task implements Comparable<Task> {
 		setWorkInfo(workInfo);
 		setTag(tag);
 		this.indexId = indexId;
+	}
+	
+	private void checkProperty(){
+		isImportantProperty();
+		workInfoProperty();
+		tagProperty();
+		startDateProperty();
+		startDateStringProperty();
+		endDateStringProperty();
+		endDateProperty();
 	}
 
 	public int compareTo(Task other) {

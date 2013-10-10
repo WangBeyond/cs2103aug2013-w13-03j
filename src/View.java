@@ -105,10 +105,10 @@ public class View implements HotkeyListener {
 			Color.DARKKHAKI, Color.PURPLE };
 	public static boolean isTextColored = true;
 	public ArrayList<Text> feedbackList = new ArrayList<Text>();
-	private static String[] COMMAND_TYPES = {"add", "remove", "rm", "delete","del", "edit", "mod", 
-		"modify", "search", "find", "clear", "clr", "undo", "redo", "mark", "unmark", 
-		"complete", "done", "incomplete", "undone", "exit", "sync", "show", "all", "list", "ls",
-		"today"  };
+	private static String[] COMMAND_TYPES = { "add", "remove", "rm", "delete",
+			"del", "edit", "mod", "modify", "search", "find", "clear", "clr",
+			"undo", "redo", "mark", "unmark", "complete", "done", "incomplete",
+			"undone", "exit", "sync", "show", "all", "list", "ls", "today" };
 	public HBox feedbacks;
 	private static Color IDO_GREEN = Color.rgb(130, 255, 121);
 
@@ -227,27 +227,19 @@ public class View implements HotkeyListener {
 		else
 			upperPart2 = createUpperPartInBottom();
 
-		if (!isTextColored) {
-			feedback = TextBuilder.create().styleClass("feedback")
-					.fill(Color.WHITE).text("Please enter a command").build();
-
-			bottom.getChildren().addAll(
-					isTextColored ? upperPart1 : upperPart2, feedback);
-		} else {
-			feedbacks = new HBox();
-			feedbacks.setSpacing(5);
-			feedbackList.clear();
-			for (int i = 0; i < 10; i++) {
-				Text feedbackPiece = TextBuilder.create()
-						.styleClass("feedback").fill(Color.WHITE).text("")
-						.build();
-				feedbackList.add(feedbackPiece);
-				feedbacks.getChildren().add(feedbackList.get(i));
-			}
-			feedbackList.get(0).setText("Please enter a command");
-			bottom.getChildren().addAll(
-					isTextColored ? upperPart1 : upperPart2, feedbacks);
+		feedbacks = new HBox();
+		feedbacks.setSpacing(5);
+		feedbackList.clear();
+		for (int i = 0; i < 10; i++) {
+			Text feedbackPiece = TextBuilder.create().styleClass("feedback")
+					.fill(Color.WHITE).text("").build();
+			feedbackList.add(feedbackPiece);
+			feedbacks.getChildren().add(feedbackList.get(i));
 		}
+		feedbackList.get(0).setText("Please enter a command");
+		bottom.getChildren().addAll(isTextColored ? upperPart1 : upperPart2,
+				feedbacks);
+
 	}
 
 	private HBox createUpperPartInBottom() {
@@ -871,7 +863,8 @@ public class View implements HotkeyListener {
 			JIntellitype.getInstance().registerHotKey(90,
 					JIntellitype.MOD_CONTROL + JIntellitype.MOD_SHIFT, 'D');
 		} catch (RuntimeException ex) {
-			System.out.println("Either you are not on Windows, or there is a problem with the JIntellitype library!");
+			System.out
+					.println("Either you are not on Windows, or there is a problem with the JIntellitype library!");
 		}
 	}
 
@@ -982,19 +975,22 @@ public class View implements HotkeyListener {
 						Color.ORCHID);
 				emptyFeedback(2);
 				break;
-			default: 			
-			int listIndex = 1;
-			boolean isCommandExisting = false;
-			for( int i = 0; i<COMMAND_TYPES.length;i++) {
-				String command = COMMAND_TYPES[i];
-				if(command.indexOf(feedback) == 0 && !command.equals(feedback)) {
-					setFeedbackStyle(listIndex, command, IDO_GREEN);
-					listIndex ++;
-					isCommandExisting = true;
+			default:
+				int listIndex = 1;
+				boolean isCommandExisting = false;
+				for (int i = 0; i < COMMAND_TYPES.length; i++) {
+					String command = COMMAND_TYPES[i];
+					if (command.indexOf(feedback) == 0
+							&& !command.equals(feedback)) {
+						setFeedbackStyle(listIndex, command, IDO_GREEN);
+						listIndex++;
+						isCommandExisting = true;
+					}
 				}
-			}
-			emptyFeedback(listIndex); 
-			setFeedbackStyle(0, isCommandExisting? "available commands: ": Control.MESSAGE_REQUEST_COMMAND, Color.WHITE); break;
+				emptyFeedback(listIndex);
+				setFeedbackStyle(0, isCommandExisting ? "available commands: "
+						: Control.MESSAGE_REQUEST_COMMAND, Color.WHITE);
+				break;
 			}
 		}
 	}
@@ -1004,8 +1000,12 @@ public class View implements HotkeyListener {
 		feedbackList.get(index).setFill(color);
 	}
 
-	private void emptyFeedback(int startIndex) {
+	public void emptyFeedback(int startIndex) {
 		for (int i = startIndex; i < feedbackList.size(); i++)
 			feedbackList.get(i).setText("");
+	}
+	
+	public int getTabIndex(){
+		return tabPane.getSelectionModel().getSelectedIndex();
 	}
 }

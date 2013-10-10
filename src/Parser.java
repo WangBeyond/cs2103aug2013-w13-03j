@@ -47,6 +47,8 @@ public class Parser {
 	public static final String START_KEY = "start key";
 	public static final String END_KEY = "end key";
 
+	private static final int VALID = 1;
+	private static final int INVALID = -1;
 	/**
 	 * This function is used to determine the command type of the command input
 	 * from the user
@@ -288,39 +290,51 @@ public class Parser {
 				|| commandType == COMMAND_TYPES.EDIT) {
 			for (int infoIndex = 0; infoIndex < result.length; infoIndex++) {
 				String info = result[infoIndex];
-				
-				//append the preposition of startDate keys to date info
-				if(infoIndex == INDEX_START_DATE && info!=NULL){
+
+				// append the preposition of startDate keys to date info
+				if (infoIndex == INDEX_START_DATE && info != NULL) {
 					int startIndex = command.indexOf(info);
-					int secondSpaceIndex = startIndex-2;
-					while(secondSpaceIndex>0 && command.charAt(secondSpaceIndex)!=' '){
+					int secondSpaceIndex = startIndex - 2;
+					while (secondSpaceIndex > 0
+							&& command.charAt(secondSpaceIndex) != ' ') {
 						secondSpaceIndex--;
 					}
-					int firstSpaceIndex = secondSpaceIndex-1;
-					while(firstSpaceIndex>0 && command.charAt(firstSpaceIndex)!=' '){
+					int firstSpaceIndex = secondSpaceIndex - 1;
+					while (firstSpaceIndex > 0
+							&& command.charAt(firstSpaceIndex) != ' ') {
 						firstSpaceIndex--;
 					}
-					if (getDoesArrayContain(startDateKeys,command.substring(firstSpaceIndex+1,startIndex)))
-						info = command.substring(firstSpaceIndex+1,startIndex) + info;
-					else if (getDoesArrayContain(startDateKeys,command.substring(secondSpaceIndex+1,startIndex)))
-						info = command.substring(secondSpaceIndex+1,startIndex) + info;
+					if (getDoesArrayContain(startDateKeys,
+							command.substring(firstSpaceIndex + 1, startIndex)))
+						info = command.substring(firstSpaceIndex + 1,
+								startIndex) + info;
+					else if (getDoesArrayContain(startDateKeys,
+							command.substring(secondSpaceIndex + 1, startIndex)))
+						info = command.substring(secondSpaceIndex + 1,
+								startIndex) + info;
 				}
-				
-				//append the preposition of endDate keys to date info
-				if(infoIndex == INDEX_END_DATE && info!=NULL){
+
+				// append the preposition of endDate keys to date info
+				if (infoIndex == INDEX_END_DATE && info != NULL) {
 					int startIndex = command.indexOf(info);
-					int secondSpaceIndex = startIndex-2;
-					while(secondSpaceIndex>0 && command.charAt(secondSpaceIndex)!=' '){
+					int secondSpaceIndex = startIndex - 2;
+					while (secondSpaceIndex > 0
+							&& command.charAt(secondSpaceIndex) != ' ') {
 						secondSpaceIndex--;
 					}
-					int firstSpaceIndex = secondSpaceIndex-1;
-					while(firstSpaceIndex>0 && command.charAt(firstSpaceIndex)!=' '){
+					int firstSpaceIndex = secondSpaceIndex - 1;
+					while (firstSpaceIndex > 0
+							&& command.charAt(firstSpaceIndex) != ' ') {
 						firstSpaceIndex--;
 					}
-					if (getDoesArrayContain(endDateKeys,command.substring(firstSpaceIndex+1,startIndex)))
-						info = command.substring(firstSpaceIndex+1,startIndex) + info;
-					else if (getDoesArrayContain(endDateKeys,command.substring(secondSpaceIndex+1,startIndex)))
-						info = command.substring(secondSpaceIndex+1,startIndex) + info;
+					if (getDoesArrayContain(endDateKeys,
+							command.substring(firstSpaceIndex + 1, startIndex)))
+						info = command.substring(firstSpaceIndex + 1,
+								startIndex) + info;
+					else if (getDoesArrayContain(endDateKeys,
+							command.substring(secondSpaceIndex + 1, startIndex)))
+						info = command.substring(secondSpaceIndex + 1,
+								startIndex) + info;
 				}
 				if (command.contains(info)) {
 					int startIndex = command.indexOf(info);
@@ -364,12 +378,12 @@ public class Parser {
 
 	private static boolean getDoesArrayContain(String[] array, String element) {
 		element = element.trim();
-		for(int i = 0; i<array.length;i++) 
-			if(array[i].equals(element))
+		for (int i = 0; i < array.length; i++)
+			if (array[i].equals(element))
 				return true;
 		return false;
 	}
-	
+
 	private static String[] getRepeatingType(String commandString) {
 		String repeatingKey = null;
 		for (int i = 0; i < repeatingKeys.length; i++) {
@@ -482,7 +496,7 @@ public class Parser {
 							.trim();
 
 				int dateIndex = isValidDate(stringAfterKey);
-				if (dateIndex == Control.INVALID) {
+				if (dateIndex == INVALID) {
 					keyIndex = temp.indexOf(keys[i], keyIndex + keyLength);
 				} else {
 					if (hasDate) {
@@ -535,7 +549,7 @@ public class Parser {
 
 		while (!tester.isEmpty()) {
 			int result = dateTester.convert(tester);
-			if (result == Control.VALID) {
+			if (result == VALID) {
 				return tester.length();
 			} else if (result == CustomDate.OUT_OF_BOUNDS) {
 				throw new IllegalArgumentException(
@@ -543,7 +557,7 @@ public class Parser {
 			}
 			tester = removeLastWord(tester);
 		}
-		return Control.INVALID;
+		return INVALID;
 	}
 
 	/**
