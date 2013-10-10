@@ -84,14 +84,14 @@ abstract class TwoWayCommand extends Command {
 }
 
 class AddCommand extends TwoWayCommand {
-	String workInfo;
-	String tag;
-	String startDateString;
-	String endDateString;
-	boolean isImptTask;
-	String repeatingType;
-	Task task;
-	int index;
+	private String workInfo;
+	private String tag;
+	private String startDateString;
+	private String endDateString;
+	private boolean isImptTask;
+	private String repeatingType;
+	private Task task;
+	private int index;
 
 	public AddCommand(String[] parsedUserCommand, Model model, View view) {
 		super(model, view);
@@ -116,12 +116,10 @@ class AddCommand extends TwoWayCommand {
 						.equals(Parser.NULL))) {
 			throw new IllegalArgumentException(MESSAGE_INVALID_START_END_DATES);
 		}
-
 		if (!startDateString.equals(Parser.NULL)) {
 			CustomDate startDate = new CustomDate(startDateString);
 			task.setStartDate(startDate);
 		}
-
 		if (!endDateString.equals(Parser.NULL)) {
 			CustomDate endDate = new CustomDate(endDateString);
 			if (endDate != null && endDate.getHour() == 0
@@ -131,14 +129,12 @@ class AddCommand extends TwoWayCommand {
 			}
 			task.setEndDate(endDate);
 		}
-
 		if (!startDateString.equals(Parser.NULL)
 				&& !endDateString.equals(Parser.NULL)) {
 			if (CustomDate.compare(task.getEndDate(), task.getStartDate()) < 0) {
 				return MESSAGE_INVALID_DATE_RANGE;
 			}
 		}
-
 		if (!repeatingType.equals(Parser.NULL)) {
 			long expectedDifference = Task.getUpdateDifference(repeatingType);
 			long actualDifference = task.getEndDate().getTimeInMillis()
@@ -147,13 +143,24 @@ class AddCommand extends TwoWayCommand {
 				throw new IllegalArgumentException(MESSAGE_INVALID_TIME_REPETITIVE);
 			}
 		}
-
-		task.setTag(new Tag(tag.equals(Parser.NULL) ? "-" : tag, repeatingType
-				.equals(Parser.NULL) ? Parser.NULL : repeatingType));
+		if (tag.equals(Parser.NULL)) {
+			if (repeatingType.equals(Parser.NULL)) {
+				task.setTag(new Tag(Parser.HYPHEN, Parser.NULL));
+			} else {
+				task.setTag(new Tag(Parser.HYPHEN, repeatingType));
+			}
+		} else {
+			if (repeatingType.equals(Parser.NULL)) {
+				task.setTag(new Tag(tag, Parser.NULL));
+			} else {
+				task.setTag(new Tag(tag, repeatingType));
+			}
+		}		
 		task.setIsImportant(isImptTask);
 		if (!repeatingType.equals(Parser.NULL)){
 			task.updateDate();
 		}
+		
 		model.addTaskToPending(task);
 		Control.sortList(model.getPendingList());
 		view.setTab(PENDING_TAB);
@@ -184,7 +191,6 @@ class EditCommand extends TwoWayCommand {
 		super(model, view);
 		tabIndex = view.tabPane.getSelectionModel().getSelectedIndex();
 		modifiedList = FXCollections.observableArrayList();
-		
 
 		if (tabIndex == PENDING_TAB){
 			modifiedList = this.model.getPendingList();
@@ -197,8 +203,11 @@ class EditCommand extends TwoWayCommand {
 		tag = parsedUserCommand[2];
 		startDateString = parsedUserCommand[3];
 		endDateString = parsedUserCommand[4];
-		hasImptTaskToggle = (parsedUserCommand[5].equals(Parser.TRUE)) ? true
-				: false;
+		if (parsedUserCommand[5].equals(Parser.TRUE)){
+			hasImptTaskToggle = true;
+		} else {
+			hasImptTaskToggle = false;
+		}
 		repeatingType = parsedUserCommand[6];
 		index = Integer.parseInt(parsedUserCommand[0]);
 	}
@@ -215,13 +224,11 @@ class EditCommand extends TwoWayCommand {
 		if (repeatingType.equals(Parser.NULL) && workInfo.equals(Parser.NULL)){
 			repeatingType = targetTask.getTag().getRepetition();
 		}
-
 		if (!startDateString.equals(Parser.NULL)) {
 			startDate = new CustomDate(startDateString);
 		} else {
 			startDate = targetTask.getStartDate();
 		}
-
 		if (!endDateString.equals(Parser.NULL)) {
 			endDate = new CustomDate(endDateString);
 			if (endDate.getHour() == 0 && endDate.getMinute() == 0) {
@@ -231,7 +238,6 @@ class EditCommand extends TwoWayCommand {
 		} else {
 			endDate = targetTask.getEndDate();
 		}
-
 		if (startDate != null && endDate != null
 				&& CustomDate.compare(endDate, startDate) < 0){
 			return MESSAGE_INVALID_DATE_RANGE;
@@ -241,7 +247,6 @@ class EditCommand extends TwoWayCommand {
 				&& (startDate == null || endDate == null)) {
 			throw new IllegalArgumentException(MESSAGE_INVALID_START_END_DATES);
 		}
-
 		if (!repeatingType.equals(Parser.NULL)) {
 			long expectedDifference = Task.getUpdateDifference(repeatingType);
 			long actualDifference = endDate.getTimeInMillis()
@@ -250,30 +255,24 @@ class EditCommand extends TwoWayCommand {
 				throw new IllegalArgumentException(MESSAGE_INVALID_TIME_REPETITIVE);
 			}
 		}
-
 		if (!workInfo.equals(Parser.NULL)) {
 			targetTask.setWorkInfo(workInfo);
 		}
-
 		if (startDate != null) {
 			targetTask.setStartDate(startDate);
-		}
-		
+		}		
 		if (endDate != null) {
 			targetTask.setEndDate(endDate);
 		}
-
 		if (tag != Parser.NULL) {
 			targetTask.setTag(new Tag(tag, repeatingType));
 		} else {
 			targetTask.setTag(new Tag(targetTask.getTag().getTag(),
 					repeatingType));
-		}
-		
+		}		
 		if (!repeatingType.equals(Parser.NULL)){
 			targetTask.updateDate();
 		}
-
 		if (hasImptTaskToggle) {
 			targetTask.setIsImportant(!targetTask.getIsImportant());
 		}
@@ -303,8 +302,8 @@ class EditCommand extends TwoWayCommand {
 		targetTask.setWorkInfo(originalTask.getWorkInfo());
 		targetTask.setTag(originalTask.getTag());
 		targetTask.setIndexId(originalTask.getIndexId());
-
 		Control.sortList(modifiedList);
+		
 		return MESSAGE_SUCCESSFUL_UNDO;
 	}
 }
@@ -326,7 +325,6 @@ class RemoveCommand extends TwoWayCommand {
 		} else {
 			modifiedList = this.model.getTrashList();
 		}
-
 		indexCount = userParsedCommand.length;
 		indexList = new int[indexCount];
 		for (int i = 0; i < indexCount; i++) {
@@ -343,18 +341,15 @@ class RemoveCommand extends TwoWayCommand {
 				return MESSAGE_DUPLICATE_INDEXES;
 			}
 		}
-
 		if (convertIndex(indexList[indexCount - 1] - 1) == INVALID
 				|| convertIndex(indexList[0] - 1) == INVALID) {
-			return MESSAGE_INDEX_OUT_OF_BOUNDS;
-		}
+			return MESSAGE_INDEX_OUT_OF_BOUNDS;		}
 
 		for (int i = indexCount - 1; i >= 0; i--) {
 			removedTaskInfo.add(modifiedList
 					.get(convertIndex(indexList[i] - 1)));
 			model.removeTask(convertIndex(indexList[i] - 1), tabIndex);
 		}
-
 		if (tabIndex == PENDING_TAB) {
 			Control.sortList(model.getPendingList());
 		} else if (tabIndex == COMPLETE_TAB) {
@@ -376,6 +371,7 @@ class RemoveCommand extends TwoWayCommand {
 		}
 		removedTaskInfo.clear();
 		Control.sortList(modifiedList);
+		
 		return MESSAGE_SUCCESSFUL_UNDO;
 	}
 }
@@ -461,7 +457,6 @@ class CompleteCommand extends TwoWayCommand {
 		modifiedList = this.model.getPendingList();
 		indexCount = userParsedCommand.length;
 		indexList = new int[indexCount];
-
 		for (int i = 0; i < indexCount; i++) {
 			indexList[i] = Integer.valueOf(userParsedCommand[i]);
 		}
@@ -469,18 +464,16 @@ class CompleteCommand extends TwoWayCommand {
 
 	public String execute() {
 		Arrays.sort(indexList);
-
 		int tabIndex = view.tabPane.getSelectionModel().getSelectedIndex();
+		
 		if (tabIndex != PENDING_TAB) {
 			return MESSAGE_WRONG_COMPLETE_TABS;
-		}
-		
+		}	
 		for (int i = 0; i < indexCount - 1; i++) {
 			if (indexList[i] == indexList[i + 1]) {
 				return MESSAGE_DUPLICATE_INDEXES;
 			}
 		}
-
 		if (indexList[indexCount - 1] > modifiedList.size()
 				|| indexList[0] <= 0) {
 			return MESSAGE_INDEX_OUT_OF_BOUNDS;
@@ -530,7 +523,6 @@ class IncompleteCommand extends TwoWayCommand {
 	public IncompleteCommand(String[] userParsedCommand, Model model, View view) {
 		super(model, view);
 		modifiedList = this.model.getCompleteList();
-
 		indexCount = userParsedCommand.length;
 		indexList = new int[indexCount];
 		for (int i = 0; i < indexCount; i++) {
@@ -552,12 +544,10 @@ class IncompleteCommand extends TwoWayCommand {
 				return MESSAGE_DUPLICATE_INDEXES;
 			}
 		}
-
 		if (indexList[indexCount - 1] > modifiedList.size()
 				|| indexList[0] <= 0) {
 			return MESSAGE_INDEX_OUT_OF_BOUNDS;
-		}
-		
+		}		
 		indexInIncompleteList = new int[indexCount];
 		toIncompleteTasks = new Task[indexCount];
 
@@ -626,12 +616,10 @@ class MarkCommand extends TwoWayCommand {
 				return MESSAGE_DUPLICATE_INDEXES;
 			}
 		}
-
 		if (indexList[indexCount - 1] > modifiedList.size()
 				|| indexList[0] <= 0) {
 			return MESSAGE_INDEX_OUT_OF_BOUNDS;
 		}
-
 		for (int i = 0; i < indexCount; i++) {
 			Task targetTask = modifiedList.get(convertIndex(indexList[i] - 1));
 			targetTask.setIsImportant(true);
@@ -680,12 +668,10 @@ class UnmarkCommand extends TwoWayCommand {
 				return MESSAGE_DUPLICATE_INDEXES;
 			}
 		}
-
 		if (indexList[indexCount - 1] > modifiedList.size()
 				|| indexList[0] <= 0) {
 			return MESSAGE_INDEX_OUT_OF_BOUNDS;
 		}
-
 		for (int i = 0; i < indexCount; i++) {
 			Task targetTask = modifiedList.get(convertIndex(indexList[i] - 1));
 			targetTask.setIsImportant(false);
@@ -737,45 +723,59 @@ class SearchCommand extends Command {
 		boolean isFirstTimeSearch = true;
 
 		if (!workInfo.equals(Parser.NULL)) {
-			searchList = searchWorkInfo((isFirstTimeSearch) ? initialList
-					: searchList, workInfo);
+			if (isFirstTimeSearch){
+				searchList = searchWorkInfo(initialList, workInfo);
+			} else {
+				searchList = searchWorkInfo(searchList, workInfo);
+			}
 			isFirstTimeSearch = false;
 		}
-
 		if (!tag.equals(Parser.NULL)) {
-			searchList = searchTag((isFirstTimeSearch) ? initialList
-					: searchList, tag);
+			if (isFirstTimeSearch){
+				searchList = searchTag(initialList, tag);
+			} else {
+				searchList = searchTag(searchList, tag);
+			}
 			isFirstTimeSearch = false;
 		}
-
 		if (!startDateString.equals(Parser.NULL)) {
 			CustomDate startDate = new CustomDate(startDateString);
-			searchList = searchStartDate((isFirstTimeSearch) ? initialList
-					: searchList, startDate);
+			if (isFirstTimeSearch){
+				searchList = searchStartDate(initialList, startDate);
+			} else {
+				searchList = searchStartDate(searchList, startDate);
+			}
 			isFirstTimeSearch = false;
 		}
 
 		if (!endDateString.equals(Parser.NULL)) {
 			CustomDate endDate = new CustomDate(endDateString);
-			searchList = searchEndDate((isFirstTimeSearch) ? initialList
-					: searchList, endDate);
+			if (isFirstTimeSearch){
+				searchList = searchEndDate(initialList, endDate);
+			} else {
+				searchList = searchEndDate(searchList, endDate);
+			}
 			isFirstTimeSearch = false;
 		}
-
 		if (isImpt.equals(Parser.TRUE)) {
-			searchList = searchImportantTask((isFirstTimeSearch) ? initialList
-					: searchList);
+			if (isFirstTimeSearch){
+				searchList = searchImportantTask(initialList);
+			} else {
+				searchList = searchImportantTask(searchList);
+			}
 		}
-
 		if (!repeatingType.equals(Parser.NULL)) {
-			searchList = searchRepeatingType((isFirstTimeSearch) ? initialList
-					: searchList, repeatingType);
+			if (isFirstTimeSearch){
+				searchList = searchRepeatingType(initialList, repeatingType);
+			} else {
+				searchList = searchRepeatingType(searchList, repeatingType);
+			}
 			isFirstTimeSearch = false;
 		}
-
 		if (searchList.isEmpty()) {
 			return MESSAGE_NO_RESULTS;
 		}
+		
 		TwoWayCommand.setIndexType(TwoWayCommand.SEARCHED);
 		TwoWayCommand.setIndexType(TwoWayCommand.SEARCHED);
 		if (tabIndex == PENDING_TAB) {
