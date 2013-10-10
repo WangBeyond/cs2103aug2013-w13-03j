@@ -320,12 +320,10 @@ public class Parser {
 		ArrayList<InfoWithIndex> infoList = new ArrayList<InfoWithIndex>();
 		// Add the commandType first
 		String commandTypeStr = completeWithSpace(getFirstWord(command), command, 0);
-		InfoWithIndex commandTypeInfo = new InfoWithIndex(commandTypeStr, 0, INDEX_COMMAND_TYPE);
-		infoList.add(commandTypeInfo);
+		infoList.add( new InfoWithIndex(commandTypeStr, 0, (commandType == COMMAND_TYPES.INVALID)?INDEX_USELESS_INFO : INDEX_COMMAND_TYPE));
 		// Add * if command has
 		if (command.contains(IMPT_MARK)) {
 			String markStr = completeWithSpace(IMPT_MARK, command, command.indexOf(IMPT_MARK));
-			System.out.println(markStr+" mark");
 			InfoWithIndex imptInfo = new InfoWithIndex(markStr,command.indexOf(IMPT_MARK), INDEX_IS_IMPT);
 			infoList.add(imptInfo);
 		}
@@ -364,10 +362,14 @@ public class Parser {
 				}
 			}
 			infoList = addInUselessInfo(infoList, command);
-		} else { // Consider command with index, just add the part except commandType
+		} else { // Consider command with index, just add the part except commandType,
+				// but if the commandType is invalid, just add them as uselessInfo
 			int beginIndex = commandTypeStr.length();
-			String indices = command.substring(beginIndex);
-			infoList.add(new InfoWithIndex(indices, 1, INDEX_INDEX_INFO));
+			if(commandType != COMMAND_TYPES.INVALID) {
+				infoList.add(new InfoWithIndex( command.substring(beginIndex), beginIndex, INDEX_INDEX_INFO));
+			} else {
+				infoList.add(new InfoWithIndex( command.substring(beginIndex), beginIndex, INDEX_USELESS_INFO));
+			}
 		}
 		return infoList;
 	}
@@ -457,11 +459,11 @@ public class Parser {
 				&& command.charAt(firstSpaceIndex) != ' ') {
 			firstSpaceIndex--;
 		}
-		if (getDoesArrayContain(startOrEnd == START_DATE? startDateKeys :endDateKeys ,
+		if (doesArrayContain(startOrEnd == START_DATE? startDateKeys :endDateKeys ,
 				command.substring(firstSpaceIndex + 1, startIndex)))
 			dateWithPreposition = command.substring(firstSpaceIndex + 1,
 					startIndex) + date;
-		else if (getDoesArrayContain(startOrEnd == START_DATE? startDateKeys :endDateKeys ,
+		else if (doesArrayContain(startOrEnd == START_DATE? startDateKeys :endDateKeys ,
 				command.substring(secondSpaceIndex + 1, startIndex)))
 			dateWithPreposition = command.substring(secondSpaceIndex + 1,
 					startIndex) + date;
@@ -518,7 +520,7 @@ public class Parser {
 	 * @param element
 	 * @return boolean result
 	 */
-	private static boolean getDoesArrayContain(String[] array, String element) {
+	static boolean doesArrayContain(String[] array, String element) {
 		element = element.trim();
 		for (int i = 0; i < array.length; i++)
 			if (array[i].equals(element))
