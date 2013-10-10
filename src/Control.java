@@ -158,14 +158,20 @@ public class Control extends Application {
 					String feedback = executeCommand(view.commandLine.getText());
 					updateFeedback(feedback);
 				} else if(e.getCode() == KeyCode.BACK_SPACE) {
-					//view.hideCursor();
-					for(int i = view.textList.size()-1 ; i>=0 ;i-- ) {
+					//change the multiColor command in real time by analysing the cursor position
+					int caretPosition = view.commandLine.getCaretPosition();
+					for(int i = 0 ; i<view.textList.size() ;i++ ) {
 						String str = view.textList.get(i).getText();
-						if(!str.equals("")) {
-							view.textList.get(i).setText(str.substring(0,str.length()));
-							break;
-						} else if(i==0)
-							break;
+						caretPosition -= str.length();
+						if(caretPosition <= 0) {
+							if(!str.equals("")) {
+								int target = str.length() + caretPosition;
+								view.textList.get(i).setText(str.substring(0,target-1)+str.substring(target,str.length()));
+								System.out.println("del "+view.textList.get(i).getText() );
+								break;
+							} else
+								break;
+						}
 					}
 				} else if (undo_hot_key.match(e)) {
 					String feedback = executeCommand("undo");
@@ -177,6 +183,11 @@ public class Control extends Application {
 					updateFeedback(feedback);
 					e.consume();
 				}
+			}
+		});
+		view.commandLine.setOnKeyReleased(new EventHandler<KeyEvent>() {
+			public void handle(KeyEvent e) {
+				view.updateMultiColorCommand(view.commandLine.getText());
 			}
 		});
 	}

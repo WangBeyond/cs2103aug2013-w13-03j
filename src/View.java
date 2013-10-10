@@ -287,40 +287,6 @@ public class View implements HotkeyListener {
 		commandLine = new TextField();
 		commandLine.setPrefWidth(630);
 		commandLine.setStyle("-fx-text-fill: darkgrey;");
-		commandLine.setOnKeyReleased(new EventHandler<KeyEvent>() {
-			public void handle(KeyEvent e) {
-				String temporaryCommand = commandLine.getText();
-				//System.out.println("command " + temporaryCommand);
-				emptyTextList();
-				try {
-					ArrayList<InfoWithIndex> infoList = Parser
-							.parseForView(temporaryCommand);
-					for (int i = 0; i < infoList.size(); i++) {
-						InfoWithIndex info = infoList.get(i);
-						Text text = textList.get(i);
-						text.setText(info.getInfo());
-						text.setStyle("-fx-font: 15.0px Ubantu;");
-						text.setTextAlignment(TextAlignment.LEFT);
-						text.setFill(colors[info.getInfoType() + 2]);
-						//System.out.print(info.getInfo()+" "+info.getInfoType()+"  ");
-					}
-					for(int i =5;i<textList.size();i++) {
-						textList.get(i).setLayoutX(10);
-					}
-					displayCursor();
-				} catch (Exception ex) {
-					if(Parser.doesArrayContain(COMMAND_TYPES , temporaryCommand.trim())) {
-						textList.get(0).setFill(Color.GREEN);;
-						textList.get(0).setText(temporaryCommand);
-					} else {
-						textList.get(0).setStyle("-fx-font: 15.0px Ubantu;");
-						textList.get(0).setText(temporaryCommand);
-						textList.get(0).setFill(Color.DARKGRAY);
-					}
-				}
-
-			}
-		});
 		
 		showOrHide = new Button();
 		showOrHide.setPrefSize(30, 30);
@@ -343,7 +309,41 @@ public class View implements HotkeyListener {
 		temp2.getChildren().addAll(temp, showOrHide);
 		return temp2;
 	}
-
+	
+	void updateMultiColorCommand(String temporaryCommand) {
+		System.out.println("command " + temporaryCommand);
+		emptyTextList();
+		try {
+			ArrayList<InfoWithIndex> infoList = Parser
+					.parseForView(temporaryCommand);
+			for (int i = 0; i < infoList.size(); i++) {
+				InfoWithIndex info = infoList.get(i);
+				Text text = textList.get(i);
+				text.setText(info.getInfo());
+				text.setStyle("-fx-font: 15.0px Ubantu;");
+				text.setTextAlignment(TextAlignment.LEFT);
+				text.setFill(colors[info.getInfoType() + 2]);
+				System.out.print(info.getInfo()+" "+info.getInfoType()+"  ");
+			}
+			System.out.println();
+			for(int i =5;i<textList.size();i++) {
+				textList.get(i).setLayoutX(10);
+			}
+			displayCursor();
+		} catch (Exception ex) {
+			if(Parser.doesArrayContain(COMMAND_TYPES , temporaryCommand.trim())) {
+				textList.get(0).setFill(Color.GREEN);;
+				textList.get(0).setText(temporaryCommand);
+			} else {
+				textList.get(0).setStyle("-fx-font: 15.0px Ubantu;");
+				textList.get(0).setText(temporaryCommand);
+				textList.get(0).setFill(Color.DARKGRAY);
+				emptyFeedback(0);
+				setFeedbackStyle(0, ex.getMessage() , Color.WHITE);
+			}
+		}
+	}
+	
 	private void createCenterSection() {
 		createTabPane();
 

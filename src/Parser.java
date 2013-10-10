@@ -321,12 +321,6 @@ public class Parser {
 		// Add the commandType first
 		String commandTypeStr = completeWithSpace(getFirstWord(command), command, 0);
 		infoList.add( new InfoWithIndex(commandTypeStr, 0, (commandType == COMMAND_TYPES.INVALID)?INDEX_USELESS_INFO : INDEX_COMMAND_TYPE));
-		// Add * if command has
-		if (command.contains(IMPT_MARK)) {
-			String markStr = completeWithSpace(IMPT_MARK, command, command.indexOf(IMPT_MARK));
-			InfoWithIndex imptInfo = new InfoWithIndex(markStr,command.indexOf(IMPT_MARK), INDEX_IS_IMPT);
-			infoList.add(imptInfo);
-		}
 
 		if (commandType == COMMAND_TYPES.EDIT) {
 			String index = getFirstWord(removeFirstWord(command));
@@ -346,7 +340,12 @@ public class Parser {
 					info = appendWithDateKey(info,command, START_DATE);
 				if (infoIndex == INDEX_END_DATE && info != NULL) 
 					info = appendWithDateKey(info,command, END_DATE);
-				
+				// Add * if command has
+				if (infoIndex == INDEX_IS_IMPT && info == TRUE) {
+					String markStr = completeWithSpace(IMPT_MARK, command, command.indexOf(IMPT_MARK));
+					InfoWithIndex imptInfo = new InfoWithIndex(markStr,command.indexOf(IMPT_MARK), INDEX_IS_IMPT);
+					infoList.add(imptInfo);
+				}
 				if (command.contains(info)) {
 					//To get the index of workflow, we need to get rid of the commandType string first,
 					//otherwise some mistakes make occur: eg: add ad will return workflow index 1
