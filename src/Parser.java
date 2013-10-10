@@ -41,6 +41,7 @@ public class Parser {
 
 	public static final String IMPT_MARK = "*";
 	public static final String HASH_TAG = "#";
+	public static final String HYPHEN = "-";
 	public static final String TRUE = "true";
 	public static final String FALSE = "false";
 	public static final String NULL = "null";
@@ -277,7 +278,7 @@ public class Parser {
 
 		try {
 			for (String s : splittedUserCommand) {
-				if (s.contains("-"))
+				if (s.contains(HYPHEN))
 					processRange(indexList, s);
 				else
 					indexList.add(String.valueOf(Integer.parseInt(s)));
@@ -291,7 +292,7 @@ public class Parser {
 	}
 
 	private static void processRange(Vector<String> indexList, String s) {
-		String[] limits = s.split("-");
+		String[] limits = s.split(HYPHEN);
 		if (limits.length > 2)
 			throw new IllegalArgumentException("Invalid Range");
 		int startPoint, endPoint;
