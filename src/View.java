@@ -72,6 +72,9 @@ public class View implements HotkeyListener {
 	final KeyCombination changeTab = new KeyCodeCombination(KeyCode.TAB,
 			KeyCombination.CONTROL_DOWN);
 
+	// Help page
+	public Help helpPage;
+	
 	// Command Line for user to input command
 	public TextField commandLine;
 	// Instant feedback
@@ -134,7 +137,8 @@ public class View implements HotkeyListener {
 	public View(final Model model, final Stage primaryStage) {
 		stage = primaryStage;
 		this.model = model;
-
+		
+//		setupHelpPage();
 		setupStage();
 		loadLibrary();
 		checkIntellitype();
@@ -152,7 +156,11 @@ public class View implements HotkeyListener {
 		setDraggable();
 		setupScene();
 	}
-
+/*
+	private void setupHelpPage(){
+		helpPage = new Help();
+	}
+*/	
 	private void setupShortcuts() {
 		root.setOnKeyPressed(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent e) {
@@ -455,7 +463,7 @@ public class View implements HotkeyListener {
 	public void createTable(TableView<Task> taskList, ObservableList<Task> list) {
 		taskList.setItems(list);
 		final Text emptyTableSign = new Text(
-				"There is currently no tasks in this tab");
+				"There is currently no task in this tab");
 		emptyTableSign.setFont(new Font(15));
 		taskList.setPlaceholder(emptyTableSign);
 		TableColumn<Task, String> taskInfoColumn = createTaskInfoColumn();

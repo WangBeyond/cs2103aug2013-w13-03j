@@ -24,7 +24,8 @@ public abstract class Command {
 	protected static final String MESSAGE_SUCCESSFUL_UNDO = "Undo was successful.";
 	protected static final String MESSAGE_WRONG_COMPLETE_TABS = "Cannot complete the tasks in this current tab.";
 	protected static final String MESSAGE_WRONG_INCOMPLETE_TABS = "Cannot incomplete the tasks in this current tab.";
-
+	protected static final String MESSAGE_HELP = "Opening the Help window...";
+	
 	protected static final int PENDING_TAB = 0;
 	protected static final int COMPLETE_TAB = 1;
 	
@@ -912,6 +913,17 @@ class ShowAllCommand extends Command {
 			view.taskTrashList.setItems(model.getTrashList());
 		}
 		return MESSAGE_SUCCESSFUL_SHOW_ALL;
+	}
+}
+
+class HelpCommand extends Command {
+	public HelpCommand(Model model, View view) {
+		super(model, view);
+	}
+	
+	public String execute(){
+		
+		return MESSAGE_HELP;
 	}
 }
 

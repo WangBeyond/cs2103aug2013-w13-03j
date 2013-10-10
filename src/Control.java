@@ -34,6 +34,7 @@ public class Control extends Application {
 	static final String MESSAGE_UNMARK_TIP = "<unmark> <index 1> <index 2> <index 3> ...";
 	static final String MESSAGE_COMPLETE_TIP = "<complete/done> <index 1> <index 2> <index 3> ...";
 	static final String MESSAGE_INCOMPLETE_TIP = "<incomplete/undone> <index 1> <index 2> <index 3> ...";
+	static final String MESSAGE_HELP_TIP = "<help>";
 	static final String MESSAGE_EXIT_TIP = "<exit>";
 	static final String MESSAGE_REQUEST_COMMAND = "Please enter a command";
 	static final KeyCombination undo_hot_key = new KeyCodeCombination(
@@ -136,6 +137,9 @@ public class Control extends Application {
 								case CLEAR_ALL:
 									view.setFeedback(MESSAGE_CLEAR_ALL_TIP);
 									break;
+								case HELP:
+									view.setFeedback(MESSAGE_HELP_TIP);
+									break;
 								case EXIT:
 									view.setFeedback(MESSAGE_EXIT_TIP);
 									break;
@@ -215,8 +219,8 @@ public class Control extends Application {
 				return executeUnmarkCommand(parsedUserCommand);
 				// case SETTINGS:
 				// return executeSettingsCommand(parsedUserCommand);
-				// case HELP:
-				// return executeHelpCommand(parsedUserCommand);
+			case HELP:
+				return executeHelpCommand();
 				// case SYNC:
 				// return executeSyncCommand(parsedUserCommand);
 			case EXIT:
@@ -376,6 +380,11 @@ public class Control extends Application {
 			executeShowCommand();
 		}
 		return feedback;
+	}
+	
+	private String executeHelpCommand(){
+		Command s = new HelpCommand(modelHandler, view);
+		return s.execute();
 	}
 
 	private String executeExitCommand() {
