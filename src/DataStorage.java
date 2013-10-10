@@ -46,6 +46,9 @@ public class DataStorage extends Store {
 		this.model = model;
 	}
 	
+	/**
+	 * create the directory of iDo folder in user's documents folder
+	 */
 	private void createDir() {
 		File theDir = new File(findUserDocDir()+FOLDERNAME);
 		// if the directory does not exist, create it
@@ -57,11 +60,19 @@ public class DataStorage extends Store {
 			}
 		}
 	}
-
+	
+	/**
+	 * find user's Documents directory
+	 * @return user Documents dir
+	 */
 	private String findUserDocDir() {
 		return System.getProperty("user.home") + "/Documents/" ;
 	}
 	
+	/**
+	 * check if target file exists
+	 * @param file
+	 */
 	private static void checkIfFileExists(File file) {
 		if (!file.exists()) {
 			try {
@@ -71,7 +82,7 @@ public class DataStorage extends Store {
 			}
 		}
 	}
-
+	
 	public void loadFromFile() throws IOException {
 		in = new BufferedReader(new FileReader(textFile));
 

@@ -50,10 +50,6 @@
     -fx-translate-y: -10;
 }
 
-.text {
-	-fx-font-size: 15.0;
-    -fx-font-family: "Ubuntu";
-}
 
 /************************************* Text Field *****************************************************/
 .text-field {

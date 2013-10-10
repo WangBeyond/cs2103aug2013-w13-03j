@@ -287,26 +287,14 @@ public class View implements HotkeyListener {
 		commandLine = new TextField();
 		commandLine.setPrefWidth(630);
 		commandLine.setStyle("-fx-text-fill: darkgrey;");
-		commandLine.setOnKeyPressed(new EventHandler<KeyEvent>() {
-			public void handle(KeyEvent e) {
-				for (int i = 0; i < textList.size(); i++)
-					textList.get(i).setText("");
-			}
-		});
 		commandLine.setOnKeyReleased(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent e) {
-				if (e.getCode() == KeyCode.ENTER) {
-					for (int i = 0; i < textList.size(); i++)
-						textList.get(i).setText("");
-				}
 				String temporaryCommand = commandLine.getText();
-				System.out.println("command " + temporaryCommand);
-				//displayCursor();
+				//System.out.println("command " + temporaryCommand);
+				emptyTextList();
 				try {
 					ArrayList<InfoWithIndex> infoList = Parser
 							.parseForView(temporaryCommand);
-					for (int i = infoList.size(); i < 10; i++)
-						textList.get(i).setText("");
 					for (int i = 0; i < infoList.size(); i++) {
 						InfoWithIndex info = infoList.get(i);
 						Text text = textList.get(i);
@@ -314,18 +302,21 @@ public class View implements HotkeyListener {
 						text.setStyle("-fx-font: 15.0px Ubantu;");
 						text.setTextAlignment(TextAlignment.LEFT);
 						text.setFill(colors[info.getInfoType() + 2]);
-						System.out.print(info.getInfo()+" "+info.getInfoType()+"  ");
+						//System.out.print(info.getInfo()+" "+info.getInfoType()+"  ");
 					}
 					for(int i =5;i<textList.size();i++) {
 						textList.get(i).setLayoutX(10);
 					}
 					displayCursor();
 				} catch (Exception ex) {
-					for (int i = 1; i < 10; i++)
-						textList.get(i).setText("");
-					textList.get(0).setStyle("-fx-font: 15.0px Ubantu;");
-					textList.get(0).setText(temporaryCommand);
-					textList.get(0).setFill(Color.DARKGRAY);
+					if(Parser.doesArrayContain(COMMAND_TYPES , temporaryCommand.trim())) {
+						textList.get(0).setFill(Color.GREEN);;
+						textList.get(0).setText(temporaryCommand);
+					} else {
+						textList.get(0).setStyle("-fx-font: 15.0px Ubantu;");
+						textList.get(0).setText(temporaryCommand);
+						textList.get(0).setFill(Color.DARKGRAY);
+					}
 				}
 
 			}
@@ -913,7 +904,17 @@ public class View implements HotkeyListener {
 	public void setTab(int tabIndex) {
 		tabPane.getSelectionModel().select(tabIndex);
 	}
-
+	
+	public void emptyTextList() {
+		for (int i = 0; i < textList.size(); i++)
+			textList.get(i).setText("");
+	}
+	
+	/**
+	 * set the real-time multicolor feedback to remind some misuse or
+	 * give some suggestion
+	 * @param feedback
+	 */
 	void setFeedback(String feedback) {
 		if (feedback.equals(Control.MESSAGE_INVALID_COMMAND_TYPE)
 				|| feedback.equals(Control.MESSAGE_REQUEST_COMMAND)

@@ -163,7 +163,6 @@ public class Control extends Application {
 						String str = view.textList.get(i).getText();
 						if(!str.equals("")) {
 							view.textList.get(i).setText(str.substring(0,str.length()));
-							System.out.println(view.textList.get(i).getText());
 							break;
 						} else if(i==0)
 							break;
@@ -183,8 +182,10 @@ public class Control extends Application {
 	}
 
 	private void updateFeedback(String feedback) {
-		if (successfulExecution(feedback))
+		if (successfulExecution(feedback)) {
 			view.commandLine.setText("");
+			view.emptyTextList();
+		}
 		view.emptyFeedback(0);
 		view.setFeedbackStyle(0, feedback, Color.WHITE);
 	}
