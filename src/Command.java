@@ -922,7 +922,7 @@ class HelpCommand extends Command {
 	}
 	
 	public String execute(){
-		
+		view.showHelpPage();
 		return MESSAGE_HELP;
 	}
 }

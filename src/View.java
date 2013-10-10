@@ -138,7 +138,7 @@ public class View implements HotkeyListener {
 		stage = primaryStage;
 		this.model = model;
 		
-//		setupHelpPage();
+		setupHelpPage();
 		setupStage();
 		loadLibrary();
 		checkIntellitype();
@@ -156,11 +156,15 @@ public class View implements HotkeyListener {
 		setDraggable();
 		setupScene();
 	}
-/*
+
 	private void setupHelpPage(){
 		helpPage = new Help();
 	}
-*/	
+	
+	public void showHelpPage(){
+		helpPage.showHelpPage();
+	}
+	
 	private void setupShortcuts() {
 		root.setOnKeyPressed(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent e) {
