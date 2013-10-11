@@ -111,7 +111,6 @@
     -fx-border-color: transparent -fx-table-cell-border-color transparent transparent;
     -fx-border-width: 0.083333em; /* 1 */
     -fx-cell-size: 2.0em; /* 24 */
-    -fx-text-fill: -fx-text-inner-color;
 }
 
 
@@ -252,6 +251,10 @@
 	-fx-background-size: 30 30;
 	-fx-background-image: url("makeLarger.png");
 	
+}
+
+#overdue {
+	-fx-text-fill: red;
 }
 
 #larger:hover{

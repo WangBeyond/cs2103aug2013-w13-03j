@@ -28,6 +28,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.control.OverrunStyle;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabBuilder;
 import javafx.scene.control.TabPane;
@@ -52,6 +53,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextBuilder;
@@ -560,8 +562,13 @@ public class View implements HotkeyListener {
 						TableCell<Task, String> tc = new TableCell<Task, String>() {
 							@Override
 							public void updateItem(String item, boolean empty) {
-								if (item != null)
+								if (item != null){
+									if(item.equals("OVERDUE")){
+									setId("overdue");
+									} 
+									
 									setText(item);
+								}
 							}
 						};
 						tc.setAlignment(Pos.CENTER);
@@ -1004,7 +1011,7 @@ public class View implements HotkeyListener {
 					}
 				}
 				emptyFeedback(listIndex);
-				setFeedbackStyle(0, isCommandExisting ? "available commands: "
+				setFeedbackStyle(0, isCommandExisting ? "Available commands: "
 						: Control.MESSAGE_REQUEST_COMMAND, Color.WHITE);
 				break;
 			}
