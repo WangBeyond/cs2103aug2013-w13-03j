@@ -210,7 +210,6 @@ public class Control extends Application {
 					for(int i=0;i<(availCommands.get(0).length());i++) {
 						view.commandLine.forward();
 					}
-					System.out.println(view.commandLine.getCaretPosition());
 					command = view.commandLine.getText();
 				}
 				view.updateMultiColorCommand(command);
