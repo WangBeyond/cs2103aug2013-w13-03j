@@ -30,11 +30,11 @@ public abstract class Command {
 	static final int COMPLETE_TAB = 1;
 	
 	protected Model model;
-	protected View view;
+	protected int tabIndex;
 	
-	public Command(Model model, View view){
+	public Command(Model model, int tabIndex){
 		this.model = model;
-		this.view = view;
+		this.tabIndex = tabIndex;
 	}
 	
 	public abstract String execute();
@@ -45,11 +45,10 @@ abstract class TwoWayCommand extends Command {
 	protected static final boolean SEARCHED = true;
 	protected static final boolean SHOWN = false;
 	protected static final int INVALID = -1;
-	protected int tabIndex;
 	protected ObservableList<Task> modifiedList;
 	
-	public TwoWayCommand(Model model, View view){
-		super(model, view);
+	public TwoWayCommand(Model model, int tabIndex){
+		super(model, tabIndex);
 	}
 	
 	public abstract String undo();
@@ -60,7 +59,6 @@ abstract class TwoWayCommand extends Command {
 
 	public int convertIndex(int prevIndex) {
 		if (listedIndexType == SEARCHED) {
-			tabIndex = view.tabPane.getSelectionModel().getSelectedIndex();
 			ObservableList<Task> searchList;
 			TwoWayCommand.setIndexType(TwoWayCommand.SEARCHED);
 			if (tabIndex == PENDING_TAB) {
@@ -93,8 +91,8 @@ class AddCommand extends TwoWayCommand {
 	private Task task;
 	private int index;
 
-	public AddCommand(String[] parsedUserCommand, Model model, View view) {
-		super(model, view);
+	public AddCommand(String[] parsedUserCommand, Model model, int tabIndex) {
+		super(model, tabIndex);
 		workInfo = parsedUserCommand[0];
 		tag = parsedUserCommand[1];
 		startDateString = parsedUserCommand[2];
@@ -164,7 +162,6 @@ class AddCommand extends TwoWayCommand {
 		model.addTaskToPending(task);
 		//model.addIndexToAdded(indexID);
 		Control.sortList(model.getPendingList());
-		view.setTab(PENDING_TAB);
 
 		return MESSAGE_SUCCESSFUL_ADD;
 	}
@@ -188,9 +185,8 @@ class EditCommand extends TwoWayCommand {
 	Task targetTask;
 	Task originalTask;
 
-	public EditCommand(String[] parsedUserCommand, Model model, View view) {
-		super(model, view);
-		tabIndex = view.tabPane.getSelectionModel().getSelectedIndex();
+	public EditCommand(String[] parsedUserCommand, Model model, int tabIndex) {
+		super(model, tabIndex);
 		modifiedList = FXCollections.observableArrayList();
 
 		if (tabIndex == PENDING_TAB){
@@ -314,10 +310,10 @@ class RemoveCommand extends TwoWayCommand {
 	int indexCount;
 	ArrayList<Task> removedTaskInfo;
 
-	public RemoveCommand(String[] userParsedCommand, Model model, View view) {
-		super(model, view);
+	public RemoveCommand(String[] userParsedCommand, Model model, int tabIndex) {
+		super(model, tabIndex);
 		removedTaskInfo = new ArrayList<Task>();
-		tabIndex = this.view.tabPane.getSelectionModel().getSelectedIndex();
+		this.tabIndex = tabIndex;
 		modifiedList = FXCollections.observableArrayList();
 		if (tabIndex == PENDING_TAB) {
 			modifiedList = this.model.getPendingList();
@@ -382,12 +378,11 @@ class ClearAllCommand extends TwoWayCommand {
 	Task[] clearedTasks;
 	Task[] originalTrashTasks;
 
-	public ClearAllCommand(Model model, View view) {
-		super(model, view);
+	public ClearAllCommand(Model model, int tabIndex) {
+		super(model, tabIndex);
 	}
 
 	public String execute() {
-		tabIndex = view.tabPane.getSelectionModel().getSelectedIndex();
 		originalTrashTasks = new Task[model.getTrashList().size()];
 		for (int i = 0; i < model.getTrashList().size(); i++) {
 			originalTrashTasks[i] = model.getTaskFromTrash(i);
@@ -455,8 +450,8 @@ class CompleteCommand extends TwoWayCommand {
 	int[] indexInCompleteList;
 	int indexCount;
 
-	public CompleteCommand(String[] userParsedCommand, Model model, View view) {
-		super(model, view);
+	public CompleteCommand(String[] userParsedCommand, Model model, int tabIndex) {
+		super(model, tabIndex);
 		modifiedList = this.model.getPendingList();
 		indexCount = userParsedCommand.length;
 		indexList = new int[indexCount];
@@ -467,7 +462,6 @@ class CompleteCommand extends TwoWayCommand {
 
 	public String execute() {
 		Arrays.sort(indexList);
-		int tabIndex = view.tabPane.getSelectionModel().getSelectedIndex();
 		
 		if (tabIndex != PENDING_TAB) {
 			return MESSAGE_WRONG_COMPLETE_TABS;
@@ -523,8 +517,8 @@ class IncompleteCommand extends TwoWayCommand {
 	int[] indexInIncompleteList;
 	int indexCount;
 
-	public IncompleteCommand(String[] userParsedCommand, Model model, View view) {
-		super(model, view);
+	public IncompleteCommand(String[] userParsedCommand, Model model, int tabIndex) {
+		super(model, tabIndex);
 		modifiedList = this.model.getCompleteList();
 		indexCount = userParsedCommand.length;
 		indexList = new int[indexCount];
@@ -536,7 +530,6 @@ class IncompleteCommand extends TwoWayCommand {
 	public String execute() {
 		Arrays.sort(indexList);
 
-		int tabIndex = view.tabPane.getSelectionModel().getSelectedIndex();
 		if (tabIndex != COMPLETE_TAB) {
 			return MESSAGE_WRONG_INCOMPLETE_TABS;
 		}
@@ -592,9 +585,8 @@ class MarkCommand extends TwoWayCommand {
 	int[] indexList;
 	int indexCount;
 
-	public MarkCommand(String[] userParsedCommand, Model model, View view) {
-		super(model, view);
-		tabIndex = view.tabPane.getSelectionModel().getSelectedIndex();
+	public MarkCommand(String[] userParsedCommand, Model model, int tabIndex) {
+		super(model, tabIndex);
 		modifiedList = FXCollections.observableArrayList();
 		if (tabIndex == PENDING_TAB) {
 			modifiedList = this.model.getPendingList();
@@ -644,9 +636,9 @@ class UnmarkCommand extends TwoWayCommand {
 	int[] indexList;
 	int indexCount;
 
-	public UnmarkCommand(String[] userParsedCommand, Model model, View view) {
-		super(model, view);
-		tabIndex = view.tabPane.getSelectionModel().getSelectedIndex();
+	public UnmarkCommand(String[] userParsedCommand, Model model, int tabIndex) {
+		super(model, tabIndex);
+
 		modifiedList = FXCollections.observableArrayList();
 		if (tabIndex == PENDING_TAB) {
 			modifiedList = this.model.getPendingList();
@@ -700,10 +692,11 @@ class SearchCommand extends Command {
 	String repeatingType;
 	String isImpt;
 	int tabIndex;
-
+	View view;
+	
 	public SearchCommand(String[] parsedUserCommand, Model model, View view) {
-		super(model, view);
-		tabIndex = view.getTabIndex();
+		super(model, view.getTabIndex());
+		this.view = view;
 		workInfo = parsedUserCommand[0];
 		tag = parsedUserCommand[1];
 		startDateString = parsedUserCommand[2];
@@ -890,8 +883,11 @@ class SearchCommand extends Command {
 }
 
 class TodayCommand extends Command {
+	View view;
+	
 	public TodayCommand(Model model, View view) {
-		super(model, view);
+		super(model, view.getTabIndex());
+		this.view = view;
 	}
 
 	public String execute() {
@@ -903,8 +899,10 @@ class TodayCommand extends Command {
 }
 
 class ShowAllCommand extends Command {
+	View view;
 	public ShowAllCommand(Model model, View view) {
-		super(model, view);
+		super(model, view.getTabIndex());
+		this.view = view;
 	}
 
 	public String execute() {
@@ -922,8 +920,11 @@ class ShowAllCommand extends Command {
 }
 
 class HelpCommand extends Command {
+	View view;
+	
 	public HelpCommand(Model model, View view) {
-		super(model, view);
+		super(model, view.getTabIndex());
+		this.view = view;
 	}
 	
 	public String execute(){
@@ -933,8 +934,8 @@ class HelpCommand extends Command {
 }
 
 class ExitCommand extends Command {
-	public ExitCommand(Model model, View view) {
-		super(model, view);
+	public ExitCommand(Model model, int tabIndex) {
+		super(model, tabIndex);
 	}
 
 	public String execute() {

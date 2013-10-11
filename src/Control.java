@@ -14,7 +14,6 @@ import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 public class Control extends Application {
@@ -49,9 +48,9 @@ public class Control extends Application {
 			KeyCode.Y, KeyCodeCombination.CONTROL_DOWN,
 			KeyCodeCombination.ALT_DOWN);
 
-	private Model modelHandler = new Model();
-	private History commandHistory = new History();
-	private View view;
+	public Model modelHandler = new Model();
+	public History commandHistory = new History();
+	public View view;
 	private Store dataFile;
 	private Store syncFile;
 	
@@ -74,7 +73,7 @@ public class Control extends Application {
 		loadUpdateTimer();
 	}
 
-	private void loadData() {
+	public void loadData() {
 		try {
 			dataFile = new DataStorage("dataStorage.txt", modelHandler);
 			dataFile.loadFromFile();
@@ -262,7 +261,7 @@ public class Control extends Application {
 	private void updateMultiColorCommandWhenInputPressed(KeyEvent e) {
 		KeyCode code = e.getCode();
 		if(code.isDigitKey()) {
-			if(!new KeyCodeCombination(code,KeyCombination.SHIFT_DOWN).match(e))
+					if(!new KeyCodeCombination(code,KeyCombination.SHIFT_DOWN).match(e))
 				view.updateMultiColorCommand(view.commandLine.getText()+code.getName());
 		} else if(code.isLetterKey()) {
 			//If the input key is upper case
@@ -282,6 +281,59 @@ public class Control extends Application {
 		for(int i=0;i<position;i++) {
 			view.commandLine.forward();
 		}
+						view.updateMultiColorCommand(view.commandLine.getText()+code.getName());
+				} else if(code.isLetterKey()) {
+					if(new KeyCodeCombination(code,KeyCombination.SHIFT_DOWN).match(e))
+						view.updateMultiColorCommand(view.commandLine.getText()+code.getName());
+					else {
+						String commandAfterPress = view.commandLine.getText()+code.getName().toLowerCase();
+						ArrayList<String> availCommands = view.getAvailCommandNum(commandAfterPress);
+						if(e.getCode()!=KeyCode.BACK_SPACE && availCommands.size()==1) {
+							view.commandLine.setText(availCommands.get(0));
+							commandAfterPress = availCommands.get(0);
+							view.hideCursor();
+							for(int i=0;i<(availCommands.get(0).length());i++) {
+								view.commandLine.forward();
+							}
+							isCommandCompleted = true;
+							completedCommand = commandAfterPress;
+							System.out.println(view.commandLine.getText()+" "+commandAfterPress);
+						}
+						view.updateMultiColorCommand(commandAfterPress);
+						//word complement
+
+					}}
+			}
+		});
+		view.commandLine.setOnKeyReleased(new EventHandler<KeyEvent>() {
+			public void handle(KeyEvent e) {
+				String command = view.commandLine.getText();
+				if(isCommandCompleted) {
+					view.commandLine.setText(command.substring(0,completedCommand.length()));
+					for(int i=0;i<(command.length()-1);i++) {
+						view.commandLine.forward();
+					}
+					command = view.commandLine.getText();
+					isCommandCompleted = false;
+					view.displayCursor();
+				}
+				view.updateMultiColorCommand(command);
+				if(command.contains("search"))
+					realTimeSearch(command);
+				else if(command.contains("remove")) {
+					String content = command.substring("remove".length());
+				    try { 
+				        Integer.parseInt(Parser.getFirstWord(content)); 
+				    } catch(NumberFormatException ex) { 
+				    	realTimeSearch("search"+content);
+				    }
+				}
+				if(e.getCode() == KeyCode.BACK_SPACE && isRealTimeSearch && !command.contains("search")) {
+					isRealTimeSearch = false;
+					executeShowCommand();
+				}		
+			}
+		});
 	}
 	
 	private void updateFeedback(String feedback) {
@@ -364,12 +416,14 @@ public class Control extends Application {
 	
 	private String executeAddCommand(String[] parsedUserCommand)
 			throws IOException {
-		Command s = new AddCommand(parsedUserCommand, modelHandler, view);
+		int tabIndex = view.getTabIndex();
+		Command s = new AddCommand(parsedUserCommand, modelHandler, tabIndex);
 		String feedback = s.execute();
 		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_ADD)) {
 			commandHistory.updateCommand((TwoWayCommand) s);
 			dataFile.storeToFile();
 			syncFile.storeToFile();
+			view.setTab(0);
 			executeShowCommand();
 		}
 		return feedback;
@@ -378,7 +432,8 @@ public class Control extends Application {
 	private String executeEditCommand(String[] parsedUserCommand)
 			throws IOException {
 		boolean isAfterSearch = TwoWayCommand.listedIndexType;
-		Command s = new EditCommand(parsedUserCommand, modelHandler, view);
+		int tabIndex = view.getTabIndex();
+		Command s = new EditCommand(parsedUserCommand, modelHandler, tabIndex);
 		String feedback = s.execute();
 		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_EDIT)) {
 			commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
@@ -391,7 +446,8 @@ public class Control extends Application {
 	private String executeRemoveCommand(String[] parsedUserCommand)
 			throws IOException {
 		boolean isAfterSearch = TwoWayCommand.listedIndexType;
-		Command s = new RemoveCommand(parsedUserCommand, modelHandler, view);
+		int tabIndex = view.getTabIndex();
+		Command s = new RemoveCommand(parsedUserCommand, modelHandler, tabIndex);
 		String feedback = s.execute();
 		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_REMOVE)) {
 			commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
@@ -439,8 +495,8 @@ public class Control extends Application {
 
 	private String executeClearCommand() throws IOException {
 		boolean isAfterSearch = TwoWayCommand.listedIndexType;
-
-		Command s = new ClearAllCommand(modelHandler, view);
+		int tabIndex = view.getTabIndex();
+		Command s = new ClearAllCommand(modelHandler, tabIndex);
 		String feedback = s.execute();
 		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_CLEAR_ALL)) {
 			commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
@@ -454,8 +510,8 @@ public class Control extends Application {
 	private String executeCompleteCommand(String[] parsedUserCommand)
 			throws IOException {
 		boolean isAfterSearch = TwoWayCommand.listedIndexType;
-
-		Command s = new CompleteCommand(parsedUserCommand, modelHandler, view);
+		int tabIndex = view.getTabIndex();
+		Command s = new CompleteCommand(parsedUserCommand, modelHandler, tabIndex);
 		String feedback = s.execute();
 
 		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_COMPLETE)) {
@@ -469,8 +525,8 @@ public class Control extends Application {
 	private String executeIncompleteCommand(String[] parsedUserCommand)
 			throws IOException {
 		boolean isAfterSearch = TwoWayCommand.listedIndexType;
-
-		Command s = new IncompleteCommand(parsedUserCommand, modelHandler, view);
+		int tabIndex = view.getTabIndex();
+		Command s = new IncompleteCommand(parsedUserCommand, modelHandler, tabIndex);
 		String feedback = s.execute();
 
 		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_INCOMPLETE)) {
@@ -484,8 +540,8 @@ public class Control extends Application {
 	private String executeMarkCommand(String[] parsedUserCommand)
 			throws IOException {
 		boolean isAfterSearch = TwoWayCommand.listedIndexType;
-
-		Command s = new MarkCommand(parsedUserCommand, modelHandler, view);
+		int tabIndex = view.getTabIndex();
+		Command s = new MarkCommand(parsedUserCommand, modelHandler, tabIndex);
 		String feedback = s.execute();
 
 		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_MARK)) {
@@ -499,8 +555,8 @@ public class Control extends Application {
 	private String executeUnmarkCommand(String[] parsedUserCommand)
 			throws IOException {
 		boolean isAfterSearch = TwoWayCommand.listedIndexType;
-
-		Command s = new UnmarkCommand(parsedUserCommand, modelHandler, view);
+		int tabIndex = view.getTabIndex();
+		Command s = new UnmarkCommand(parsedUserCommand, modelHandler, tabIndex);
 		String feedback = s.execute();
 
 		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_UNMARK)) {
@@ -517,7 +573,8 @@ public class Control extends Application {
 	}
 
 	private String executeExitCommand() {
-		Command s = new ExitCommand(modelHandler, view);
+		int tabIndex = view.getTabIndex();
+		Command s = new ExitCommand(modelHandler, tabIndex);
 		return s.execute();
 	}
 
