@@ -190,15 +190,6 @@ public class Control extends Application {
 					updateFeedback(feedback);
 					e.consume();
 				} 
-				KeyCode code = e.getCode();
-				if(code.isDigitKey())
-					if(!new KeyCodeCombination(code,KeyCombination.SHIFT_DOWN).match(e))
-						view.updateMultiColorCommand(view.commandLine.getText()+code.getName());
-				else if(code.isLetterKey())
-					if(new KeyCodeCombination(code,KeyCombination.SHIFT_DOWN).match(e))
-						view.updateMultiColorCommand(view.commandLine.getText()+code.getName());
-					else
-						view.updateMultiColorCommand(view.commandLine.getText()+code.getName().toLowerCase());
 			}
 		});
 		view.commandLine.setOnKeyReleased(new EventHandler<KeyEvent>() {
