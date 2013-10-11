@@ -2,6 +2,8 @@ import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.TimeZone;
+
 import com.google.gdata.data.DateTime;
 
 // Note: 3 public functions are getTime(), constructor and convert()
@@ -25,7 +27,7 @@ public class CustomDate {
 	}
 	
 	public DateTime returnInDateTimeFormat(){
-		return new DateTime(targetDate.getTime());
+		return new DateTime(targetDate.getTime(), TimeZone.getDefault());
 	}
 	
 	public static String convertString(CustomDate v) {
