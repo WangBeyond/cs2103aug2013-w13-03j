@@ -53,6 +53,9 @@ public class Control extends Application {
 	private Store syncFile;
 	
 	static boolean isRealTime = false;
+	static boolean isRealTimeSearch = false;
+	static boolean isCommandCompleted = false;
+	static String completedCommand;
 	//static boolean listedIndexType;
 	static final boolean SEARCHED = true;
 	static final boolean SHOWN = false;
@@ -190,18 +193,44 @@ public class Control extends Application {
 					updateFeedback(feedback);
 					e.consume();
 				} 
+				KeyCode code = e.getCode();
+				if(code.isDigitKey()) {
+					//if(!new KeyCodeCombination(code,KeyCombination.SHIFT_DOWN).match(e))
+						view.updateMultiColorCommand(view.commandLine.getText()+code.getName());
+				} else if(code.isLetterKey()) {
+					if(new KeyCodeCombination(code,KeyCombination.SHIFT_DOWN).match(e))
+						view.updateMultiColorCommand(view.commandLine.getText()+code.getName());
+					else {
+						String commandAfterPress = view.commandLine.getText()+code.getName().toLowerCase();
+						ArrayList<String> availCommands = view.getAvailCommandNum(commandAfterPress);
+						if(e.getCode()!=KeyCode.BACK_SPACE && availCommands.size()==1) {
+							view.commandLine.setText(availCommands.get(0));
+							commandAfterPress = availCommands.get(0);
+							view.hideCursor();
+							for(int i=0;i<(availCommands.get(0).length());i++) {
+								view.commandLine.forward();
+							}
+							isCommandCompleted = true;
+							completedCommand = commandAfterPress;
+							System.out.println(view.commandLine.getText()+" "+commandAfterPress);
+						}
+						view.updateMultiColorCommand(commandAfterPress);
+						//word complement
+
+					}}
 			}
 		});
 		view.commandLine.setOnKeyReleased(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent e) {
 				String command = view.commandLine.getText();
-				ArrayList<String> availCommands = view.getAvailCommandNum(command);
-				if(e.getCode()!=KeyCode.BACK_SPACE && availCommands.size()==1) {
-					view.commandLine.setText(availCommands.get(0));
-					for(int i=0;i<(availCommands.get(0).length());i++) {
+				if(isCommandCompleted) {
+					view.commandLine.setText(command.substring(0,completedCommand.length()));
+					for(int i=0;i<(command.length()-1);i++) {
 						view.commandLine.forward();
 					}
 					command = view.commandLine.getText();
+					isCommandCompleted = false;
+					view.displayCursor();
 				}
 				view.updateMultiColorCommand(command);
 				if(command.contains("search"))
@@ -213,6 +242,10 @@ public class Control extends Application {
 				    } catch(NumberFormatException ex) { 
 				    	realTimeSearch("search"+content);
 				    }
+				}
+				if(e.getCode() == KeyCode.BACK_SPACE && isRealTimeSearch && !command.contains("search")) {
+					isRealTimeSearch = false;
+					executeShowCommand();
 				}		
 			}
 		});
@@ -288,8 +321,10 @@ public class Control extends Application {
 		isRealTime = true;
 		if(command.trim().equals("search"))
 			executeShowCommand();
-		else
+		else {
 			executeCommand(command);
+			isRealTimeSearch = true;
+		}
 	}
 	
 	

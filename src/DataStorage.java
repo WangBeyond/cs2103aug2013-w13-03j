@@ -292,8 +292,8 @@ class SyncStorage extends Store {
 		if(indexList.size()>0) {
 			for (int i = 0; i < indexList.size(); i++) {
 				out.print(indexList.get(i)+" ");
+				out.println();
 			}
-			out.println();
 		}
 	}
 }
