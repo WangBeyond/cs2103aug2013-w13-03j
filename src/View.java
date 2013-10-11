@@ -312,7 +312,7 @@ public class View implements HotkeyListener {
 	}
 	
 	void updateMultiColorCommand(String temporaryCommand) {
-		System.out.println("command " + temporaryCommand);
+		//System.out.println("command " + temporaryCommand);
 		emptyTextList();
 		try {
 			ArrayList<InfoWithIndex> infoList = Parser
