@@ -278,7 +278,6 @@ public class Parser {
 				modifiedList = model.getSearchTrashList();
 			}
 			String indexRange = "1"+HYPHEN+modifiedList.size();
-			System.out.println(indexRange);
 			return parseCommandWithIndex(indexRange);
 		}
 	}
@@ -386,7 +385,9 @@ public class Parser {
 		} else { // Consider command with index, just add the part except commandType,
 				// but if the commandType is invalid, just add them as uselessInfo
 			int beginIndex = commandTypeStr.length();
-			if(commandType != COMMAND_TYPES.INVALID) {
+			if(commandType != COMMAND_TYPES.INVALID && commandType.equals(COMMAND_TYPES.REMOVE)
+					|| commandType.equals(COMMAND_TYPES.COMPLETE) || commandType.equals(COMMAND_TYPES.INCOMPLETE)
+					|| commandType.equals(COMMAND_TYPES.MARK) || commandType.equals(COMMAND_TYPES.UNMARK)) {
 				infoList.add(new InfoWithIndex( command.substring(beginIndex), beginIndex, INDEX_INDEX_INFO));
 			} else {
 				infoList.add(new InfoWithIndex( command.substring(beginIndex), beginIndex, INDEX_USELESS_INFO));

@@ -274,7 +274,6 @@ class SyncStorage extends Store {
 	}
 
 	private boolean addIndexToModel(BufferedReader in,INDEX_TYPES indexType) throws IOException {
-		Task newTask = new Task();
 		String textLine = in.readLine();
 		if(textLine == null || textLine.equals(SPLITLINE))
 			return DONE_READING;
@@ -290,8 +289,10 @@ class SyncStorage extends Store {
 	}
 
 	private void addIndicesToWriter(PrintWriter out, ArrayList<Integer> indexList) {
-		for (int i = 0; i < indexList.size(); i++) {
-			out.print(indexList.get(i)+" ");
+		if(indexList.size()>0) {
+			for (int i = 0; i < indexList.size(); i++) {
+				out.print(indexList.get(i)+" ");
+			}
 			out.println();
 		}
 	}

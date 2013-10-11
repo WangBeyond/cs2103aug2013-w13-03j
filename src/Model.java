@@ -142,7 +142,7 @@ public class Model {
 	
 	public void loadIndicesToDeletedList(String indices) {
 		deletedIndices.clear();
-		if(indices.trim().equals("")) {
+		if(!indices.trim().equals("")) {
 			String[] indexStrList = indices.split(" ");
 			for(String indexStr : indexStrList) {
 				deletedIndices.add(Integer.parseInt(indexStr));
@@ -152,7 +152,7 @@ public class Model {
 	
 	public void loadIndicesToAddedList(String indices) {
 		newlyAddedIndices.clear();
-		if(indices.trim().equals("")) {
+		if(!indices.trim().equals("")) {
 			String[] indexStrList = indices.split(" ");
 			for(String indexStr : indexStrList) {
 				newlyAddedIndices.add(Integer.parseInt(indexStr));
