@@ -281,59 +281,6 @@ public class Control extends Application {
 		for(int i=0;i<position;i++) {
 			view.commandLine.forward();
 		}
-						view.updateMultiColorCommand(view.commandLine.getText()+code.getName());
-				} else if(code.isLetterKey()) {
-					if(new KeyCodeCombination(code,KeyCombination.SHIFT_DOWN).match(e))
-						view.updateMultiColorCommand(view.commandLine.getText()+code.getName());
-					else {
-						String commandAfterPress = view.commandLine.getText()+code.getName().toLowerCase();
-						ArrayList<String> availCommands = view.getAvailCommandNum(commandAfterPress);
-						if(e.getCode()!=KeyCode.BACK_SPACE && availCommands.size()==1) {
-							view.commandLine.setText(availCommands.get(0));
-							commandAfterPress = availCommands.get(0);
-							view.hideCursor();
-							for(int i=0;i<(availCommands.get(0).length());i++) {
-								view.commandLine.forward();
-							}
-							isCommandCompleted = true;
-							completedCommand = commandAfterPress;
-							System.out.println(view.commandLine.getText()+" "+commandAfterPress);
-						}
-						view.updateMultiColorCommand(commandAfterPress);
-						//word complement
-
-					}}
-			}
-		});
-		view.commandLine.setOnKeyReleased(new EventHandler<KeyEvent>() {
-			public void handle(KeyEvent e) {
-				String command = view.commandLine.getText();
-				if(isCommandCompleted) {
-					view.commandLine.setText(command.substring(0,completedCommand.length()));
-					for(int i=0;i<(command.length()-1);i++) {
-						view.commandLine.forward();
-					}
-					command = view.commandLine.getText();
-					isCommandCompleted = false;
-					view.displayCursor();
-				}
-				view.updateMultiColorCommand(command);
-				if(command.contains("search"))
-					realTimeSearch(command);
-				else if(command.contains("remove")) {
-					String content = command.substring("remove".length());
-				    try { 
-				        Integer.parseInt(Parser.getFirstWord(content)); 
-				    } catch(NumberFormatException ex) { 
-				    	realTimeSearch("search"+content);
-				    }
-				}
-				if(e.getCode() == KeyCode.BACK_SPACE && isRealTimeSearch && !command.contains("search")) {
-					isRealTimeSearch = false;
-					executeShowCommand();
-				}		
-			}
-		});
 	}
 	
 	private void updateFeedback(String feedback) {
