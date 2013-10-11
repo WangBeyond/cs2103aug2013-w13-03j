@@ -26,13 +26,11 @@ import com.google.gdata.data.extensions.When;
 import com.google.gdata.util.AuthenticationException;
 import com.google.gdata.util.ServiceException;
 
-
-
 public class Synchronization {
 	
 	/*messages*/
 	private static final String CALENDAR_TITLE = "iDo";
-	private static final String CALENDAR_SUMMARY = "this calendar synchronizes with iDo task Manager.";
+	private static final String CALENDAR_SUMMARY = "This calendar synchronizes with iDo Task Manager.";
 	private static final String SERVICE_NAME = "sg.nus.edu.cs2103aug2013-w13-03j";
 	
 	/*types of task status*/
@@ -120,8 +118,8 @@ public class Synchronization {
 	private void syncNewTasksToGCal(CalendarService service, ArrayList<Task> tasks, URL feedUrl){
 		for(int i; i<tasks.size(); i++){
 			Task task = tasks.get(i);
-			if(task.isRecurringTask){
-				createRecurringEvent(service, task.getWorkInfo(), task.getStartDateString(), task.getEndDateString(), task.getFreq(), feedUrl);
+			if(task.isRecurringTask()){
+				createRecurringEvent(service, task.getWorkInfo(), task.getStartDate(), task.getEndDate(), task.getFreq(), feedUrl);
 			} else {
 				createSingleEvent(service, task.getWorkInfo(), task.getStartDateString(), task.getEndDateString(), feedUrl);
 			}
@@ -352,7 +350,4 @@ public class Synchronization {
 	      System.out.println("Successfully deleted all events via batch request.");
 	    }
 	  }
-
-	
-	
 }

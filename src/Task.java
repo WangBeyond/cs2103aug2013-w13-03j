@@ -20,7 +20,6 @@ public class Task implements Comparable<Task> {
 	// default constructor
 	public Task() {
 		checkProperty();
-
 		setIsImportant(false);
 		setStartDate(null);
 		setStartDateString("-");
@@ -232,6 +231,10 @@ public class Task implements Comparable<Task> {
 			return (long)365*24*60*60*1000;
 		else
 			return 0;
+	}
+	
+	public boolean isRecurringTask(){
+		return tag.get().getRepetition().equals(Parser.NULL);
 	}
 }
 
