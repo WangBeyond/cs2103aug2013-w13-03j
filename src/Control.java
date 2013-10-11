@@ -49,7 +49,8 @@ public class Control extends Application {
 	private History commandHistory = new History();
 	private View view;
 	private Store dataFile;
-
+	private Store syncFile;
+	
 	static boolean listedIndexType;
 	static final boolean SEARCHED = true;
 	static final boolean SHOWN = false;
@@ -69,6 +70,8 @@ public class Control extends Application {
 		try {
 			dataFile = new DataStorage("dataStorage.txt", modelHandler);
 			dataFile.loadFromFile();
+			syncFile = new SyncStorage("syncFile.txt" , modelHandler);
+			syncFile.loadFromFile();
 		} catch (IOException e) {
 			System.out.println("Cannot read the given file");
 		}
@@ -183,6 +186,15 @@ public class Control extends Application {
 					updateFeedback(feedback);
 					e.consume();
 				}
+				KeyCode code = e.getCode();
+				if(code.isDigitKey())
+					if(!new KeyCodeCombination(code,KeyCombination.SHIFT_DOWN).match(e))
+						view.updateMultiColorCommand(view.commandLine.getText()+code.getName());
+				else if(code.isLetterKey())
+					if(new KeyCodeCombination(code,KeyCombination.SHIFT_DOWN).match(e))
+						view.updateMultiColorCommand(view.commandLine.getText()+code.getName());
+					else
+						view.updateMultiColorCommand(view.commandLine.getText()+code.getName().toLowerCase());
 			}
 		});
 		view.commandLine.setOnKeyReleased(new EventHandler<KeyEvent>() {
@@ -266,6 +278,7 @@ public class Control extends Application {
 		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_ADD)) {
 			commandHistory.updateCommand((TwoWayCommand) s);
 			dataFile.storeToFile();
+			syncFile.storeToFile();
 			executeShowCommand();
 		}
 		return feedback;
@@ -292,6 +305,7 @@ public class Control extends Application {
 		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_REMOVE)) {
 			commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
 			dataFile.storeToFile();
+			syncFile.storeToFile();
 			executeShowCommand();
 		}
 		return feedback;
