@@ -6,7 +6,10 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
 public class Task implements Comparable<Task> {
-
+	public static enum Status {
+		UNCHANGED, NEWLY_ADDED, DELETED
+	}
+	
 	private BooleanProperty isImportant;
 	private ObjectProperty<CustomDate> startDate;
 	private StringProperty startDateString;
@@ -16,6 +19,7 @@ public class Task implements Comparable<Task> {
 	private ObjectProperty<Tag> tag;
 	private int indexId;
 	private int indexInList;
+	private Status status;
 
 	// default constructor
 	public Task() {
@@ -29,10 +33,11 @@ public class Task implements Comparable<Task> {
 		setTag(new Tag("", ""));
 		indexId = 0;
 		indexInList = 0;
+		status = Status.NEWLY_ADDED;
 	}
 
 	public Task(boolean isImportant, CustomDate startDate, CustomDate endDate,
-			String workInfo, Tag tag, int indexId) {
+			String workInfo, Tag tag, int indexId, Status status) {
 		checkProperty();
 		
 		setIsImportant(isImportant);
@@ -49,6 +54,7 @@ public class Task implements Comparable<Task> {
 		setWorkInfo(workInfo);
 		setTag(tag);
 		this.indexId = indexId;
+		setStatus(status);
 	}
 	
 	private void checkProperty(){
@@ -148,12 +154,20 @@ public class Task implements Comparable<Task> {
 	public int getIndexId() {
 		return indexId;
 	}
+	
+	public Status getStatus(){
+		return status;
+	}
 
 	// set functions
 	public void setIsImportant(boolean isImportant) {
 		this.isImportant.set(isImportant);
 	}
-
+	
+	public void setStatus(Status status){
+		this.status = status;
+	}
+	
 	public void setStartDate(CustomDate startDate) {
 		this.startDate.set(startDate);
 		if (startDate != null)

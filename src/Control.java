@@ -38,7 +38,7 @@ public class Control extends Application {
 	static final String MESSAGE_HELP_TIP = "<help>";
 	static final String MESSAGE_EXIT_TIP = "<exit>";
 	static final String MESSAGE_REQUEST_COMMAND = "Please enter a command";
-	
+
 	static final String UNDO_COMMAND = "undo";
 	static final String REDO_COMMAND = "redo";
 	static final KeyCombination undo_hot_key = new KeyCodeCombination(
@@ -53,12 +53,12 @@ public class Control extends Application {
 	public View view;
 	private Store dataFile;
 	private Store syncFile;
-	
+
 	static boolean isRealTime = false;
 	static boolean isRealTimeSearch = false;
 	static boolean isCommandCompleted = false;
 	static String completedCommand;
-	//static boolean listedIndexType;
+	// static boolean listedIndexType;
 	static final boolean SEARCHED = true;
 	static final boolean SHOWN = false;
 
@@ -77,7 +77,7 @@ public class Control extends Application {
 		try {
 			dataFile = new DataStorage("dataStorage.txt", modelHandler);
 			dataFile.loadFromFile();
-			syncFile = new SyncStorage("syncFile.txt" , modelHandler);
+			syncFile = new SyncStorage("syncFile.txt", modelHandler);
 			syncFile.loadFromFile();
 		} catch (IOException e) {
 			System.out.println("Cannot read the given file");
@@ -168,8 +168,9 @@ public class Control extends Application {
 					isRealTime = false;
 					String feedback = executeCommand(view.commandLine.getText());
 					updateFeedback(feedback);
-				} else if(e.getCode() == KeyCode.BACK_SPACE) {
-					//update multicolor command when backspace to avoid delay and shadow effect
+				} else if (e.getCode() == KeyCode.BACK_SPACE) {
+					// update multicolor command when backspace to avoid delay
+					// and shadow effect
 					updateMultiColorCommandWhenBackspacePressed();
 				} else if (undo_hot_key.match(e)) {
 					String feedback = executeCommand(UNDO_COMMAND);
@@ -179,77 +180,83 @@ public class Control extends Application {
 					String feedback = executeCommand(REDO_COMMAND);
 					updateFeedback(feedback);
 					e.consume();
-				} 
+				}
 				updateMultiColorCommandWhenInputPressed(e);
 			}
 		});
 		view.commandLine.setOnKeyReleased(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent e) {
 				String command = view.commandLine.getText();
-				if(isCommandCompleted) 
+				if (isCommandCompleted)
 					command = finishWordCompletion(command);
 				view.updateMultiColorCommand(command);
-				if(Parser.determineCommandType(command) == Parser.COMMAND_TYPES.SEARCH)
+				if (Parser.determineCommandType(command) == Parser.COMMAND_TYPES.SEARCH)
 					realTimeSearch(command);
-				else if(Parser.determineCommandType(command) == Parser.COMMAND_TYPES.REMOVE) {
+				else if (Parser.determineCommandType(command) == Parser.COMMAND_TYPES.REMOVE) {
 					String content = removeCommandTypeString(command);
-				    try { 
-				        Integer.parseInt(Parser.getFirstWord(content)); 
-				    } catch(NumberFormatException ex) { 
-				    	realTimeSearch("search"+content);
-				    }
+					try {
+						Integer.parseInt(Parser.getFirstWord(content));
+					} catch (NumberFormatException ex) {
+						realTimeSearch("search" + content);
+					}
 				}
-				if(e.getCode() == KeyCode.BACK_SPACE && isRealTimeSearch && !command.contains("search")) {
+				if (e.getCode() == KeyCode.BACK_SPACE && isRealTimeSearch
+						&& !command.contains("search")) {
 					isRealTimeSearch = false;
 					executeShowCommand();
-				}		
+				}
 			}
 		});
 	}
-	
-	/****************************method for word completion **************************************************/
+
+	/**************************** method for word completion **************************************************/
 	private String finishWordCompletion(String command) {
-		view.commandLine.setText(command.substring(0,completedCommand.length())+" ");
+		view.commandLine
+				.setText(command.substring(0, completedCommand.length()) + " ");
 		setCaretPosition(command.length());
 		command = view.commandLine.getText();
 		isCommandCompleted = false;
 		view.displayCursor();
 		return command;
 	}
-	
+
 	private String doWordCompletion(KeyEvent e, String commandAfterPress) {
-		ArrayList<String> availCommands = view.getAvailCommandNum(commandAfterPress);
-		if(e.getCode()!=KeyCode.BACK_SPACE && availCommands.size()==1) {
+		ArrayList<String> availCommands = view
+				.getAvailCommandNum(commandAfterPress);
+		if (e.getCode() != KeyCode.BACK_SPACE && availCommands.size() == 1) {
 			view.commandLine.setText(availCommands.get(0));
 			commandAfterPress = availCommands.get(0);
 			view.hideCursor();
-			for(int i=0;i<(availCommands.get(0).length());i++) {
+			for (int i = 0; i < (availCommands.get(0).length()); i++) {
 				view.commandLine.forward();
 			}
 			isCommandCompleted = true;
 			completedCommand = commandAfterPress;
-			//System.out.println(view.commandLine.getText()+" "+commandAfterPress);
+			// System.out.println(view.commandLine.getText()+" "+commandAfterPress);
 		}
 		return commandAfterPress;
 	}
-	
+
 	private String removeCommandTypeString(String command) {
 		String commandTypeStr = Parser.getFirstWord(command);
 		return command.substring(commandTypeStr.length());
 	}
-	
-	/****************************method for multiColor command update **************************************************/
+
+	/**************************** method for multiColor command update **************************************************/
 	private void updateMultiColorCommandWhenBackspacePressed() {
 		int caretPosition = view.commandLine.getCaretPosition();
-		if(caretPosition>0) {
-			for(int i = 0 ; i<view.textList.size() ;i++ ) {
+		if (caretPosition > 0) {
+			for (int i = 0; i < view.textList.size(); i++) {
 				String str = view.textList.get(i).getText();
 				caretPosition -= str.length();
-				if(caretPosition <= 0) {
-					if(!str.equals("")) {
+				if (caretPosition <= 0) {
+					if (!str.equals("")) {
 						int target = str.length() + caretPosition;
-						String multiCommandAfterBackspace = str.substring(0,target-1)+str.substring(target,str.length());
-						view.textList.get(i).setText(multiCommandAfterBackspace);
+						String multiCommandAfterBackspace = str.substring(0,
+								target - 1)
+								+ str.substring(target, str.length());
+						view.textList.get(i)
+								.setText(multiCommandAfterBackspace);
 						break;
 					} else
 						break;
@@ -257,32 +264,38 @@ public class Control extends Application {
 			}
 		}
 	}
-	
+
 	private void updateMultiColorCommandWhenInputPressed(KeyEvent e) {
 		KeyCode code = e.getCode();
-		if(code.isDigitKey()) {
-					if(!new KeyCodeCombination(code,KeyCombination.SHIFT_DOWN).match(e))
-				view.updateMultiColorCommand(view.commandLine.getText()+code.getName());
-		} else if(code.isLetterKey()) {
-			//If the input key is upper case
-			if(new KeyCodeCombination(code,KeyCombination.SHIFT_DOWN).match(e))
-				view.updateMultiColorCommand(view.commandLine.getText()+code.getName());
+		if (code.isDigitKey()) {
+			if (!new KeyCodeCombination(code, KeyCombination.SHIFT_DOWN)
+					.match(e))
+				view.updateMultiColorCommand(view.commandLine.getText()
+						+ code.getName());
+		} else if (code.isLetterKey()) {
+			// If the input key is upper case
+			if (new KeyCodeCombination(code, KeyCombination.SHIFT_DOWN)
+					.match(e))
+				view.updateMultiColorCommand(view.commandLine.getText()
+						+ code.getName());
 			else {
-				String commandAfterPress = view.commandLine.getText()+code.getName().toLowerCase();
-				commandAfterPress = doWordCompletion(e, commandAfterPress);
-				view.updateMultiColorCommand(commandAfterPress);
-			}}
+				String commandAfterPress = view.commandLine.getText()
+						+ code.getName().toLowerCase();
+				if (isCommandCompleted) {
+					commandAfterPress = doWordCompletion(e, commandAfterPress);
+					view.updateMultiColorCommand(commandAfterPress);
+				}
+			}
+		}
 	}
-	
 
-	
 	private void setCaretPosition(int position) {
 		view.commandLine.home();
-		for(int i=0;i<position;i++) {
+		for (int i = 0; i < position; i++) {
 			view.commandLine.forward();
 		}
 	}
-	
+
 	private void updateFeedback(String feedback) {
 		if (successfulExecution(feedback)) {
 			view.commandLine.setText("");
@@ -292,7 +305,7 @@ public class Control extends Application {
 		view.setFeedbackStyle(0, feedback, Color.WHITE);
 	}
 
-	/*****************************************execution part********************************************/
+	/***************************************** execution part ********************************************/
 	private String executeCommand(String userCommand) {
 		boolean isEmptyCommand = Parser.checkEmptyCommand(userCommand);
 		if (isEmptyCommand) {
@@ -303,64 +316,71 @@ public class Control extends Application {
 			Parser.COMMAND_TYPES commandType = Parser
 					.determineCommandType(userCommand);
 
-			String[] parsedUserCommand = Parser.parseCommand(userCommand, commandType, modelHandler, view);
+			String[] parsedUserCommand = Parser.parseCommand(userCommand,
+					commandType, modelHandler, view);
 
-			switch (commandType) {
-			case ADD:
-				return executeAddCommand(parsedUserCommand);
-			case EDIT:
-				return executeEditCommand(parsedUserCommand);
-			case REMOVE:
-				return executeRemoveCommand(parsedUserCommand);
-			case UNDO:
-				return executeUndoCommand();
-			case REDO:
-				return executeRedoCommand();
-			case SEARCH:
-				return executeSearchCommand(parsedUserCommand);
-			case TODAY:
-				return executeTodayCommand();
-			case SHOW_ALL:
-				return executeShowCommand();
-			case CLEAR_ALL:
-				return executeClearCommand();
-			case COMPLETE:
-				return executeCompleteCommand(parsedUserCommand);
-			case INCOMPLETE:
-				return executeIncompleteCommand(parsedUserCommand);
-			case MARK:
-				return executeMarkCommand(parsedUserCommand);
-			case UNMARK:
-				return executeUnmarkCommand(parsedUserCommand);
-				// case SETTINGS:
-				// return executeSettingsCommand(parsedUserCommand);
-			case HELP:
-				return executeHelpCommand();
-				// case SYNC:
-				// return executeSyncCommand(parsedUserCommand);
-			case EXIT:
-				return executeExitCommand();
-			case INVALID:
-				return MESSAGE_INVALID_COMMAND_TYPE;
-			default:
-				throw new Error("Unrecognised command type.");
-			}
+			return executeCommandCorrespondingType(parsedUserCommand,
+					commandType);
 		} catch (Exception e) {
 			return e.getMessage();
 		}
 	}
-	
+
+	private String executeCommandCorrespondingType(String[] parsedUserCommand,
+			Parser.COMMAND_TYPES commandType) throws IllegalArgumentException,
+			IOException {
+		switch (commandType) {
+		case ADD:
+			return executeAddCommand(parsedUserCommand);
+		case EDIT:
+			return executeEditCommand(parsedUserCommand);
+		case REMOVE:
+			return executeRemoveCommand(parsedUserCommand);
+		case UNDO:
+			return executeUndoCommand();
+		case REDO:
+			return executeRedoCommand();
+		case SEARCH:
+			return executeSearchCommand(parsedUserCommand);
+		case TODAY:
+			return executeTodayCommand();
+		case SHOW_ALL:
+			return executeShowCommand();
+		case CLEAR_ALL:
+			return executeClearCommand();
+		case COMPLETE:
+			return executeCompleteCommand(parsedUserCommand);
+		case INCOMPLETE:
+			return executeIncompleteCommand(parsedUserCommand);
+		case MARK:
+			return executeMarkCommand(parsedUserCommand);
+		case UNMARK:
+			return executeUnmarkCommand(parsedUserCommand);
+			// case SETTINGS:
+			// return executeSettingsCommand(parsedUserCommand);
+		case HELP:
+			return executeHelpCommand();
+			// case SYNC:
+			// return executeSyncCommand(parsedUserCommand);
+		case EXIT:
+			return executeExitCommand();
+		case INVALID:
+			return MESSAGE_INVALID_COMMAND_TYPE;
+		default:
+			throw new Error("Unrecognised command type.");
+		}
+	}
+
 	private void realTimeSearch(String command) {
 		isRealTime = true;
-		if(command.trim().equals("search"))
+		if (command.trim().equals("search"))
 			executeShowCommand();
 		else {
 			executeCommand(command);
 			isRealTimeSearch = true;
 		}
 	}
-	
-	
+
 	private String executeAddCommand(String[] parsedUserCommand)
 			throws IOException {
 		int tabIndex = view.getTabIndex();
@@ -458,7 +478,8 @@ public class Control extends Application {
 			throws IOException {
 		boolean isAfterSearch = TwoWayCommand.listedIndexType;
 		int tabIndex = view.getTabIndex();
-		Command s = new CompleteCommand(parsedUserCommand, modelHandler, tabIndex);
+		Command s = new CompleteCommand(parsedUserCommand, modelHandler,
+				tabIndex);
 		String feedback = s.execute();
 
 		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_COMPLETE)) {
@@ -473,7 +494,8 @@ public class Control extends Application {
 			throws IOException {
 		boolean isAfterSearch = TwoWayCommand.listedIndexType;
 		int tabIndex = view.getTabIndex();
-		Command s = new IncompleteCommand(parsedUserCommand, modelHandler, tabIndex);
+		Command s = new IncompleteCommand(parsedUserCommand, modelHandler,
+				tabIndex);
 		String feedback = s.execute();
 
 		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_INCOMPLETE)) {
@@ -513,8 +535,8 @@ public class Control extends Application {
 		}
 		return feedback;
 	}
-	
-	private String executeHelpCommand(){
+
+	private String executeHelpCommand() {
 		Command s = new HelpCommand(modelHandler, view);
 		return s.execute();
 	}
