@@ -109,10 +109,10 @@ public class View implements HotkeyListener {
 			Color.DARKKHAKI, Color.PURPLE };
 	public static boolean isTextColored = true;
 	public ArrayList<Text> feedbackList = new ArrayList<Text>();
-	private static String[] COMMAND_TYPES = { "add", "remove", "rm", "delete",
-			"del", "edit", "mod", "modify", "search", "find", "clear", "clr",
-			"undo", "redo", "mark", "unmark", "complete", "done", "incomplete",
-			"undone", "exit", "sync", "show", "all", "list", "ls", "today" ,"help"};
+	static String[] COMMAND_TYPES = { "add", "remove", "delete",
+			"edit", "modify", "search", "find", "clear",
+			"mark", "unmark", "complete", "incomplete", "all",
+			"list",  "today" ,"help"};
 	public HBox feedbacks;
 	private static Color IDO_GREEN = Color.rgb(130, 255, 121);
 	//private HBox multiColorCommand;
