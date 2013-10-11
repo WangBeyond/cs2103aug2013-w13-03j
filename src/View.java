@@ -312,7 +312,7 @@ public class View implements HotkeyListener {
 	}
 	
 	void updateMultiColorCommand(String temporaryCommand) {
-		//System.out.println("command " + temporaryCommand);
+		System.out.println("command " + temporaryCommand);
 		emptyTextList();
 		try {
 			ArrayList<InfoWithIndex> infoList = Parser
@@ -999,25 +999,28 @@ public class View implements HotkeyListener {
 				emptyFeedback(2);
 				break;
 			default:
-				int listIndex = 1;
-				boolean isCommandExisting = false;
-				for (int i = 0; i < COMMAND_TYPES.length; i++) {
-					String command = COMMAND_TYPES[i];
-					if (command.indexOf(feedback) == 0
-							&& !command.equals(feedback)) {
-						setFeedbackStyle(listIndex, command, IDO_GREEN);
-						listIndex++;
-						isCommandExisting = true;
-					}
+				emptyFeedback(0);
+				ArrayList<String> availCommands = getAvailCommandNum(feedback);
+				for (int i = 0; i < availCommands.size(); i++) {
+					setFeedbackStyle(i+1, availCommands.get(i), IDO_GREEN);
 				}
-				emptyFeedback(listIndex);
-				setFeedbackStyle(0, isCommandExisting ? "Available commands: "
+				setFeedbackStyle(0, availCommands.size()>0 ? "Available commands: "
 						: Control.MESSAGE_REQUEST_COMMAND, Color.WHITE);
 				break;
 			}
 		}
 	}
-
+	
+	ArrayList<String> getAvailCommandNum(String feedback) {
+		ArrayList<String> availCommands = new ArrayList<String>();
+		for (int i = 0; i < COMMAND_TYPES.length; i++) {
+			String command = COMMAND_TYPES[i];
+			if (command.indexOf(feedback) == 0 && !command.equals(feedback))
+				availCommands.add(command);
+		}
+		return availCommands;
+	}
+	
 	void setFeedbackStyle(int index, String text, Color color) {
 		feedbackList.get(index).setText(text);
 		feedbackList.get(index).setFill(color);
