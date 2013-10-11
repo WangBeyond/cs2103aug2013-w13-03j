@@ -51,7 +51,8 @@ public class Control extends Application {
 	private Store dataFile;
 	private Store syncFile;
 	
-	static boolean listedIndexType;
+	static boolean isRealTime = false;
+	//static boolean listedIndexType;
 	static final boolean SEARCHED = true;
 	static final boolean SHOWN = false;
 
@@ -158,6 +159,7 @@ public class Control extends Application {
 		view.commandLine.setOnKeyPressed(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent e) {
 				if (e.getCode() == KeyCode.ENTER) {
+					isRealTime = false;
 					String feedback = executeCommand(view.commandLine.getText());
 					updateFeedback(feedback);
 				} else if(e.getCode() == KeyCode.BACK_SPACE) {
@@ -170,7 +172,6 @@ public class Control extends Application {
 							if(!str.equals("")) {
 								int target = str.length() + caretPosition;
 								view.textList.get(i).setText(str.substring(0,target-1)+str.substring(target,str.length()));
-								System.out.println("del "+view.textList.get(i).getText() );
 								break;
 							} else
 								break;
@@ -199,7 +200,18 @@ public class Control extends Application {
 		});
 		view.commandLine.setOnKeyReleased(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent e) {
-				view.updateMultiColorCommand(view.commandLine.getText());
+				String command = view.commandLine.getText();
+				view.updateMultiColorCommand(command);
+				if(command.contains("search"))
+					realTimeSearch(command);
+				else if(command.contains("remove")) {
+					String content = command.substring("remove".length());
+				    try { 
+				        Integer.parseInt(Parser.getFirstWord(content)); 
+				    } catch(NumberFormatException ex) { 
+				    	realTimeSearch("search"+content);
+				    }
+				}		
 			}
 		});
 	}
@@ -223,8 +235,7 @@ public class Control extends Application {
 			Parser.COMMAND_TYPES commandType = Parser
 					.determineCommandType(userCommand);
 
-			String[] parsedUserCommand = Parser.parseCommand(userCommand,
-					commandType);
+			String[] parsedUserCommand = Parser.parseCommand(userCommand, commandType, modelHandler, view);
 
 			switch (commandType) {
 			case ADD:
@@ -270,7 +281,16 @@ public class Control extends Application {
 			return e.getMessage();
 		}
 	}
-
+	
+	private void realTimeSearch(String command) {
+		isRealTime = true;
+		if(command.trim().equals("search"))
+			executeShowCommand();
+		else
+			executeCommand(command);
+	}
+	
+	
 	private String executeAddCommand(String[] parsedUserCommand)
 			throws IOException {
 		Command s = new AddCommand(parsedUserCommand, modelHandler, view);

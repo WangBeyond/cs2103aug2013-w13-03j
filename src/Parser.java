@@ -2,6 +2,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Vector;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+
 public class Parser {
 	static enum COMMAND_TYPES {
 		ADD, REMOVE, SEARCH, EDIT, COMPLETE, INCOMPLETE, UNDO, REDO, CLEAR_ALL, TODAY, SHOW_ALL, SYNC, SETTINGS, HELP, EXIT, INVALID, MARK, UNMARK
@@ -125,7 +128,7 @@ public class Parser {
 	 * @return the array of infos necessary for each command
 	 */
 	public static String[] parseCommand(String userCommand,
-			COMMAND_TYPES commandType) {
+			COMMAND_TYPES commandType, Model model, View view) {
 		String content = removeFirstWord(userCommand);
 		content = removeUnneededSpaces(content);
 		if (commandType == COMMAND_TYPES.ADD)
@@ -134,8 +137,9 @@ public class Parser {
 			return parseCommandWithInfo(content, COMMAND_TYPES.SEARCH);
 		else if (commandType == COMMAND_TYPES.EDIT)
 			return parseEditCommand(content);
-		else if (commandType == COMMAND_TYPES.REMOVE
-				|| commandType == COMMAND_TYPES.COMPLETE
+		else if (commandType == COMMAND_TYPES.REMOVE)
+			return parseRemoveCommand(content, model, view);
+		else if (commandType == COMMAND_TYPES.COMPLETE
 				|| commandType == COMMAND_TYPES.INCOMPLETE
 				|| commandType == COMMAND_TYPES.MARK
 				|| commandType == COMMAND_TYPES.UNMARK)
@@ -259,7 +263,25 @@ public class Parser {
 	}
 
 	
-
+	private static String[] parseRemoveCommand(String content, Model model, View view) {
+		try{
+			return parseCommandWithIndex(content);
+		} catch(Exception e) {
+			System.out.println(TwoWayCommand.listedIndexType);
+			ObservableList<Task> modifiedList;
+			int tabIndex = view.tabPane.getSelectionModel().getSelectedIndex();
+			if (tabIndex == Command.PENDING_TAB) {
+				modifiedList = model.getSearchPendingList();
+			} else if (tabIndex == Command.COMPLETE_TAB) {
+				modifiedList = model.getSearchCompleteList();
+			} else {
+				modifiedList = model.getSearchTrashList();
+			}
+			String indexRange = "1"+HYPHEN+modifiedList.size();
+			System.out.println(indexRange);
+			return parseCommandWithIndex(indexRange);
+		}
+	}
 
 	/**
 	 * This method is used to parse content of commands filled with indexes to
@@ -314,9 +336,9 @@ public class Parser {
 	 * 
 	 * @param command
 	 */
-	public static ArrayList<InfoWithIndex> parseForView(String command) {
+	public static ArrayList<InfoWithIndex> parseForView(String command, Model model, View view) {
 		COMMAND_TYPES commandType = determineCommandType(command);
-		String[] result = parseCommand(command, commandType);
+		String[] result = parseCommand(command, commandType, model, view);
 		ArrayList<InfoWithIndex> infoList = new ArrayList<InfoWithIndex>();
 		// Add the commandType first
 		String commandTypeStr = completeWithSpace(getFirstWord(command), command, 0);
@@ -777,7 +799,7 @@ public class Parser {
 				commandString.length() - lastWord.length()).trim();
 	}
 
-	private static String getFirstWord(String commandString) {
+	static String getFirstWord(String commandString) {
 		String[] stringArray = splitBySpace(commandString);
 		return stringArray[0];
 	}

@@ -26,8 +26,8 @@ public abstract class Command {
 	protected static final String MESSAGE_WRONG_INCOMPLETE_TABS = "Cannot incomplete the tasks in this current tab.";
 	protected static final String MESSAGE_HELP = "Opening the Help window...";
 	
-	protected static final int PENDING_TAB = 0;
-	protected static final int COMPLETE_TAB = 1;
+	static final int PENDING_TAB = 0;
+	static final int COMPLETE_TAB = 1;
 	
 	protected Model model;
 	protected View view;
@@ -711,7 +711,7 @@ class SearchCommand extends Command {
 		isImpt = parsedUserCommand[4];
 		repeatingType = parsedUserCommand[5];
 	}
-
+		
 	public String execute() {
 		ObservableList<Task> initialList;
 		if (tabIndex == PENDING_TAB) {
@@ -775,11 +775,10 @@ class SearchCommand extends Command {
 			}
 			isFirstTimeSearch = false;
 		}
-		if (searchList.isEmpty()) {
+		if (!Control.isRealTime && searchList.isEmpty()) {
 			return MESSAGE_NO_RESULTS;
 		}
 		
-		TwoWayCommand.setIndexType(TwoWayCommand.SEARCHED);
 		TwoWayCommand.setIndexType(TwoWayCommand.SEARCHED);
 		if (tabIndex == PENDING_TAB) {
 			model.setSearchPendingList(searchList);
@@ -794,6 +793,7 @@ class SearchCommand extends Command {
 		return MESSAGE_SUCCESSFUL_SEARCH;
 	}
 
+	
 	public static ObservableList<Task> searchImportantTask(
 			ObservableList<Task> list) {
 		ObservableList<Task> result = FXCollections.observableArrayList();
