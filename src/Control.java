@@ -2,6 +2,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.ArrayList;
 
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
@@ -165,16 +166,18 @@ public class Control extends Application {
 				} else if(e.getCode() == KeyCode.BACK_SPACE) {
 					//change the multiColor command in real time by analysing the cursor position
 					int caretPosition = view.commandLine.getCaretPosition();
-					for(int i = 0 ; i<view.textList.size() ;i++ ) {
-						String str = view.textList.get(i).getText();
-						caretPosition -= str.length();
-						if(caretPosition <= 0) {
-							if(!str.equals("")) {
-								int target = str.length() + caretPosition;
-								view.textList.get(i).setText(str.substring(0,target-1)+str.substring(target,str.length()));
-								break;
-							} else
-								break;
+					if(caretPosition>0) {
+						for(int i = 0 ; i<view.textList.size() ;i++ ) {
+							String str = view.textList.get(i).getText();
+							caretPosition -= str.length();
+							if(caretPosition <= 0) {
+								if(!str.equals("")) {
+									int target = str.length() + caretPosition;
+									view.textList.get(i).setText(str.substring(0,target-1)+str.substring(target,str.length()));
+									break;
+								} else
+									break;
+							}
 						}
 					}
 				} else if (undo_hot_key.match(e)) {
@@ -186,7 +189,7 @@ public class Control extends Application {
 					String feedback = executeCommand("redo");
 					updateFeedback(feedback);
 					e.consume();
-				}
+				} 
 				KeyCode code = e.getCode();
 				if(code.isDigitKey())
 					if(!new KeyCodeCombination(code,KeyCombination.SHIFT_DOWN).match(e))
@@ -201,6 +204,15 @@ public class Control extends Application {
 		view.commandLine.setOnKeyReleased(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent e) {
 				String command = view.commandLine.getText();
+				ArrayList<String> availCommands = view.getAvailCommandNum(command);
+				if(e.getCode()!=KeyCode.BACK_SPACE && availCommands.size()==1) {
+					view.commandLine.setText(availCommands.get(0));
+					for(int i=0;i<(availCommands.get(0).length());i++) {
+						view.commandLine.forward();
+					}
+					System.out.println(view.commandLine.getCaretPosition());
+					command = view.commandLine.getText();
+				}
 				view.updateMultiColorCommand(command);
 				if(command.contains("search"))
 					realTimeSearch(command);
