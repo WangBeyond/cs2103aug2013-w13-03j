@@ -50,12 +50,18 @@ public class Parser {
 	public static final String NULL = "null";
 	public static final String START_KEY = "start key";
 	public static final String END_KEY = "end key";
-	
+
+	private static final String NO_EDITING_INFO = "No infos for editing";
+	private static final String INVALID_INDEX = "Invalid index";
+	private static final String INVALID_RANGE_END_SMALLER = "Invalid range as end point is smaller than start point";
+	private static final String INVALID_RANGE = "Invalid Range";
+
 	private static final int START_DATE = 0;
 	private static final int END_DATE = 1;
-	
+
 	private static final int VALID = 1;
 	private static final int INVALID = -1;
+
 	/**
 	 * This function is used to determine the command type of the command input
 	 * from the user
@@ -164,11 +170,11 @@ public class Parser {
 		try {
 			index = Integer.parseInt(getFirstWord(content));
 		} catch (NumberFormatException e) {
-			throw new IllegalArgumentException("Invalid index");
+			throw new IllegalArgumentException(INVALID_INDEX);
 		}
 
 		if (splittedUserCommand.length < 2)
-			throw new IllegalArgumentException("No infos for editing");
+			throw new IllegalArgumentException(NO_EDITING_INFO);
 
 		String[] temp = parseCommandWithInfo(removeFirstWord(content),
 				COMMAND_TYPES.EDIT);
@@ -262,11 +268,11 @@ public class Parser {
 		return parsedCommand;
 	}
 
-	
-	private static String[] parseRemoveCommand(String content, Model model, View view) {
-		try{
+	private static String[] parseRemoveCommand(String content, Model model,
+			View view) {
+		try {
 			return parseCommandWithIndex(content);
-		} catch(Exception e) {
+		} catch (Exception e) {
 			System.out.println(TwoWayCommand.listedIndexType);
 			ObservableList<Task> modifiedList;
 			int tabIndex = view.tabPane.getSelectionModel().getSelectedIndex();
@@ -277,7 +283,7 @@ public class Parser {
 			} else {
 				modifiedList = model.getSearchTrashList();
 			}
-			String indexRange = "1"+HYPHEN+modifiedList.size();
+			String indexRange = "1" + HYPHEN + modifiedList.size();
 			return parseCommandWithIndex(indexRange);
 		}
 	}
@@ -315,17 +321,15 @@ public class Parser {
 	private static void processRange(Vector<String> indexList, String s) {
 		String[] limits = s.split(HYPHEN);
 		if (limits.length > 2)
-			throw new IllegalArgumentException("Invalid Range");
+			throw new IllegalArgumentException(INVALID_RANGE);
 		int startPoint, endPoint;
 		startPoint = Integer.parseInt(limits[0]);
 		endPoint = Integer.parseInt(limits[1]);
 		if (startPoint > endPoint)
-			throw new IllegalArgumentException(
-					"Invalid range as end point is smaller than start point");
+			throw new IllegalArgumentException(INVALID_RANGE_END_SMALLER);
 		for (int i = startPoint; i <= endPoint; i++)
 			indexList.add(String.valueOf(i));
 	}
-
 
 	/**
 	 * This method is used to parse the command when any key event occurs and
@@ -335,68 +339,110 @@ public class Parser {
 	 * 
 	 * @param command
 	 */
-	public static ArrayList<InfoWithIndex> parseForView(String command, Model model, View view) {
-		COMMAND_TYPES commandType = determineCommandType(command);
-		String[] result = parseCommand(command, commandType, model, view);
+	public static ArrayList<InfoWithIndex> parseForView(String command,
+			Model model, View view) {
 		ArrayList<InfoWithIndex> infoList = new ArrayList<InfoWithIndex>();
-		// Add the commandType first
-		String commandTypeStr = completeWithSpace(getFirstWord(command), command, 0);
-		infoList.add( new InfoWithIndex(commandTypeStr, 0, (commandType == COMMAND_TYPES.INVALID)?INDEX_USELESS_INFO : INDEX_COMMAND_TYPE));
+		COMMAND_TYPES commandType;
+		String commandTypeStr;
 
-		if (commandType == COMMAND_TYPES.EDIT) {
-			String index = getFirstWord(removeFirstWord(command));
-			String indexWithSpace = completeWithSpace(index ,command, command.indexOf(index));
-			InfoWithIndex indexInfo = new InfoWithIndex(indexWithSpace, command.indexOf(index), INDEX_INDEX_INFO);
-			infoList.add(indexInfo);
+		commandType = determineCommandType(command);
+		if (commandType == COMMAND_TYPES.INVALID) {
+			infoList.add(new InfoWithIndex(command, 0, INDEX_USELESS_INFO));
+			return infoList;
 		}
+		commandTypeStr = completeWithSpace(getFirstWord(command), command, 0);
+		infoList.add(new InfoWithIndex(commandTypeStr, 0, INDEX_COMMAND_TYPE));
+		try {
+			String[] result = parseCommand(command, commandType, model, view);
+			// Add the commandType first
 
-		// First consider command with info
-		if (commandType == COMMAND_TYPES.ADD
-				|| commandType == COMMAND_TYPES.SEARCH
-				|| commandType == COMMAND_TYPES.EDIT) {
-			for (int infoIndex = 0; infoIndex < result.length; infoIndex++) {
-				String info = result[infoIndex];
-				// append the preposition or date keys with date info
-				if (infoIndex == INDEX_START_DATE && info != NULL) 
-					info = appendWithDateKey(info,command, START_DATE);
-				if (infoIndex == INDEX_END_DATE && info != NULL) 
-					info = appendWithDateKey(info,command, END_DATE);
-				// Add * if command has
-				if (infoIndex == INDEX_IS_IMPT && info == TRUE) {
-					String markStr = completeWithSpace(IMPT_MARK, command, command.indexOf(IMPT_MARK));
-					InfoWithIndex imptInfo = new InfoWithIndex(markStr,command.indexOf(IMPT_MARK), INDEX_IS_IMPT);
-					infoList.add(imptInfo);
-				}
-				if (command.contains(info)) {
-					//To get the index of workflow, we need to get rid of the commandType string first,
-					//otherwise some mistakes make occur: eg: add ad will return workflow index 1
-					int startIndex;
-					if(infoIndex == INDEX_WORK_INFO) {
-						String temp = command.substring(commandTypeStr.length());
-						startIndex = temp.indexOf(info) + commandTypeStr.length();
-					} else
-						startIndex = command.indexOf(info);
-					info = completeWithSpace(info, command, startIndex);
-					InfoWithIndex ci = new InfoWithIndex(info, startIndex, infoIndex);
-					infoList.add(ci);
-				}
+			if (commandType == COMMAND_TYPES.EDIT) {
+				String index = result[0];
+				String indexWithSpace = completeWithSpace(index, command,
+						command.indexOf(index));
+				InfoWithIndex indexInfo = new InfoWithIndex(indexWithSpace,
+						command.indexOf(index), INDEX_INDEX_INFO);
+				infoList.add(indexInfo);
+				for (int i = 0; i < result.length - 1; i++)
+					result[i] = result[i + 1];
+				result[result.length - 1] = NULL;
 			}
-			infoList = addInUselessInfo(infoList, command);
-		} else { // Consider command with index, just add the part except commandType,
-				// but if the commandType is invalid, just add them as uselessInfo
-			int beginIndex = commandTypeStr.length();
-			if(commandType != COMMAND_TYPES.INVALID && commandType.equals(COMMAND_TYPES.REMOVE)
-					|| commandType.equals(COMMAND_TYPES.COMPLETE) || commandType.equals(COMMAND_TYPES.INCOMPLETE)
-					|| commandType.equals(COMMAND_TYPES.MARK) || commandType.equals(COMMAND_TYPES.UNMARK)) {
-				infoList.add(new InfoWithIndex( command.substring(beginIndex), beginIndex, INDEX_INDEX_INFO));
-			} else {
-				infoList.add(new InfoWithIndex( command.substring(beginIndex), beginIndex, INDEX_USELESS_INFO));
+
+			// First consider command with info
+			if (commandType == COMMAND_TYPES.ADD
+					|| commandType == COMMAND_TYPES.SEARCH
+					|| commandType == COMMAND_TYPES.EDIT) {
+				for (int infoIndex = 0; infoIndex < result.length; infoIndex++) {
+					String info = result[infoIndex];
+					// append the preposition or date keys with date info
+					if (infoIndex == INDEX_START_DATE && info != NULL)
+						info = appendWithDateKey(info, command, START_DATE);
+					if (infoIndex == INDEX_END_DATE && info != NULL)
+						info = appendWithDateKey(info, command, END_DATE);
+					// Add * if command has
+					if (infoIndex == INDEX_IS_IMPT && info == TRUE) {
+						String markStr = completeWithSpace(IMPT_MARK, command,
+								command.indexOf(IMPT_MARK));
+						InfoWithIndex imptInfo = new InfoWithIndex(markStr,
+								command.indexOf(IMPT_MARK), INDEX_IS_IMPT);
+						infoList.add(imptInfo);
+					}
+					if (command.contains(info)) {
+						// To get the index of workflow, we need to get rid of
+						// the commandType string first,
+						// otherwise some mistakes make occur: eg: add ad will
+						// return workflow index 1
+						int startIndex;
+						if (infoIndex == INDEX_WORK_INFO) {
+							String temp = command.substring(commandTypeStr
+									.length());
+							startIndex = temp.indexOf(info)
+									+ commandTypeStr.length();
+						} else
+							startIndex = command.indexOf(info);
+						info = completeWithSpace(info, command, startIndex);
+						InfoWithIndex ci = new InfoWithIndex(info, startIndex,
+								infoIndex);
+						infoList.add(ci);
+					}
+				}
+				infoList = addInUselessInfo(infoList, command);
+			} else { // Consider command with index, just add the part except
+						// commandType,
+						// but if the commandType is invalid, just add them as
+						// uselessInfo
+				int beginIndex = commandTypeStr.length();
+				if (commandType != COMMAND_TYPES.INVALID
+						&& commandType.equals(COMMAND_TYPES.REMOVE)
+						|| commandType.equals(COMMAND_TYPES.COMPLETE)
+						|| commandType.equals(COMMAND_TYPES.INCOMPLETE)
+						|| commandType.equals(COMMAND_TYPES.MARK)
+						|| commandType.equals(COMMAND_TYPES.UNMARK)) {
+					infoList.add(new InfoWithIndex(command
+							.substring(beginIndex), beginIndex,
+							INDEX_INDEX_INFO));
+				} else {
+					infoList.add(new InfoWithIndex(command
+							.substring(beginIndex), beginIndex,
+							INDEX_USELESS_INFO));
+				}
+
 			}
+			return infoList;
+		} catch (Exception e) {
+			infoList.clear();
+			infoList.add(new InfoWithIndex(commandTypeStr, 0, INDEX_COMMAND_TYPE));
+			String remainingInfo = removeFirstWord(command);
+			if (e.getMessage().equals(NO_EDITING_INFO))
+				infoList.add(new InfoWithIndex(remainingInfo, commandTypeStr
+						.length(), INDEX_INDEX_INFO));
+			else
+				infoList.add(new InfoWithIndex(remainingInfo, 0,
+						INDEX_USELESS_INFO));
+			return infoList;
 		}
-		return infoList;
 	}
-	
-	
+
 	/**
 	 * This method is used to check a command string for valid date and remove
 	 * the valid date from this command string. If the command string contains
@@ -457,48 +503,52 @@ public class Parser {
 			return new String[] { commandString, dateString };
 	}
 
-	
-	/*********************** some methods used for parseView ***********************************************/
-	
+	/*********************** some methods used for parseForView ***********************************************/
+
 	/**
 	 * append the date with its front preposition like start from or so on
+	 * 
 	 * @param date
 	 * @param command
-	 * @param startOrEnd 
-	 * 				is the date type start date or end date
+	 * @param startOrEnd
+	 *            is the date type start date or end date
 	 * @return the date with preposition in front
 	 */
-	private static String appendWithDateKey(String date, String command, int startOrEnd) {
+	private static String appendWithDateKey(String date, String command,
+			int startOrEnd) {
 		int startIndex = command.indexOf(date);
 		int secondSpaceIndex = startIndex - 2;
 		String dateWithPreposition = date;
-		while (secondSpaceIndex > 0
-				&& command.charAt(secondSpaceIndex) != ' ') {
+		while (secondSpaceIndex > 0 && command.charAt(secondSpaceIndex) != ' ') {
 			secondSpaceIndex--;
 		}
 		int firstSpaceIndex = secondSpaceIndex - 1;
-		while (firstSpaceIndex > 0
-				&& command.charAt(firstSpaceIndex) != ' ') {
+		while (firstSpaceIndex > 0 && command.charAt(firstSpaceIndex) != ' ') {
 			firstSpaceIndex--;
 		}
-		if (doesArrayContain(startOrEnd == START_DATE? startDateKeys :endDateKeys ,
-				command.substring(firstSpaceIndex + 1, startIndex)))
+		if (doesArrayContain(startOrEnd == START_DATE ? startDateKeys
+				: endDateKeys, command.substring(firstSpaceIndex + 1,
+				startIndex)))
 			dateWithPreposition = command.substring(firstSpaceIndex + 1,
 					startIndex) + date;
-		else if (doesArrayContain(startOrEnd == START_DATE? startDateKeys :endDateKeys ,
-				command.substring(secondSpaceIndex + 1, startIndex)))
+		else if (doesArrayContain(startOrEnd == START_DATE ? startDateKeys
+				: endDateKeys, command.substring(secondSpaceIndex + 1,
+				startIndex)))
 			dateWithPreposition = command.substring(secondSpaceIndex + 1,
 					startIndex) + date;
 		return dateWithPreposition;
 	}
-	
+
 	/**
-	 * add the remaining info without highlighted by parser to infoList with InfoType: INDEX_USELESS_INFO
+	 * add the remaining info without highlighted by parser to infoList with
+	 * InfoType: INDEX_USELESS_INFO
+	 * 
 	 * @param infoList
 	 * @param command
 	 * @return complete infoList
 	 */
-	private static ArrayList<InfoWithIndex> addInUselessInfo(ArrayList<InfoWithIndex> infoList, String command) {
+	private static ArrayList<InfoWithIndex> addInUselessInfo(
+			ArrayList<InfoWithIndex> infoList, String command) {
 		Collections.sort(infoList);
 		int keyInfoCount = infoList.size();
 		for (int i = 0; i < keyInfoCount; i++) {
@@ -509,35 +559,36 @@ public class Parser {
 			else
 				endIndex = command.length();
 			if (startIndex < endIndex)
-				infoList.add(new InfoWithIndex(command.substring(
-						startIndex, endIndex), startIndex,
-						INDEX_USELESS_INFO));
+				infoList.add(new InfoWithIndex(command.substring(startIndex,
+						endIndex), startIndex, INDEX_USELESS_INFO));
 		}
 		Collections.sort(infoList);
 		return infoList;
 	}
-	
-	
+
 	/**
 	 * complete a info with its rear spaces
+	 * 
 	 * @param info
 	 * @param command
 	 * @param startIndex
 	 * @return info with space
 	 */
-	private static String completeWithSpace(String info, String command, int startIndex) {
+	private static String completeWithSpace(String info, String command,
+			int startIndex) {
 		int endIndex = startIndex + info.length();
 		int i = 0;
 		while ((endIndex + i) < command.length()
-			&& command.charAt(endIndex + i) == ' ') {
-		info += " ";
-		i++;
+				&& command.charAt(endIndex + i) == ' ') {
+			info += " ";
+			i++;
 		}
 		return info;
 	}
-	
+
 	/**
 	 * Justify does the array contain one specific string
+	 * 
 	 * @param array
 	 * @param element
 	 * @return boolean result
@@ -549,15 +600,15 @@ public class Parser {
 				return true;
 		return false;
 	}
-	
-	
-	/************************** assisting methods for parseCommandWithInfo****************************************/
-	
+
+	/************************** assisting methods for parseCommandWithInfo ****************************************/
+
 	/**
 	 * retrieve the repeating type from the command string
+	 * 
 	 * @param commandString
 	 * @return a string array including command string and repeating tag
-	 */	
+	 */
 	private static String[] getRepeatingType(String commandString) {
 		String repeatingKey = null;
 		for (int i = 0; i < repeatingKeys.length; i++) {
@@ -573,9 +624,10 @@ public class Parser {
 		}
 		return new String[] { commandString, getRepeatingTag(repeatingKey) };
 	}
-	
+
 	/**
 	 * Get the repeating tag of the task by the repeating key
+	 * 
 	 * @param key
 	 * @return repeating tag
 	 */
@@ -593,7 +645,7 @@ public class Parser {
 		else
 			return "weekly";
 	}
-	
+
 	/**
 	 * Checks whether a string is a valid date or not.
 	 * 
@@ -810,6 +862,10 @@ public class Parser {
 				.trim();
 	}
 
+	private static String removeFirstWordButKeepSpace(String commandString) {
+		return commandString.replaceFirst(getFirstWord(commandString), "");
+	}
+
 	private static String[] splitBySpace(String content) {
 		return content.trim().split("\\s+");
 	}
@@ -903,10 +959,10 @@ public class Parser {
 }
 
 /**
- * class infoWithIndex is assisting parseForView to install the information of parsed command
- * and reflects on commandLine and feedback
- *
- *
+ * class infoWithIndex is assisting parseForView to install the information of
+ * parsed command and reflects on commandLine and feedback
+ * 
+ * 
  */
 class InfoWithIndex implements Comparable<InfoWithIndex> {
 	String info;

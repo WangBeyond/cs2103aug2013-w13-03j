@@ -73,7 +73,7 @@ public class View implements HotkeyListener {
 
 	// Help page
 	public Help helpPage;
-	
+
 	// Command Line for user to input command
 	public TextField commandLine;
 	// Instant feedback
@@ -107,14 +107,13 @@ public class View implements HotkeyListener {
 			Color.DARKKHAKI, Color.PURPLE };
 	public static boolean isTextColored = true;
 	public ArrayList<Text> feedbackList = new ArrayList<Text>();
-	static String[] COMMAND_TYPES = { "add", "remove", "delete",
-			"edit", "modify", "search", "find", "clear",
-			"mark", "unmark", "complete", "incomplete", "all",
-			"list",  "today" ,"help"};
+	static String[] COMMAND_TYPES = { "add", "remove", "delete", "edit",
+			"modify", "search", "find", "clear", "mark", "unmark", "complete",
+			"incomplete", "all", "list", "today", "help" };
 	public HBox feedbacks;
 	private static Color IDO_GREEN = Color.rgb(130, 255, 121);
-	//private HBox multiColorCommand;
-	
+	// private HBox multiColorCommand;
+
 	// The 3 sections
 	VBox bottom;
 	HBox center;
@@ -137,7 +136,7 @@ public class View implements HotkeyListener {
 	public View(final Model model, final Stage primaryStage) {
 		stage = primaryStage;
 		this.model = model;
-		
+
 		setupHelpPage();
 		setupStage();
 		loadLibrary();
@@ -157,14 +156,14 @@ public class View implements HotkeyListener {
 		setupScene();
 	}
 
-	private void setupHelpPage(){
+	private void setupHelpPage() {
 		helpPage = new Help();
 	}
-	
-	public void showHelpPage(){
+
+	public void showHelpPage() {
 		helpPage.showHelpPage();
 	}
-	
+
 	private void setupShortcuts() {
 		root.setOnKeyPressed(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent e) {
@@ -248,8 +247,7 @@ public class View implements HotkeyListener {
 			feedbacks.getChildren().add(feedbackList.get(i));
 		}
 		feedbackList.get(0).setText("Please enter a command");
-		bottom.getChildren().addAll(upperPart,
-				feedbacks);
+		bottom.getChildren().addAll(upperPart, feedbacks);
 	}
 
 	private HBox createUpperPartInBottom() {
@@ -282,23 +280,24 @@ public class View implements HotkeyListener {
 		HBox multiColorCommand = new HBox();
 		Pane temp = new Pane();
 		temp2.setSpacing(10);
-		
+
 		commandLine = new TextField();
 		commandLine.setPrefWidth(630);
 		commandLine.setStyle("-fx-text-fill: darkgrey;");
-		
+
 		showOrHide = new Button();
 		showOrHide.setPrefSize(30, 30);
 		showOrHide.setId("smaller");
 		hookUpEventForShowOrHide();
-		//multiColorCommand add texts of different colors.
-		for (int i =0 ;i<4;i++) {
+		// multiColorCommand add texts of different colors.
+		for (int i = 0; i < 4; i++) {
 			multiColorCommandFront.getChildren().add(textList.get(i));
 		}
-		for (int i=4;i<textList.size();i++) {
+		for (int i = 4; i < textList.size(); i++) {
 			multiColorCommandRear.getChildren().add(textList.get(i));
 		}
-		multiColorCommand.getChildren().addAll(multiColorCommandFront,multiColorCommandRear);
+		multiColorCommand.getChildren().addAll(multiColorCommandFront,
+				multiColorCommandRear);
 		multiColorCommandFront.setSpacing(-0.50001);
 		multiColorCommandRear.setSpacing(-0.50001);
 		multiColorCommand.setLayoutX(7);
@@ -308,39 +307,28 @@ public class View implements HotkeyListener {
 		temp2.getChildren().addAll(temp, showOrHide);
 		return temp2;
 	}
-	
+
 	void updateMultiColorCommand(String temporaryCommand) {
-		//System.out.println("command " + temporaryCommand);
+		// System.out.println("command " + temporaryCommand);
 		emptyTextList();
-		try {
-			ArrayList<InfoWithIndex> infoList = Parser
-					.parseForView(temporaryCommand,model,this);
-			for (int i = 0; i < infoList.size(); i++) {
-				InfoWithIndex info = infoList.get(i);
-				Text text = textList.get(i);
-				text.setText(info.getInfo());
-				text.setStyle("-fx-font: 15.0px Ubantu;");
-				text.setTextAlignment(TextAlignment.LEFT);
-				text.setFill(colors[info.getInfoType() + 2]);
-				//System.out.print(info.getInfo()+" "+info.getInfoType()+"  ");
-			}
-			//System.out.println();
-			for(int i =5;i<textList.size();i++) {
-				textList.get(i).setLayoutX(10);
-			}
-			displayCursor();
-		} catch (Exception ex) {
-			if(Parser.doesArrayContain(COMMAND_TYPES , temporaryCommand.trim())) {
-				textList.get(0).setFill(Color.GREEN);;
-				textList.get(0).setText(temporaryCommand);
-			} else {
-				textList.get(0).setStyle("-fx-font: 15.0px Ubantu;");
-				textList.get(0).setText(temporaryCommand);
-				textList.get(0).setFill(Color.DARKGRAY);
-			}
+		ArrayList<InfoWithIndex> infoList = Parser.parseForView(
+				temporaryCommand, model, this);
+		for (int i = 0; i < infoList.size(); i++) {
+			InfoWithIndex info = infoList.get(i);
+			Text text = textList.get(i);
+			text.setText(info.getInfo());
+			text.setStyle("-fx-font: 15.0px Ubantu;");
+			text.setTextAlignment(TextAlignment.LEFT);
+			text.setFill(colors[info.getInfoType() + 2]);
+			// System.out.print(info.getInfo()+" "+info.getInfoType()+"  ");
 		}
+		// System.out.println();
+		for (int i = 5; i < textList.size(); i++) {
+			textList.get(i).setLayoutX(10);
+		}
+		displayCursor();
 	}
-	
+
 	private void createCenterSection() {
 		createTabPane();
 
@@ -558,11 +546,11 @@ public class View implements HotkeyListener {
 						TableCell<Task, String> tc = new TableCell<Task, String>() {
 							@Override
 							public void updateItem(String item, boolean empty) {
-								if (item != null){
-									if(item.equals("OVERDUE")){
-									setId("overdue");
-									} 
-									
+								if (item != null) {
+									if (item.equals("OVERDUE")) {
+										setId("overdue");
+									}
+
 									setText(item);
 								}
 							}
@@ -912,15 +900,16 @@ public class View implements HotkeyListener {
 	public void setTab(int tabIndex) {
 		tabPane.getSelectionModel().select(tabIndex);
 	}
-	
+
 	public void emptyTextList() {
 		for (int i = 0; i < textList.size(); i++)
 			textList.get(i).setText("");
 	}
-	
+
 	/**
-	 * set the real-time multicolor feedback to remind some misuse or
-	 * give some suggestion
+	 * set the real-time multicolor feedback to remind some misuse or give some
+	 * suggestion
+	 * 
 	 * @param feedback
 	 */
 	void setFeedback(String feedback) {
@@ -998,15 +987,16 @@ public class View implements HotkeyListener {
 				emptyFeedback(0);
 				ArrayList<String> availCommands = getAvailCommandNum(feedback);
 				for (int i = 0; i < availCommands.size(); i++) {
-					setFeedbackStyle(i+1, availCommands.get(i), IDO_GREEN);
+					setFeedbackStyle(i + 1, availCommands.get(i), IDO_GREEN);
 				}
-				setFeedbackStyle(0, availCommands.size()>0 ? "Available commands: "
-						: Control.MESSAGE_REQUEST_COMMAND, Color.WHITE);
+				setFeedbackStyle(0,
+						availCommands.size() > 0 ? "Available commands: "
+								: Control.MESSAGE_REQUEST_COMMAND, Color.WHITE);
 				break;
 			}
 		}
 	}
-	
+
 	ArrayList<String> getAvailCommandNum(String feedback) {
 		ArrayList<String> availCommands = new ArrayList<String>();
 		for (int i = 0; i < COMMAND_TYPES.length; i++) {
@@ -1016,7 +1006,7 @@ public class View implements HotkeyListener {
 		}
 		return availCommands;
 	}
-	
+
 	void setFeedbackStyle(int index, String text, Color color) {
 		feedbackList.get(index).setText(text);
 		feedbackList.get(index).setFill(color);
