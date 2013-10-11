@@ -312,11 +312,11 @@ public class View implements HotkeyListener {
 	}
 	
 	void updateMultiColorCommand(String temporaryCommand) {
-		System.out.println("command " + temporaryCommand);
+		//System.out.println("command " + temporaryCommand);
 		emptyTextList();
 		try {
 			ArrayList<InfoWithIndex> infoList = Parser
-					.parseForView(temporaryCommand);
+					.parseForView(temporaryCommand,model,this);
 			for (int i = 0; i < infoList.size(); i++) {
 				InfoWithIndex info = infoList.get(i);
 				Text text = textList.get(i);
@@ -324,9 +324,9 @@ public class View implements HotkeyListener {
 				text.setStyle("-fx-font: 15.0px Ubantu;");
 				text.setTextAlignment(TextAlignment.LEFT);
 				text.setFill(colors[info.getInfoType() + 2]);
-				System.out.print(info.getInfo()+" "+info.getInfoType()+"  ");
+				//System.out.print(info.getInfo()+" "+info.getInfoType()+"  ");
 			}
-			System.out.println();
+			//System.out.println();
 			for(int i =5;i<textList.size();i++) {
 				textList.get(i).setLayoutX(10);
 			}

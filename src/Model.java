@@ -142,17 +142,21 @@ public class Model {
 	
 	public void loadIndicesToDeletedList(String indices) {
 		deletedIndices.clear();
-		String[] indexStrList = indices.split(" ");
-		for(String indexStr : indexStrList) {
-			deletedIndices.add(Integer.parseInt(indexStr));
+		if(indices.trim().equals("")) {
+			String[] indexStrList = indices.split(" ");
+			for(String indexStr : indexStrList) {
+				deletedIndices.add(Integer.parseInt(indexStr));
+			}
 		}
 	}
 	
 	public void loadIndicesToAddedList(String indices) {
 		newlyAddedIndices.clear();
-		String[] indexStrList = indices.split(" ");
-		for(String indexStr : indexStrList) {
-			newlyAddedIndices.add(Integer.parseInt(indexStr));
+		if(indices.trim().equals("")) {
+			String[] indexStrList = indices.split(" ");
+			for(String indexStr : indexStrList) {
+				newlyAddedIndices.add(Integer.parseInt(indexStr));
+			}
 		}
 	}
 	
