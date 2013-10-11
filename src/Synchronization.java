@@ -36,7 +36,7 @@ public class Synchronization {
 	
 	/*types of task status*/
 	
-	static enum Status {
+	public static enum Status {
 		UNCHANGED, NEWLY_ADDED, DELETED
 	}
 	

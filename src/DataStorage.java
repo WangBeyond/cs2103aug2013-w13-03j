@@ -23,31 +23,27 @@ public class DataStorage extends Store {
 	private PrintWriter out;
 
 	/*
-	public static void main(String args[]) {
-
-		DataStorage dataStorage = new DataStorage("dataStorage.txt");
-		try {
-			//System.out.println(Control.executeCommand("add go to library from 12:00 to 13:00"));
-			//System.out.println(Control.getModel().getPendingList().size());
-			dataStorage.storeToFile();
-			dataStorage.loadFromFile();
-		} catch (Exception e) {
-			System.out.println(e);
-		}
-	}
-	*/
+	 * public static void main(String args[]) {
+	 * 
+	 * DataStorage dataStorage = new DataStorage("dataStorage.txt"); try {
+	 * //System
+	 * .out.println(Control.executeCommand("add go to library from 12:00 to 13:00"
+	 * )); //System.out.println(Control.getModel().getPendingList().size());
+	 * dataStorage.storeToFile(); dataStorage.loadFromFile(); } catch (Exception
+	 * e) { System.out.println(e); } }
+	 */
 	public DataStorage(String fileName, Model model) {
 		createDir();
-		textFile = new File(findUserDocDir()+FOLDERNAME+"/"+fileName);
+		textFile = new File(findUserDocDir() + FOLDERNAME + "/" + fileName);
 		checkIfFileExists(textFile);
 		this.model = model;
 	}
-	
+
 	/**
 	 * create the directory of iDo folder in user's documents folder
 	 */
 	private void createDir() {
-		File theDir = new File(findUserDocDir()+FOLDERNAME);
+		File theDir = new File(findUserDocDir() + FOLDERNAME);
 		// if the directory does not exist, create it
 		if (!theDir.exists()) {
 			System.out.println("creating directory: ");
@@ -57,17 +53,19 @@ public class DataStorage extends Store {
 			}
 		}
 	}
-	
+
 	/**
 	 * find user's Documents directory
+	 * 
 	 * @return user Documents dir
 	 */
 	private String findUserDocDir() {
-		return System.getProperty("user.home") + "/Documents/" ;
+		return System.getProperty("user.home") + "/Documents/";
 	}
-	
+
 	/**
 	 * check if target file exists
+	 * 
 	 * @param file
 	 */
 	private static void checkIfFileExists(File file) {
@@ -79,31 +77,31 @@ public class DataStorage extends Store {
 			}
 		}
 	}
-	
+
 	public void loadFromFile() throws IOException {
 		in = new BufferedReader(new FileReader(textFile));
 
 		String newLine = in.readLine();
-		if(newLine == null)
+		if (newLine == null)
 			return;
-		while (!newLine.equals(COMPLETE_TITLE)){
+		while (!newLine.equals(COMPLETE_TITLE)) {
 			boolean meetSplitLine = addTaskToModel(in, TASK_TYPES.PENDING);
 			newLine = in.readLine();
-			if(meetSplitLine)
+			if (meetSplitLine)
 				break;
 		}
-		
+
 		while (!newLine.equals(TRASH_TITLE)) {
 			boolean meetSplitLine = addTaskToModel(in, TASK_TYPES.COMPLETE);
 			newLine = in.readLine();
-			if(meetSplitLine)
+			if (meetSplitLine)
 				break;
 		}
-		
+
 		while (newLine != null) {
 			boolean meetSplitLine = addTaskToModel(in, TASK_TYPES.TRASH);
 			newLine = in.readLine();
-			if(meetSplitLine)
+			if (meetSplitLine)
 				break;
 		}
 		in.close();
@@ -130,11 +128,11 @@ public class DataStorage extends Store {
 		}
 	}
 
-	private boolean addTaskToModel(BufferedReader in,
-			TASK_TYPES taskType) throws IOException {
+	private boolean addTaskToModel(BufferedReader in, TASK_TYPES taskType)
+			throws IOException {
 		Task newTask = new Task();
 		String textLine = in.readLine();
-		if(textLine == null || textLine.equals(SPLITLINE))
+		if (textLine == null || textLine.equals(SPLITLINE))
 			return true;
 		newTask.setIndexId(Integer.parseInt(textLine));
 		newTask.setWorkInfo(in.readLine());
@@ -145,6 +143,13 @@ public class DataStorage extends Store {
 		newTask.setTag(new Tag(in.readLine(), in.readLine()));
 		newTask.setIsImportant((in.readLine()).equals(TRUE) ? true : false);
 		newTask.setIndexInList(Integer.parseInt(in.readLine()));
+		String statusString = in.readLine();
+		if (statusString.equals("new"))
+			newTask.setStatus(Task.Status.NEWLY_ADDED);
+		else if (statusString.equals("unchanged"))
+			newTask.setStatus(Task.Status.UNCHANGED);
+		else
+			newTask.setStatus(Task.Status.DELETED);
 		switch (taskType) {
 		case PENDING:
 			model.addTaskToPending(newTask);
@@ -171,6 +176,12 @@ public class DataStorage extends Store {
 			out.println(targetTask.getTag().getRepetition());
 			out.println((targetTask.getIsImportant() == true ? TRUE : FALSE));
 			out.println(targetTask.getIndexInList());
+			if(targetTask.getStatus() == Task.Status.NEWLY_ADDED)
+				out.println("new");
+			else if(targetTask.getStatus() == Task.Status.UNCHANGED)
+				out.println("unchanged");
+			else
+				out.println("deleted");
 			out.println();
 		}
 	}
@@ -181,7 +192,6 @@ class SyncStorage extends Store {
 		DELETED, NEWLY_ADDED
 	};
 
-
 	private final static String DELETED_TITLE = "deleted";
 	private final static String NEWLY_ADDED_TITLE = "newly added";
 	private final static String SPLITLINE = "**************";
@@ -191,16 +201,16 @@ class SyncStorage extends Store {
 
 	public SyncStorage(String fileName, Model model) {
 		createDir();
-		textFile = new File(findUserDocDir()+FOLDERNAME+"/"+fileName);
+		textFile = new File(findUserDocDir() + FOLDERNAME + "/" + fileName);
 		checkIfFileExists(textFile);
 		this.model = model;
 	}
-	
+
 	/**
 	 * create the directory of iDo folder in user's documents folder
 	 */
 	private void createDir() {
-		File theDir = new File(findUserDocDir()+FOLDERNAME);
+		File theDir = new File(findUserDocDir() + FOLDERNAME);
 		// if the directory does not exist, create it
 		if (!theDir.exists()) {
 			System.out.println("creating directory: ");
@@ -210,17 +220,19 @@ class SyncStorage extends Store {
 			}
 		}
 	}
-	
+
 	/**
 	 * find user's Documents directory
+	 * 
 	 * @return user Documents dir
 	 */
 	private String findUserDocDir() {
-		return System.getProperty("user.home") + "/Documents/" ;
+		return System.getProperty("user.home") + "/Documents/";
 	}
-	
+
 	/**
 	 * check if target file exists
+	 * 
 	 * @param file
 	 */
 	private static void checkIfFileExists(File file) {
@@ -232,24 +244,24 @@ class SyncStorage extends Store {
 			}
 		}
 	}
-	
+
 	public void loadFromFile() throws IOException {
 		in = new BufferedReader(new FileReader(textFile));
 
 		String newLine = in.readLine();
-		if(newLine == null)
+		if (newLine == null)
 			return;
-		while (!newLine.equals(NEWLY_ADDED_TITLE)){
+		while (!newLine.equals(NEWLY_ADDED_TITLE)) {
 			boolean meetSplitLine = addIndexToModel(in, INDEX_TYPES.DELETED);
 			newLine = in.readLine();
-			if(meetSplitLine)
+			if (meetSplitLine)
 				break;
 		}
-		
+
 		while (newLine != null) {
 			boolean meetSplitLine = addIndexToModel(in, INDEX_TYPES.NEWLY_ADDED);
 			newLine = in.readLine();
-			if(meetSplitLine)
+			if (meetSplitLine)
 				break;
 		}
 		in.close();
@@ -273,9 +285,10 @@ class SyncStorage extends Store {
 		}
 	}
 
-	private boolean addIndexToModel(BufferedReader in,INDEX_TYPES indexType) throws IOException {
+	private boolean addIndexToModel(BufferedReader in, INDEX_TYPES indexType)
+			throws IOException {
 		String textLine = in.readLine();
-		if(textLine == null || textLine.equals(SPLITLINE))
+		if (textLine == null || textLine.equals(SPLITLINE))
 			return DONE_READING;
 		switch (indexType) {
 		case DELETED:
@@ -288,10 +301,11 @@ class SyncStorage extends Store {
 		return UNDONE_READING;
 	}
 
-	private void addIndicesToWriter(PrintWriter out, ArrayList<Integer> indexList) {
-		if(indexList.size()>0) {
+	private void addIndicesToWriter(PrintWriter out,
+			ArrayList<Integer> indexList) {
+		if (indexList.size() > 0) {
 			for (int i = 0; i < indexList.size(); i++) {
-				out.print(indexList.get(i)+" ");
+				out.print(indexList.get(i) + " ");
 			}
 			out.println();
 		}

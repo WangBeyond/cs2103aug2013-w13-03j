@@ -160,7 +160,7 @@ class AddCommand extends TwoWayCommand {
 		}
 		
 		model.addTaskToPending(task);
-		//model.addIndexToAdded(indexID);
+		
 		Control.sortList(model.getPendingList());
 
 		return MESSAGE_SUCCESSFUL_ADD;
@@ -345,8 +345,13 @@ class RemoveCommand extends TwoWayCommand {
 		for (int i = indexCount - 1; i >= 0; i--) {
 			removedTaskInfo.add(modifiedList
 					.get(convertIndex(indexList[i] - 1)));
+			Task removedTask = modifiedList
+					.get(convertIndex(indexList[i] - 1));
 			model.removeTask(convertIndex(indexList[i] - 1), tabIndex);
-			//model.addIndexToDeleted(indexID);
+			if(tabIndex == 0 && removedTask.getStatus() == Task.Status.NEWLY_ADDED)
+				removedTask.setStatus(Task.Status.UNCHANGED);
+			else if(tabIndex == 0 && removedTask.getStatus() == Task.Status.UNCHANGED)
+				removedTask.setStatus(Task.Status.DELETED);
 		}
 		if (tabIndex == PENDING_TAB) {
 			Control.sortList(model.getPendingList());
@@ -354,14 +359,19 @@ class RemoveCommand extends TwoWayCommand {
 			Control.sortList(model.getCompleteList());
 		}
 		Control.sortList(model.getTrashList());
-
+		
 		return MESSAGE_SUCCESSFUL_REMOVE;
 	}
 
 	public String undo() {
 		int index;
 		for (int i = 0; i < removedTaskInfo.size(); i++) {
-			modifiedList.add(removedTaskInfo.get(i));
+			Task removedTask = removedTaskInfo.get(i);
+			if(tabIndex == 0 && removedTask.getStatus() == Task.Status.UNCHANGED)
+				removedTask.setStatus(Task.Status.NEWLY_ADDED);
+			else if(tabIndex == 0 && removedTask.getStatus() == Task.Status.DELETED)
+				removedTask.setStatus(Task.Status.UNCHANGED);
+			modifiedList.add(removedTask);
 			if (tabIndex == PENDING_TAB || tabIndex == COMPLETE_TAB) {
 				index = model.getIndexFromTrash(removedTaskInfo.get(i));
 				model.removeTaskFromTrash(index);
@@ -410,11 +420,14 @@ class ClearAllCommand extends TwoWayCommand {
 		for (int i = modifiedList.size() - 1; i >= 0; i--) {
 			if (tabIndex == PENDING_TAB) {
 				clearedTasks[i] = model.getTaskFromPending(convertIndex(i));
+				if(clearedTasks[i].getStatus() == Task.Status.NEWLY_ADDED)
+					clearedTasks[i].setStatus(Task.Status.UNCHANGED);
+				else if(clearedTasks[i].getStatus() == Task.Status.UNCHANGED)
+					clearedTasks[i].setStatus(Task.Status.DELETED);
 			} else if (tabIndex == COMPLETE_TAB) {
 				clearedTasks[i] = model.getTaskFromComplete(convertIndex(i));
 			}
 			model.removeTask(convertIndex(i), tabIndex);
-			//model.addToDelete(indexID)
 		}
 		if (tabIndex == PENDING_TAB || tabIndex == COMPLETE_TAB) {
 			Control.sortList(model.getTrashList());
@@ -426,6 +439,10 @@ class ClearAllCommand extends TwoWayCommand {
 		if (tabIndex == PENDING_TAB) {
 			for (int i = 0; i < clearedTasks.length; i++) {
 				model.addTaskToPending(clearedTasks[i]);
+				if(clearedTasks[i].getStatus() == Task.Status.UNCHANGED)
+					clearedTasks[i].setStatus(Task.Status.NEWLY_ADDED);
+				else if(clearedTasks[i].getStatus() == Task.Status.DELETED)
+					clearedTasks[i].setStatus(Task.Status.UNCHANGED);
 			}
 			Control.sortList(model.getPendingList());
 		} else if (tabIndex == COMPLETE_TAB) {
@@ -483,6 +500,10 @@ class CompleteCommand extends TwoWayCommand {
 			Task toComplete = model
 					.getTaskFromPending(convertIndex(indexList[i] - 1));
 			toCompleteTasks[i] = toComplete;
+			if(toComplete.getStatus() == Task.Status.NEWLY_ADDED)
+				toComplete.setStatus(Task.Status.UNCHANGED);
+			else if(toComplete.getStatus() == Task.Status.UNCHANGED)
+				toComplete.setStatus(Task.Status.DELETED);
 			model.getPendingList().remove(convertIndex(indexList[i] - 1));
 			model.addTaskToComplete(toComplete);
 		}
@@ -501,6 +522,10 @@ class CompleteCommand extends TwoWayCommand {
 	public String undo() {
 		for (int i = indexCount - 1; i >= 0; i--) {
 			Task toPending = model.getTaskFromComplete(indexInCompleteList[i]);
+			if(toPending.getStatus() == Task.Status.DELETED)
+				toPending.setStatus(Task.Status.UNCHANGED);
+			else if(toPending.getStatus() == Task.Status.UNCHANGED)
+				toPending.setStatus(Task.Status.NEWLY_ADDED);
 			model.removeTaskFromCompleteNoTrash(indexInCompleteList[i]);
 			model.addTaskToPending(toPending);
 		}
@@ -550,6 +575,10 @@ class IncompleteCommand extends TwoWayCommand {
 		for (int i = indexCount - 1; i >= 0; i--) {
 			Task toPending = model
 					.getTaskFromComplete(convertIndex(indexList[i] - 1));
+			if(toPending.getStatus() == Task.Status.DELETED)
+				toPending.setStatus(Task.Status.UNCHANGED);
+			else if(toPending.getStatus() == Task.Status.UNCHANGED)
+				toPending.setStatus(Task.Status.NEWLY_ADDED);
 			toIncompleteTasks[i] = toPending;
 			model.getCompleteList().remove(convertIndex(indexList[i] - 1));
 			model.addTaskToPending(toPending);
@@ -570,6 +599,10 @@ class IncompleteCommand extends TwoWayCommand {
 		for (int i = indexCount - 1; i >= 0; i--) {
 			Task toComplete = model
 					.getTaskFromPending(indexInIncompleteList[i]);
+			if(toComplete.getStatus() == Task.Status.NEWLY_ADDED)
+				toComplete.setStatus(Task.Status.UNCHANGED);
+			else if(toComplete.getStatus() == Task.Status.UNCHANGED)
+				toComplete.setStatus(Task.Status.DELETED);
 			toIncompleteTasks[i] = toComplete;
 			model.getPendingList().remove(indexInIncompleteList[i]);
 			model.addTaskToComplete(toComplete);
