@@ -1,5 +1,6 @@
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import java.util.ArrayList;
 
 public class Model {
 	private ObservableList<Task> pending;
@@ -8,6 +9,8 @@ public class Model {
 	private ObservableList<Task> searchPending;
 	private ObservableList<Task> searchComplete;
 	private ObservableList<Task> searchTrash;
+	private ArrayList<Integer> deletedIndices;
+	private ArrayList<Integer> newlyAddedIndices;
 
 	// constructor
 	public Model() {
@@ -17,6 +20,8 @@ public class Model {
 		searchPending = FXCollections.observableArrayList();
 		searchComplete = FXCollections.observableArrayList();
 		searchTrash = FXCollections.observableArrayList();
+		deletedIndices = new ArrayList();
+		newlyAddedIndices = new ArrayList();
 	}
 
 	// get functions
@@ -125,5 +130,37 @@ public class Model {
 
 	public void setSearchTrashList(ObservableList<Task> searchList) {
 		searchTrash = searchList;
+	}
+	
+	public ArrayList<Integer> getDeletedIndexList() {
+		return deletedIndices;
+	}
+	
+	public ArrayList<Integer> getAddedIndexList() {
+		return newlyAddedIndices;
+	}
+	
+	public void loadIndicesToDeletedList(String indices) {
+		deletedIndices.clear();
+		String[] indexStrList = indices.split(" ");
+		for(String indexStr : indexStrList) {
+			deletedIndices.add(Integer.parseInt(indexStr));
+		}
+	}
+	
+	public void loadIndicesToAddedList(String indices) {
+		newlyAddedIndices.clear();
+		String[] indexStrList = indices.split(" ");
+		for(String indexStr : indexStrList) {
+			newlyAddedIndices.add(Integer.parseInt(indexStr));
+		}
+	}
+	
+	public void addIndicesToDeleted(int index) {
+		deletedIndices.add(index);
+	}
+	
+	public void addIndicesToAdded(int index) {
+		newlyAddedIndices.add(index);
 	}
 }

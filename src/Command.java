@@ -162,6 +162,7 @@ class AddCommand extends TwoWayCommand {
 		}
 		
 		model.addTaskToPending(task);
+		//model.addIndexToAdded(indexID);
 		Control.sortList(model.getPendingList());
 		view.setTab(PENDING_TAB);
 
@@ -349,6 +350,7 @@ class RemoveCommand extends TwoWayCommand {
 			removedTaskInfo.add(modifiedList
 					.get(convertIndex(indexList[i] - 1)));
 			model.removeTask(convertIndex(indexList[i] - 1), tabIndex);
+			//model.addIndexToDeleted(indexID);
 		}
 		if (tabIndex == PENDING_TAB) {
 			Control.sortList(model.getPendingList());
@@ -417,6 +419,7 @@ class ClearAllCommand extends TwoWayCommand {
 				clearedTasks[i] = model.getTaskFromComplete(convertIndex(i));
 			}
 			model.removeTask(convertIndex(i), tabIndex);
+			//model.addToDelete(indexID)
 		}
 		if (tabIndex == PENDING_TAB || tabIndex == COMPLETE_TAB) {
 			Control.sortList(model.getTrashList());
