@@ -292,7 +292,7 @@ class SyncStorage extends Store {
 	private void addIndicesToWriter(PrintWriter out, ArrayList<Integer> indexList) {
 		for (int i = 0; i < indexList.size(); i++) {
 			out.print(indexList.get(i)+" ");
+			out.println();
 		}
-		out.println();
 	}
 }

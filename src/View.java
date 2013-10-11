@@ -28,7 +28,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.control.OverrunStyle;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabBuilder;
 import javafx.scene.control.TabPane;
@@ -53,7 +52,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextBuilder;
@@ -339,8 +337,6 @@ public class View implements HotkeyListener {
 				textList.get(0).setStyle("-fx-font: 15.0px Ubantu;");
 				textList.get(0).setText(temporaryCommand);
 				textList.get(0).setFill(Color.DARKGRAY);
-				emptyFeedback(0);
-				setFeedbackStyle(0, ex.getMessage() , Color.WHITE);
 			}
 		}
 	}
