@@ -14,12 +14,12 @@ public class Parser {
 	// TAG, IMPORTANCE, REPEATING, INDEX, SEARCH_INFO }
 
 	/* start date keys */
-	private static String[] startDateKeys = { "start from", "start at",
+	static String[] startDateKeys = { "start from", "start at",
 			"start on", "begin from", "begin at", "begin on", "from", "on",
 			"at" };
 
 	/* end date keys */
-	private static String[] endDateKeys = { "end on", "end at", "end by",
+	static String[] endDateKeys = { "end on", "end at", "end by",
 			"end before", "to", "till", "until", "by", "due", "next", "today",
 			"tonight" };
 
@@ -841,12 +841,12 @@ public class Parser {
 		return result.trim();
 	}
 
-	private static String getLastWord(String commandString) {
+	static String getLastWord(String commandString) {
 		String[] stringArray = commandString.trim().split("\\s+");
 		return stringArray[stringArray.length - 1];
 	}
 
-	private static String removeLastWord(String commandString) {
+	static String removeLastWord(String commandString) {
 		String lastWord = getLastWord(commandString);
 		return commandString.substring(0,
 				commandString.length() - lastWord.length()).trim();
@@ -866,7 +866,7 @@ public class Parser {
 		return commandString.replaceFirst(getFirstWord(commandString), "");
 	}
 
-	private static String[] splitBySpace(String content) {
+	static String[] splitBySpace(String content) {
 		return content.trim().split("\\s+");
 	}
 

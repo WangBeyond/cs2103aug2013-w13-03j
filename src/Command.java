@@ -25,18 +25,21 @@ public abstract class Command {
 	protected static final String MESSAGE_WRONG_COMPLETE_TABS = "Cannot complete the tasks in this current tab.";
 	protected static final String MESSAGE_WRONG_INCOMPLETE_TABS = "Cannot incomplete the tasks in this current tab.";
 	protected static final String MESSAGE_HELP = "Opening the Help window...";
-	
+
+	protected static final String HAVING_START_DATE = "having start date";
+	protected static final String HAVING_END_DATE = "having end date";
+
 	static final int PENDING_TAB = 0;
 	static final int COMPLETE_TAB = 1;
-	
+
 	protected Model model;
 	protected int tabIndex;
-	
-	public Command(Model model, int tabIndex){
+
+	public Command(Model model, int tabIndex) {
 		this.model = model;
 		this.tabIndex = tabIndex;
 	}
-	
+
 	public abstract String execute();
 }
 
@@ -46,13 +49,13 @@ abstract class TwoWayCommand extends Command {
 	protected static final boolean SHOWN = false;
 	protected static final int INVALID = -1;
 	protected ObservableList<Task> modifiedList;
-	
-	public TwoWayCommand(Model model, int tabIndex){
+
+	public TwoWayCommand(Model model, int tabIndex) {
 		super(model, tabIndex);
 	}
-	
+
 	public abstract String undo();
-	
+
 	public static void setIndexType(boolean type) {
 		listedIndexType = type;
 	}
@@ -65,10 +68,10 @@ abstract class TwoWayCommand extends Command {
 				searchList = model.getSearchPendingList();
 			} else if (tabIndex == COMPLETE_TAB) {
 				searchList = model.getSearchCompleteList();
-			} else{
+			} else {
 				searchList = model.getSearchTrashList();
 			}
-			if (prevIndex < 0 || prevIndex >= searchList.size()){
+			if (prevIndex < 0 || prevIndex >= searchList.size()) {
 				return INVALID;
 			}
 			return searchList.get(prevIndex).getIndexInList();
@@ -138,7 +141,8 @@ class AddCommand extends TwoWayCommand {
 			long actualDifference = task.getEndDate().getTimeInMillis()
 					- task.getStartDate().getTimeInMillis();
 			if (actualDifference > expectedDifference) {
-				throw new IllegalArgumentException(MESSAGE_INVALID_TIME_REPETITIVE);
+				throw new IllegalArgumentException(
+						MESSAGE_INVALID_TIME_REPETITIVE);
 			}
 		}
 		if (tag.equals(Parser.NULL)) {
@@ -153,14 +157,14 @@ class AddCommand extends TwoWayCommand {
 			} else {
 				task.setTag(new Tag(tag, repeatingType));
 			}
-		}		
+		}
 		task.setIsImportant(isImptTask);
-		if (!repeatingType.equals(Parser.NULL)){
+		if (!repeatingType.equals(Parser.NULL)) {
 			task.updateDate();
 		}
-		
+
 		model.addTaskToPending(task);
-		
+
 		Control.sortList(model.getPendingList());
 
 		return MESSAGE_SUCCESSFUL_ADD;
@@ -189,9 +193,9 @@ class EditCommand extends TwoWayCommand {
 		super(model, tabIndex);
 		modifiedList = FXCollections.observableArrayList();
 
-		if (tabIndex == PENDING_TAB){
+		if (tabIndex == PENDING_TAB) {
 			modifiedList = this.model.getPendingList();
-		} else if (tabIndex == COMPLETE_TAB){
+		} else if (tabIndex == COMPLETE_TAB) {
 			modifiedList = this.model.getCompleteList();
 		} else {
 			modifiedList = this.model.getTrashList();
@@ -200,7 +204,7 @@ class EditCommand extends TwoWayCommand {
 		tag = parsedUserCommand[2];
 		startDateString = parsedUserCommand[3];
 		endDateString = parsedUserCommand[4];
-		if (parsedUserCommand[5].equals(Parser.TRUE)){
+		if (parsedUserCommand[5].equals(Parser.TRUE)) {
 			hasImptTaskToggle = true;
 		} else {
 			hasImptTaskToggle = false;
@@ -218,7 +222,7 @@ class EditCommand extends TwoWayCommand {
 		CustomDate startDate, endDate;
 		startDate = endDate = null;
 
-		if (repeatingType.equals(Parser.NULL) && workInfo.equals(Parser.NULL)){
+		if (repeatingType.equals(Parser.NULL) && workInfo.equals(Parser.NULL)) {
 			repeatingType = targetTask.getTag().getRepetition();
 		}
 		if (!startDateString.equals(Parser.NULL)) {
@@ -236,7 +240,7 @@ class EditCommand extends TwoWayCommand {
 			endDate = targetTask.getEndDate();
 		}
 		if (startDate != null && endDate != null
-				&& CustomDate.compare(endDate, startDate) < 0){
+				&& CustomDate.compare(endDate, startDate) < 0) {
 			return MESSAGE_INVALID_DATE_RANGE;
 		}
 
@@ -249,7 +253,8 @@ class EditCommand extends TwoWayCommand {
 			long actualDifference = endDate.getTimeInMillis()
 					- startDate.getTimeInMillis();
 			if (actualDifference > expectedDifference) {
-				throw new IllegalArgumentException(MESSAGE_INVALID_TIME_REPETITIVE);
+				throw new IllegalArgumentException(
+						MESSAGE_INVALID_TIME_REPETITIVE);
 			}
 		}
 		if (!workInfo.equals(Parser.NULL)) {
@@ -257,7 +262,7 @@ class EditCommand extends TwoWayCommand {
 		}
 		if (startDate != null) {
 			targetTask.setStartDate(startDate);
-		}		
+		}
 		if (endDate != null) {
 			targetTask.setEndDate(endDate);
 		}
@@ -266,8 +271,8 @@ class EditCommand extends TwoWayCommand {
 		} else {
 			targetTask.setTag(new Tag(targetTask.getTag().getTag(),
 					repeatingType));
-		}		
-		if (!repeatingType.equals(Parser.NULL)){
+		}
+		if (!repeatingType.equals(Parser.NULL)) {
 			targetTask.updateDate();
 		}
 		if (hasImptTaskToggle) {
@@ -300,7 +305,7 @@ class EditCommand extends TwoWayCommand {
 		targetTask.setTag(originalTask.getTag());
 		targetTask.setIndexId(originalTask.getIndexId());
 		Control.sortList(modifiedList);
-		
+
 		return MESSAGE_SUCCESSFUL_UNDO;
 	}
 }
@@ -340,17 +345,19 @@ class RemoveCommand extends TwoWayCommand {
 		}
 		if (convertIndex(indexList[indexCount - 1] - 1) == INVALID
 				|| convertIndex(indexList[0] - 1) == INVALID) {
-			return MESSAGE_INDEX_OUT_OF_BOUNDS;		}
+			return MESSAGE_INDEX_OUT_OF_BOUNDS;
+		}
 
 		for (int i = indexCount - 1; i >= 0; i--) {
 			removedTaskInfo.add(modifiedList
 					.get(convertIndex(indexList[i] - 1)));
-			Task removedTask = modifiedList
-					.get(convertIndex(indexList[i] - 1));
+			Task removedTask = modifiedList.get(convertIndex(indexList[i] - 1));
 			model.removeTask(convertIndex(indexList[i] - 1), tabIndex);
-			if(tabIndex == 0 && removedTask.getStatus() == Task.Status.NEWLY_ADDED)
+			if (tabIndex == 0
+					&& removedTask.getStatus() == Task.Status.NEWLY_ADDED)
 				removedTask.setStatus(Task.Status.UNCHANGED);
-			else if(tabIndex == 0 && removedTask.getStatus() == Task.Status.UNCHANGED)
+			else if (tabIndex == 0
+					&& removedTask.getStatus() == Task.Status.UNCHANGED)
 				removedTask.setStatus(Task.Status.DELETED);
 		}
 		if (tabIndex == PENDING_TAB) {
@@ -359,7 +366,7 @@ class RemoveCommand extends TwoWayCommand {
 			Control.sortList(model.getCompleteList());
 		}
 		Control.sortList(model.getTrashList());
-		
+
 		return MESSAGE_SUCCESSFUL_REMOVE;
 	}
 
@@ -367,9 +374,11 @@ class RemoveCommand extends TwoWayCommand {
 		int index;
 		for (int i = 0; i < removedTaskInfo.size(); i++) {
 			Task removedTask = removedTaskInfo.get(i);
-			if(tabIndex == 0 && removedTask.getStatus() == Task.Status.UNCHANGED)
+			if (tabIndex == 0
+					&& removedTask.getStatus() == Task.Status.UNCHANGED)
 				removedTask.setStatus(Task.Status.NEWLY_ADDED);
-			else if(tabIndex == 0 && removedTask.getStatus() == Task.Status.DELETED)
+			else if (tabIndex == 0
+					&& removedTask.getStatus() == Task.Status.DELETED)
 				removedTask.setStatus(Task.Status.UNCHANGED);
 			modifiedList.add(removedTask);
 			if (tabIndex == PENDING_TAB || tabIndex == COMPLETE_TAB) {
@@ -379,7 +388,7 @@ class RemoveCommand extends TwoWayCommand {
 		}
 		removedTaskInfo.clear();
 		Control.sortList(modifiedList);
-		
+
 		return MESSAGE_SUCCESSFUL_UNDO;
 	}
 }
@@ -420,9 +429,9 @@ class ClearAllCommand extends TwoWayCommand {
 		for (int i = modifiedList.size() - 1; i >= 0; i--) {
 			if (tabIndex == PENDING_TAB) {
 				clearedTasks[i] = model.getTaskFromPending(convertIndex(i));
-				if(clearedTasks[i].getStatus() == Task.Status.NEWLY_ADDED)
+				if (clearedTasks[i].getStatus() == Task.Status.NEWLY_ADDED)
 					clearedTasks[i].setStatus(Task.Status.UNCHANGED);
-				else if(clearedTasks[i].getStatus() == Task.Status.UNCHANGED)
+				else if (clearedTasks[i].getStatus() == Task.Status.UNCHANGED)
 					clearedTasks[i].setStatus(Task.Status.DELETED);
 			} else if (tabIndex == COMPLETE_TAB) {
 				clearedTasks[i] = model.getTaskFromComplete(convertIndex(i));
@@ -439,9 +448,9 @@ class ClearAllCommand extends TwoWayCommand {
 		if (tabIndex == PENDING_TAB) {
 			for (int i = 0; i < clearedTasks.length; i++) {
 				model.addTaskToPending(clearedTasks[i]);
-				if(clearedTasks[i].getStatus() == Task.Status.UNCHANGED)
+				if (clearedTasks[i].getStatus() == Task.Status.UNCHANGED)
 					clearedTasks[i].setStatus(Task.Status.NEWLY_ADDED);
-				else if(clearedTasks[i].getStatus() == Task.Status.DELETED)
+				else if (clearedTasks[i].getStatus() == Task.Status.DELETED)
 					clearedTasks[i].setStatus(Task.Status.UNCHANGED);
 			}
 			Control.sortList(model.getPendingList());
@@ -479,10 +488,10 @@ class CompleteCommand extends TwoWayCommand {
 
 	public String execute() {
 		Arrays.sort(indexList);
-		
+
 		if (tabIndex != PENDING_TAB) {
 			return MESSAGE_WRONG_COMPLETE_TABS;
-		}	
+		}
 		for (int i = 0; i < indexCount - 1; i++) {
 			if (indexList[i] == indexList[i + 1]) {
 				return MESSAGE_DUPLICATE_INDEXES;
@@ -492,7 +501,7 @@ class CompleteCommand extends TwoWayCommand {
 				|| indexList[0] <= 0) {
 			return MESSAGE_INDEX_OUT_OF_BOUNDS;
 		}
-		
+
 		indexInCompleteList = new int[indexCount];
 		toCompleteTasks = new Task[indexCount];
 
@@ -500,9 +509,9 @@ class CompleteCommand extends TwoWayCommand {
 			Task toComplete = model
 					.getTaskFromPending(convertIndex(indexList[i] - 1));
 			toCompleteTasks[i] = toComplete;
-			if(toComplete.getStatus() == Task.Status.NEWLY_ADDED)
+			if (toComplete.getStatus() == Task.Status.NEWLY_ADDED)
 				toComplete.setStatus(Task.Status.UNCHANGED);
-			else if(toComplete.getStatus() == Task.Status.UNCHANGED)
+			else if (toComplete.getStatus() == Task.Status.UNCHANGED)
 				toComplete.setStatus(Task.Status.DELETED);
 			model.getPendingList().remove(convertIndex(indexList[i] - 1));
 			model.addTaskToComplete(toComplete);
@@ -522,9 +531,9 @@ class CompleteCommand extends TwoWayCommand {
 	public String undo() {
 		for (int i = indexCount - 1; i >= 0; i--) {
 			Task toPending = model.getTaskFromComplete(indexInCompleteList[i]);
-			if(toPending.getStatus() == Task.Status.DELETED)
+			if (toPending.getStatus() == Task.Status.DELETED)
 				toPending.setStatus(Task.Status.UNCHANGED);
-			else if(toPending.getStatus() == Task.Status.UNCHANGED)
+			else if (toPending.getStatus() == Task.Status.UNCHANGED)
 				toPending.setStatus(Task.Status.NEWLY_ADDED);
 			model.removeTaskFromCompleteNoTrash(indexInCompleteList[i]);
 			model.addTaskToPending(toPending);
@@ -542,7 +551,8 @@ class IncompleteCommand extends TwoWayCommand {
 	int[] indexInIncompleteList;
 	int indexCount;
 
-	public IncompleteCommand(String[] userParsedCommand, Model model, int tabIndex) {
+	public IncompleteCommand(String[] userParsedCommand, Model model,
+			int tabIndex) {
 		super(model, tabIndex);
 		modifiedList = this.model.getCompleteList();
 		indexCount = userParsedCommand.length;
@@ -568,16 +578,16 @@ class IncompleteCommand extends TwoWayCommand {
 		if (indexList[indexCount - 1] > modifiedList.size()
 				|| indexList[0] <= 0) {
 			return MESSAGE_INDEX_OUT_OF_BOUNDS;
-		}		
+		}
 		indexInIncompleteList = new int[indexCount];
 		toIncompleteTasks = new Task[indexCount];
 
 		for (int i = indexCount - 1; i >= 0; i--) {
 			Task toPending = model
 					.getTaskFromComplete(convertIndex(indexList[i] - 1));
-			if(toPending.getStatus() == Task.Status.DELETED)
+			if (toPending.getStatus() == Task.Status.DELETED)
 				toPending.setStatus(Task.Status.UNCHANGED);
-			else if(toPending.getStatus() == Task.Status.UNCHANGED)
+			else if (toPending.getStatus() == Task.Status.UNCHANGED)
 				toPending.setStatus(Task.Status.NEWLY_ADDED);
 			toIncompleteTasks[i] = toPending;
 			model.getCompleteList().remove(convertIndex(indexList[i] - 1));
@@ -599,9 +609,9 @@ class IncompleteCommand extends TwoWayCommand {
 		for (int i = indexCount - 1; i >= 0; i--) {
 			Task toComplete = model
 					.getTaskFromPending(indexInIncompleteList[i]);
-			if(toComplete.getStatus() == Task.Status.NEWLY_ADDED)
+			if (toComplete.getStatus() == Task.Status.NEWLY_ADDED)
 				toComplete.setStatus(Task.Status.UNCHANGED);
-			else if(toComplete.getStatus() == Task.Status.UNCHANGED)
+			else if (toComplete.getStatus() == Task.Status.UNCHANGED)
 				toComplete.setStatus(Task.Status.DELETED);
 			toIncompleteTasks[i] = toComplete;
 			model.getPendingList().remove(indexInIncompleteList[i]);
@@ -726,7 +736,12 @@ class SearchCommand extends Command {
 	String isImpt;
 	int tabIndex;
 	View view;
-	
+	ObservableList<Task> initialList;
+	ObservableList<Task> searchList;
+	ObservableList<Task> secondSearchList;
+
+	boolean isFirstTimeSearch;
+
 	public SearchCommand(String[] parsedUserCommand, Model model, View view) {
 		super(model, view.getTabIndex());
 		this.view = view;
@@ -736,10 +751,7 @@ class SearchCommand extends Command {
 		endDateString = parsedUserCommand[3];
 		isImpt = parsedUserCommand[4];
 		repeatingType = parsedUserCommand[5];
-	}
-		
-	public String execute() {
-		ObservableList<Task> initialList;
+
 		if (tabIndex == PENDING_TAB) {
 			initialList = model.getPendingList();
 		} else if (tabIndex == COMPLETE_TAB) {
@@ -748,63 +760,43 @@ class SearchCommand extends Command {
 			initialList = model.getTrashList();
 		}
 
-		ObservableList<Task> searchList = FXCollections.observableArrayList();
-		boolean isFirstTimeSearch = true;
+		searchList = FXCollections.observableArrayList();
+		secondSearchList = FXCollections.observableArrayList();
+		isFirstTimeSearch = true;
+	}
 
-		if (!workInfo.equals(Parser.NULL)) {
-			if (isFirstTimeSearch){
-				searchList = searchWorkInfo(initialList, workInfo);
-			} else {
-				searchList = searchWorkInfo(searchList, workInfo);
-			}
-			isFirstTimeSearch = false;
+	public String execute() {
+		continuouslySearch();
+		// copy searchList to finalSearchList
+		for (int i = 0; i < searchList.size(); i++) {
+			secondSearchList.add(searchList.get(i));
 		}
-		if (!tag.equals(Parser.NULL)) {
-			if (isFirstTimeSearch){
-				searchList = searchTag(initialList, tag);
-			} else {
-				searchList = searchTag(searchList, tag);
-			}
-			isFirstTimeSearch = false;
+		if (tabIndex == PENDING_TAB) {
+			initialList = model.getPendingList();
+		} else if (tabIndex == COMPLETE_TAB) {
+			initialList = model.getCompleteList();
+		} else {
+			initialList = model.getTrashList();
 		}
-		if (!startDateString.equals(Parser.NULL)) {
-			CustomDate startDate = new CustomDate(startDateString);
-			if (isFirstTimeSearch){
-				searchList = searchStartDate(initialList, startDate);
-			} else {
-				searchList = searchStartDate(searchList, startDate);
-			}
-			isFirstTimeSearch = false;
+		searchList.clear();
+		isFirstTimeSearch = true;
+		if (searchDateKey() > 0) {
+			System.out.println(1);
+			continuouslySearch();
 		}
-
-		if (!endDateString.equals(Parser.NULL)) {
-			CustomDate endDate = new CustomDate(endDateString);
-			if (isFirstTimeSearch){
-				searchList = searchEndDate(initialList, endDate);
-			} else {
-				searchList = searchEndDate(searchList, endDate);
-			}
-			isFirstTimeSearch = false;
-		}
-		if (isImpt.equals(Parser.TRUE)) {
-			if (isFirstTimeSearch){
-				searchList = searchImportantTask(initialList);
-			} else {
-				searchList = searchImportantTask(searchList);
-			}
-		}
-		if (!repeatingType.equals(Parser.NULL)) {
-			if (isFirstTimeSearch){
-				searchList = searchRepeatingType(initialList, repeatingType);
-			} else {
-				searchList = searchRepeatingType(searchList, repeatingType);
-			}
-			isFirstTimeSearch = false;
-		}
+		System.out.println("execute search");
+		System.out.print("search1  ");
+		for (Task task : searchList)
+			System.out.print(task.getWorkInfo() + "  ");
+		System.out.println();
+		System.out.print("search2  ");
+		for (Task task : secondSearchList)
+			System.out.print(task.getWorkInfo() + "  ");
+		System.out.println();
+		searchList = mergeLists(secondSearchList, searchList);
 		if (!Control.isRealTime && searchList.isEmpty()) {
 			return MESSAGE_NO_RESULTS;
 		}
-		
 		TwoWayCommand.setIndexType(TwoWayCommand.SEARCHED);
 		if (tabIndex == PENDING_TAB) {
 			model.setSearchPendingList(searchList);
@@ -819,7 +811,173 @@ class SearchCommand extends Command {
 		return MESSAGE_SUCCESSFUL_SEARCH;
 	}
 
-	
+	private ObservableList<Task> mergeLists(ObservableList<Task> list1,
+			ObservableList<Task> list2) {
+		FXCollections.sort(list1);
+		FXCollections.sort(list2);
+		ObservableList<Task> mergedList = FXCollections.observableArrayList();
+		int index1 = 0;
+		int index2 = 0;
+		while (index1 < list1.size() && index2 < list2.size()) {
+			if (list1.get(index1).compareTo(list2.get(index2)) > 0) {
+				mergedList.add(list2.get(index2));
+				index2++;
+			} else if (list1.get(index1).compareTo(list2.get(index2)) < 0) {
+				mergedList.add(list1.get(index1));
+				index1++;
+			} else if (list1.get(index1).compareTo(list2.get(index2)) == 0) {
+				if (list1.get(index1).equals(list2.get(index2))) {
+					mergedList.add(list1.get(index1));
+					index1++;
+					index2++;
+				} else {
+					mergedList.add(list1.get(index1));
+					mergedList.add(list2.get(index2));
+					index1++;
+					index2++;
+				}
+			}
+		}
+		if (index1 >= list1.size()) {
+			for (int i = index2; i < list2.size(); i++)
+				mergedList.add(list2.get(i));
+		} else {
+			for (int i = index1; i < list1.size(); i++)
+				mergedList.add(list1.get(i));
+		}
+		return mergedList;
+	}
+
+	public void continuouslySearch() {
+		if (!workInfo.equals(Parser.NULL)) {
+			if (isFirstTimeSearch) {
+				searchList = searchWorkInfo(initialList, workInfo);
+			} else {
+				searchList = searchWorkInfo(searchList, workInfo);
+			}
+			isFirstTimeSearch = false;
+		}
+		if (!tag.equals(Parser.NULL)) {
+			if (isFirstTimeSearch) {
+				searchList = searchTag(initialList, tag);
+			} else {
+				searchList = searchTag(searchList, tag);
+			}
+			isFirstTimeSearch = false;
+		}
+		if (startDateString.equals(HAVING_START_DATE)
+				&& endDateString.equals(HAVING_END_DATE)) {
+			System.out.println("havingbothDate");
+			if (isFirstTimeSearch) {
+				searchList = searchHavingtDate(initialList);
+			} else {
+				searchList = searchHavingtDate(searchList);
+			}
+		} else {
+			if (!startDateString.equals(Parser.NULL)) {
+				if (startDateString.equals(HAVING_START_DATE)) {
+					System.out.println("havingStartDate");
+					if (isFirstTimeSearch) {
+						searchList = searchHavingStartDate(initialList);
+					} else {
+						searchList = searchHavingStartDate(searchList);
+					}
+				} else {
+					CustomDate startDate = new CustomDate(startDateString);
+					if (isFirstTimeSearch) {
+						searchList = searchStartDate(initialList, startDate);
+					} else {
+						searchList = searchStartDate(searchList, startDate);
+					}
+				}
+				isFirstTimeSearch = false;
+			}
+
+			if (!endDateString.equals(Parser.NULL)) {
+				if (endDateString.equals(HAVING_END_DATE)) {
+					System.out.println("havingEndDate");
+					if (isFirstTimeSearch) {
+						searchList = searchHavingEndDate(initialList);
+					} else {
+						searchList = searchHavingEndDate(searchList);
+					}
+				} else {
+					CustomDate endDate = new CustomDate(endDateString);
+					if (isFirstTimeSearch) {
+						searchList = searchEndDate(initialList, endDate);
+					} else {
+						searchList = searchEndDate(searchList, endDate);
+					}
+				}
+				isFirstTimeSearch = false;
+			}
+		}
+		if (isImpt.equals(Parser.TRUE)) {
+			if (isFirstTimeSearch) {
+				searchList = searchImportantTask(initialList);
+			} else {
+				searchList = searchImportantTask(searchList);
+			}
+		}
+		if (!repeatingType.equals(Parser.NULL)) {
+			if (isFirstTimeSearch) {
+				searchList = searchRepeatingType(initialList, repeatingType);
+			} else {
+				searchList = searchRepeatingType(searchList, repeatingType);
+			}
+			isFirstTimeSearch = false;
+		}
+	}
+
+	public int searchDateKey() {
+		String[] splittedWorkInfo = Parser.splitBySpace(workInfo);
+		int startWordNum = 0;
+		int endWordNum = 0;
+		int maxWordNum;
+		String lastWords;
+		if (splittedWorkInfo.length >= 1) {
+			if (splittedWorkInfo.length == 2) 
+				lastWords = splittedWorkInfo[splittedWorkInfo.length - 2]
+					+ " " + splittedWorkInfo[splittedWorkInfo.length - 1];
+			else 
+				lastWords =  splittedWorkInfo[splittedWorkInfo.length - 1];
+			lastWords = lastWords.toLowerCase();
+			if (startDateString == Parser.NULL) {
+				startWordNum = doesArrayWeaklyContain(Parser.startDateKeys,
+						lastWords);
+				if(startWordNum>0)
+					startDateString = HAVING_START_DATE;
+			}
+			if (endDateString == Parser.NULL) {
+				endWordNum = doesArrayWeaklyContain(Parser.endDateKeys,
+						lastWords);
+				if(endWordNum>0)
+					endDateString = HAVING_END_DATE;
+			}
+		}
+		maxWordNum = startWordNum > endWordNum ? startWordNum : endWordNum;
+		for (int i = 0; i < maxWordNum; i++)
+			workInfo = Parser.removeLastWord(workInfo);
+		System.out.println("wordNum " + startWordNum+" "+endWordNum);
+		return maxWordNum;
+	}
+
+	private int doesArrayWeaklyContain(String[] array, String wordInfo) {
+		int wordNum = Parser.splitBySpace(wordInfo).length;
+		if(wordNum == 2) {
+			for (String str : array) {
+				if (str.indexOf(wordInfo) == 0)
+					return 2;
+			}
+		}	
+		String oneWordInfo = Parser.getLastWord(wordInfo);
+		for (String str : array) {
+			if (str.indexOf(oneWordInfo) == 0)
+				return 1;
+		}
+		return 0;
+	}
+
 	public static ObservableList<Task> searchImportantTask(
 			ObservableList<Task> list) {
 		ObservableList<Task> result = FXCollections.observableArrayList();
@@ -902,12 +1060,43 @@ class SearchCommand extends Command {
 		return result;
 	}
 
+	public static ObservableList<Task> searchHavingtDate(
+			ObservableList<Task> list) {
+		ObservableList<Task> result = FXCollections.observableArrayList();
+		for (int i = 0; i < list.size(); i++) {
+			if (list.get(i).getStartDate() != null
+					|| list.get(i).getEndDate() != null)
+				result.add(list.get(i));
+		}
+		return result;
+	}
+
+	public static ObservableList<Task> searchHavingStartDate(
+			ObservableList<Task> list) {
+		ObservableList<Task> result = FXCollections.observableArrayList();
+		for (int i = 0; i < list.size(); i++) {
+			if (list.get(i).getStartDate() != null)
+				result.add(list.get(i));
+		}
+		return result;
+	}
+
+	public static ObservableList<Task> searchHavingEndDate(
+			ObservableList<Task> list) {
+		ObservableList<Task> result = FXCollections.observableArrayList();
+		for (int i = 0; i < list.size(); i++) {
+			if (list.get(i).getEndDate() != null)
+				result.add(list.get(i));
+		}
+		return result;
+	}
+
 	public static ObservableList<Task> searchWorkInfo(
 			ObservableList<Task> list, String workInfo) {
 		ObservableList<Task> result = FXCollections.observableArrayList();
 		for (int i = 0; i < list.size(); i++) {
-			if (list.get(i).getWorkInfo().toLowerCase()
-					.contains(workInfo.toLowerCase())) {
+			String searchedWorkInfo = list.get(i).getWorkInfo().toLowerCase();
+			if (searchedWorkInfo.contains(workInfo.toLowerCase())) {
 				result.add(list.get(i));
 			}
 		}
@@ -917,7 +1106,7 @@ class SearchCommand extends Command {
 
 class TodayCommand extends Command {
 	View view;
-	
+
 	public TodayCommand(Model model, View view) {
 		super(model, view.getTabIndex());
 		this.view = view;
@@ -933,6 +1122,7 @@ class TodayCommand extends Command {
 
 class ShowAllCommand extends Command {
 	View view;
+
 	public ShowAllCommand(Model model, View view) {
 		super(model, view.getTabIndex());
 		this.view = view;
@@ -954,13 +1144,13 @@ class ShowAllCommand extends Command {
 
 class HelpCommand extends Command {
 	View view;
-	
+
 	public HelpCommand(Model model, View view) {
 		super(model, view.getTabIndex());
 		this.view = view;
 	}
-	
-	public String execute(){
+
+	public String execute() {
 		view.showHelpPage();
 		return MESSAGE_HELP;
 	}
