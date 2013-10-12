@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.lang.String;
-import java.util.ArrayList;
 import javafx.collections.ObservableList;
 
 public class DataStorage extends Store {
