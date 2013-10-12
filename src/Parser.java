@@ -339,7 +339,7 @@ public class Parser {
 	 * 
 	 * @param command
 	 */
-	public static ArrayList<InfoWithIndex> parseForView(String command,
+	static ArrayList<InfoWithIndex> parseForView(String command,
 			Model model, View view) {
 		ArrayList<InfoWithIndex> infoList = new ArrayList<InfoWithIndex>();
 		COMMAND_TYPES commandType;
