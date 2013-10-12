@@ -311,7 +311,6 @@ public class Control extends Application {
 		if (isEmptyCommand) {
 			return MESSAGE_EMPTY_COMMAND;
 		}
-
 		try {
 			Parser.COMMAND_TYPES commandType = Parser
 					.determineCommandType(userCommand);
@@ -380,9 +379,8 @@ public class Control extends Application {
 			isRealTimeSearch = true;
 		}
 	}
-
-	private String executeAddCommand(String[] parsedUserCommand)
-			throws IOException {
+	
+	private String executeAddCommand(String[] parsedUserCommand) throws IOException {
 		int tabIndex = view.getTabIndex();
 		Command s = new AddCommand(parsedUserCommand, modelHandler, tabIndex);
 		String feedback = s.execute();
@@ -390,7 +388,6 @@ public class Control extends Application {
 			commandHistory.updateCommand((TwoWayCommand) s);
 			dataFile.storeToFile();
 			syncFile.storeToFile();
-			view.setTab(0);
 			executeShowCommand();
 		}
 		return feedback;
