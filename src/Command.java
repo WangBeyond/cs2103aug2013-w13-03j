@@ -3,6 +3,7 @@ import java.util.ArrayList;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.input.KeyCode;
 
 public abstract class Command {
 	protected static final String MESSAGE_SUCCESSFUL_SHOW_ALL = "Show all the tasks";
@@ -781,18 +782,10 @@ class SearchCommand extends Command {
 		searchList.clear();
 		isFirstTimeSearch = true;
 		if (searchDateKey() > 0) {
-			System.out.println(1);
+			Control.setDateKeySearched(true);
 			continuouslySearch();
-		}
-		System.out.println("execute search");
-		System.out.print("search1  ");
-		for (Task task : searchList)
-			System.out.print(task.getWorkInfo() + "  ");
-		System.out.println();
-		System.out.print("search2  ");
-		for (Task task : secondSearchList)
-			System.out.print(task.getWorkInfo() + "  ");
-		System.out.println();
+		} else
+			Control.setDateKeySearched(false);
 		searchList = mergeLists(secondSearchList, searchList);
 		if (!Control.isRealTime && searchList.isEmpty()) {
 			return MESSAGE_NO_RESULTS;
@@ -958,7 +951,6 @@ class SearchCommand extends Command {
 		maxWordNum = startWordNum > endWordNum ? startWordNum : endWordNum;
 		for (int i = 0; i < maxWordNum; i++)
 			workInfo = Parser.removeLastWord(workInfo);
-		System.out.println("wordNum " + startWordNum+" "+endWordNum);
 		return maxWordNum;
 	}
 

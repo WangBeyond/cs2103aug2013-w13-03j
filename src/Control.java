@@ -47,7 +47,7 @@ public class Control extends Application {
 	static final KeyCombination redo_hot_key = new KeyCodeCombination(
 			KeyCode.Y, KeyCodeCombination.CONTROL_DOWN,
 			KeyCodeCombination.ALT_DOWN);
-
+	
 	public Model modelHandler = new Model();
 	public History commandHistory = new History();
 	public View view;
@@ -57,6 +57,8 @@ public class Control extends Application {
 	static boolean isRealTime = false;
 	static boolean isRealTimeSearch = false;
 	static boolean isCommandCompleted = false;
+	static boolean isDateKeySearched = false;
+	static KeyCode keyCode;
 	static String completedCommand;
 	// static boolean listedIndexType;
 	static final boolean SEARCHED = true;
@@ -186,18 +188,19 @@ public class Control extends Application {
 		});
 		view.commandLine.setOnKeyReleased(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent e) {
+				keyCode = e.getCode();
 				String command = view.commandLine.getText();
 				if (isCommandCompleted)
 					command = finishWordCompletion(command);
 				view.updateMultiColorCommand(command);
 				if (Parser.determineCommandType(command) == Parser.COMMAND_TYPES.SEARCH)
-					realTimeSearch(command);
+					realTimeSearch(command, e.getCode());
 				else if (Parser.determineCommandType(command) == Parser.COMMAND_TYPES.REMOVE) {
 					String content = removeCommandTypeString(command);
 					try {
 						Integer.parseInt(Parser.getFirstWord(content));
 					} catch (NumberFormatException ex) {
-						realTimeSearch("search" + content);
+						realTimeSearch("search" + content, e.getCode());
 					}
 				}
 				if (e.getCode() == KeyCode.BACK_SPACE && isRealTimeSearch
@@ -370,14 +373,29 @@ public class Control extends Application {
 		}
 	}
 
-	private void realTimeSearch(String command) {
+	private void realTimeSearch(String command, KeyCode keyCode) {
 		isRealTime = true;
 		if (command.trim().equals("search"))
 			executeShowCommand();
 		else {
-			executeCommand(command);
-			isRealTimeSearch = true;
+			try {
+				if(Parser.isValidDate(Parser.getLastWord(command)) != -1)
+					throw new Exception();
+				Integer.valueOf(Parser.getLastWord(command).substring(0,1));
+				if(!isDateKeySearched)
+					executeCommand(command);
+				isRealTimeSearch = true;
+			} catch (Exception e) {
+				executeCommand(command);
+				if(Parser.isValidDate(Parser.getLastWord(command)) != -1)
+					setDateKeySearched(true);
+				isRealTimeSearch = true;
+			}
 		}
+	}
+	
+	static void setDateKeySearched(boolean isSearched) {
+		isDateKeySearched = isSearched;
 	}
 	
 	private String executeAddCommand(String[] parsedUserCommand) throws IOException {

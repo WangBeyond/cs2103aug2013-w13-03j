@@ -654,7 +654,7 @@ public class Parser {
 	 * @return number of words in the date string if the string contains a date;
 	 *         otherwise, returns INVALID(-1).
 	 */
-	private static int isValidDate(String dateString) {
+	static int isValidDate(String dateString) {
 		CustomDate dateTester = new CustomDate();
 		String[] dateStringArray = splitBySpace(dateString);
 		int length = 0;
