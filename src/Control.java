@@ -79,8 +79,8 @@ public class Control extends Application {
 		try {
 			dataFile = new DataStorage("dataStorage.txt", modelHandler);
 			dataFile.loadFromFile();
-			syncFile = new SyncStorage("syncFile.txt", modelHandler);
-			syncFile.loadFromFile();
+			//syncFile = new SyncStorage("syncFile.txt", modelHandler);
+			//syncFile.loadFromFile();
 		} catch (IOException e) {
 			System.out.println("Cannot read the given file");
 		}
@@ -405,7 +405,7 @@ public class Control extends Application {
 		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_ADD)) {
 			commandHistory.updateCommand((TwoWayCommand) s);
 			dataFile.storeToFile();
-			syncFile.storeToFile();
+			//syncFile.storeToFile();
 			executeShowCommand();
 		}
 		return feedback;
@@ -434,7 +434,7 @@ public class Control extends Application {
 		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_REMOVE)) {
 			commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
 			dataFile.storeToFile();
-			syncFile.storeToFile();
+			//syncFile.storeToFile();
 			executeShowCommand();
 		}
 		return feedback;
@@ -600,7 +600,7 @@ public class Control extends Application {
 		for (int i = 0; i < list.size(); i++) {
 			list.get(i).updateDateString();
 			if (!list.get(i).getTag().getRepetition().equals(Parser.NULL)) {
-				list.get(i).updateDate();
+				list.get(i).updateDateForRepetitiveTask();
 			}
 		}
 	}

@@ -138,7 +138,7 @@ class AddCommand extends TwoWayCommand {
 			}
 		}
 		if (!repeatingType.equals(Parser.NULL)) {
-			long expectedDifference = Task.getUpdateDifference(repeatingType);
+			long expectedDifference = CustomDate.getUpdateDifference(repeatingType);
 			long actualDifference = task.getEndDate().getTimeInMillis()
 					- task.getStartDate().getTimeInMillis();
 			if (actualDifference > expectedDifference) {
@@ -161,7 +161,7 @@ class AddCommand extends TwoWayCommand {
 		}
 		task.setIsImportant(isImptTask);
 		if (!repeatingType.equals(Parser.NULL)) {
-			task.updateDate();
+			task.updateDateForRepetitiveTask();
 		}
 
 		model.addTaskToPending(task);
@@ -250,7 +250,7 @@ class EditCommand extends TwoWayCommand {
 			throw new IllegalArgumentException(MESSAGE_INVALID_START_END_DATES);
 		}
 		if (!repeatingType.equals(Parser.NULL)) {
-			long expectedDifference = Task.getUpdateDifference(repeatingType);
+			long expectedDifference = CustomDate.getUpdateDifference(repeatingType);
 			long actualDifference = endDate.getTimeInMillis()
 					- startDate.getTimeInMillis();
 			if (actualDifference > expectedDifference) {
@@ -274,7 +274,7 @@ class EditCommand extends TwoWayCommand {
 					repeatingType));
 		}
 		if (!repeatingType.equals(Parser.NULL)) {
-			targetTask.updateDate();
+			targetTask.updateDateForRepetitiveTask();
 		}
 		if (hasImptTaskToggle) {
 			targetTask.setIsImportant(!targetTask.getIsImportant());
@@ -384,7 +384,7 @@ class RemoveCommand extends TwoWayCommand {
 			modifiedList.add(removedTask);
 			if (tabIndex == PENDING_TAB || tabIndex == COMPLETE_TAB) {
 				index = model.getIndexFromTrash(removedTaskInfo.get(i));
-				model.removeTaskFromTrash(index);
+				model.removeTask(index, 2);
 			}
 		}
 		removedTaskInfo.clear();
