@@ -52,7 +52,7 @@ public class Control extends Application {
 	public History commandHistory = new History();
 	public View view;
 	private Store dataFile;
-	private Store syncFile;
+	//private Store syncFile;
 
 	static boolean isRealTime = false;
 	static boolean isRealTimeSearch = false;
@@ -406,6 +406,7 @@ public class Control extends Application {
 			commandHistory.updateCommand((TwoWayCommand) s);
 			dataFile.storeToFile();
 			//syncFile.storeToFile();
+			view.setTab(0);
 			executeShowCommand();
 		}
 		return feedback;

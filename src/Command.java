@@ -3,7 +3,6 @@ import java.util.ArrayList;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.input.KeyCode;
 
 public abstract class Command {
 	protected static final String MESSAGE_SUCCESSFUL_SHOW_ALL = "Show all the tasks";
@@ -129,8 +128,15 @@ class AddCommand extends TwoWayCommand {
 				endDate.setHour(23);
 				endDate.setMinute(59);
 			}
+			if (endDate.hasIndicatedDate() == false
+					&& task.getStartDate() != null) {
+				endDate.setYear(task.getStartDate().getYear());
+				endDate.setMonth(task.getStartDate().getMonth());
+				endDate.setDate(task.getStartDate().getDate());
+			}
 			task.setEndDate(endDate);
 		}
+
 		if (!startDateString.equals(Parser.NULL)
 				&& !endDateString.equals(Parser.NULL)) {
 			if (CustomDate.compare(task.getEndDate(), task.getStartDate()) < 0) {
@@ -138,7 +144,8 @@ class AddCommand extends TwoWayCommand {
 			}
 		}
 		if (!repeatingType.equals(Parser.NULL)) {
-			long expectedDifference = CustomDate.getUpdateDifference(repeatingType);
+			long expectedDifference = CustomDate
+					.getUpdateDifference(repeatingType);
 			long actualDifference = task.getEndDate().getTimeInMillis()
 					- task.getStartDate().getTimeInMillis();
 			if (actualDifference > expectedDifference) {
@@ -250,7 +257,8 @@ class EditCommand extends TwoWayCommand {
 			throw new IllegalArgumentException(MESSAGE_INVALID_START_END_DATES);
 		}
 		if (!repeatingType.equals(Parser.NULL)) {
-			long expectedDifference = CustomDate.getUpdateDifference(repeatingType);
+			long expectedDifference = CustomDate
+					.getUpdateDifference(repeatingType);
 			long actualDifference = endDate.getTimeInMillis()
 					- startDate.getTimeInMillis();
 			if (actualDifference > expectedDifference) {
@@ -265,6 +273,12 @@ class EditCommand extends TwoWayCommand {
 			targetTask.setStartDate(startDate);
 		}
 		if (endDate != null) {
+			if (endDate.hasIndicatedDate() == false
+					&& targetTask.getStartDate() != null) {
+				endDate.setYear(targetTask.getStartDate().getYear());
+				endDate.setMonth(targetTask.getStartDate().getMonth());
+				endDate.setDate(targetTask.getStartDate().getDate());
+			}
 			targetTask.setEndDate(endDate);
 		}
 		if (tag != Parser.NULL) {
@@ -740,7 +754,7 @@ class SearchCommand extends Command {
 	ObservableList<Task> initialList;
 	ObservableList<Task> searchList;
 	ObservableList<Task> secondSearchList;
-
+	CustomDate startDate, endDate;
 	boolean isFirstTimeSearch;
 
 	public SearchCommand(String[] parsedUserCommand, Model model, View view) {
@@ -876,7 +890,7 @@ class SearchCommand extends Command {
 						searchList = searchHavingStartDate(searchList);
 					}
 				} else {
-					CustomDate startDate = new CustomDate(startDateString);
+					startDate = new CustomDate(startDateString);
 					if (isFirstTimeSearch) {
 						searchList = searchStartDate(initialList, startDate);
 					} else {
@@ -895,7 +909,13 @@ class SearchCommand extends Command {
 						searchList = searchHavingEndDate(searchList);
 					}
 				} else {
-					CustomDate endDate = new CustomDate(endDateString);
+					endDate = new CustomDate(endDateString);
+					if (startDate != null
+							&& endDate.hasIndicatedDate() == false) {
+						endDate.setYear(startDate.getYear());
+						endDate.setMonth(startDate.getMonth());
+						endDate.setDate(startDate.getDate());
+					}
 					if (isFirstTimeSearch) {
 						searchList = searchEndDate(initialList, endDate);
 					} else {
@@ -929,22 +949,22 @@ class SearchCommand extends Command {
 		int maxWordNum;
 		String lastWords;
 		if (splittedWorkInfo.length >= 1) {
-			if (splittedWorkInfo.length == 2) 
-				lastWords = splittedWorkInfo[splittedWorkInfo.length - 2]
-					+ " " + splittedWorkInfo[splittedWorkInfo.length - 1];
-			else 
-				lastWords =  splittedWorkInfo[splittedWorkInfo.length - 1];
+			if (splittedWorkInfo.length == 2)
+				lastWords = splittedWorkInfo[splittedWorkInfo.length - 2] + " "
+						+ splittedWorkInfo[splittedWorkInfo.length - 1];
+			else
+				lastWords = splittedWorkInfo[splittedWorkInfo.length - 1];
 			lastWords = lastWords.toLowerCase();
 			if (startDateString == Parser.NULL) {
 				startWordNum = doesArrayWeaklyContain(Parser.startDateKeys,
 						lastWords);
-				if(startWordNum>0)
+				if (startWordNum > 0)
 					startDateString = HAVING_START_DATE;
 			}
 			if (endDateString == Parser.NULL) {
 				endWordNum = doesArrayWeaklyContain(Parser.endDateKeys,
 						lastWords);
-				if(endWordNum>0)
+				if (endWordNum > 0)
 					endDateString = HAVING_END_DATE;
 			}
 		}
@@ -956,12 +976,12 @@ class SearchCommand extends Command {
 
 	private int doesArrayWeaklyContain(String[] array, String wordInfo) {
 		int wordNum = Parser.splitBySpace(wordInfo).length;
-		if(wordNum == 2) {
+		if (wordNum == 2) {
 			for (String str : array) {
 				if (str.indexOf(wordInfo) == 0)
 					return 2;
 			}
-		}	
+		}
 		String oneWordInfo = Parser.getLastWord(wordInfo);
 		for (String str : array) {
 			if (str.indexOf(oneWordInfo) == 0)

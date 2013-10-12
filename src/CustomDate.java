@@ -32,6 +32,7 @@ public class CustomDate {
 	private GregorianCalendar targetDate;
 	// The date info of this target date
 	private String dateInfo;
+	boolean hasIndicatedDate;
 
 	// The common current date among CustomDate object
 	private static GregorianCalendar currentDate;
@@ -66,6 +67,10 @@ public class CustomDate {
 	public int getMinute() {
 		return targetDate.get(Calendar.MINUTE);
 	}
+	
+	public boolean hasIndicatedDate(){
+		return hasIndicatedDate;
+	}
 
 	/************************** Set methods to set hour and minute **************/
 	public void setHour(int hour) {
@@ -75,6 +80,19 @@ public class CustomDate {
 	public void setMinute(int minute) {
 		targetDate.set(Calendar.MINUTE, minute);
 	}
+	
+	public void setDate(int date){
+		targetDate.set(Calendar.DATE, date);
+	}
+	
+	public void setMonth(int month){
+		targetDate.set(Calendar.MONTH, month);
+	}
+	
+	public void setYear(int year){
+		targetDate.set(Calendar.YEAR, year);
+	}
+	
 
 	/**************** Get the current time in milliseconds ********/
 	public long getTimeInMillis() {
@@ -138,7 +156,7 @@ public class CustomDate {
 
 		String result = "";
 		result += getDateString();
-		result += getTimeString(hasTime);
+		result += getTimeString(hasTime, result.equals("Tomorrow"));
 		return result;
 	}
 
@@ -157,10 +175,10 @@ public class CustomDate {
 		}
 	}
 
-	private String getTimeString(boolean hasTime) {
+	private String getTimeString(boolean hasTime, boolean isTomorrow) {
 		if (hasTime) {
 			DecimalFormat df = new DecimalFormat("00");
-			return "\n " + targetDate.get(Calendar.HOUR_OF_DAY) + ":"
+			return "\n " + (isTomorrow ? "    " : "") + targetDate.get(Calendar.HOUR_OF_DAY) + ":"
 					+ df.format(targetDate.get(Calendar.MINUTE));
 		}
 		return "";
@@ -290,7 +308,13 @@ public class CustomDate {
 			if (numElements == INVALID) {
 				return INVALID;
 			}
-
+			
+			if (numElements != infos.length) {
+				hasIndicatedDate = true;
+			} else {
+				hasIndicatedDate = false;
+			}
+			
 			numElements = processTime(infos, tempDate, numElements);
 			if (numElements > 0 || numElements == INVALID) {
 				return INVALID;
@@ -875,8 +899,9 @@ public class CustomDate {
 		long targetTime = targetDate.getTimeInMillis();
 		long currentTime = currentDate.getTimeInMillis();
 		long nearestDayTime = ((currentTime / DAY_IN_MILLIS) + 1) * DAY_IN_MILLIS;
+		long nextNearestDayTime = nearestDayTime + DAY_IN_MILLIS;
 		
-		return (targetTime - currentTime) > (nearestDayTime - currentTime);
+		return targetTime >= nearestDayTime && targetTime <= nextNearestDayTime;
 	}
 
 	private boolean isTonight() {

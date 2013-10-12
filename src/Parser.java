@@ -2,7 +2,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Vector;
 
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 public class Parser {
