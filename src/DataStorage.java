@@ -149,6 +149,7 @@ public class DataStorage extends Store {
 			newTask.setStatus(Task.Status.UNCHANGED);
 		else
 			newTask.setStatus(Task.Status.DELETED);
+		newTask.setLatestModifiedDate(new CustomDate(in.readLine()));
 		switch (taskType) {
 		case PENDING:
 			model.addTaskToPending(newTask);
@@ -175,6 +176,7 @@ public class DataStorage extends Store {
 			out.println(targetTask.getTag().getRepetition());
 			out.println((targetTask.getIsImportant() == true ? TRUE : FALSE));
 			out.println(targetTask.getIndexInList());
+			out.println(CustomDate.convertString(targetTask.getLatestModifiedDate()));
 			if(targetTask.getStatus() == Task.Status.NEWLY_ADDED)
 				out.println("new");
 			else if(targetTask.getStatus() == Task.Status.UNCHANGED)

@@ -1,3 +1,5 @@
+import java.util.GregorianCalendar;
+
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -33,6 +35,7 @@ public class Task implements Comparable<Task> {
 	private int indexInList;
 	// Current status of the task
 	private Status status;
+	private CustomDate latestModifiedDate;
 
 	// Default constructor
 	public Task() {
@@ -47,6 +50,7 @@ public class Task implements Comparable<Task> {
 		indexId = 0;
 		indexInList = 0;
 		setStatus(Status.NEWLY_ADDED);
+		latestModifiedDate = new CustomDate();
 	}
 
 	public Task(boolean isImportant, CustomDate startDate, CustomDate endDate,
@@ -73,6 +77,7 @@ public class Task implements Comparable<Task> {
 		setTag(tag);
 		this.indexId = indexId;
 		setStatus(status);
+		latestModifiedDate =new CustomDate();
 	}
 
 	/**
@@ -242,6 +247,10 @@ public class Task implements Comparable<Task> {
 	public Status getStatus() {
 		return status;
 	}
+	
+	public CustomDate getLatestModifiedDate(){
+		return latestModifiedDate;
+	}
 
 	/*************************************** Set Value Functions ****************************************/
 	public void setIsImportant(boolean isImportant) {
@@ -290,6 +299,15 @@ public class Task implements Comparable<Task> {
 
 	public void setIndexInList(int index) {
 		indexInList = index;
+	}
+	
+	public void setLatestModifiedDate(CustomDate modifiedDate){
+		latestModifiedDate = modifiedDate;
+	}
+	
+	
+	public void updateLatestModifiedDate(){
+		latestModifiedDate = new CustomDate();
 	}
 }
 
