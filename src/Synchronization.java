@@ -20,6 +20,7 @@ import com.google.gdata.data.calendar.CalendarEventFeed;
 import com.google.gdata.data.calendar.CalendarFeed;
 import com.google.gdata.data.calendar.ColorProperty;
 import com.google.gdata.data.calendar.HiddenProperty;
+import com.google.gdata.data.calendar.TimeZoneProperty;
 import com.google.gdata.data.calendar.WebContent;
 import com.google.gdata.data.extensions.Recurrence;
 import com.google.gdata.data.extensions.When;
@@ -35,16 +36,16 @@ public class Synchronization {
 	
 	/*types of task status*/
 	
-	static enum Status {
+	public static enum Status {
 		UNCHANGED, NEWLY_ADDED, DELETED
 	}
 	
 	/*use username and password to login*/
-	private String username = null;
-	private String password = null;
+	 String username = null;
+	 String password = null;
 	
 	/*calendar id*/
-	private String calendarId = null;
+	 String calendarId = null;
 	
 	/*calendar service*/
 	CalendarService service;
@@ -55,7 +56,10 @@ public class Synchronization {
 	// The string to add to the user's metafeedUrl to access the owncalendars feed.
 	private static final String OWNCALENDARS_FEED_URL_SUFFIX = "/owncalendars/full";
 	
-	private URL feedUrl = null;
+	private static final String EVENT_FEED_URL_SUFFIX = "/private/full";
+	
+	URL owncalendarsFeedUrl = null;
+	URL eventFeedUrl = null;
 	
 	/*a list of event entry from Google calendar*/
 	private List<CalendarEventEntry> eventEntry = new ArrayList<CalendarEventEntry>();
@@ -68,8 +72,9 @@ public class Synchronization {
 	
 	private ArrayList<Task> remainingTasks = new ArrayList<Task>();
 	
-	public Synchronization(){
-		
+	public Synchronization(String n, String p){
+		username = n;
+		password = p;
 	}
 	
 	public void execute() throws IOException, ServiceException{
@@ -77,16 +82,16 @@ public class Synchronization {
 		init();
 		
 		//form feed url
-		feedUrl = formFeedUrl(service);
+		eventFeedUrl = formEventFeedUrl(service);
 		
 		//get all events from Google calendar
-		eventEntry = getEventsFromGCal(service, feedUrl);
+		eventEntry = getEventsFromGCal(service, eventFeedUrl);
 		
 		//sync newly added tasks to GCal
-		syncNewTasksToGCal(service, newlyAddedTasks, feedUrl);
+		syncNewTasksToGCal(service, newlyAddedTasks, eventFeedUrl);
 		
 		//delete events on GCal which have been deleted locally
-		snycDeletedTasksToGCal(service, deletedTasksId, eventEntry, feedUrl);
+		snycDeletedTasksToGCal(service, deletedTasksId, eventEntry, eventFeedUrl);
 		
 		//delete tasks locally which have been deleted on GCal
 		deleteTasksLocally(remainingTasks, eventEntry);
@@ -95,7 +100,7 @@ public class Synchronization {
 		addEventsLocally(remainingTasks, eventEntry);
 	}
 	
-	private void init() throws AuthenticationException{
+	void init() throws AuthenticationException{
 		//create a new service
 		service = new CalendarService(SERVICE_NAME);
 		
@@ -103,25 +108,27 @@ public class Synchronization {
 		service.setUserCredentials(username, password);
 	}
 	
-	private URL formFeedUrl(CalendarService service) throws IOException, ServiceException{
-		URL url;
+	URL formEventFeedUrl(CalendarService service) throws IOException, ServiceException{
 		if(calendarId == null){
-			url = new URL(METAFEED_URL_BASE + username + OWNCALENDARS_FEED_URL_SUFFIX);
-			CalendarEntry calendar = createCalendar(service, url);
-			calendarId = calendar.getId();
-		} else {
-			url = new URL(METAFEED_URL_BASE + calendarId + OWNCALENDARS_FEED_URL_SUFFIX);	
+			URL owncalUrl = new URL(METAFEED_URL_BASE + username + OWNCALENDARS_FEED_URL_SUFFIX);
+			CalendarEntry calendar = createCalendar(service, owncalUrl);
+			calendarId = trimId(calendar.getId());
 		}
-		return url;
+		return new URL(METAFEED_URL_BASE + calendarId + EVENT_FEED_URL_SUFFIX);	
 	}
 	
-	private void syncNewTasksToGCal(CalendarService service, ArrayList<Task> tasks, URL feedUrl){
-		for(int i; i<tasks.size(); i++){
+	private String trimId(String id){
+		String[] temp = id.trim().split("/");
+		return temp[temp.length-1].toString();
+	}
+	
+	private void syncNewTasksToGCal(CalendarService service, ArrayList<Task> tasks, URL feedUrl) throws ServiceException, IOException{
+		for(int i=0; i<tasks.size(); i++){
 			Task task = tasks.get(i);
 			if(task.isRecurringTask()){
-				createRecurringEvent(service, task.getWorkInfo(), task.getStartDate(), task.getEndDate(), task.getFreq(), feedUrl);
+				createRecurringEvent(service, task.getWorkInfo(), task.getStartDate(), task.getEndDate(), "WEEKLY", feedUrl);
 			} else {
-				createSingleEvent(service, task.getWorkInfo(), task.getStartDateString(), task.getEndDateString(), feedUrl);
+				createSingleEvent(service, task.getWorkInfo(), task.getStartDate(), task.getEndDate(),feedUrl);
 			}
 		}
 	}
@@ -184,11 +191,14 @@ public class Synchronization {
 	  private CalendarEntry createCalendar(CalendarService service, URL owncalendarsFeedUrl)
 	      throws IOException, ServiceException {
 
-	    // Create the calendar
+		Calendar cal = new GregorianCalendar();
+		String timeZone = cal.getTimeZone().getID();
+	    // Create the calendar  
 	    CalendarEntry calendar = new CalendarEntry();
 	    calendar.setTitle(new PlainTextConstruct(CALENDAR_TITLE));
 	    calendar.setSummary(new PlainTextConstruct(CALENDAR_SUMMARY));
 	    calendar.setHidden(HiddenProperty.FALSE);
+	    calendar.setTimeZone(new TimeZoneProperty(timeZone));
 
 	    // Insert the calendar
 	    return service.insert(owncalendarsFeedUrl, calendar);
@@ -211,26 +221,21 @@ public class Synchronization {
 	   * @throws ServiceException If the service is unable to handle the request.
 	   * @throws IOException Error communicating with the server.
 	   */
-	  private static CalendarEventEntry createEvent(CalendarService service,
-	      String eventContent, CustomDate startDate, CustomDate endDate, String recurData,
+	  CalendarEventEntry createEvent(CalendarService service,
+	      String title, CustomDate startDate, CustomDate endDate, String recurData,
 	      boolean isQuickAdd, URL feedUrl) throws ServiceException, IOException {
 	    CalendarEventEntry myEntry = new CalendarEventEntry();
 
-	    myEntry.setContent(new PlainTextConstruct(eventContent));
+	    myEntry.setTitle(new PlainTextConstruct(title));
 	    myEntry.setQuickAdd(isQuickAdd);
+	    myEntry.setContent(new PlainTextConstruct("hahhahah"));
 
 	    // If a recurrence was requested, add it. Otherwise, set the
 	    // time (the current date and time) and duration (30 minutes)
 	    // of the event.
 	    if (recurData == null) {
-	      Calendar calendar = new GregorianCalendar();
-	      DateTime startTime = new DateTime(calendar.getTime(), TimeZone
-	          .getDefault());
-
-	      calendar.add(Calendar.MINUTE, 30);
-	      DateTime endTime = new DateTime(calendar.getTime(), 
-	          TimeZone.getDefault());
-
+	      DateTime startTime = startDate.returnInDateTimeFormat();
+	      DateTime endTime = endDate.returnInDateTimeFormat();
 	      When eventTimes = new When();
 	      eventTimes.setStartTime(startTime);
 	      eventTimes.setEndTime(endTime);
@@ -255,10 +260,10 @@ public class Synchronization {
 	   * @throws ServiceException If the service is unable to handle the request.
 	   * @throws IOException Error communicating with the server.
 	   */
-	  private static CalendarEventEntry createSingleEvent(CalendarService service,
-	      String eventTitle, String eventContent, URL feedUrl) throws ServiceException,
+	  CalendarEventEntry createSingleEvent(CalendarService service,
+	      String eventContent, CustomDate startDate, CustomDate endDate, URL feedUrl) throws ServiceException,
 	      IOException {
-	    return createEvent(service, eventContent, null, false, feedUrl);
+	    return createEvent(service, eventContent, startDate, endDate, null, false, feedUrl);
 	  }
 
 	  /**
@@ -271,10 +276,10 @@ public class Synchronization {
 	   * @throws ServiceException If the service is unable to handle the request.
 	   * @throws IOException Error communicating with the server.
 	   */
-	  private static CalendarEventEntry createQuickAddEvent(
+	  CalendarEventEntry createQuickAddEvent(
 	      CalendarService service, String quickAddContent, URL feedUrl) throws ServiceException,
 	      IOException {
-	    return createEvent(service, null, quickAddContent, null, true, feedUrl);
+	    return createEvent(service, quickAddContent, null, null, null, true, feedUrl);
 	  }
 	  
 	  /**
@@ -287,15 +292,15 @@ public class Synchronization {
 	   * @throws ServiceException If the service is unable to handle the request.
 	   * @throws IOException Error communicating with the server.
 	   */
-	  private static CalendarEventEntry createRecurringEvent(
-	      CalendarService service, String eventContent, String startDate, String endDate, String freq, URL feedUrl)
+	  private CalendarEventEntry createRecurringEvent(
+	      CalendarService service, String eventContent, CustomDate startDate, CustomDate endDate, String freq, URL feedUrl)
 	      throws ServiceException, IOException {
 	   
-	    String recurData = "DTSTART;VALUE=DATE:"+ startDate +"\r\n"
-	        + "DTEND;VALUE=DATE:"+ endDate +"\r\n"
-	        + "RRULE:FREQ=" + freq + ";BYDAY=Tu;UNTIL=20200101\r\n";
+	    String recurData = "DTSTART;VALUE=DATE:"+ startDate.returnInDateTimeFormat().getValue() +"\r\n"
+	        + "DTEND;VALUE=DATE:"+ endDate.returnInDateTimeFormat().getValue() +"\r\n"
+	        + "RRULE:FREQ=" + freq.toUpperCase() + ";UNTIL=20200101\r\n";
 
-	    return createEvent(service, eventContent, recurData, false, feedUrl);
+	    return createEvent(service, eventContent, null, null, recurData, false, feedUrl);
 	  }
 	  
 	  /**
