@@ -293,7 +293,8 @@ class EditCommand extends TwoWayCommand {
 		if (hasImptTaskToggle) {
 			targetTask.setIsImportant(!targetTask.getIsImportant());
 		}
-
+		
+		targetTask.updateLatestModifiedDate();
 		Control.sortList(modifiedList);
 		return MESSAGE_SUCCESSFUL_EDIT;
 	}
@@ -308,6 +309,7 @@ class EditCommand extends TwoWayCommand {
 		originalTask.setWorkInfo(targetTask.getWorkInfo());
 		originalTask.setTag(targetTask.getTag());
 		originalTask.setIndexId(targetTask.getIndexId());
+		originalTask.setLatestModifiedDate(targetTask.getLatestModifiedDate());
 	}
 
 	public String undo() {
@@ -319,6 +321,7 @@ class EditCommand extends TwoWayCommand {
 		targetTask.setWorkInfo(originalTask.getWorkInfo());
 		targetTask.setTag(originalTask.getTag());
 		targetTask.setIndexId(originalTask.getIndexId());
+		targetTask.setLatestModifiedDate(originalTask.getLatestModifiedDate());
 		Control.sortList(modifiedList);
 
 		return MESSAGE_SUCCESSFUL_UNDO;
