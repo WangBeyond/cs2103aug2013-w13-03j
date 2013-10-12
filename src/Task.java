@@ -6,22 +6,35 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
 public class Task implements Comparable<Task> {
+	final static boolean IS_START_DATE = true;
+	final static boolean IS_END_DATE = false;
+
+	// Enum Class representing status of a task
 	public static enum Status {
 		UNCHANGED, NEWLY_ADDED, DELETED
 	}
-	
+
+	// Property indicating a task is important or not
 	private BooleanProperty isImportant;
+	// Properties of the start date and its string
 	private ObjectProperty<CustomDate> startDate;
 	private StringProperty startDateString;
+	// Properties of the end date and its string
 	private ObjectProperty<CustomDate> endDate;
 	private StringProperty endDateString;
+	// Property of the work info
 	private StringProperty workInfo;
+	// Property of the tag containing category and repetitive tag
 	private ObjectProperty<Tag> tag;
+
+	// Index ID of this task in Google Calendar
 	private int indexId;
+	// Index in the list containing the task
 	private int indexInList;
+	// Current status of the task
 	private Status status;
 
-	// default constructor
+	// Default constructor
 	public Task() {
 		checkProperty();
 		setIsImportant(false);
@@ -33,31 +46,40 @@ public class Task implements Comparable<Task> {
 		setTag(new Tag("", ""));
 		indexId = 0;
 		indexInList = 0;
-		status = Status.NEWLY_ADDED;
+		setStatus(Status.NEWLY_ADDED);
 	}
 
 	public Task(boolean isImportant, CustomDate startDate, CustomDate endDate,
 			String workInfo, Tag tag, int indexId, Status status) {
 		checkProperty();
-		
+
 		setIsImportant(isImportant);
+		
 		setStartDate(startDate);
-		if (startDate != null)
+		if (startDate != null) {
 			setStartDateString(startDate.toString(true));
-		else
+		} else {
 			setStartDateString("-");
+		}
+		
 		setEndDate(endDate);
-		if (endDate != null)
+		if (endDate != null) {
 			setEndDateString(endDate.toString(false));
-		else
+		} else {
 			setEndDateString("-");
+		}
+		
 		setWorkInfo(workInfo);
 		setTag(tag);
 		this.indexId = indexId;
 		setStatus(status);
 	}
-	
-	private void checkProperty(){
+
+	/**
+	 * This function is used to check whether any property has not been
+	 * initialized If there are, it will initialize these properties.
+	 */
+	private void checkProperty() {
 		isImportantProperty();
 		workInfoProperty();
 		tagProperty();
@@ -67,19 +89,77 @@ public class Task implements Comparable<Task> {
 		endDateProperty();
 	}
 
+	/**
+	 * This function is the implemented method for interface Comparable. It is
+	 * used to compare this task with another task
+	 */
 	public int compareTo(Task other) {
-		int compareEndDate = CustomDate.compare(getEndDate(), other.getEndDate());
-		int compareStartDate = CustomDate.compare(getStartDate(), other.getStartDate());
-		
-		if (compareEndDate == 0 && compareStartDate == 0)
+		int compareEndDates = CustomDate.compare(getEndDate(),
+				other.getEndDate());
+		int compareStartDates = CustomDate.compare(getStartDate(),
+				other.getStartDate());
+
+		boolean equalEndDate = (compareEndDates == 0);
+		boolean equalStartAndEndDate = (compareEndDates == 0)
+				&& (compareStartDates == 0);
+
+		if (equalStartAndEndDate) {
 			return getWorkInfo().compareToIgnoreCase(other.getWorkInfo());
-		else if(compareEndDate == 0)
-			return compareStartDate;
-		else
-			return compareEndDate;
+		} else if (equalEndDate) {
+			return compareStartDates;
+		} else {
+			return compareEndDates;
+		}
 	}
 
-	// get Property
+	/**
+	 * Update the string representing the date
+	 */
+	public void updateDateString() {
+		boolean hasStartDate = getStartDate() != null;
+		boolean hasEndDate = getEndDate() != null;
+		if (hasStartDate) {
+			setStartDateString(getStartDate().toString(IS_START_DATE));
+		}
+
+		if (hasEndDate) {
+			setEndDateString(getEndDate().toString(IS_END_DATE));
+		}
+	}
+
+	/**
+	 * This function is used to update the start time and end time for a
+	 * repetitive task when the end time is behind the current time
+	 */
+	public void updateDateForRepetitiveTask() {
+		long difference = CustomDate.getUpdateDifference(getTag()
+				.getRepetition());
+		while (getEndDate().beforeCurrentTime()) {
+			updateStartDate(difference);
+			updateEndDate(difference);
+
+		}
+	}
+
+	private void updateStartDate(long difference) {
+		CustomDate startDate = getStartDate();
+		startDate.setTimeInMillis(startDate.getTimeInMillis() + difference);
+		setStartDate(startDate);
+		setStartDateString(getStartDate().toString(IS_START_DATE));
+	}
+
+	private void updateEndDate(long difference) {
+		CustomDate endDate = getEndDate();
+		endDate.setTimeInMillis(endDate.getTimeInMillis() + difference);
+		setEndDate(endDate);
+		setEndDateString(getEndDate().toString(IS_END_DATE));
+	}
+
+	public boolean isRecurringTask() {
+		return tag.get().getRepetition().equals(Parser.NULL);
+	}
+
+	/************************ Get Property Functions **********************************/
 	public BooleanProperty isImportantProperty() {
 		if (isImportant == null)
 			isImportant = new SimpleBooleanProperty(this, "isimportant");
@@ -122,7 +202,7 @@ public class Task implements Comparable<Task> {
 		return endDateString;
 	}
 
-	// get functions
+	/********************************* Get Value Functions ***********************************/
 	public boolean getIsImportant() {
 		return isImportant.get();
 	}
@@ -154,20 +234,24 @@ public class Task implements Comparable<Task> {
 	public int getIndexId() {
 		return indexId;
 	}
-	
-	public Status getStatus(){
+
+	public int getIndexInList() {
+		return indexInList;
+	}
+
+	public Status getStatus() {
 		return status;
 	}
 
-	// set functions
+	/*************************************** Set Value Functions ****************************************/
 	public void setIsImportant(boolean isImportant) {
 		this.isImportant.set(isImportant);
 	}
-	
-	public void setStatus(Status status){
+
+	public void setStatus(Status status) {
 		this.status = status;
 	}
-	
+
 	public void setStartDate(CustomDate startDate) {
 		this.startDate.set(startDate);
 		if (startDate != null)
@@ -204,76 +288,34 @@ public class Task implements Comparable<Task> {
 		this.indexId = indexId;
 	}
 
-	public int getIndexInList() {
-		return indexInList;
-	}
-	
 	public void setIndexInList(int index) {
 		indexInList = index;
 	}
-	
-	public void updateDateString() {
-		if (getStartDate() != null)
-			setStartDateString(getStartDate().toString(true));
-		if (getEndDate() != null)
-			setEndDateString(getEndDate().toString(false));
-	}
-	
-	public void updateDate(){
-		long difference = getUpdateDifference(getTag().getRepetition());
-		while(getEndDate().beforeCurrentTime()){
-			CustomDate startDate = getStartDate();
-			startDate.setTimeInMillis(startDate.getTimeInMillis() + difference);
-			setStartDate(startDate);
-			setStartDateString(getStartDate().toString(true));
-			
-			CustomDate endDate = getEndDate();
-			endDate.setTimeInMillis(endDate.getTimeInMillis() + difference);
-			setEndDate(endDate);
-			setEndDateString(getEndDate().toString(false));
-		}
-	}
-	
-	public static long getUpdateDifference(String repetition){
-		if(repetition.equals("daily"))
-			return (long)24*60*60*1000;
-		else if(repetition.equals("weekly"))
-			return (long)7*24*60*60*1000;
-		else if(repetition.equals("monthly"))
-			return (long)30*24*60*60*1000;
-		else if(repetition.equals("yearly"))
-			return (long)365*24*60*60*1000;
-		else
-			return 0;
-	}
-	
-	public boolean isRecurringTask(){
-		return tag.get().getRepetition().equals(Parser.NULL);
-	}
 }
 
-class Tag{
+/************************************* Class to store repetitive and category tag **********************************/
+class Tag {
 	private String tag;
 	private String repetition;
-	
-	public Tag(String tag, String repetition){
+
+	public Tag(String tag, String repetition) {
 		setTag(tag);
 		setRepetition(repetition);
 	}
-	
-	public void setTag(String tag){
+
+	public void setTag(String tag) {
 		this.tag = tag;
 	}
-	
-	public void setRepetition(String repetition){
+
+	public void setRepetition(String repetition) {
 		this.repetition = repetition;
 	}
-	
-	public String getTag(){
+
+	public String getTag() {
 		return this.tag;
 	}
-	
-	public String getRepetition(){
+
+	public String getRepetition() {
 		return this.repetition;
 	}
 }

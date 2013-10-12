@@ -300,7 +300,7 @@ public class View implements HotkeyListener {
 				multiColorCommandRear);
 		multiColorCommandFront.setSpacing(-0.50001);
 		multiColorCommandRear.setSpacing(-0.50001);
-		multiColorCommand.setLayoutX(7);
+		multiColorCommand.setLayoutX(6.5);
 		multiColorCommand.setLayoutY(5);
 		multiColorCommand.setSpacing(1);
 		temp.getChildren().addAll(commandLine, multiColorCommand);

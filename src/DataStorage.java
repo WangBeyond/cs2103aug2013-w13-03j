@@ -187,6 +187,7 @@ public class DataStorage extends Store {
 	}
 }
 
+/*
 class SyncStorage extends Store {
 	static enum INDEX_TYPES {
 		DELETED, NEWLY_ADDED
@@ -206,9 +207,7 @@ class SyncStorage extends Store {
 		this.model = model;
 	}
 
-	/**
-	 * create the directory of iDo folder in user's documents folder
-	 */
+	
 	private void createDir() {
 		File theDir = new File(findUserDocDir() + FOLDERNAME);
 		// if the directory does not exist, create it
@@ -221,20 +220,12 @@ class SyncStorage extends Store {
 		}
 	}
 
-	/**
-	 * find user's Documents directory
-	 * 
-	 * @return user Documents dir
-	 */
+	
 	private String findUserDocDir() {
 		return System.getProperty("user.home") + "/Documents/";
 	}
 
-	/**
-	 * check if target file exists
-	 * 
-	 * @param file
-	 */
+
 	private static void checkIfFileExists(File file) {
 		if (!file.exists()) {
 			try {
@@ -311,3 +302,4 @@ class SyncStorage extends Store {
 		}
 	}
 }
+*/

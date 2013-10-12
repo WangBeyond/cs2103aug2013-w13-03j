@@ -1,22 +1,42 @@
 import java.text.DecimalFormat;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
 import com.google.gdata.data.DateTime;
 
-// Note: 3 public functions are getTime(), constructor and convert()
 public class CustomDate {
 	final public static int VALID = 1;
 	final public static int INVALID = -1;
 	final public static int OUT_OF_BOUNDS = 0;
 
+	final public static int MAXIMUM_LENGTH_OF_DATE_INFO = 4;
+	final public static int MAXIMUM_LENGTH_FOR_DATE_PART = 2;
+	final public static int MAXIMUM_LENGTH_FOR_TIME_PART = 2;
+	final public static int EMPTY_DATE_INFO = 0;
+	final public static int SUNDAY = 8;
+	final public static int MINUTE_IN_MILLIS = 60 * 1000;
+	final public static long DAY_IN_MILLIS = 24 * 60 * 60 * 1000;
+	final public static long SIX_HOURS_IN_MILLIS = 6 * 60 * 60 * 1000;
+	final public static long WEEK_IN_MILLIS = 7 * 24 * 60 * 60 * 1000;
+	final public static long MONTH_IN_MILLIS = 30 * 24 * 60 * 60 * 1000;
+	final public static long YEAR_IN_MILLIS = 365 * 24 * 60 * 60 * 1000;
+	final public static long FIRST_TWELVE_HOURS = 12 * 60;
+	final public static int HOUR_IN_MINUTES = 60;
+	
+	final public static int LARGER = 1;
+	final public static int SMALLER = -1;
+	final public static int EQUAL = 0;
+
+	// The target date of CustomDate object
 	private GregorianCalendar targetDate;
+	// The date info of this target date
 	private String dateInfo;
+
+	// The common current date among CustomDate object
 	private static GregorianCalendar currentDate;
 
-	// Constructor
+	// Constructors
 	public CustomDate() {
 		targetDate = new GregorianCalendar();
 	}
@@ -25,11 +45,63 @@ public class CustomDate {
 		targetDate = new GregorianCalendar();
 		convert(s);
 	}
-	
-	public DateTime returnInDateTimeFormat(){
+
+	/*************** Get functions to get corresponding elements in the CustomDate *****************/
+	public int getYear() {
+		return targetDate.get(Calendar.YEAR);
+	}
+
+	public int getMonth() {
+		return targetDate.get(Calendar.MONTH);
+	}
+
+	public int getDate() {
+		return targetDate.get(Calendar.DATE);
+	}
+
+	public int getHour() {
+		return targetDate.get(Calendar.HOUR_OF_DAY);
+	}
+
+	public int getMinute() {
+		return targetDate.get(Calendar.MINUTE);
+	}
+
+	/************************** Set methods to set hour and minute **************/
+	public void setHour(int hour) {
+		targetDate.set(Calendar.HOUR_OF_DAY, hour);
+	}
+
+	public void setMinute(int minute) {
+		targetDate.set(Calendar.MINUTE, minute);
+	}
+
+	/**************** Get the current time in milliseconds ********/
+	public long getTimeInMillis() {
+		return targetDate.getTimeInMillis();
+	}
+
+	/************** Set the current time from given time in milliseconds **************/
+	public void setTimeInMillis(long millis) {
+		targetDate.setTimeInMillis(millis);
+	}
+
+	/**
+	 * Convert the CustomDate object into DateTime object from Google Library
+	 * 
+	 * @return the DateTime object
+	 */
+	public DateTime returnInDateTimeFormat() {
 		return new DateTime(targetDate.getTime(), TimeZone.getDefault());
 	}
-	
+
+	/**
+	 * Convert a CustomDate object into String format to store in storage
+	 * 
+	 * @param v
+	 *            the object needed to be converted
+	 * @return the String format of this object
+	 */
 	public static String convertString(CustomDate v) {
 		if (v == null)
 			return "-";
@@ -39,92 +111,172 @@ public class CustomDate {
 		int year = target.get(Calendar.YEAR);
 		int hour = target.get(Calendar.HOUR_OF_DAY);
 		int minute = target.get(Calendar.MINUTE);
-		return date + "/" + (month + 1) + "/" + year + " " + hour + ":"
-				+ minute;
+		return date + "/" + (month + 1) + "/" + year + " " + hour + ":" + minute;
 	}
 
-	// compareTo Function
+	/**
+	 * This function is used to convert this CustomDate object to String format
+	 * to display in GUI
+	 * 
+	 * @param isStartDate
+	 *            whether this is a start or end date
+	 * @return the required String displayed on GUI
+	 */
+	public String toString(boolean isStartDate) {
+		updateCurrentDate();
+		boolean hasTime = hasTime(isStartDate);
+
+		if (beforeCurrentTime() && !isStartDate) {
+				return "OVERDUE";
+		}
+		if (!beforeCurrentTime() && lessThan6Hours()) {
+			return getRemainingTime();
+		}
+		if (isTonight()) {
+			return "Tonight";
+		}
+
+		String result = "";
+		result += getDateString();
+		result += getTimeString(hasTime);
+		return result;
+	}
+
+	private String getDateString() {
+		if (isToday()) {
+			return "Today";
+		} else if (isTomorrow()) {
+			return "Tomorrow";
+		} else {
+			String str;
+			str = targetDate.get(Calendar.DATE) + " " + getMonthString(targetDate.get(Calendar.MONTH));
+			if (!isCurrentYear()) {
+				str += " " + targetDate.get(Calendar.YEAR);
+			}
+			return str;
+		}
+	}
+
+	private String getTimeString(boolean hasTime) {
+		if (hasTime) {
+			DecimalFormat df = new DecimalFormat("00");
+			return "\n " + targetDate.get(Calendar.HOUR_OF_DAY) + ":"
+					+ df.format(targetDate.get(Calendar.MINUTE));
+		}
+		return "";
+	}
+
+	private boolean isCurrentYear() {
+		return targetDate.get(Calendar.YEAR) == currentDate.get(Calendar.YEAR);
+	}
+
+	private String getRemainingTime() {
+		int remainingTime = (int) (targetDate.getTimeInMillis() - currentDate.getTimeInMillis()) / MINUTE_IN_MILLIS;
+		int remainingHours = remainingTime / HOUR_IN_MINUTES;
+		int remainingMinutes = remainingTime % HOUR_IN_MINUTES;
+		return remainingHours + "h " + remainingMinutes + "m";
+	}
+
+	/**
+	 * This function is used to compare 2 CustomDate objects
+	 * 
+	 * @param date1
+	 *            the first date
+	 * @param date2
+	 *            the second date
+	 * @return value indicating the result of comparison
+	 */
 	public static int compare(CustomDate date1, CustomDate date2) {
 		int difference = 0;
-		if (date1 == null && date2 == null)
-			return 0;
-		if (date1 == null && date2 != null)
-			return 1;
-		if (date1 != null && date2 == null)
-			return -1;
+		if (date1 == null && date2 == null) {
+			return EQUAL;
+		} else if (date1 == null && date2 != null) {
+			return LARGER;
+		} else if (date1 != null && date2 == null) {
+			return SMALLER;
+		}
 
 		for (int i = 0; i < 5; i++) {
-			if (i == 0)
+			if (i == 0) {
 				difference = date1.getYear() - date2.getYear();
-			else if (i == 1)
+			} else if (i == 1) {
 				difference = date1.getMonth() - date2.getMonth();
-			else if (i == 2)
+			} else if (i == 2) {
 				difference = date1.getDate() - date2.getDate();
-			else if (i == 3)
+			} else if (i == 3) {
 				difference = date1.getHour() - date2.getHour();
-			else
+			} else {
 				difference = date1.getMinute() - date2.getMinute();
-			if (difference != 0)
+			}
+			if (difference != 0) {
 				return difference;
+			}
 		}
+
 		return difference;
 	}
 
+	// Compare the 2 dates according to their dates, not specific times.
 	public boolean dateEqual(CustomDate other) {
 		return this.getYear() == other.getYear()
 				&& this.getMonth() == other.getMonth()
 				&& this.getDate() == other.getDate();
 	}
 
-	// GET methods
-	private int getYear() {
-		return targetDate.get(Calendar.YEAR);
+	public boolean beforeCurrentTime() {
+		return (currentDate.getTimeInMillis() - targetDate.getTimeInMillis()) > 0;
 	}
 
-	private int getMonth() {
-		return targetDate.get(Calendar.MONTH);
+	public static void updateCurrentDate() {
+		currentDate = new GregorianCalendar();
 	}
 
-	private int getDate() {
-		return targetDate.get(Calendar.DATE);
+	/******** Get the difference between periods according to the type of repetition ***********/
+	public static long getUpdateDifference(String repetition) {
+		if (isDailyRoutine(repetition)) {
+			return DAY_IN_MILLIS;
+		} else if (isWeeklyRoutine(repetition)) {
+			return WEEK_IN_MILLIS;
+		} else if (isMonthlyRoutine(repetition)) {
+			return MONTH_IN_MILLIS;
+		} else if (isYearlyRoutine(repetition)) {
+			return YEAR_IN_MILLIS;
+		} else {
+			return 0;
+		}
 	}
 
-	public int getHour() {
-		return targetDate.get(Calendar.HOUR_OF_DAY);
+	private static boolean isDailyRoutine(String repetition) {
+		return repetition.equals("daily");
 	}
 
-	public void setHour(int hour) {
-		targetDate.set(Calendar.HOUR_OF_DAY, hour);
+	private static boolean isWeeklyRoutine(String repetition) {
+		return repetition.equals("weekly");
 	}
 
-	public int getMinute() {
-		return targetDate.get(Calendar.MINUTE);
+	private static boolean isMonthlyRoutine(String repetition) {
+		return repetition.equals("monthly");
 	}
 
-	public void setMinute(int minute) {
-		targetDate.set(Calendar.MINUTE, minute);
+	private static boolean isYearlyRoutine(String repetition) {
+		return repetition.equals("yearly");
 	}
 
-	public long getTimeInMillis() {
-		return targetDate.getTimeInMillis();
-	}
-
-	public void setTimeInMillis(long millis) {
-		targetDate.setTimeInMillis(millis);
-	}
-
-	public Date getTime() {
-		return targetDate.getTime();
-	}
-
-	/* Convert Function */
+	/**
+	 * This function is used to set the date from given info of String s
+	 * 
+	 * @param s
+	 *            the given info of the date
+	 * @return value indicating the conversion is successful or not
+	 */
 	public int convert(String s) {
 		dateInfo = s.toLowerCase();
 		String[] infos = dateInfo.split(" ");
 
 		updateCurrentDate();
 
-		boolean invalidLength = infos.length > 4 || infos.length == 0;
+		boolean invalidLength = infos.length > MAXIMUM_LENGTH_OF_DATE_INFO
+				|| infos.length == EMPTY_DATE_INFO;
 		if (invalidLength) {
 			return INVALID;
 		}
@@ -134,58 +286,54 @@ public class CustomDate {
 			GregorianCalendar tempDate = new GregorianCalendar();
 			tempDate.setLenient(false);
 
-			if (hasDateFormat()) {
-				numElements = updateDate(infos, tempDate, numElements);
-			} else if (hasDayFormat()) {
-				numElements = updateDay(infos, tempDate, numElements);
-			} else if (infos.length > 2) {
+			numElements = processDate(infos, tempDate, numElements);
+			if (numElements == INVALID) {
 				return INVALID;
 			}
 
-			if (hasTimeFormat()) {
-				numElements = updateTime(infos, tempDate, numElements);
-			} else {
-				if (infos.length > 2)
-					return INVALID;
-				resetTime(tempDate);
-			}
-
-			if (numElements > 0) {
+			numElements = processTime(infos, tempDate, numElements);
+			if (numElements > 0 || numElements == INVALID) {
 				return INVALID;
 			}
 
 			targetDate = tempDate;
 			return VALID;
 		} catch (Exception e) {
-			if (e.getMessage().equals("Out of bounds"))
+			if (e.getMessage().equals("Out of bounds")) {
 				return OUT_OF_BOUNDS;
+			}
 			return INVALID;
 		}
 	}
 
-	public static void updateCurrentDate() {
-		currentDate = new GregorianCalendar();
+	private int processDate(String[] infos, GregorianCalendar tempDate,
+			int numElements) {
+		if (hasDateFormat()) {
+			return updateDate(infos, tempDate, numElements);
+		} else if (hasDayFormat()) {
+			return updateDay(infos, tempDate, numElements);
+		} else if (infos.length > MAXIMUM_LENGTH_FOR_TIME_PART) {
+			return INVALID;
+		}
+
+		return numElements;
 	}
 
 	private int updateDate(String[] infos, GregorianCalendar targetDate,
 			int numElements) {
 		int startIndex = getStartIndexOfDate(infos);
 		if (hasMonthWord()) {
-			numElements = updateDateWithMonth(infos, targetDate, numElements,
-					startIndex);
+			numElements = updateDateWithMonth(infos, targetDate, numElements, startIndex);
 		} else if (dateInfo.contains("/")) {
-			numElements = updateDateWithSlash(infos, targetDate, numElements,
-					startIndex);
+			numElements = updateDateWithSlash(infos, targetDate, numElements, startIndex);
 		} else {
-			numElements = updateDateWithDash(infos, targetDate, numElements,
-					startIndex);
+			numElements = updateDateWithDash(infos, targetDate, numElements, startIndex);
 		}
 
 		return numElements;
-
 	}
 
-	private static int updateDateWithMonth(String[] infos,
+	private int updateDateWithMonth(String[] infos,
 			GregorianCalendar targetDate, int numElements, int startIndex) {
 		int date = Integer.parseInt(infos[startIndex]);
 		int month = getMonth(infos[startIndex + 1]);
@@ -197,12 +345,14 @@ public class CustomDate {
 		return numElements - 2;
 	}
 
-	private static int updateDateWithSlash(String[] infos,
+	private int updateDateWithSlash(String[] infos,
 			GregorianCalendar targetDate, int numElements, int startIndex) {
 		String[] numbers = infos[startIndex].split("/");
+
 		boolean invalidLength = numbers.length != 3 && numbers.length != 2;
-		if (invalidLength)
+		if (invalidLength) {
 			throw new IllegalArgumentException("Invalid length in slash format");
+		}
 
 		int month = getMonth(numbers[1]);
 		targetDate.set(Calendar.MONTH, month);
@@ -211,20 +361,20 @@ public class CustomDate {
 		targetDate.set(Calendar.DATE, date);
 
 		checkDateBound(targetDate);
-		int year = (numbers.length == 3) ? Integer.parseInt(numbers[2])
-				: currentDate.get(Calendar.YEAR);
-
+		int year = (numbers.length == 3) ? Integer.parseInt(numbers[2]) : currentDate.get(Calendar.YEAR);
 		targetDate.set(Calendar.YEAR, year);
 
 		return numElements - 1;
 	}
 
-	private static int updateDateWithDash(String[] infos,
+	private int updateDateWithDash(String[] infos,
 			GregorianCalendar targetDate, int numElements, int startIndex) {
 		String[] numbers = infos[0].split("-");
+
 		boolean invalidLength = numbers.length != 3 && numbers.length != 2;
 		if (invalidLength)
 			throw new IllegalArgumentException("Invalid length in dash format");
+
 		int date = Integer.parseInt(numbers[0]);
 		targetDate.set(Calendar.DATE, date);
 
@@ -232,15 +382,13 @@ public class CustomDate {
 		targetDate.set(Calendar.MONTH, month);
 
 		checkDateBound(targetDate);
-		int year = (numbers.length == 3) ? Integer.parseInt(numbers[2])
-				: currentDate.get(Calendar.YEAR);
-
+		int year = (numbers.length == 3) ? Integer.parseInt(numbers[2]) : currentDate.get(Calendar.YEAR);
 		targetDate.set(Calendar.YEAR, year);
 
 		return numElements - 1;
 	}
 
-	private static void checkDateBound(GregorianCalendar targetDate) {
+	private void checkDateBound(GregorianCalendar targetDate) {
 		try {
 			targetDate.get(Calendar.DATE);
 			targetDate.get(Calendar.MONTH);
@@ -252,31 +400,18 @@ public class CustomDate {
 	private int getStartIndexOfDate(String[] infos) {
 		if (hasTimeFormat()) {
 			int temp = getIndexOfTime(infos);
-			if (temp != -1) {
-				if (infos[temp].equals("am") || infos[temp].equals("pm"))
+			if (temp != INVALID) {
+				if (infos[temp].equals("am") || infos[temp].equals("pm")) {
 					return (temp <= 1) ? temp + 1 : 0;
-				else
+				} else {
 					return (temp >= 1) ? 0 : temp + 1;
+				}
 			} else {
 				temp = getIndexOfColon(infos);
 				return (temp == 0) ? temp + 1 : 0;
 			}
 		}
 		return 0;
-	}
-
-	private static int getIndexOfTime(String[] infos) {
-		for (int i = 0; i < infos.length; i++)
-			if (infos[i].contains("am") || infos[i].contains("pm"))
-				return i;
-		return INVALID;
-	}
-
-	private static int getIndexOfColon(String[] infos) {
-		for (int i = 0; i < infos.length; i++)
-			if (infos[i].contains(":"))
-				return i;
-		return INVALID;
 	}
 
 	private int updateDay(String[] infos, GregorianCalendar targetDate,
@@ -289,33 +424,31 @@ public class CustomDate {
 		} else if (isTonightKeyWord(infos[startIndex])) {
 			numElements--;
 		} else if (hasDayWord()) {
-			numElements = updateDateWithDay(infos, targetDate, numElements,
-					startIndex);
+			numElements = updateDateWithDay(infos, targetDate, numElements,	startIndex);
 		}
+		
 		return numElements;
 	}
 
-	private static int updateTomorrow(GregorianCalendar targetDate,
-			int numElements) {
+	private int updateTomorrow(GregorianCalendar targetDate, int numElements) {
 		targetDate.set(Calendar.DATE, targetDate.get(Calendar.DATE) + 1);
 		return numElements - 1;
 	}
 
-	private static int updateDateWithDay(String[] infos,
-			GregorianCalendar targetDate, int numElements, int startIndex) {
+	private int updateDateWithDay(String[] infos, GregorianCalendar targetDate,
+			int numElements, int startIndex) {
 		boolean hasNext = infos[startIndex].equals("next");
 		int currentDay = currentDate.get(Calendar.DAY_OF_WEEK);
-		int targetDay = (hasNext == true) ? getDay(infos[startIndex + 1])
-				: getDay(infos[startIndex]);
-		if (targetDay == 1)
-			targetDay += 7;
-		if (currentDay == 1)
-			currentDay += 7;
+		int targetDay = (hasNext == true) ? getDay(infos[startIndex + 1]) : getDay(infos[startIndex]);
+		if (targetDay == 1) {
+			targetDay = SUNDAY;
+		}
+		if (currentDay == 1) {
+			currentDay = SUNDAY;
+		}
 
-		long difference = targetDay - currentDay
-				+ ((hasNext || targetDay < currentDay) ? 7 : 0);
-		targetDate.setTimeInMillis(currentDate.getTimeInMillis() + difference
-				* 24 * 60 * 60 * 1000);
+		long difference = targetDay - currentDay + ((hasNext || targetDay < currentDay) ? 7 : 0);
+		targetDate.setTimeInMillis(currentDate.getTimeInMillis() + difference * DAY_IN_MILLIS);
 
 		if (hasNext == true) {
 			numElements -= 2;
@@ -325,168 +458,21 @@ public class CustomDate {
 		return numElements;
 	}
 
-	private int updateTime(String[] infos, GregorianCalendar targetDate,
-			int numElements) {
-		int index = getIndexOfTime(infos);
-
-		if (index != INVALID) {
-			numElements = updateTimeWith12Format(infos, targetDate, index,
-					numElements);
-		} else {
-			numElements = updateTimeWith24Format(infos, targetDate, numElements);
-		}
-		if(dateInfo.contains("tonight")){
-			if(targetDate.get(Calendar.HOUR_OF_DAY) * 60 + targetDate.get(Calendar.MINUTE) < 12*60)
-				targetDate.setTimeInMillis(targetDate.getTimeInMillis() + 24*60*60*1000);
-		}
-		targetDate.set(Calendar.SECOND, 0);
-		return numElements;
-	}
-
-	private static int updateTimeWith12Format(String[] infos,
-			GregorianCalendar targetDate, int index, int numElements) {
-		boolean isDay;
-		String timeInfo;
-		boolean hasSpace;
-
-		if (infos[index].equals("am") || infos[index].equals("pm")) {
-			isDay = infos[index].equals("am");
-			timeInfo = infos[index - 1];
-			hasSpace = true;
-		} else {
-			isDay = infos[index].substring(infos[index].length() - 2).equals(
-					"am");
-			timeInfo = infos[index].substring(0, infos[index].length() - 2);
-			hasSpace = false;
-		}
-
-		if (timeInfo.contains(":")) {
-			updateTimeWithColon(timeInfo, isDay, targetDate);
-		} else if (timeInfo.contains(".")) {
-			updateTimeWithDot(timeInfo, isDay, targetDate);
-		} else {
-			updateTimeWithoutSign(timeInfo, isDay, targetDate);
-		}
-
-		if (hasSpace)
-			return numElements - 2;
-		else
-			return numElements - 1;
-	}
-
-	private static void updateTimeWithColon(String timeInfo, boolean isDay,
-			GregorianCalendar targetDate) {
-		String[] time = timeInfo.split(":");
-		if (time.length > 2)
-			throw new IllegalArgumentException(
-					"Invalid length in colon time format");
-
-		int hour = Integer.parseInt(time[0]) + (isDay ? 0 : 12);
-		if (hour == 24 || hour == 12)
-			hour -= 12;
-		int minute = Integer.parseInt(time[1]);
-		targetDate.set(Calendar.HOUR_OF_DAY, hour);
-		targetDate.set(Calendar.MINUTE, minute);
-		checkTimeBound(targetDate);
-	}
-
-	private static void updateTimeWithDot(String timeInfo, boolean isDay,
-			GregorianCalendar targetDate) {
-		String[] time = timeInfo.split("\\.");
-		if (time.length > 2)
-			throw new IllegalArgumentException(
-					"Invalid length in dot time format");
-
-		int hour = Integer.parseInt(time[0]) + (isDay ? 0 : 12);
-		if (hour == 24 || hour == 12)
-			hour -= 12;
-		int minute = Integer.parseInt(time[1]);
-		targetDate.set(Calendar.HOUR_OF_DAY, hour);
-		targetDate.set(Calendar.MINUTE, minute);
-		checkTimeBound(targetDate);
-	}
-
-	private static void updateTimeWithoutSign(String timeInfo, boolean isDay,
-			GregorianCalendar targetDate) {
-		int s = Integer.parseInt(timeInfo);
-		if (timeInfo.length() < 3) {
-			int hour = s + (isDay ? 0 : 12);
-			if (hour == 24 || hour == 12)
-				hour -= 12;
-			targetDate.set(Calendar.HOUR_OF_DAY, hour);
-			targetDate.set(Calendar.MINUTE, 0);
-			checkTimeBound(targetDate);
-		} else if (timeInfo.length() == 3 || timeInfo.length() == 4) {
-			int hour = s / 100 + (isDay ? 0 : 12);
-			if (hour == 24 || hour == 12)
-				hour -= 12;
-			int minute = s % 100;
-			targetDate.set(Calendar.HOUR_OF_DAY, hour);
-			targetDate.set(Calendar.MINUTE, minute);
-			checkTimeBound(targetDate);
-		} else {
-			throw new IllegalArgumentException(
-					"Invalid length in time without sign format");
-		}
-	}
-
-	private static void checkTimeBound(GregorianCalendar targetDate) {
-		try {
-			targetDate.get(Calendar.HOUR_OF_DAY);
-			targetDate.get(Calendar.MINUTE);
-		} catch (IllegalArgumentException e) {
-			throw new IllegalArgumentException("Out of bounds");
-		}
-	}
-
-	private static int updateTimeWith24Format(String[] infos,
-			GregorianCalendar targetDate, int numElements) {
-		int index = getIndexOfColon(infos);
-		String[] time = infos[index].split(":");
-		if (time.length > 2)
-			throw new IllegalArgumentException(
-					"Invalid in time with colon format");
-
-		int hour = Integer.parseInt(time[0]);
-		int minute = Integer.parseInt(time[1]);
-
-		targetDate.set(Calendar.HOUR_OF_DAY, hour);
-		targetDate.set(Calendar.MINUTE, minute);
-		checkTimeBound(targetDate);
-		return numElements - 1;
-	}
-
-	private void resetTime(GregorianCalendar targetDate) {
-		targetDate.set(Calendar.HOUR_OF_DAY, 0);
-		targetDate.set(Calendar.MINUTE, 0);
-		targetDate.set(Calendar.SECOND, 0);
-		if(dateInfo.contains("tonight")){
-			targetDate.set(Calendar.HOUR_OF_DAY, 23);
-			targetDate.set(Calendar.MINUTE, 59);
-		}
-	}
-
-	private static boolean isTomorrowKeyWord(String s) {
+	private boolean isTomorrowKeyWord(String s) {
 		return s.equals("tomorrow") || s.equals("tmr");
 	}
 
-	private static boolean isTodayKeyWord(String s) {
+	private boolean isTodayKeyWord(String s) {
 		return s.equals("today");
 	}
 
-	private static boolean isTonightKeyWord(String s) {
+	private boolean isTonightKeyWord(String s) {
 		return s.equals("tonight");
-	}
-
-	private boolean hasTimeFormat() {
-		return dateInfo.contains(":") || dateInfo.contains("am")
-				|| dateInfo.contains("pm");
 	}
 
 	private boolean hasDayFormat() {
 		boolean hasToday = dateInfo.contains("today");
-		boolean hasTomorrow = dateInfo.contains("tomorrow")
-				|| dateInfo.contains("tmr");
+		boolean hasTomorrow = dateInfo.contains("tomorrow") || dateInfo.contains("tmr");
 		boolean hasTonight = dateInfo.contains("tonight");
 
 		return hasToday || hasTomorrow || hasDayWord() || hasTonight;
@@ -515,7 +501,7 @@ public class CustomDate {
 				|| dateInfo.contains("nov") || dateInfo.contains("dec");
 	}
 
-	private static int getDay(String s) {
+	private int getDay(String s) {
 		if (isMonday(s)) {
 			return Calendar.MONDAY;
 		} else if (isTuesday(s)) {
@@ -535,35 +521,35 @@ public class CustomDate {
 		}
 	}
 
-	private static boolean isMonday(String s) {
+	private boolean isMonday(String s) {
 		return s.equals("monday") || s.equals("mon");
 	}
 
-	private static boolean isTuesday(String s) {
+	private boolean isTuesday(String s) {
 		return s.equals("tuesday") || s.equals("tue");
 	}
 
-	private static boolean isWednesday(String s) {
+	private boolean isWednesday(String s) {
 		return s.equals("wednesday") || s.equals("wed");
 	}
 
-	private static boolean isThursday(String s) {
+	private boolean isThursday(String s) {
 		return s.equals("thursday") || s.equals("thu");
 	}
 
-	private static boolean isFriday(String s) {
+	private boolean isFriday(String s) {
 		return s.equals("friday") || s.equals("fri");
 	}
 
-	private static boolean isSaturday(String s) {
+	private boolean isSaturday(String s) {
 		return s.equals("saturday") || s.equals("sat");
 	}
 
-	private static boolean isSunday(String s) {
+	private boolean isSunday(String s) {
 		return s.equals("sunday") || s.equals("sun");
 	}
 
-	private static int getMonth(String s) {
+	private int getMonth(String s) {
 		if (isJanuary(s)) {
 			return Calendar.JANUARY;
 		} else if (isFebruary(s)) {
@@ -595,7 +581,7 @@ public class CustomDate {
 		}
 	}
 
-	private static String getMonthString(int i) {
+	private String getMonthString(int i) {
 		if (i == Calendar.JANUARY)
 			return "Jan";
 		else if (i == Calendar.FEBRUARY)
@@ -624,55 +610,233 @@ public class CustomDate {
 			return "Invalid";
 	}
 
-	private static boolean isJanuary(String s) {
+	private boolean isJanuary(String s) {
 		return s.equals("jan") || s.equals("1") || s.equals("january");
 	}
 
-	private static boolean isFebruary(String s) {
+	private boolean isFebruary(String s) {
 		return s.equals("feb") || s.equals("2") || s.equals("february");
 	}
 
-	private static boolean isMarch(String s) {
+	private boolean isMarch(String s) {
 		return s.equals("mar") || s.equals("3") || s.equals("march");
 	}
 
-	private static boolean isApril(String s) {
+	private boolean isApril(String s) {
 		return s.equals("apr") || s.equals("4") || s.equals("april");
 	}
 
-	private static boolean isMay(String s) {
+	private boolean isMay(String s) {
 		return s.equals("may") || s.equals("5");
 	}
 
-	private static boolean isJune(String s) {
+	private boolean isJune(String s) {
 		return s.equals("june") || s.equals("6");
 	}
 
-	private static boolean isJuly(String s) {
+	private boolean isJuly(String s) {
 		return s.equals("july") || s.equals("7");
 	}
 
-	private static boolean isAugust(String s) {
+	private boolean isAugust(String s) {
 		return s.equals("aug") || s.equals("8") || s.equals("august");
 	}
 
-	private static boolean isSeptember(String s) {
+	private boolean isSeptember(String s) {
 		return s.equals("sep") || s.equals("9") || s.equals("september");
 	}
 
-	private static boolean isOctober(String s) {
+	private boolean isOctober(String s) {
 		return s.equals("oct") || s.equals("10") || s.equals("october");
 	}
 
-	private static boolean isNovember(String s) {
+	private boolean isNovember(String s) {
 		return s.equals("nov") || s.equals("11") || s.equals("november");
 	}
 
-	private static boolean isDecember(String s) {
+	private boolean isDecember(String s) {
 		return s.equals("dec") || s.equals("12") || s.equals("december");
 	}
 
-	private static boolean isInteger(String s) {
+	private int processTime(String[] infos, GregorianCalendar tempDate, int numElements) {
+		if (hasTimeFormat()) {
+			return updateTime(infos, tempDate, numElements);
+		} else {
+			if (infos.length > MAXIMUM_LENGTH_FOR_DATE_PART) {
+				return INVALID;
+			}
+			resetTime(tempDate);
+		}
+		return numElements;
+	}
+
+	private int getIndexOfTime(String[] infos) {
+		for (int i = 0; i < infos.length; i++) {
+			if (infos[i].contains("am") || infos[i].contains("pm")) {
+				return i;
+			}
+		}
+		return INVALID;
+	}
+
+	private int getIndexOfColon(String[] infos) {
+		for (int i = 0; i < infos.length; i++) {
+			if (infos[i].contains(":")) {
+				return i;
+			}
+		}
+		return INVALID;
+	}
+
+	private int updateTime(String[] infos, GregorianCalendar targetDate,
+			int numElements) {
+		int index = getIndexOfTime(infos);
+
+		if (index != INVALID) {
+			numElements = updateTimeWith12Format(infos, targetDate, index, numElements);
+		} else {
+			numElements = updateTimeWith24Format(infos, targetDate, numElements);
+		}
+		
+		if (dateInfo.contains("tonight")) {
+			if (targetDate.get(Calendar.HOUR_OF_DAY) * HOUR_IN_MINUTES + targetDate.get(Calendar.MINUTE) < FIRST_TWELVE_HOURS) {
+				targetDate.setTimeInMillis(targetDate.getTimeInMillis() + DAY_IN_MILLIS);
+			}
+		}
+		targetDate.set(Calendar.SECOND, 0);
+		
+		return numElements;
+	}
+
+	private int updateTimeWith12Format(String[] infos,
+			GregorianCalendar targetDate, int index, int numElements) {
+		boolean isDay;
+		String timeInfo;
+		boolean hasSpace;
+
+		if (infos[index].equals("am") || infos[index].equals("pm")) {
+			isDay = infos[index].equals("am");
+			timeInfo = infos[index - 1];
+			hasSpace = true;
+		} else {
+			isDay = infos[index].substring(infos[index].length() - 2).equals("am");
+			timeInfo = infos[index].substring(0, infos[index].length() - 2);
+			hasSpace = false;
+		}
+
+		if (timeInfo.contains(":")) {
+			updateTimeWithColon(timeInfo, isDay, targetDate);
+		} else if (timeInfo.contains(".")) {
+			updateTimeWithDot(timeInfo, isDay, targetDate);
+		} else {
+			updateTimeWithoutSign(timeInfo, isDay, targetDate);
+		}
+
+		if (hasSpace) {
+			return numElements - 2;
+		} else {
+			return numElements - 1;
+		}
+	}
+
+	private void updateTimeWithColon(String timeInfo, boolean isDay,
+			GregorianCalendar targetDate) {
+		String[] time = timeInfo.split(":");
+		if (time.length > 2) {
+			throw new IllegalArgumentException("Invalid length in colon time format");
+		}
+		int hour = Integer.parseInt(time[0]) + (isDay ? 0 : 12);
+		if (hour == 24 || hour == 12)
+			hour -= 12;
+		int minute = Integer.parseInt(time[1]);
+		targetDate.set(Calendar.HOUR_OF_DAY, hour);
+		targetDate.set(Calendar.MINUTE, minute);
+		checkTimeBound(targetDate);
+	}
+
+	private void updateTimeWithDot(String timeInfo, boolean isDay,
+			GregorianCalendar targetDate) {
+		String[] time = timeInfo.split("\\.");
+		if (time.length > 2) {
+			throw new IllegalArgumentException("Invalid length in dot time format");
+		}
+		int hour = Integer.parseInt(time[0]) + (isDay ? 0 : 12);
+		if (hour == 24 || hour == 12) {
+			hour -= 12;
+		}
+		int minute = Integer.parseInt(time[1]);
+		targetDate.set(Calendar.HOUR_OF_DAY, hour);
+		targetDate.set(Calendar.MINUTE, minute);
+		checkTimeBound(targetDate);
+	}
+
+	private void updateTimeWithoutSign(String timeInfo, boolean isDay,
+			GregorianCalendar targetDate) {
+		int s = Integer.parseInt(timeInfo);
+		if (timeInfo.length() < 3) {
+			int hour = s + (isDay ? 0 : 12);
+			if (hour == 24 || hour == 12){
+				hour -= 12;
+			}
+			targetDate.set(Calendar.HOUR_OF_DAY, hour);
+			targetDate.set(Calendar.MINUTE, 0);
+			checkTimeBound(targetDate);
+		} else if (timeInfo.length() == 3 || timeInfo.length() == 4) {
+			int hour = s / 100 + (isDay ? 0 : 12);
+			if (hour == 24 || hour == 12){
+				hour -= 12;
+			}
+			int minute = s % 100;
+			targetDate.set(Calendar.HOUR_OF_DAY, hour);
+			targetDate.set(Calendar.MINUTE, minute);
+			checkTimeBound(targetDate);
+		} else {
+			throw new IllegalArgumentException("Invalid length in time without sign format");
+		}
+	}
+
+	private void checkTimeBound(GregorianCalendar targetDate) {
+		try {
+			targetDate.get(Calendar.HOUR_OF_DAY);
+			targetDate.get(Calendar.MINUTE);
+		} catch (IllegalArgumentException e) {
+			throw new IllegalArgumentException("Out of bounds");
+		}
+	}
+
+	private int updateTimeWith24Format(String[] infos,
+			GregorianCalendar targetDate, int numElements) {
+		int index = getIndexOfColon(infos);
+		String[] time = infos[index].split(":");
+		if (time.length > 2){
+			throw new IllegalArgumentException("Invalid in time with colon format");
+		}
+		int hour = Integer.parseInt(time[0]);
+		int minute = Integer.parseInt(time[1]);
+
+		targetDate.set(Calendar.HOUR_OF_DAY, hour);
+		targetDate.set(Calendar.MINUTE, minute);
+		checkTimeBound(targetDate);
+		
+		return numElements - 1;
+	}
+
+	private void resetTime(GregorianCalendar targetDate) {
+		targetDate.set(Calendar.HOUR_OF_DAY, 0);
+		targetDate.set(Calendar.MINUTE, 0);
+		targetDate.set(Calendar.SECOND, 0);
+		
+		if (dateInfo.contains("tonight")) {
+			targetDate.set(Calendar.HOUR_OF_DAY, 23);
+			targetDate.set(Calendar.MINUTE, 59);
+		}
+	}
+
+	private boolean hasTimeFormat() {
+		return dateInfo.contains(":") || dateInfo.contains("am")|| dateInfo.contains("pm");
+	}
+
+	private boolean isInteger(String s) {
 		try {
 			Integer.parseInt(s);
 			return true;
@@ -681,75 +845,46 @@ public class CustomDate {
 		}
 	}
 
-	public boolean lessThan6Hours() {
-		return (targetDate.getTimeInMillis() - currentDate.getTimeInMillis()) <= 21600000;
+	private boolean lessThan6Hours() {
+		return (targetDate.getTimeInMillis() - currentDate.getTimeInMillis()) <= SIX_HOURS_IN_MILLIS;
 	}
 
-	public boolean beforeCurrentTime() {
-		return (currentDate.getTimeInMillis() - targetDate.getTimeInMillis()) > 0;
-	}
-
-	public boolean hasTime(boolean isStartDate) {
-		if (isStartDate && targetDate.get(Calendar.HOUR_OF_DAY) == 0
-				&& targetDate.get(Calendar.MINUTE) == 0)
+	private boolean hasTime(boolean isStartDate) {
+		boolean isMidnight = targetDate.get(Calendar.HOUR_OF_DAY) == 23
+				&& targetDate.get(Calendar.MINUTE) == 59;
+		boolean isNewDay = targetDate.get(Calendar.HOUR_OF_DAY) == 0
+				&& targetDate.get(Calendar.MINUTE) == 0;
+		if (isStartDate && isNewDay) {
 			return false;
-		else if (!isStartDate && targetDate.get(Calendar.HOUR_OF_DAY) == 23
-				&& targetDate.get(Calendar.MINUTE) == 59)
+		} else if (!isStartDate && isMidnight) {
 			return false;
+		}
 
 		return true;
 	}
 
-	public boolean isToday() {
-		return targetDate.get(Calendar.YEAR) == currentDate.get(Calendar.YEAR)
-				&& targetDate.get(Calendar.MONTH) == currentDate
-						.get(Calendar.MONTH)
-				&& targetDate.get(Calendar.DATE) == currentDate
-						.get(Calendar.DATE);
-	}
-
-	public boolean isTonight() {
-		return targetDate.get(Calendar.YEAR) == currentDate.get(Calendar.YEAR)
-				&& targetDate.get(Calendar.MONTH) == currentDate
-						.get(Calendar.MONTH)
-				&& targetDate.get(Calendar.DATE) == currentDate
-						.get(Calendar.DATE)
-				&& targetDate.get(Calendar.HOUR_OF_DAY) == 23
-				&& targetDate.get(Calendar.MINUTE) == 59;
-	}
-
-	public String toString(boolean isStartDate) {
-		updateCurrentDate();
-		boolean hasTime = hasTime(isStartDate);
-		if (beforeCurrentTime()) {
-			if (!isStartDate)
-				return "OVERDUE";
-		} else {
-			if (lessThan6Hours()) {
-				int remainingTime = (int) (targetDate.getTimeInMillis() - currentDate
-						.getTimeInMillis()) / (1000 * 60);
-				int remainingHours = remainingTime / 60;
-				int remainingMinutes = remainingTime % 60;
-				return remainingHours + "h " + remainingMinutes + "m";
-			}
-		}
-		String result = "";
-		if(isTonight())
-			return "Tonight";
+	private boolean isToday() {
+		boolean isCurrentYear = targetDate.get(Calendar.YEAR) == currentDate.get(Calendar.YEAR);
+		boolean isCurrentMonth = targetDate.get(Calendar.MONTH) == currentDate.get(Calendar.MONTH);
+		boolean isCurrentDate = targetDate.get(Calendar.DATE) == currentDate.get(Calendar.DATE);
 		
-		if (isToday())
-			result += "Today";
-		else {
-			result += targetDate.get(Calendar.DATE) + " "
-					+ getMonthString(targetDate.get(Calendar.MONTH));
-			if (targetDate.get(Calendar.YEAR) != currentDate.get(Calendar.YEAR))
-				result += " " + targetDate.get(Calendar.YEAR);
-		}
-		if (hasTime) {
-			DecimalFormat df = new DecimalFormat("00");
-			result += "\n " + targetDate.get(Calendar.HOUR_OF_DAY) + ":"
-					+ df.format(targetDate.get(Calendar.MINUTE));
-		}
-		return result;
+		return isCurrentYear && isCurrentMonth && isCurrentDate;
+	}
+
+	private boolean isTomorrow() {
+		long targetTime = targetDate.getTimeInMillis();
+		long currentTime = currentDate.getTimeInMillis();
+		long nearestDayTime = ((currentTime / DAY_IN_MILLIS) + 1) * DAY_IN_MILLIS;
+		
+		return (targetTime - currentTime) > (nearestDayTime - currentTime);
+	}
+
+	private boolean isTonight() {
+		boolean isCurrentYear = targetDate.get(Calendar.YEAR) == currentDate.get(Calendar.YEAR);
+		boolean isCurrentMonth = targetDate.get(Calendar.MONTH) == currentDate.get(Calendar.MONTH);
+		boolean isCurrentDate = targetDate.get(Calendar.DATE) == currentDate.get(Calendar.DATE);
+		boolean isMidnight = targetDate.get(Calendar.HOUR_OF_DAY) == 23 && targetDate.get(Calendar.MINUTE) == 59;
+		
+		return isCurrentYear && isCurrentMonth && isCurrentDate && isMidnight;
 	}
 }
