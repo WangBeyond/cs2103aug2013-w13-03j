@@ -72,26 +72,63 @@ public class Synchronization {
 	
 	private ArrayList<Task> remainingTasks = new ArrayList<Task>();
 	
-	public Synchronization(String n, String p){
+	public Synchronization(){
+	}
+	
+	public void setUsernameAndPassword(String n, String p){
 		username = n;
 		password = p;
 	}
 	
-	public void execute() throws IOException, ServiceException{
+	public void execute() {
 		//initialize
-		init();
+		try {
+			init();
+		} catch (AuthenticationException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		
 		//form feed url
-		eventFeedUrl = formEventFeedUrl(service);
+		try {
+			eventFeedUrl = formEventFeedUrl(service);
+		} catch (IOException | ServiceException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		//get all events from Google calendar
-		eventEntry = getEventsFromGCal(service, eventFeedUrl);
+		try {
+			eventEntry = getEventsFromGCal(service, eventFeedUrl);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ServiceException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		//sync newly added tasks to GCal
-		syncNewTasksToGCal(service, newlyAddedTasks, eventFeedUrl);
+		try {
+			syncNewTasksToGCal(service, newlyAddedTasks, eventFeedUrl);
+		} catch (ServiceException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		//delete events on GCal which have been deleted locally
-		snycDeletedTasksToGCal(service, deletedTasksId, eventEntry, eventFeedUrl);
+		try {
+			snycDeletedTasksToGCal(service, deletedTasksId, eventEntry, eventFeedUrl);
+		} catch (ServiceException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		//delete tasks locally which have been deleted on GCal
 		deleteTasksLocally(remainingTasks, eventEntry);
@@ -106,6 +143,10 @@ public class Synchronization {
 		
 		//authenticate using ClientLogin
 		service.setUserCredentials(username, password);
+	}
+	
+	void loadLocalData(Model model){
+		
 	}
 	
 	URL formEventFeedUrl(CalendarService service) throws IOException, ServiceException{

@@ -1,5 +1,8 @@
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.ArrayList;
+
+import com.google.gdata.util.ServiceException;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -25,12 +28,17 @@ public abstract class Command {
 	protected static final String MESSAGE_WRONG_COMPLETE_TABS = "Cannot complete the tasks in this current tab.";
 	protected static final String MESSAGE_WRONG_INCOMPLETE_TABS = "Cannot incomplete the tasks in this current tab.";
 	protected static final String MESSAGE_HELP = "Opening the Help window...";
+	protected static final String MESSAGE_SYNCING = "synchronizating...";
 	
 	static final int PENDING_TAB = 0;
 	static final int COMPLETE_TAB = 1;
 	
 	protected Model model;
 	protected int tabIndex;
+	
+	public Command(Model model){
+		this.model = model;
+	}
 	
 	public Command(Model model, int tabIndex){
 		this.model = model;
@@ -963,6 +971,29 @@ class HelpCommand extends Command {
 	public String execute(){
 		view.showHelpPage();
 		return MESSAGE_HELP;
+	}
+}
+
+class SyncCommand extends Command {
+	String username = null;
+	String password = null;
+	
+	Synchronization sync;
+	
+	public SyncCommand(String[] parsedUserCommand, Model model, Synchronization sync) {
+		super(model);
+		this.sync = sync;
+		int size = parsedUserCommand.length;
+		if(size == 2){
+			username = parsedUserCommand[0];
+			password = parsedUserCommand[1];
+		}
+	}
+
+	@Override
+	public String execute() {
+		sync.execute();
+		return MESSAGE_SYNCING;
 	}
 }
 
