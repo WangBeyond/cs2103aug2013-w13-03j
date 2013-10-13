@@ -43,7 +43,7 @@ public class Help {
 	}
 	
 	private ImageView getHelpImage(){
-		Image helpImage = new Image(getClass().getResourceAsStream("help.png"));
+		Image helpImage = new Image(getClass().getResourceAsStream("help_1.png"));
 		ImageView helpPage = new ImageView();
 		helpPage.setImage(helpImage);
 		helpPage.setFitWidth(600);
