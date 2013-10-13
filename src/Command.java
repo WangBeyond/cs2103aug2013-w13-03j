@@ -153,7 +153,7 @@ class AddCommand extends TwoWayCommand {
 						MESSAGE_INVALID_TIME_REPETITIVE);
 			}
 		}
-		if (tag.equals(Parser.NULL)) {
+		if (tag.equals(Parser.NULL) || tag.equals("#")) {
 			if (repeatingType.equals(Parser.NULL)) {
 				task.setTag(new Tag(Parser.HYPHEN, Parser.NULL));
 			} else {
@@ -283,6 +283,8 @@ class EditCommand extends TwoWayCommand {
 		}
 		if (tag != Parser.NULL) {
 			targetTask.setTag(new Tag(tag, repeatingType));
+			if(tag.equals("#"))
+				targetTask.getTag().setTag("-");
 		} else {
 			targetTask.setTag(new Tag(targetTask.getTag().getTag(),
 					repeatingType));

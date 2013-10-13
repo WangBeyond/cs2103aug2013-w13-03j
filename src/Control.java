@@ -17,6 +17,7 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 public class Control extends Application {
+	static final int MINUTE_IN_MILLIS = 60000;
 	static final String MESSAGE_INVALID_COMMAND_TYPE = "Invalid Command Type!";
 	static final String MESSAGE_EMPTY_COMMAND = "Empty Command!";
 	static final String MESSAGE_INVALID_UNDO = "You cannot undo anymore!";
@@ -284,9 +285,9 @@ public class Control extends Application {
 			else {
 				String commandAfterPress = view.commandLine.getText()
 						+ code.getName().toLowerCase();
+				view.updateMultiColorCommand(commandAfterPress);
 				if (isCommandCompleted) {
 					commandAfterPress = doWordCompletion(e, commandAfterPress);
-					view.updateMultiColorCommand(commandAfterPress);
 				}
 			}
 		}
@@ -594,7 +595,7 @@ public class Control extends Application {
 				updateList(modelHandler.getCompleteList());
 				updateList(modelHandler.getTrashList());
 			}
-		}, 0, 60000);
+		}, 0, MINUTE_IN_MILLIS);
 	}
 
 	private static void updateList(ObservableList<Task> list) {

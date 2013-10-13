@@ -1,5 +1,3 @@
-import java.util.GregorianCalendar;
-
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
