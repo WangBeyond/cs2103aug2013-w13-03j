@@ -38,6 +38,25 @@ public class Task implements Comparable<Task> {
 	// Default constructor
 	public Task() {
 		checkProperty();
+		defaultInitialization();
+	}
+
+	public Task(boolean isImportant, CustomDate startDate, CustomDate endDate,
+			String workInfo, Tag tag, int indexId, Status status) {
+		checkProperty();
+
+		setIsImportant(isImportant);
+		setStartDate(startDate);
+		setEndDate(endDate);
+		setWorkInfo(workInfo);
+		setTag(tag);
+
+		this.indexId = indexId;
+		setStatus(status);
+		updateLatestModifiedDate();
+	}
+
+	private void defaultInitialization() {
 		setIsImportant(false);
 		setStartDate(null);
 		setStartDateString("-");
@@ -48,34 +67,7 @@ public class Task implements Comparable<Task> {
 		indexId = 0;
 		indexInList = 0;
 		setStatus(Status.NEWLY_ADDED);
-		latestModifiedDate = new CustomDate();
-	}
-
-	public Task(boolean isImportant, CustomDate startDate, CustomDate endDate,
-			String workInfo, Tag tag, int indexId, Status status) {
-		checkProperty();
-
-		setIsImportant(isImportant);
-		
-		setStartDate(startDate);
-		if (startDate != null) {
-			setStartDateString(startDate.toString(true));
-		} else {
-			setStartDateString("-");
-		}
-		
-		setEndDate(endDate);
-		if (endDate != null) {
-			setEndDateString(endDate.toString(false));
-		} else {
-			setEndDateString("-");
-		}
-		
-		setWorkInfo(workInfo);
-		setTag(tag);
-		this.indexId = indexId;
-		setStatus(status);
-		latestModifiedDate =new CustomDate();
+		updateLatestModifiedDate();
 	}
 
 	/**
@@ -144,6 +136,13 @@ public class Task implements Comparable<Task> {
 		}
 	}
 
+	/**
+	 * Update the start date to new date with given difference in milliseconds
+	 * between the new and the old ones
+	 * 
+	 * @param difference
+	 *            time between 2 dates
+	 */
 	private void updateStartDate(long difference) {
 		CustomDate startDate = getStartDate();
 		startDate.setTimeInMillis(startDate.getTimeInMillis() + difference);
@@ -151,6 +150,13 @@ public class Task implements Comparable<Task> {
 		setStartDateString(getStartDate().toString(IS_START_DATE));
 	}
 
+	/**
+	 * Update the end date to new date with given difference in milliseconds
+	 * between the new and the old ones
+	 * 
+	 * @param difference
+	 *            time between 2 dates
+	 */
 	private void updateEndDate(long difference) {
 		CustomDate endDate = getEndDate();
 		endDate.setTimeInMillis(endDate.getTimeInMillis() + difference);
@@ -158,6 +164,11 @@ public class Task implements Comparable<Task> {
 		setEndDateString(getEndDate().toString(IS_END_DATE));
 	}
 
+	/**
+	 * This function is used to check whether this task is a repetitive task
+	 * 
+	 * @return true if this is indeed a recurring task, vice versa
+	 */
 	public boolean isRecurringTask() {
 		return tag.get().getRepetition().equals(Parser.NULL);
 	}
@@ -245,8 +256,8 @@ public class Task implements Comparable<Task> {
 	public Status getStatus() {
 		return status;
 	}
-	
-	public CustomDate getLatestModifiedDate(){
+
+	public CustomDate getLatestModifiedDate() {
 		return latestModifiedDate;
 	}
 
@@ -298,13 +309,12 @@ public class Task implements Comparable<Task> {
 	public void setIndexInList(int index) {
 		indexInList = index;
 	}
-	
-	public void setLatestModifiedDate(CustomDate modifiedDate){
+
+	public void setLatestModifiedDate(CustomDate modifiedDate) {
 		latestModifiedDate = modifiedDate;
 	}
-	
-	
-	public void updateLatestModifiedDate(){
+
+	public void updateLatestModifiedDate() {
 		latestModifiedDate = new CustomDate();
 	}
 }
