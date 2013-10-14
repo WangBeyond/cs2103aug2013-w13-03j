@@ -286,11 +286,7 @@ public class View implements HotkeyListener {
 		multiColorCommand = new HBox();
 		Pane temp = new Pane();
 		temp2.setSpacing(10);
-		try{
-			robot = new Robot();
-		} catch(Exception e) {
-			System.out.println(e);
-		}
+		
 		
 		commandLine = new TextField();
 		commandLine.setPrefWidth(630);
@@ -333,22 +329,14 @@ public class View implements HotkeyListener {
 			text.setFill(colors[info.getInfoType() + 2]);
 			// System.out.print(info.getInfo()+" "+info.getInfoType()+"  ");
 		}
-		/*if(multiColorCommand.getWidth() > COMMAND_MAX_WIDTH || 
-				(multiColorCommand.getWidth() < 0 && temporaryCommand.length()>10 && textList.get(0).getText().length()>0)) {
-			for(int j = 0; j<textList.size(); j++)
-				System.out.print(textList.get(j).getText() + " ");
-			System.out.println(multiColorCommand.getWidth());
-			//checkCommandMaxWidth();
-			commandLine.setText(temporaryCommand.substring(0,temporaryCommand.length()-1));
-			
-		}*/
-		// System.out.println();
-		//for (int i = 5; i < textList.size(); i++) {
-		//	textList.get(i).setLayoutX(10);
-		//}
+		
+
+		for (int i = 5; i < textList.size(); i++) {
+			textList.get(i).setLayoutX(10);
+		}
 		displayCursor();
 	}
-	
+	/*
 	public void checkCommandMaxWidth() {
 		System.out.println("check max");
 		for(int i = 0; i < textList.size(); i++) {
@@ -372,7 +360,7 @@ public class View implements HotkeyListener {
 			System.out.println(multiColorCommand.getWidth());
 		}
 	}
-	
+	*/
 	private void createCenterSection() {
 		createTabPane();
 
