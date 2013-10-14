@@ -50,6 +50,7 @@ public class Control extends Application {
 			KeyCodeCombination.ALT_DOWN);
 	
 	public Model modelHandler = new Model();
+	public Synchronization sync = new Synchronization();
 	public History commandHistory = new History();
 	public View view;
 	private Store dataFile;
@@ -402,8 +403,8 @@ public class Control extends Application {
 			// return executeSettingsCommand(parsedUserCommand);
 		case HELP:
 			return executeHelpCommand();
-			// case SYNC:
-			// return executeSyncCommand(parsedUserCommand);
+		case SYNC:
+			return executeSyncCommand(parsedUserCommand);
 		case EXIT:
 			return executeExitCommand();
 		case INVALID:
@@ -606,6 +607,11 @@ public class Control extends Application {
 	private String executeShowCommand() {
 		Command showCommand = new ShowAllCommand(modelHandler, view);
 		return showCommand.execute();
+	}
+	
+	private String executeSyncCommand(String[] parsedUserCommand) {
+		Command syncCommand = new SyncCommand(parsedUserCommand, modelHandler, sync);
+		return syncCommand.execute();
 	}
 
 	private boolean successfulExecution(String feedback) {
