@@ -4,6 +4,7 @@ import java.awt.PopupMenu;
 import java.awt.SystemTray;
 import java.awt.TrayIcon;
 import java.awt.event.ActionListener;
+import java.awt.Robot;
 import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -98,7 +99,11 @@ public class View implements HotkeyListener {
 	double dragAnchorY;
 
 	// colored text sequences
-	public ArrayList<Text> textList = new ArrayList<Text>();
+	ArrayList<Text> textList = new ArrayList<Text>();
+	HBox multiColorCommand;
+	HBox multiColorCommandFront;
+	HBox multiColorCommandRear;
+	static final int COMMAND_MAX_WIDTH = 605;
 	// Color indicatin: darkgrey: uselessInfo, green: commandType, black:
 	// workflow, orange: TAG, blue: startTime,
 	// darkcyan: endTime, red: impt, darkkhaki: repeating, purple: index
@@ -111,6 +116,7 @@ public class View implements HotkeyListener {
 			"modify", "search", "find", "clear", "mark", "unmark", "complete",
 			"incomplete", "all", "list", "today", "help" };
 	public HBox feedbacks;
+	Robot robot;
 	private static Color IDO_GREEN = Color.rgb(130, 255, 121);
 	// private HBox multiColorCommand;
 
@@ -275,12 +281,17 @@ public class View implements HotkeyListener {
 
 	private HBox createNewUpperPartInBottom() {
 		HBox temp2 = new HBox();
-		HBox multiColorCommandFront = new HBox();
-		HBox multiColorCommandRear = new HBox();
-		HBox multiColorCommand = new HBox();
+		multiColorCommandFront = new HBox();
+		multiColorCommandRear = new HBox();
+		multiColorCommand = new HBox();
 		Pane temp = new Pane();
 		temp2.setSpacing(10);
-
+		try{
+			robot = new Robot();
+		} catch(Exception e) {
+			System.out.println(e);
+		}
+		
 		commandLine = new TextField();
 		commandLine.setPrefWidth(630);
 		commandLine.setStyle("-fx-text-fill: darkgrey;");
@@ -322,13 +333,46 @@ public class View implements HotkeyListener {
 			text.setFill(colors[info.getInfoType() + 2]);
 			// System.out.print(info.getInfo()+" "+info.getInfoType()+"  ");
 		}
+		/*if(multiColorCommand.getWidth() > COMMAND_MAX_WIDTH || 
+				(multiColorCommand.getWidth() < 0 && temporaryCommand.length()>10 && textList.get(0).getText().length()>0)) {
+			for(int j = 0; j<textList.size(); j++)
+				System.out.print(textList.get(j).getText() + " ");
+			System.out.println(multiColorCommand.getWidth());
+			//checkCommandMaxWidth();
+			commandLine.setText(temporaryCommand.substring(0,temporaryCommand.length()-1));
+			
+		}*/
 		// System.out.println();
-		for (int i = 5; i < textList.size(); i++) {
-			textList.get(i).setLayoutX(10);
-		}
+		//for (int i = 5; i < textList.size(); i++) {
+		//	textList.get(i).setLayoutX(10);
+		//}
 		displayCursor();
 	}
-
+	
+	public void checkCommandMaxWidth() {
+		System.out.println("check max");
+		for(int i = 0; i < textList.size(); i++) {
+			String str = textList.get(i).getText();
+			textList.get(i).setText("");
+			multiColorCommand.getChildren().removeAll(multiColorCommandFront,multiColorCommandRear);
+			multiColorCommand.getChildren().addAll(multiColorCommandFront,multiColorCommandRear);
+			if (multiColorCommand.getWidth() <= COMMAND_MAX_WIDTH && multiColorCommand.getWidth() >= 0) {
+				for(int j = str.length()-1; j > 0; j--) {
+					textList.get(i).setText(str.substring(j, str.length()));
+					if(multiColorCommand.getWidth() > COMMAND_MAX_WIDTH || multiColorCommand.getWidth() < 0) {
+						textList.get(i).setText(str.substring(j+1, str.length()));
+						System.out.println("final text  "+str.substring(j+1, str.length()));
+						return ;
+					}
+				}
+			}
+			System.out.print("check textList ");
+			for(int j = 0; j<textList.size(); j++)
+				System.out.print(textList.get(j).getText() + " ");
+			System.out.println(multiColorCommand.getWidth());
+		}
+	}
+	
 	private void createCenterSection() {
 		createTabPane();
 

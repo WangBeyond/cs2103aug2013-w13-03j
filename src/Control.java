@@ -184,16 +184,46 @@ public class Control extends Application {
 					updateFeedback(feedback);
 					e.consume();
 				}
-				updateMultiColorCommandWhenInputPressed(e);
+				String command = view.commandLine.getText();
+				if(view.multiColorCommand.getWidth() > view.COMMAND_MAX_WIDTH || 
+						(view.multiColorCommand.getWidth() < 0 && command.length()>10 && view.textList.get(0).getText().length()>0)) {
+					view.hideCursor();
+				} else
+					updateMultiColorCommandWhenInputPressed(e);
 			}
 		});
 		view.commandLine.setOnKeyReleased(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent e) {
+				System.out.println(view.textList.get(9).getLayoutX()+" "+view.multiColorCommand.getWidth()+
+						"/"+view.multiColorCommand.getMaxWidth()+" "+view.multiColorCommand.getScaleX());
 				keyCode = e.getCode();
 				String command = view.commandLine.getText();
 				if (isCommandCompleted)
 					command = finishWordCompletion(command);
-				view.updateMultiColorCommand(command);
+				System.out.print("check release1  ");
+				for(int i = 0; i<view.textList.size(); i++)
+					System.out.print(view.textList.get(i).getText() + " ");
+				System.out.println(view.multiColorCommand.getWidth());
+				if(view.multiColorCommand.getWidth() > view.COMMAND_MAX_WIDTH || 
+						(view.multiColorCommand.getWidth() < 0 && command.length()>10 && view.textList.get(0).getText().length()>0)) {
+					for(int j = 0; j<view.textList.size(); j++)
+						System.out.print(view.textList.get(j).getText() + " ");
+					System.out.println(view.multiColorCommand.getWidth());
+					//checkCommandMaxWidth();
+					view.commandLine.setText(command.substring(0,command.length()-1));
+					setCaretPosition(command.length()-1);
+					view.emptyFeedback(0);
+					view.setFeedbackStyle(0, "Max length of command", Color.WHITE);
+					view.displayCursor();
+				} 
+				else
+					view.updateMultiColorCommand(command);
+				//
+				System.out.print("check release  ");
+				for(int i = 0; i<view.textList.size(); i++)
+					System.out.print(view.textList.get(i).getText() + " ");
+				System.out.println(view.multiColorCommand.getWidth());
+				//
 				if (Parser.determineCommandType(command) == Parser.COMMAND_TYPES.SEARCH)
 					realTimeSearch(command, e.getCode());
 				else if (Parser.determineCommandType(command) == Parser.COMMAND_TYPES.REMOVE) {
@@ -291,6 +321,15 @@ public class Control extends Application {
 				}
 			}
 		}
+		/*if(view.multiColorCommand.getWidth() > view.COMMAND_MAX_WIDTH 
+				|| (view.multiColorCommand.getWidth() < 0 && view.commandLine.getText().length()>10 && view.textList.get(0).getText().length()>0)) {
+			System.out.println("check "+view.commandLine.getWidth());
+			view.checkCommandMaxWidth();
+		}*/
+		System.out.print("check press  ");
+		for(int i = 0; i<view.textList.size(); i++)
+			System.out.print(view.textList.get(i).getText() + " ");
+		System.out.println(view.multiColorCommand.getWidth());
 	}
 
 	private void setCaretPosition(int position) {
