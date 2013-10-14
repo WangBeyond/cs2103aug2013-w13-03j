@@ -7,6 +7,8 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.TimeZone;
 
+import javafx.collections.ObservableList;
+
 import com.google.gdata.client.calendar.CalendarService;
 import com.google.gdata.data.DateTime;
 import com.google.gdata.data.Link;
@@ -32,17 +34,14 @@ public class Synchronization {
 	/*messages*/
 	private static final String CALENDAR_TITLE = "iDo";
 	private static final String CALENDAR_SUMMARY = "This calendar synchronizes with iDo Task Manager.";
-	private static final String SERVICE_NAME = "sg.nus.edu.cs2103aug2013-w13-03j";
-	
-	/*types of task status*/
-	
-	public static enum Status {
-		UNCHANGED, NEWLY_ADDED, DELETED
-	}
+	private static final String SERVICE_NAME = "sg.edu.nus.cs2103aug2013-w13-03j";
 	
 	/*use username and password to login*/
 	 String username = null;
 	 String password = null;
+	 
+	/*model*/
+	Model model;
 	
 	/*calendar id*/
 	 String calendarId = null;
@@ -65,21 +64,25 @@ public class Synchronization {
 	private List<CalendarEventEntry> eventEntry = new ArrayList<CalendarEventEntry>();
 	
 	/*a list of tasks which have been deleted locally since last synchronization*/
-	private ArrayList<String> deletedTasksId = new ArrayList<String>();
+	private List<Task> deletedTasks;
 	
 	/*a list of tasks which have been added locally since last synchronization*/
-	private ArrayList<Task> newlyAddedTasks = new ArrayList<Task>();
+	private List<Task> newlyAddedTasks;
 	
-	private ArrayList<Task> remainingTasks = new ArrayList<Task>();
+	private List<Task> unchangedTasks;
 	
-	public Synchronization(String n, String p){
+	public Synchronization(String n, String p, Model model){
 		username = n;
 		password = p;
+		this.model = model;
 	}
 	
 	public void execute() throws IOException, ServiceException{
 		//initialize
 		init();
+		
+		//process model
+		processModel(model);
 		
 		//form feed url
 		eventFeedUrl = formEventFeedUrl(service);
@@ -91,13 +94,29 @@ public class Synchronization {
 		syncNewTasksToGCal(service, newlyAddedTasks, eventFeedUrl);
 		
 		//delete events on GCal which have been deleted locally
-		snycDeletedTasksToGCal(service, deletedTasksId, eventEntry, eventFeedUrl);
+		snycDeletedTasksToGCal(service, deletedTasks, eventEntry, eventFeedUrl);
 		
 		//delete tasks locally which have been deleted on GCal
-		deleteTasksLocally(remainingTasks, eventEntry);
+		deleteTasksLocally(unchangedTasks, eventEntry);
 		
 		//add tasks locally which have been added on GCal
-		addEventsLocally(remainingTasks, eventEntry);
+		addEventsLocally(unchangedTasks, eventEntry);
+	}
+	
+	void processModel(Model model){
+		List<Task> temp = model.getPendingList();
+		for(int i=0;i<temp.size();i++){
+			if(temp.get(i).getStatus().equals(Task.Status.UNCHANGED)){
+				unchangedTasks.add(temp.get(i));
+			} else if(temp.get(i).getStatus().equals(Task.Status.NEWLY_ADDED)){
+				newlyAddedTasks.add(temp.get(i));
+			} else {
+				throw new Error("something");
+			}
+		}
+		
+		deletedTasks = model.getCompleteList();
+		deletedTasks.addAll(model.getTrashList());
 	}
 	
 	void init() throws AuthenticationException{
@@ -122,9 +141,9 @@ public class Synchronization {
 		return temp[temp.length-1].toString();
 	}
 	
-	private void syncNewTasksToGCal(CalendarService service, ArrayList<Task> tasks, URL feedUrl) throws ServiceException, IOException{
-		for(int i=0; i<tasks.size(); i++){
-			Task task = tasks.get(i);
+	void syncNewTasksToGCal(CalendarService service, List<Task> newlyAddedTasks, URL feedUrl) throws ServiceException, IOException{
+		for(int i=0; i<newlyAddedTasks.size(); i++){
+			Task task = newlyAddedTasks.get(i);
 			if(task.isRecurringTask()){
 				createRecurringEvent(service, task.getWorkInfo(), task.getStartDate(), task.getEndDate(), "WEEKLY", feedUrl);
 			} else {
@@ -133,11 +152,11 @@ public class Synchronization {
 		}
 	}
 	
-	private void snycDeletedTasksToGCal(CalendarService service, ArrayList<String> tasksId, List<CalendarEventEntry> entries, URL feedUrl) throws ServiceException, IOException{
+	private void snycDeletedTasksToGCal(CalendarService service, List<Task> tasks, List<CalendarEventEntry> entries, URL feedUrl) throws ServiceException, IOException{
 		List<CalendarEventEntry> tobeDelete = new ArrayList<CalendarEventEntry>();
-		for(int i=0; i<tasksId.size(); i++){
+		for(int i=0; i<tasks.size(); i++){
 			for(int j=0; j<entries.size();j++){
-				if(tasksId.get(i).equals(entries.get(j).getId())){
+				if(tasks.get(i).equals(entries.get(j).getId())){
 					tobeDelete.add(entries.get(j));
 					break;
 				}
@@ -146,7 +165,7 @@ public class Synchronization {
 		deleteEvents(service, tobeDelete, feedUrl);
 	}
 	
-	private void deleteTasksLocally(ArrayList<Task> remainingTasks, List<CalendarEventEntry> entries){
+	private void deleteTasksLocally(List<Task> remainingTasks, List<CalendarEventEntry> entries){
 		ArrayList<String> entryId = new ArrayList<String>();
 		for(int i=0;i<entries.size();i++){
 			entryId.add(entries.get(i).getId());
@@ -158,7 +177,7 @@ public class Synchronization {
 		}
 	}
 	
-	private void addEventsLocally(ArrayList<Task> remainingTasks, List<CalendarEventEntry> entries){
+	private void addEventsLocally(List<Task> remainingTasks, List<CalendarEventEntry> entries){
 		ArrayList<String> entryId = new ArrayList<String>();
 		ArrayList<String> taskId = new ArrayList<String>();
 		for(int i=0;i<entries.size();i++){
@@ -188,7 +207,7 @@ public class Synchronization {
 	   * @throws IOException If there is a problem communicating with the server.
 	   * @throws ServiceException If the service is unable to handle the request.
 	   */
-	  private CalendarEntry createCalendar(CalendarService service, URL owncalendarsFeedUrl)
+	  CalendarEntry createCalendar(CalendarService service, URL owncalendarsFeedUrl)
 	      throws IOException, ServiceException {
 
 		Calendar cal = new GregorianCalendar();
@@ -228,7 +247,6 @@ public class Synchronization {
 
 	    myEntry.setTitle(new PlainTextConstruct(title));
 	    myEntry.setQuickAdd(isQuickAdd);
-	    myEntry.setContent(new PlainTextConstruct("hahhahah"));
 
 	    // If a recurrence was requested, add it. Otherwise, set the
 	    // time (the current date and time) and duration (30 minutes)
