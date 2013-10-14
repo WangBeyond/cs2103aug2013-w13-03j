@@ -71,20 +71,18 @@ public class Synchronization {
 	
 	private List<Task> unchangedTasks;
 	
-	public Synchronization(String n, String p, Model model){
+	public Synchronization(){
+	}
+	
+	public void setUsernameAndPassword(String n, String p){
 		username = n;
 		password = p;
-		this.model = model;
+	}
+	public void setModel(Model m){
+		model = m;
 	}
 	
 	public void execute() {
-		//initialize
-		try {
-			init();
-		} catch (AuthenticationException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
 		
 		//process model
 		processModel(model);
@@ -119,6 +117,7 @@ public class Synchronization {
 			e.printStackTrace();
 		}
 		
+		try{
 		//delete events on GCal which have been deleted locally
 		snycDeletedTasksToGCal(service, deletedTasks, eventEntry, eventFeedUrl);
 		} catch (ServiceException e) {
@@ -152,7 +151,9 @@ public class Synchronization {
 		deletedTasks.addAll(model.getTrashList());
 	}
 	
-	void init() throws AuthenticationException{
+	public void init(String n, String p, Model model) throws AuthenticationException{
+		setUsernameAndPassword(n, p);
+		setModel(model);
 		//create a new service
 		service = new CalendarService(SERVICE_NAME);
 		
