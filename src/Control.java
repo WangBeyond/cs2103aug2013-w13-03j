@@ -48,13 +48,13 @@ public class Control extends Application {
 	static final KeyCombination redo_hot_key = new KeyCodeCombination(
 			KeyCode.Y, KeyCodeCombination.CONTROL_DOWN,
 			KeyCodeCombination.ALT_DOWN);
-	
+
 	public Model modelHandler = new Model();
 	public Synchronization sync = new Synchronization();
 	public History commandHistory = new History();
 	public View view;
 	private Store dataFile;
-	//private Store syncFile;
+	// private Store syncFile;
 
 	static boolean isRealTime = false;
 	static boolean isRealTimeSearch = false;
@@ -81,8 +81,8 @@ public class Control extends Application {
 		try {
 			dataFile = new DataStorage("dataStorage.txt", modelHandler);
 			dataFile.loadFromFile();
-			//syncFile = new SyncStorage("syncFile.txt", modelHandler);
-			//syncFile.loadFromFile();
+			// syncFile = new SyncStorage("syncFile.txt", modelHandler);
+			// syncFile.loadFromFile();
 		} catch (IOException e) {
 			System.out.println("Cannot read the given file");
 		}
@@ -185,46 +185,17 @@ public class Control extends Application {
 					updateFeedback(feedback);
 					e.consume();
 				}
-				String command = view.commandLine.getText();
-				if(view.multiColorCommand.getWidth() > view.COMMAND_MAX_WIDTH || 
-						(view.multiColorCommand.getWidth() < 0 && command.length()>10 && view.textList.get(0).getText().length()>0)) {
-					view.hideCursor();
-				} else
-					updateMultiColorCommandWhenInputPressed(e);
+				updateMultiColorCommandWhenInputPressed(e);
+
 			}
 		});
 		view.commandLine.setOnKeyReleased(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent e) {
-				System.out.println(view.textList.get(9).getLayoutX()+" "+view.multiColorCommand.getWidth()+
-						"/"+view.multiColorCommand.getMaxWidth()+" "+view.multiColorCommand.getScaleX());
 				keyCode = e.getCode();
 				String command = view.commandLine.getText();
 				if (isCommandCompleted)
 					command = finishWordCompletion(command);
-				System.out.print("check release1  ");
-				for(int i = 0; i<view.textList.size(); i++)
-					System.out.print(view.textList.get(i).getText() + " ");
-				System.out.println(view.multiColorCommand.getWidth());
-				if(view.multiColorCommand.getWidth() > view.COMMAND_MAX_WIDTH || 
-						(view.multiColorCommand.getWidth() < 0 && command.length()>10 && view.textList.get(0).getText().length()>0)) {
-					for(int j = 0; j<view.textList.size(); j++)
-						System.out.print(view.textList.get(j).getText() + " ");
-					System.out.println(view.multiColorCommand.getWidth());
-					//checkCommandMaxWidth();
-					view.commandLine.setText(command.substring(0,command.length()-1));
-					setCaretPosition(command.length()-1);
-					view.emptyFeedback(0);
-					view.setFeedbackStyle(0, "Max length of command", Color.WHITE);
-					view.displayCursor();
-				} 
-				else
-					view.updateMultiColorCommand(command);
-				//
-				System.out.print("check release  ");
-				for(int i = 0; i<view.textList.size(); i++)
-					System.out.print(view.textList.get(i).getText() + " ");
-				System.out.println(view.multiColorCommand.getWidth());
-				//
+				view.updateMultiColorCommand(command);
 				if (Parser.determineCommandType(command) == Parser.COMMAND_TYPES.SEARCH)
 					realTimeSearch(command, e.getCode());
 				else if (Parser.determineCommandType(command) == Parser.COMMAND_TYPES.REMOVE) {
@@ -322,15 +293,6 @@ public class Control extends Application {
 				}
 			}
 		}
-		/*if(view.multiColorCommand.getWidth() > view.COMMAND_MAX_WIDTH 
-				|| (view.multiColorCommand.getWidth() < 0 && view.commandLine.getText().length()>10 && view.textList.get(0).getText().length()>0)) {
-			System.out.println("check "+view.commandLine.getWidth());
-			view.checkCommandMaxWidth();
-		}*/
-		System.out.print("check press  ");
-		for(int i = 0; i<view.textList.size(); i++)
-			System.out.print(view.textList.get(i).getText() + " ");
-		System.out.println(view.multiColorCommand.getWidth());
 	}
 
 	private void setCaretPosition(int position) {
@@ -420,33 +382,34 @@ public class Control extends Application {
 			executeShowCommand();
 		else {
 			try {
-				if(Parser.isValidDate(Parser.getLastWord(command)) != -1)
+				if (Parser.isValidDate(Parser.getLastWord(command)) != -1)
 					throw new Exception();
-				Integer.valueOf(Parser.getLastWord(command).substring(0,1));
-				if(!isDateKeySearched)
+				Integer.valueOf(Parser.getLastWord(command).substring(0, 1));
+				if (!isDateKeySearched)
 					executeCommand(command);
 				isRealTimeSearch = true;
 			} catch (Exception e) {
 				executeCommand(command);
-				if(Parser.isValidDate(Parser.getLastWord(command)) != -1)
+				if (Parser.isValidDate(Parser.getLastWord(command)) != -1)
 					setDateKeySearched(true);
 				isRealTimeSearch = true;
 			}
 		}
 	}
-	
+
 	static void setDateKeySearched(boolean isSearched) {
 		isDateKeySearched = isSearched;
 	}
-	
-	private String executeAddCommand(String[] parsedUserCommand) throws IOException {
+
+	private String executeAddCommand(String[] parsedUserCommand)
+			throws IOException {
 		int tabIndex = view.getTabIndex();
 		Command s = new AddCommand(parsedUserCommand, modelHandler, tabIndex);
 		String feedback = s.execute();
 		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_ADD)) {
 			commandHistory.updateCommand((TwoWayCommand) s);
 			dataFile.storeToFile();
-			//syncFile.storeToFile();
+			// syncFile.storeToFile();
 			view.setTab(0);
 			executeShowCommand();
 		}
@@ -476,7 +439,7 @@ public class Control extends Application {
 		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_REMOVE)) {
 			commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
 			dataFile.storeToFile();
-			//syncFile.storeToFile();
+			// syncFile.storeToFile();
 			executeShowCommand();
 		}
 		return feedback;
@@ -656,8 +619,8 @@ public class Control extends Application {
 		Collections.sort(list);
 		updateIndexInList(list);
 	}
-	
-	private static void updateIndexInList(ObservableList<Task> list){
+
+	private static void updateIndexInList(ObservableList<Task> list) {
 		for (int i = 0; i < list.size(); i++) {
 			list.get(i).setIndexInList(i);
 		}
