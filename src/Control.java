@@ -609,6 +609,10 @@ public class Control extends Application {
 
 	public static void sortList(ObservableList<Task> list) {
 		Collections.sort(list);
+		updateIndexInList(list);
+	}
+	
+	private static void updateIndexInList(ObservableList<Task> list){
 		for (int i = 0; i < list.size(); i++) {
 			list.get(i).setIndexInList(i);
 		}
