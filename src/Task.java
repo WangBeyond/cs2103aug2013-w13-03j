@@ -260,6 +260,18 @@ public class Task implements Comparable<Task> {
 	public CustomDate getLatestModifiedDate() {
 		return latestModifiedDate;
 	}
+	
+	public boolean hasNewlyAddedStatus(){
+		return status == Status.NEWLY_ADDED;
+	}
+	
+	public boolean hasDeletedStatus(){
+		return status == Status.DELETED;
+	}
+	
+	public boolean hasUnchangedStatus(){
+		return status == Status.UNCHANGED;
+	}
 
 	/*************************************** Set Value Functions ****************************************/
 	public void setIsImportant(boolean isImportant) {

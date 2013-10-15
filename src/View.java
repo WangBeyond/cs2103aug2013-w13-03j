@@ -358,6 +358,7 @@ public class View implements HotkeyListener {
 			isUpdated = true;
 			newChar = null;
 		}
+		
 		if(multiColorCommand.getWidth()>400)
 			checkCommandMaxWidth();
 		/*
@@ -661,6 +662,8 @@ public class View implements HotkeyListener {
 								if (item != null) {
 									if (item.equals("OVERDUE")) {
 										setId("overdue");
+									} else{
+										setId("empty");
 									}
 
 									setText(item);
