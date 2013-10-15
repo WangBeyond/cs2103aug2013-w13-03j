@@ -1,6 +1,9 @@
 import java.util.Stack;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 class History {
+	private static Logger log = Logger.getLogger("History");
 	private Stack<TwoWayCommand> prevCommandsForUndo;
 	private Stack<TwoWayCommand> prevCommandsForRedo;
 	private boolean undoable;
@@ -42,6 +45,7 @@ class History {
 	public TwoWayCommand getPrevCommandForUndo() {
 		TwoWayCommand previousCommand = prevCommandsForUndo.pop();
 		prevCommandsForRedo.push(previousCommand);
+		log.log(Level.INFO, "Moved one previous command from undo to redo.");
 		redoable = true;
 		if (prevCommandsForUndo.empty()){
 			undoable = false;
@@ -52,6 +56,7 @@ class History {
 	public TwoWayCommand getPrevCommandForRedo(){
 		TwoWayCommand previousCommand = prevCommandsForRedo.pop();
 		prevCommandsForUndo.push(previousCommand);
+		log.log(Level.INFO, "Moved one previous command from redo to undo.");
 		undoable = true;
 		if (prevCommandsForRedo.empty()){
 			redoable = false;
@@ -64,6 +69,7 @@ class History {
 		if (!prevCommandsForRedo.empty()){
 			prevCommandsForRedo.clear();
 		}
+		log.log(Level.INFO, "Cleared redo stack and added new command to undo stack.");
 		undoable = true;
 		redoable = false;
 	}
@@ -73,6 +79,7 @@ class History {
 		if (!prevCommandsForRedo.empty()){
 			prevCommandsForRedo.clear();
 		}
+		log.log(Level.INFO, "Cleared redo stack and added new command to undo stack.");
 		undoable = true;
 		redoable = false;
 		isOperatedAfterSearch = isAfter;

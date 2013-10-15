@@ -256,6 +256,7 @@ class AddCommand extends TwoWayCommand {
 
 	public AddCommand(String[] parsedUserCommand, Model model, int tabIndex) throws IllegalArgumentException {
 		super(model, tabIndex);
+		assert parsedUserCommand != null;
 		boolean isImportant = parsedUserCommand[4].equals(Parser.TRUE);
 
 		workInfo = parsedUserCommand[0];
@@ -302,19 +303,20 @@ class AddCommand extends TwoWayCommand {
 		int index = model.getIndexFromPending(task);
 		model.removeTaskFromPendingNoTrash(index);
 		Control.sortList(model.getPendingList());
+		assert model.getTaskFromPending(index).equals(task);
 		return MESSAGE_SUCCESSFUL_UNDO;
 	}
 	
 	private void setTag(boolean isRepetitive){
 		if (tag.equals(Parser.NULL) || tag.equals(HASH_TAG)) {
 			if (isRepetitive) {
-				task.setTag(new Tag(Parser.HYPHEN, repeatingType));
+				task.setTag(new Tag(HYPHEN, repeatingType));
 			} else {
-				task.setTag(new Tag(Parser.HYPHEN, Parser.NULL));
+				task.setTag(new Tag(HYPHEN, Parser.NULL));
 			}
 		} else {
 			if (isRepetitive) {
-				task.setTag(new Tag(Parser.HYPHEN, Parser.NULL));
+				task.setTag(new Tag(HYPHEN, Parser.NULL));
 			} else {
 				task.setTag(new Tag(tag, Parser.NULL));
 			}
@@ -340,6 +342,7 @@ class EditCommand extends TwoWayCommand {
 
 	public EditCommand(String[] parsedUserCommand, Model model, int tabIndex) {
 		super(model, tabIndex);
+		assert parsedUserCommand != null;
 		modifiedList = getModifiedList(tabIndex);
 		
 		index = Integer.parseInt(parsedUserCommand[0]);
@@ -416,7 +419,7 @@ class EditCommand extends TwoWayCommand {
 				targetTask.getTag().setTag(HYPHEN);
 			}
 		} else {
-			targetTask.setTag(new Tag("-", repeatingType));
+			targetTask.setTag(new Tag(HYPHEN, repeatingType));
 		}
 	}
 	
@@ -457,15 +460,16 @@ class EditCommand extends TwoWayCommand {
 class RemoveCommand extends IndexCommand {
 	ArrayList<Task> removedTaskInfo;
 
-	public RemoveCommand(String[] userParsedCommand, Model model, int tabIndex) {
+	public RemoveCommand(String[] parsedUserCommand, Model model, int tabIndex) {
 		super(model, tabIndex);
+		assert parsedUserCommand != null;
 		removedTaskInfo = new ArrayList<Task>();
 		modifiedList = getModifiedList(tabIndex);
-		indexCount = userParsedCommand.length;
+		indexCount = parsedUserCommand.length;
 		
 		indexList = new int[indexCount];
 		for (int i = 0; i < indexCount; i++) {
-			indexList[i] = Integer.valueOf(userParsedCommand[i]);
+			indexList[i] = Integer.valueOf(parsedUserCommand[i]);
 		}
 	}
 
@@ -596,16 +600,17 @@ class CompleteCommand extends IndexCommand {
 	Task[] toCompleteTasks;
 	int[] indexInCompleteList;
 
-	public CompleteCommand(String[] userParsedCommand, Model model, int tabIndex) {
+	public CompleteCommand(String[] parsedUserCommand, Model model, int tabIndex) {
 		super(model, tabIndex);
+		assert parsedUserCommand != null;
 		modifiedList = this.model.getPendingList();
-		indexCount = userParsedCommand.length;
+		indexCount = parsedUserCommand.length;
 		indexList = new int[indexCount];
 		indexInCompleteList = new int[indexCount];
 		toCompleteTasks = new Task[indexCount];
 		
 		for (int i = 0; i < indexCount; i++) {
-			indexList[i] = Integer.valueOf(userParsedCommand[i]);
+			indexList[i] = Integer.valueOf(parsedUserCommand[i]);
 		}
 	}
 
@@ -670,17 +675,18 @@ class IncompleteCommand extends IndexCommand {
 	int[] indexInIncompleteList;
 
 
-	public IncompleteCommand(String[] userParsedCommand, Model model,
+	public IncompleteCommand(String[] parsedUserCommand, Model model,
 			int tabIndex) {
 		super(model, tabIndex);
+		assert parsedUserCommand != null;
 		modifiedList = this.model.getCompleteList();
-		indexCount = userParsedCommand.length;
+		indexCount = parsedUserCommand.length;
 		indexInIncompleteList = new int[indexCount];
 		toIncompleteTasks = new Task[indexCount];
 
 		indexList = new int[indexCount];
 		for (int i = 0; i < indexCount; i++) {
-			indexList[i] = Integer.valueOf(userParsedCommand[i]);
+			indexList[i] = Integer.valueOf(parsedUserCommand[i]);
 		}
 	}
 
@@ -746,13 +752,14 @@ class MarkCommand extends IndexCommand {
 	int[] indexList;
 	int indexCount;
 
-	public MarkCommand(String[] userParsedCommand, Model model, int tabIndex) {
+	public MarkCommand(String[] parsedUserCommand, Model model, int tabIndex) {
 		super(model, tabIndex);
+		assert parsedUserCommand != null;
 		modifiedList = getModifiedList(tabIndex);
-		int indexCount = userParsedCommand.length;
+		int indexCount = parsedUserCommand.length;
 		indexList = new int[indexCount];
 		for (int i = 0; i < indexCount; i++) {
-			indexList[i] = Integer.valueOf(userParsedCommand[i]);
+			indexList[i] = Integer.valueOf(parsedUserCommand[i]);
 		}
 	}
 
@@ -787,13 +794,14 @@ class UnmarkCommand extends IndexCommand {
 	int[] indexList;
 	int indexCount;
 
-	public UnmarkCommand(String[] userParsedCommand, Model model, int tabIndex) {
+	public UnmarkCommand(String[] parsedUserCommand, Model model, int tabIndex) {
 		super(model, tabIndex);
+		assert parsedUserCommand != null;
 		modifiedList = getModifiedList(tabIndex);
-		int indexCount = userParsedCommand.length;
+		int indexCount = parsedUserCommand.length;
 		indexList = new int[indexCount];
 		for (int i = 0; i < indexCount; i++) {
-			indexList[i] = Integer.valueOf(userParsedCommand[i]);
+			indexList[i] = Integer.valueOf(parsedUserCommand[i]);
 		}
 	}
 
@@ -841,6 +849,7 @@ class SearchCommand extends Command {
 
 	public SearchCommand(String[] parsedUserCommand, Model model, View view, boolean isRealTimeSearch) {
 		super(model, view.getTabIndex());
+		assert parsedUserCommand != null;
 		this.view = view;
 		this.isRealTimeSearch = isRealTimeSearch;
 		workInfo = parsedUserCommand[0];
