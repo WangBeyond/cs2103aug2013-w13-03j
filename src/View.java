@@ -22,6 +22,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
@@ -101,9 +102,17 @@ public class View implements HotkeyListener {
 	// colored text sequences
 	ArrayList<Text> textList = new ArrayList<Text>();
 	HBox multiColorCommand;
-	HBox multiColorCommandFront;
-	HBox multiColorCommandRear;
-	static final int COMMAND_MAX_WIDTH = 605;
+	HBox temp3;
+
+	static final int COMMAND_MAX_WIDTH = 613;
+	Timer timer;
+	int partIndex = 0;
+	int charIndex = 0;
+	boolean isChecked = false;
+	boolean  canGo = false;
+	boolean isCommandChopped = false;
+	String newChar;
+	boolean isUpdated = false;
 	// Color indicatin: darkgrey: uselessInfo, green: commandType, black:
 	// workflow, orange: TAG, blue: startTime,
 	// darkcyan: endTime, red: impt, darkkhaki: repeating, purple: index
@@ -281,17 +290,18 @@ public class View implements HotkeyListener {
 
 	private HBox createNewUpperPartInBottom() {
 		HBox temp2 = new HBox();
-		multiColorCommandFront = new HBox();
-		multiColorCommandRear = new HBox();
+		HBox multiColorCommandFront = new HBox();
+		HBox multiColorCommandRear = new HBox();
 		multiColorCommand = new HBox();
+		temp3 = new HBox();
 		Pane temp = new Pane();
 		temp2.setSpacing(10);
-		try{
+		try {
 			robot = new Robot();
-		} catch(Exception e) {
+		} catch (Exception e) {
 			System.out.println(e);
 		}
-		
+
 		commandLine = new TextField();
 		commandLine.setPrefWidth(630);
 		commandLine.setStyle("-fx-text-fill: darkgrey;");
@@ -312,67 +322,125 @@ public class View implements HotkeyListener {
 		multiColorCommandFront.setSpacing(-0.50001);
 		multiColorCommandRear.setSpacing(-0.50001);
 		multiColorCommand.setLayoutX(6.5);
-		multiColorCommand.setLayoutY(5);
+		temp3.setLayoutX(6.5);
+		//multiColorCommand.setLayoutY(5);
+		multiColorCommand.setLayoutY(0);
 		multiColorCommand.setSpacing(1);
-		temp.getChildren().addAll(commandLine, multiColorCommand);
+		multiColorCommand.setAlignment(Pos.CENTER_LEFT);
+		temp3.getChildren().add(multiColorCommand);
+		temp.getChildren().addAll(commandLine, temp3);
 		temp2.getChildren().addAll(temp, showOrHide);
 		return temp2;
 	}
 
 	void updateMultiColorCommand(String temporaryCommand) {
-		// System.out.println("command " + temporaryCommand);
-		emptyTextList();
-		ArrayList<InfoWithIndex> infoList = Parser.parseForView(
-				temporaryCommand, model, this);
-		for (int i = 0; i < infoList.size(); i++) {
-			InfoWithIndex info = infoList.get(i);
-			Text text = textList.get(i);
-			text.setText(info.getInfo());
-			text.setStyle("-fx-font: 15.0px Ubantu;");
-			text.setTextAlignment(TextAlignment.LEFT);
-			text.setFill(colors[info.getInfoType() + 2]);
-			// System.out.print(info.getInfo()+" "+info.getInfoType()+"  ");
+		System.out.println("update " + isCommandChopped+" "+newChar);
+		if(!isCommandChopped || newChar == null) {
+			emptyTextList();
+			ArrayList<InfoWithIndex> infoList = Parser.parseForView(
+					temporaryCommand, model, this);
+			for (int i = 0; i < infoList.size(); i++) {
+				InfoWithIndex info = infoList.get(i);
+				Text text = textList.get(i);
+				text.setText(info.getInfo());
+				text.setStyle("-fx-font: 15.0px Ubantu;");
+				text.setTextAlignment(TextAlignment.LEFT);
+				text.setFill(colors[info.getInfoType() + 2]);	
+				// System.out.print(info.getInfo()+" "+info.getInfoType()+"  ");
+			}
 		}
-		/*if(multiColorCommand.getWidth() > COMMAND_MAX_WIDTH || 
-				(multiColorCommand.getWidth() < 0 && temporaryCommand.length()>10 && textList.get(0).getText().length()>0)) {
-			for(int j = 0; j<textList.size(); j++)
-				System.out.print(textList.get(j).getText() + " ");
-			System.out.println(multiColorCommand.getWidth());
-			//checkCommandMaxWidth();
-			commandLine.setText(temporaryCommand.substring(0,temporaryCommand.length()-1));
-			
-		}*/
+		else {
+			for(int i = textList.size()-1; i >= 0; i--)
+				if(textList.get(i).getText().length()>0) {
+					textList.get(i).setText(textList.get(i).getText()+newChar);
+					break;
+				}
+			isUpdated = true;
+			newChar = null;
+		}
+		if(multiColorCommand.getWidth()>400)
+			checkCommandMaxWidth();
+		/*
+		 * if(multiColorCommand.getWidth() > COMMAND_MAX_WIDTH ||
+		 * (multiColorCommand.getWidth() < 0 && temporaryCommand.length()>10 &&
+		 * textList.get(0).getText().length()>0)) { for(int j = 0;
+		 * j<textList.size(); j++) System.out.print(textList.get(j).getText() +
+		 * " "); System.out.println(multiColorCommand.getWidth());
+		 * //
+		 * commandLine.setText(temporaryCommand.substring
+		 * (0,temporaryCommand.length()-1));
+		 * 
+		 * }
+		 */
 		// System.out.println();
-		//for (int i = 5; i < textList.size(); i++) {
-		//	textList.get(i).setLayoutX(10);
-		//}
+		// for (int i = 5; i < textList.size(); i++) {
+		// textList.get(i).setLayoutX(10);
+		// }
 		displayCursor();
 	}
-	
+
 	public void checkCommandMaxWidth() {
+		long myLong = 20;
+		isChecked = false;
+		canGo = true;
+		partIndex = 0;
 		System.out.println("check max");
-		for(int i = 0; i < textList.size(); i++) {
-			String str = textList.get(i).getText();
-			textList.get(i).setText("");
-			multiColorCommand.getChildren().removeAll(multiColorCommandFront,multiColorCommandRear);
-			multiColorCommand.getChildren().addAll(multiColorCommandFront,multiColorCommandRear);
-			if (multiColorCommand.getWidth() <= COMMAND_MAX_WIDTH && multiColorCommand.getWidth() >= 0) {
-				for(int j = str.length()-1; j > 0; j--) {
-					textList.get(i).setText(str.substring(j, str.length()));
-					if(multiColorCommand.getWidth() > COMMAND_MAX_WIDTH || multiColorCommand.getWidth() < 0) {
-						textList.get(i).setText(str.substring(j+1, str.length()));
-						System.out.println("final text  "+str.substring(j+1, str.length()));
-						return ;
+
+			canGo = false;
+			timer = new Timer();
+			timer.schedule(new TimerTask() {
+				public int counter = 0;
+				@Override
+				public void run() {
+					System.out.println("commandWidth "+multiColorCommand.getWidth());
+					if(counter == 0) {
+						counter ++;
+					} else if(counter == 1) {
+						if (!(multiColorCommand.getWidth() > COMMAND_MAX_WIDTH
+								|| (textList.get(0).getText().length()>10 && multiColorCommand.getWidth() < 0))) {
+							System.out.println("commandWidth "+multiColorCommand.getWidth());
+							if(textList.get(0).getText().length()>0 && textList.get(0).getText().charAt(0)==(commandLine.getText().charAt(0)));
+							temp3.setLayoutX(6.5);
+							temp3.setAlignment(Pos.CENTER_LEFT);
+							isCommandChopped = false;
+							this.cancel();
+						} else
+							counter ++;
 					}
-				}
-			}
-			System.out.print("check textList ");
-			for(int j = 0; j<textList.size(); j++)
-				System.out.print(textList.get(j).getText() + " ");
-			System.out.println(multiColorCommand.getWidth());
+					else {
+						multiColorCommand.setVisible(false);
+						isCommandChopped = true;
+						temp3.setPrefWidth(COMMAND_MAX_WIDTH + 7);
+						temp3.setLayoutX(0.7);
+						temp3.setAlignment(Pos.CENTER_RIGHT);
+					chopTextList();
+					System.out.print("time running  ");
+					for(int j = 0;j<textList.size(); j++) 
+						System.out.print(textList.get(j).getText()+" "); 
+					System.out.println(multiColorCommand.getWidth()+" "+isChecked);
+					if (multiColorCommand.getWidth() <= COMMAND_MAX_WIDTH && multiColorCommand.getWidth() >= 0) {
+						multiColorCommand.setVisible(true);
+						partIndex = 0;
+						canGo = false;
+						isChecked = true;
+						System.out.println("timer purge");
+						this.cancel();
+					}
+					}
+				}			
+			}, 0, myLong);
+	}
+
+	private void chopTextList() {
+		String text = textList.get(partIndex).getText();
+		if (text.length() <= 0) {
+			partIndex++;
+		} else {
+			System.out.println("text "+text);
+			textList.get(partIndex).setText(text.substring(1));
 		}
 	}
-	
+
 	private void createCenterSection() {
 		createTabPane();
 

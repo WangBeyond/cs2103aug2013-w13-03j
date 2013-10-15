@@ -55,6 +55,7 @@ public class Control extends Application {
 	private Store dataFile;
 	//private Store syncFile;
 
+	static int maxCaretPos = 0;
 	static boolean isRealTime = false;
 	static boolean isRealTimeSearch = false;
 	static boolean isCommandCompleted = false;
@@ -185,10 +186,15 @@ public class Control extends Application {
 					e.consume();
 				}
 				String command = view.commandLine.getText();
-				if(view.multiColorCommand.getWidth() > view.COMMAND_MAX_WIDTH || 
-						(view.multiColorCommand.getWidth() < 0 && command.length()>10 && view.textList.get(0).getText().length()>0)) {
+				if(view.isCommandChopped) {
 					view.hideCursor();
-				} else
+				}
+				view.isUpdated = false;
+				System.out.println("caret "+view.commandLine.getCaretPosition() +" "+ command.length());
+				maxCaretPos = view.commandLine.getCaretPosition() > maxCaretPos? view.commandLine.getCaretPosition() : maxCaretPos;
+				if(e.getCode() == KeyCode.BACK_SPACE && view.commandLine.getText().length() > 0)
+					maxCaretPos --;
+				if (view.commandLine.getCaretPosition() == maxCaretPos)	
 					updateMultiColorCommandWhenInputPressed(e);
 			}
 		});
@@ -204,26 +210,15 @@ public class Control extends Application {
 				for(int i = 0; i<view.textList.size(); i++)
 					System.out.print(view.textList.get(i).getText() + " ");
 				System.out.println(view.multiColorCommand.getWidth());
-				if(view.multiColorCommand.getWidth() > view.COMMAND_MAX_WIDTH || 
-						(view.multiColorCommand.getWidth() < 0 && command.length()>10 && view.textList.get(0).getText().length()>0)) {
-					for(int j = 0; j<view.textList.size(); j++)
-						System.out.print(view.textList.get(j).getText() + " ");
-					System.out.println(view.multiColorCommand.getWidth());
-					//checkCommandMaxWidth();
-					view.commandLine.setText(command.substring(0,command.length()-1));
-					setCaretPosition(command.length()-1);
-					view.emptyFeedback(0);
-					view.setFeedbackStyle(0, "Max length of command", Color.WHITE);
-					view.displayCursor();
-				} 
-				else
+				if(keyCode != KeyCode.LEFT && keyCode != keyCode.RIGHT && view.isUpdated == false)
 					view.updateMultiColorCommand(command);
+				view.displayCursor();
 				//
-				System.out.print("check release  ");
+				System.out.print("check release2  ");
 				for(int i = 0; i<view.textList.size(); i++)
 					System.out.print(view.textList.get(i).getText() + " ");
 				System.out.println(view.multiColorCommand.getWidth());
-				//
+				//realTime-search and remove
 				if (Parser.determineCommandType(command) == Parser.COMMAND_TYPES.SEARCH)
 					realTimeSearch(command, e.getCode());
 				else if (Parser.determineCommandType(command) == Parser.COMMAND_TYPES.REMOVE) {
@@ -300,22 +295,32 @@ public class Control extends Application {
 	}
 
 	private void updateMultiColorCommandWhenInputPressed(KeyEvent e) {
+		view.newChar = null;
 		KeyCode code = e.getCode();
 		if (code.isDigitKey()) {
 			if (!new KeyCodeCombination(code, KeyCombination.SHIFT_DOWN)
 					.match(e))
-				view.updateMultiColorCommand(view.commandLine.getText()
+				if(view.isCommandChopped)
+					view.newChar =  code.getName();
+				else
+					view.updateMultiColorCommand(view.commandLine.getText()
 						+ code.getName());
 		} else if (code.isLetterKey()) {
 			// If the input key is upper case
 			if (new KeyCodeCombination(code, KeyCombination.SHIFT_DOWN)
 					.match(e))
-				view.updateMultiColorCommand(view.commandLine.getText()
+				if(view.isCommandChopped)
+					view.newChar =  code.getName();
+				else
+					view.updateMultiColorCommand(view.commandLine.getText()
 						+ code.getName());
 			else {
 				String commandAfterPress = view.commandLine.getText()
 						+ code.getName().toLowerCase();
-				view.updateMultiColorCommand(commandAfterPress);
+				if(view.isCommandChopped)
+					view.newChar =  code.getName().toLowerCase();
+				else
+					view.updateMultiColorCommand(commandAfterPress);
 				if (isCommandCompleted) {
 					commandAfterPress = doWordCompletion(e, commandAfterPress);
 				}
