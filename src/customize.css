@@ -263,3 +263,40 @@
 	-fx-background-image: url("makeLargerHover.png");
 }
 
+/* Buttons for help page */
+
+#close_help{
+	-fx-background-repeat: no-repeat;
+	-fx-background-size: 25 25; 
+	-fx-background-image: url("close.png") ;
+}
+
+#close_help:hover{
+	-fx-background-repeat: no-repeat;
+	-fx-background-size: 25 25; 
+	-fx-background-image: url("closeHover.png") ;
+}
+
+#next{
+	-fx-background-repeat: no-repeat;
+	-fx-background-size: 30 30; 
+	-fx-background-image: url("next.png") ;
+}
+
+#next:hover{
+	-fx-background-repeat: no-repeat;
+	-fx-background-size: 30 30; 
+	-fx-background-image: url("nextHover.png") ;
+}
+
+#back{
+	-fx-background-repeat: no-repeat;
+	-fx-background-size: 30 30; 
+	-fx-background-image: url("back.png") ;
+}
+
+#back:hover{
+	-fx-background-repeat: no-repeat;
+	-fx-background-size: 30 30; 
+	-fx-background-image: url("backHover.png") ;
+}

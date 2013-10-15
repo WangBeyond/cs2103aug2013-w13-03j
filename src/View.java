@@ -119,7 +119,7 @@ public class View implements HotkeyListener {
 	public Paint[] colors = { Color.DARKGREY, Color.GREEN, Color.BLACK,
 			Color.ORANGE, Color.BLUE, Color.DARKCYAN, Color.RED,
 			Color.DARKKHAKI, Color.PURPLE };
-	public static boolean isTextColored = true;
+	public static boolean isTextColored = false;
 	public ArrayList<Text> feedbackList = new ArrayList<Text>();
 	static String[] COMMAND_TYPES = { "add", "remove", "delete", "edit",
 			"modify", "search", "find", "clear", "mark", "unmark", "complete",

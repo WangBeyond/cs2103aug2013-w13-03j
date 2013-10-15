@@ -38,7 +38,7 @@ public class Control extends Application {
 	static final String MESSAGE_INCOMPLETE_TIP = "<incomplete/undone> <index 1> <index 2> <index 3> ...";
 	static final String MESSAGE_HELP_TIP = "<help>";
 	static final String MESSAGE_EXIT_TIP = "<exit>";
-	static final String MESSAGE_REQUEST_COMMAND = "Please enter a command";
+	static final String MESSAGE_REQUEST_COMMAND = "Please enter a command, or type help to view commands.";
 
 	static final String UNDO_COMMAND = "undo";
 	static final String REDO_COMMAND = "redo";
