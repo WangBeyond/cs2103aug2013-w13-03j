@@ -9,13 +9,12 @@ import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.HBox;
 import javafx.scene.Group;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
-// TODO: close function
+// TODO: keyboard shortcuts, fix imaged bottom
 public class Help {
 	
 	final KeyCombination nextPage = new KeyCodeCombination(KeyCode.RIGHT);

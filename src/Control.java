@@ -479,7 +479,6 @@ public class Control extends Application {
 			dataFile.storeToFile();
 			executeShowCommand();
 		}
-
 		return feedback;
 	}
 
