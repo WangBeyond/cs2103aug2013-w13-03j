@@ -149,7 +149,9 @@ public class Parser {
 				|| commandType == COMMAND_TYPES.MARK
 				|| commandType == COMMAND_TYPES.UNMARK)
 			return parseCommandWithIndex(content);
-		else
+		else if (commandType == COMMAND_TYPES.SYNC){
+			return parseSyncCommand(content);
+		} else
 			return null;
 	}
 
@@ -317,6 +319,15 @@ public class Parser {
 		return splittedUserCommand;
 	}
 
+	private static String[] parseSyncCommand(String content){
+		String[] splittedUserCommand = splitBySpace(content);
+		
+		if(splittedUserCommand.length != 0 || splittedUserCommand.length != 2){
+			throw new IllegalArgumentException("Invalid sync command.");
+		}
+		return splittedUserCommand;
+	}
+	
 	private static void processRange(Vector<String> indexList, String s) {
 		String[] limits = s.split(HYPHEN);
 		if (limits.length > 2)
