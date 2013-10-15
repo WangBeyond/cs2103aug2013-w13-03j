@@ -2,7 +2,8 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.ArrayList;
+
+import org.omg.CosNaming.IstringHelper;
 
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
@@ -53,16 +54,12 @@ public class Control extends Application {
 	public History commandHistory = new History();
 	public View view;
 	private Store dataFile;
-	//private Store syncFile;
+
 
 	static int maxCaretPos = 0;
-	static boolean isRealTime = false;
 	static boolean isRealTimeSearch = false;
-	static boolean isCommandCompleted = false;
-	static boolean isDateKeySearched = false;
 	static KeyCode keyCode;
 	static String completedCommand;
-	// static boolean listedIndexType;
 	static final boolean SEARCHED = true;
 	static final boolean SHOWN = false;
 
@@ -81,8 +78,6 @@ public class Control extends Application {
 		try {
 			dataFile = new DataStorage("dataStorage.txt", modelHandler);
 			dataFile.loadFromFile();
-			//syncFile = new SyncStorage("syncFile.txt", modelHandler);
-			//syncFile.loadFromFile();
 		} catch (IOException e) {
 			System.out.println("Cannot read the given file");
 		}
@@ -169,10 +164,10 @@ public class Control extends Application {
 		view.commandLine.setOnKeyPressed(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent e) {
 				if (e.getCode() == KeyCode.ENTER) {
-					isRealTime = false;
+					isRealTimeSearch = false;
 					String feedback = executeCommand(view.commandLine.getText());
 					updateFeedback(feedback);
-				} else if (e.getCode() == KeyCode.BACK_SPACE) {
+				} else if (e.getCode() == KeyCode.BACK_SPACE && View.isTextColored) {
 					// update multicolor command when backspace to avoid delay
 					// and shadow effect
 					updateMultiColorCommandWhenBackspacePressed();
@@ -185,6 +180,7 @@ public class Control extends Application {
 					updateFeedback(feedback);
 					e.consume();
 				}
+				if(View.isTextColored){
 				String command = view.commandLine.getText();
 				if(view.isCommandChopped) {
 					view.hideCursor();
@@ -196,20 +192,19 @@ public class Control extends Application {
 					maxCaretPos --;
 				if (view.commandLine.getCaretPosition() == maxCaretPos)	
 					updateMultiColorCommandWhenInputPressed(e);
+				}
 			}
 		});
 		view.commandLine.setOnKeyReleased(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent e) {
-				System.out.println(view.textList.get(9).getLayoutX()+" "+view.multiColorCommand.getWidth()+
-						"/"+view.multiColorCommand.getMaxWidth()+" "+view.multiColorCommand.getScaleX());
-				keyCode = e.getCode();
 				String command = view.commandLine.getText();
-				if (isCommandCompleted)
-					command = finishWordCompletion(command);
+				if(View.isTextColored){
+				keyCode = e.getCode();
+				
 				System.out.print("check release1  ");
 				for(int i = 0; i<view.textList.size(); i++)
 					System.out.print(view.textList.get(i).getText() + " ");
-				System.out.println(view.multiColorCommand.getWidth());
+
 				if(keyCode != KeyCode.LEFT && keyCode != keyCode.RIGHT && view.isUpdated == false)
 					view.updateMultiColorCommand(command);
 				view.displayCursor();
@@ -217,7 +212,7 @@ public class Control extends Application {
 				System.out.print("check release2  ");
 				for(int i = 0; i<view.textList.size(); i++)
 					System.out.print(view.textList.get(i).getText() + " ");
-				System.out.println(view.multiColorCommand.getWidth());
+				}
 				//realTime-search and remove
 				if (Parser.determineCommandType(command) == Parser.COMMAND_TYPES.SEARCH)
 					realTimeSearch(command, e.getCode());
@@ -238,34 +233,7 @@ public class Control extends Application {
 		});
 	}
 
-	/**************************** method for word completion **************************************************/
-	private String finishWordCompletion(String command) {
-		view.commandLine
-				.setText(command.substring(0, completedCommand.length()) + " ");
-		setCaretPosition(command.length());
-		command = view.commandLine.getText();
-		isCommandCompleted = false;
-		view.displayCursor();
-		return command;
-	}
-
-	private String doWordCompletion(KeyEvent e, String commandAfterPress) {
-		ArrayList<String> availCommands = view
-				.getAvailCommandNum(commandAfterPress);
-		if (e.getCode() != KeyCode.BACK_SPACE && availCommands.size() == 1) {
-			view.commandLine.setText(availCommands.get(0));
-			commandAfterPress = availCommands.get(0);
-			view.hideCursor();
-			for (int i = 0; i < (availCommands.get(0).length()); i++) {
-				view.commandLine.forward();
-			}
-			isCommandCompleted = true;
-			completedCommand = commandAfterPress;
-			// System.out.println(view.commandLine.getText()+" "+commandAfterPress);
-		}
-		return commandAfterPress;
-	}
-
+	
 	private String removeCommandTypeString(String command) {
 		String commandTypeStr = Parser.getFirstWord(command);
 		return command.substring(commandTypeStr.length());
@@ -321,9 +289,6 @@ public class Control extends Application {
 					view.newChar =  code.getName().toLowerCase();
 				else
 					view.updateMultiColorCommand(commandAfterPress);
-				if (isCommandCompleted) {
-					commandAfterPress = doWordCompletion(e, commandAfterPress);
-				}
 			}
 		}
 		/*if(view.multiColorCommand.getWidth() > view.COMMAND_MAX_WIDTH 
@@ -334,7 +299,7 @@ public class Control extends Application {
 		System.out.print("check press  ");
 		for(int i = 0; i<view.textList.size(); i++)
 			System.out.print(view.textList.get(i).getText() + " ");
-		System.out.println(view.multiColorCommand.getWidth());
+
 	}
 
 	private void setCaretPosition(int position) {
@@ -388,9 +353,9 @@ public class Control extends Application {
 		case REDO:
 			return executeRedoCommand();
 		case SEARCH:
-			return executeSearchCommand(parsedUserCommand);
+			return executeSearchCommand(parsedUserCommand, isRealTimeSearch);
 		case TODAY:
-			return executeTodayCommand();
+			return executeTodayCommand(isRealTimeSearch);
 		case SHOW_ALL:
 			return executeShowCommand();
 		case CLEAR_ALL:
@@ -419,28 +384,12 @@ public class Control extends Application {
 	}
 
 	private void realTimeSearch(String command, KeyCode keyCode) {
-		isRealTime = true;
+		isRealTimeSearch = true;
 		if (command.trim().equals("search"))
 			executeShowCommand();
 		else {
-			try {
-				if(Parser.isValidDate(Parser.getLastWord(command)) != -1)
-					throw new Exception();
-				Integer.valueOf(Parser.getLastWord(command).substring(0,1));
-				if(!isDateKeySearched)
-					executeCommand(command);
-				isRealTimeSearch = true;
-			} catch (Exception e) {
-				executeCommand(command);
-				if(Parser.isValidDate(Parser.getLastWord(command)) != -1)
-					setDateKeySearched(true);
-				isRealTimeSearch = true;
-			}
+			executeCommand(command);
 		}
-	}
-	
-	static void setDateKeySearched(boolean isSearched) {
-		isDateKeySearched = isSearched;
 	}
 	
 	private String executeAddCommand(String[] parsedUserCommand) throws IOException {
@@ -450,7 +399,6 @@ public class Control extends Application {
 		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_ADD)) {
 			commandHistory.updateCommand((TwoWayCommand) s);
 			dataFile.storeToFile();
-			//syncFile.storeToFile();
 			view.setTab(0);
 			executeShowCommand();
 		}
@@ -511,13 +459,13 @@ public class Control extends Application {
 			return MESSAGE_INVALID_REDO;
 	}
 
-	private String executeSearchCommand(String[] parsedUserCommand) {
-		Command s = new SearchCommand(parsedUserCommand, modelHandler, view);
+	private String executeSearchCommand(String[] parsedUserCommand, boolean isRealTimeSearch) {
+		Command s = new SearchCommand(parsedUserCommand, modelHandler, view, isRealTimeSearch);
 		return s.execute();
 	}
 
-	private String executeTodayCommand() {
-		Command s = new TodayCommand(modelHandler, view);
+	private String executeTodayCommand(boolean isRealTimeSearch) {
+		Command s = new TodayCommand(modelHandler, view, isRealTimeSearch);
 		return s.execute();
 	}
 
