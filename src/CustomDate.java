@@ -346,6 +346,7 @@ public class CustomDate {
 	private int updateDate(String[] infos, GregorianCalendar targetDate,
 			int numElements) {
 		int startIndex = getStartIndexOfDate(infos);
+		assert startIndex >= 0;
 		if (hasMonthWord()) {
 			numElements = updateDateWithMonth(infos, targetDate, numElements, startIndex);
 		} else if (dateInfo.contains("/")) {
