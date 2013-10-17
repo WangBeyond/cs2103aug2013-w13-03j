@@ -2,8 +2,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Vector;
 
-import javafx.collections.ObservableList;
-
 public class Parser {
 	static enum COMMAND_TYPES {
 		ADD, REMOVE, SEARCH, EDIT, COMPLETE, INCOMPLETE, UNDO, REDO, CLEAR_ALL, TODAY, SHOW_ALL, SYNC, SETTINGS, HELP, EXIT, INVALID, MARK, UNMARK
@@ -133,7 +131,7 @@ public class Parser {
 	 * @return the array of infos necessary for each command
 	 */
 	public static String[] parseCommand(String userCommand,
-			COMMAND_TYPES commandType, Model model, View view) {
+			COMMAND_TYPES commandType) {
 		String content = removeFirstWord(userCommand);
 		content = removeUnneededSpaces(content);
 		if (commandType == COMMAND_TYPES.ADD)
@@ -143,7 +141,7 @@ public class Parser {
 		else if (commandType == COMMAND_TYPES.EDIT)
 			return parseEditCommand(content);
 		else if (commandType == COMMAND_TYPES.REMOVE)
-			return parseRemoveCommand(content, model, view);
+			return parseRemoveCommand(content);
 		else if (commandType == COMMAND_TYPES.COMPLETE
 				|| commandType == COMMAND_TYPES.INCOMPLETE
 				|| commandType == COMMAND_TYPES.MARK
@@ -255,25 +253,20 @@ public class Parser {
 		String[] parsedCommand = new String[] { NULL, NULL, NULL, NULL, FALSE,
 				NULL };
 
-		parsedCommand[INDEX_WORK_INFO] = workInfo.equals(NULL) ? NULL
-				: workInfo;
-		parsedCommand[INDEX_START_DATE] = startDateString.equals(NULL) ? NULL
-				: startDateString;
-		parsedCommand[INDEX_END_DATE] = endDateString.equals(NULL) ? NULL
-				: endDateString;
-		parsedCommand[INDEX_TAG] = tag.equals(NULL) ? NULL : tag;
+		parsedCommand[INDEX_WORK_INFO] = workInfo;
+		parsedCommand[INDEX_START_DATE] = startDateString;
+		parsedCommand[INDEX_END_DATE] = endDateString;
+		parsedCommand[INDEX_TAG] = tag;
 		parsedCommand[INDEX_IS_IMPT] = isImpt;
-		parsedCommand[INDEX_REPEATING] = repeatingType.equals(NULL) ? NULL
-				: repeatingType;
+		parsedCommand[INDEX_REPEATING] = repeatingType;
 
 		return parsedCommand;
 	}
 
-	private static String[] parseRemoveCommand(String content, Model model,
-			View view) {
-		try {
+	private static String[] parseRemoveCommand(String content) {
+	
 			return parseCommandWithIndex(content);
-		} catch (Exception e) {
+	/*} catch (Exception e) {
 			System.out.println(TwoWayCommand.listedIndexType);
 			ObservableList<Task> modifiedList;
 			int tabIndex = view.tabPane.getSelectionModel().getSelectedIndex();
@@ -286,7 +279,7 @@ public class Parser {
 			}
 			String indexRange = "1" + HYPHEN + modifiedList.size();
 			return parseCommandWithIndex(indexRange);
-		}
+		} */
 	}
 
 	/**
@@ -349,8 +342,7 @@ public class Parser {
 	 * 
 	 * @param command
 	 */
-	static ArrayList<InfoWithIndex> parseForView(String command,
-			Model model, View view) {
+	static ArrayList<InfoWithIndex> parseForView(String command) {
 		ArrayList<InfoWithIndex> infoList = new ArrayList<InfoWithIndex>();
 		COMMAND_TYPES commandType;
 		String commandTypeStr;
@@ -363,7 +355,7 @@ public class Parser {
 		commandTypeStr = completeWithSpace(getFirstWord(command), command, 0);
 		infoList.add(new InfoWithIndex(commandTypeStr, 0, INDEX_COMMAND_TYPE));
 		try {
-			String[] result = parseCommand(command, commandType, model, view);
+			String[] result = parseCommand(command, commandType);
 			// Add the commandType first
 
 			if (commandType == COMMAND_TYPES.EDIT) {
@@ -447,7 +439,7 @@ public class Parser {
 				infoList.add(new InfoWithIndex(remainingInfo, commandTypeStr
 						.length(), INDEX_INDEX_INFO));
 			else
-				infoList.add(new InfoWithIndex(remainingInfo, 0,
+				infoList.add(new InfoWithIndex(remainingInfo, commandTypeStr.length(),
 						INDEX_USELESS_INFO));
 			return infoList;
 		}
@@ -870,10 +862,6 @@ public class Parser {
 	private static String removeFirstWord(String commandString) {
 		return commandString.replaceFirst(getFirstWord(commandString), "")
 				.trim();
-	}
-
-	private static String removeFirstWordButKeepSpace(String commandString) {
-		return commandString.replaceFirst(getFirstWord(commandString), "");
 	}
 
 	static String[] splitBySpace(String content) {

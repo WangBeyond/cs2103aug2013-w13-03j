@@ -257,13 +257,12 @@ class AddCommand extends TwoWayCommand {
 	public AddCommand(String[] parsedUserCommand, Model model, int tabIndex) throws IllegalArgumentException {
 		super(model, tabIndex);
 		assert parsedUserCommand != null;
-		boolean isImportant = parsedUserCommand[4].equals(Parser.TRUE);
 
 		workInfo = parsedUserCommand[0];
 		tag = parsedUserCommand[1];
 		startDateString = parsedUserCommand[2];
 		endDateString = parsedUserCommand[3];
-		isImptTask = isImportant ? true : false;
+		isImptTask =  parsedUserCommand[4].equals(Parser.TRUE);
 		repeatingType = parsedUserCommand[5];
 	}
 
@@ -309,17 +308,9 @@ class AddCommand extends TwoWayCommand {
 	
 	private void setTag(boolean isRepetitive){
 		if (tag.equals(Parser.NULL) || tag.equals(HASH_TAG)) {
-			if (isRepetitive) {
-				task.setTag(new Tag(HYPHEN, repeatingType));
-			} else {
-				task.setTag(new Tag(HYPHEN, Parser.NULL));
-			}
+				task.setTag(new Tag(Parser.HYPHEN, repeatingType));
 		} else {
-			if (isRepetitive) {
-				task.setTag(new Tag(HYPHEN, Parser.NULL));
-			} else {
-				task.setTag(new Tag(tag, Parser.NULL));
-			}
+				task.setTag(new Tag(tag, repeatingType));
 		}
 	}
 }
@@ -749,14 +740,11 @@ class IncompleteCommand extends IndexCommand {
  * 
  */
 class MarkCommand extends IndexCommand {
-	int[] indexList;
-	int indexCount;
-
 	public MarkCommand(String[] parsedUserCommand, Model model, int tabIndex) {
 		super(model, tabIndex);
 		assert parsedUserCommand != null;
 		modifiedList = getModifiedList(tabIndex);
-		int indexCount = parsedUserCommand.length;
+		indexCount = parsedUserCommand.length;
 		indexList = new int[indexCount];
 		for (int i = 0; i < indexCount; i++) {
 			indexList[i] = Integer.valueOf(parsedUserCommand[i]);
@@ -791,14 +779,11 @@ class MarkCommand extends IndexCommand {
  * 
  */
 class UnmarkCommand extends IndexCommand {
-	int[] indexList;
-	int indexCount;
-
 	public UnmarkCommand(String[] parsedUserCommand, Model model, int tabIndex) {
 		super(model, tabIndex);
 		assert parsedUserCommand != null;
 		modifiedList = getModifiedList(tabIndex);
-		int indexCount = parsedUserCommand.length;
+		indexCount = parsedUserCommand.length;
 		indexList = new int[indexCount];
 		for (int i = 0; i < indexCount; i++) {
 			indexList[i] = Integer.valueOf(parsedUserCommand[i]);
@@ -1035,7 +1020,7 @@ class SearchCommand extends Command {
 	}
 	
 
-	public boolean searchForDateKey() {
+	private boolean searchForDateKey() {
 		String[] splittedWorkInfo = Parser.splitBySpace(workInfo);
 		String lastWords1, lastWords2;
 		if (splittedWorkInfo.length >= 1) {
@@ -1081,7 +1066,7 @@ class SearchCommand extends Command {
 		return false;
 	}
 	
-	public static ObservableList<Task> searchImportantTask(
+	private static ObservableList<Task> searchImportantTask(
 			ObservableList<Task> list) {
 		ObservableList<Task> result = FXCollections.observableArrayList();
 		for (int i = 0; i < list.size(); i++) {
@@ -1092,7 +1077,7 @@ class SearchCommand extends Command {
 		return result;
 	}
 
-	public static ObservableList<Task> searchTag(ObservableList<Task> list,
+	private static ObservableList<Task> searchTag(ObservableList<Task> list,
 			String tagName) {
 		ObservableList<Task> result = FXCollections.observableArrayList();
 		for (int i = 0; i < list.size(); i++) {
@@ -1104,7 +1089,7 @@ class SearchCommand extends Command {
 		return result;
 	}
 
-	public static ObservableList<Task> searchRepeatingType(
+	private static ObservableList<Task> searchRepeatingType(
 			ObservableList<Task> list, String repeatingType) {
 		ObservableList<Task> result = FXCollections.observableArrayList();
 		for (int i = 0; i < list.size(); i++) {
@@ -1116,7 +1101,7 @@ class SearchCommand extends Command {
 		return result;
 	}
 
-	public static ObservableList<Task> searchStartDate(
+	private static ObservableList<Task> searchStartDate(
 			ObservableList<Task> list, CustomDate date) {
 		ObservableList<Task> result = FXCollections.observableArrayList();
 		if (date.getHour() != 0 || date.getMinute() != 0) {
@@ -1137,7 +1122,7 @@ class SearchCommand extends Command {
 		return result;
 	}
 
-	public static ObservableList<Task> searchEndDate(ObservableList<Task> list,
+	private static ObservableList<Task> searchEndDate(ObservableList<Task> list,
 			CustomDate date) {
 		ObservableList<Task> result = FXCollections.observableArrayList();
 		if (date.getHour() == 0 && date.getMinute() == 0) {
@@ -1163,18 +1148,7 @@ class SearchCommand extends Command {
 		return result;
 	}
 
-	public static ObservableList<Task> searchHavingtDate(
-			ObservableList<Task> list) {
-		ObservableList<Task> result = FXCollections.observableArrayList();
-		for (int i = 0; i < list.size(); i++) {
-			if (list.get(i).getStartDate() != null
-					|| list.get(i).getEndDate() != null)
-				result.add(list.get(i));
-		}
-		return result;
-	}
-
-	public static ObservableList<Task> searchHavingStartDate(
+	private static ObservableList<Task> searchHavingStartDate(
 			ObservableList<Task> list) {
 		ObservableList<Task> result = FXCollections.observableArrayList();
 		for (int i = 0; i < list.size(); i++) {
@@ -1184,7 +1158,7 @@ class SearchCommand extends Command {
 		return result;
 	}
 
-	public static ObservableList<Task> searchHavingEndDate(
+	private static ObservableList<Task> searchHavingEndDate(
 			ObservableList<Task> list) {
 		ObservableList<Task> result = FXCollections.observableArrayList();
 		for (int i = 0; i < list.size(); i++) {
@@ -1194,7 +1168,7 @@ class SearchCommand extends Command {
 		return result;
 	}
 
-	public static ObservableList<Task> searchWorkInfo(
+	private static ObservableList<Task> searchWorkInfo(
 			ObservableList<Task> list, String workInfo) {
 		ObservableList<Task> result = FXCollections.observableArrayList();
 		for (int i = 0; i < list.size(); i++) {

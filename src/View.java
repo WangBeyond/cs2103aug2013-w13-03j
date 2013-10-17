@@ -1,16 +1,35 @@
 import java.awt.AWTException;
+import java.awt.BorderLayout;
+import java.awt.GraphicsEnvironment;
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
 import java.awt.SystemTray;
 import java.awt.TrayIcon;
 import java.awt.event.ActionListener;
-import java.awt.Robot;
+import java.awt.event.KeyListener;
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.InputMap;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextPane;
+import javax.swing.KeyStroke;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultStyledDocument;
+import javax.swing.text.MutableAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyleContext;
+import javax.swing.text.StyledDocument;
 
 import com.melloware.jintellitype.HotkeyListener;
 import com.melloware.jintellitype.JIntellitype;
@@ -22,7 +41,6 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
@@ -49,13 +67,11 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.BorderPaneBuilder;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.HBoxBuilder;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
-import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextBuilder;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -93,39 +109,22 @@ public class View implements HotkeyListener {
 
 	public Scene scene;
 	public BorderPane root;
+	public StackPane root2;
 	public Stage stage;
+	JScrollPane scrollPane;
+	SwingNode textField;
 
 	// Store the coordinates of the anchor of the window
 	double dragAnchorX;
 	double dragAnchorY;
 
-	// colored text sequences
-	ArrayList<Text> textList = new ArrayList<Text>();
-	HBox multiColorCommand;
-	HBox temp3;
-
-	static final int COMMAND_MAX_WIDTH = 613;
-	Timer timer;
-	int partIndex = 0;
-	int charIndex = 0;
-	boolean isChecked = false;
-	boolean  canGo = false;
-	boolean isCommandChopped = false;
-	String newChar;
-	boolean isUpdated = false;
-	// Color indicatin: darkgrey: uselessInfo, green: commandType, black:
-	// workflow, orange: TAG, blue: startTime,
-	// darkcyan: endTime, red: impt, darkkhaki: repeating, purple: index
-	public Paint[] colors = { Color.DARKGREY, Color.GREEN, Color.BLACK,
-			Color.ORANGE, Color.BLUE, Color.DARKCYAN, Color.RED,
-			Color.DARKKHAKI, Color.PURPLE };
-	public static boolean isTextColored = false;
+	public JTextPane txt;
 	public ArrayList<Text> feedbackList = new ArrayList<Text>();
 	static String[] COMMAND_TYPES = { "add", "remove", "delete", "edit",
 			"modify", "search", "find", "clear", "mark", "unmark", "complete",
-			"incomplete", "all", "list", "today", "help" };
+			"incomplete", "all", "list", "today", "help", "del", "exit", "rm",
+			"show", "ls", "clr", "done", "undone", "settings", "sync" };
 	public HBox feedbacks;
-	Robot robot;
 	private static Color IDO_GREEN = Color.rgb(130, 255, 121);
 	// private HBox multiColorCommand;
 
@@ -158,11 +157,6 @@ public class View implements HotkeyListener {
 		checkIntellitype();
 		initGlobalHotKey();
 
-		// add 10 texts to textList
-		textList.clear();
-		for (int i = 0; i < 10; i++) {
-			textList.add(new Text());
-		}
 		hideInSystemTray();
 		Platform.setImplicitExit(false);
 		createContent();
@@ -195,11 +189,100 @@ public class View implements HotkeyListener {
 					expandAnimation();
 				} else if (hideWindow.match(e)) {
 					hide();
+				} else if (e.getCode() == KeyCode.BACK_SPACE) {
+					textField.setJDialogOnTop();
+					txt.requestFocus();
+					if (txt.getText().length() > 0)
+						txt.setText(txt.getText().substring(0,
+								txt.getText().length() - 1));
+					txt.setCaretPosition(txt.getText().length());
 				} else if (!e.isAltDown() && !e.isControlDown()
 						&& !e.isShiftDown() && !e.isShortcutDown()) {
-					commandLine.requestFocus();
-					commandLine.appendText(e.getCharacter());
+					textField.setJDialogOnTop();
+					txt.requestFocus();
+					txt.setText(txt.getText() + e.getText());
+					txt.setCaretPosition(txt.getText().length());
 				}
+			}
+		});
+
+		// Get KeyStroke for enter key
+		KeyStroke enterKey = KeyStroke.getKeyStroke(
+				com.sun.glass.events.KeyEvent.VK_ENTER, 0);
+		// Override enter for a pane
+		String actionKey = "none";
+		InputMap map = txt.getInputMap();
+		map.put(enterKey, actionKey);
+
+		/* Get KeyStroke for Ctrl+Tab key */
+		txt.setFocusTraversalKeysEnabled(false);
+		KeyStroke changeTabKey = KeyStroke.getKeyStroke(
+				com.sun.glass.events.KeyEvent.VK_TAB,
+				java.awt.event.InputEvent.CTRL_DOWN_MASK);
+		Action changeTabAction = new AbstractAction() {
+			@Override
+			public void actionPerformed(java.awt.event.ActionEvent e) {
+				Platform.runLater(new Runnable() {
+
+					@Override
+					public void run() {
+						int index = tabPane.getSelectionModel()
+								.getSelectedIndex();
+						if (index != 2)
+							tabPane.getSelectionModel().selectNext();
+						else
+							tabPane.getSelectionModel().selectFirst();
+					}
+				});
+			}
+		};
+
+		map.put(changeTabKey, changeTabAction);
+
+		txt.addKeyListener(new KeyListener() {
+			@Override
+			public void keyTyped(java.awt.event.KeyEvent e) {
+			}
+
+			@Override
+			public void keyReleased(java.awt.event.KeyEvent e) {
+			}
+
+			@Override
+			public void keyPressed(java.awt.event.KeyEvent e) {
+				if ((e.getKeyCode() == java.awt.event.KeyEvent.VK_UP)
+						&& e.isControlDown()) {
+					Platform.runLater(new Runnable() {
+
+						@Override
+						public void run() {
+
+							collapseAnimation();
+						}
+					});
+
+				} else if ((e.getKeyCode() == java.awt.event.KeyEvent.VK_DOWN)
+						&& e.isControlDown()) {
+					Platform.runLater(new Runnable() {
+
+						@Override
+						public void run() {
+
+							expandAnimation();
+						}
+					});
+
+				} else if ((e.getKeyCode() == java.awt.event.KeyEvent.VK_H
+						&& e.isControlDown() && e.isShiftDown())) {
+					Platform.runLater(new Runnable() {
+
+						@Override
+						public void run() {
+							hide();
+						}
+					});
+				}
+
 			}
 		});
 	}
@@ -208,9 +291,47 @@ public class View implements HotkeyListener {
 		createTopSection();
 		createCenterSection();
 		createBottomSection();
+		txt = new JTextPane(new CustomStyledDocument());
+		txt.setAutoscrolls(false);
+		setFont(txt);
+		JPanel noWrapPanel = new JPanel(new BorderLayout());
+		noWrapPanel.add(txt);
+		scrollPane = new JScrollPane(noWrapPanel);
+		scrollPane
+				.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		scrollPane
+				.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
 
+		textField = new SwingNode(stage, scrollPane);
+		textField.setTranslateX(34);
+		textField.setTranslateY(-93);
+
+		root2 = new StackPane();
 		root = BorderPaneBuilder.create().top(top).center(center)
 				.bottom(bottom).build();
+		root2.getChildren().addAll(textField, root);
+	}
+
+	private void setFont(JTextPane txt) {
+		MutableAttributeSet attrs = txt.getInputAttributes();
+		java.awt.Font customFont = new java.awt.Font("Calibri",
+				java.awt.Font.PLAIN, 17);
+		try {
+			InputStream myFont = new BufferedInputStream(new FileInputStream(
+					"resources/fonts/ubuntub.ttf"));
+			customFont = java.awt.Font.createFont(java.awt.Font.TRUETYPE_FONT,
+					myFont);
+			customFont = customFont.deriveFont(java.awt.Font.PLAIN, 16);
+			GraphicsEnvironment ge = GraphicsEnvironment
+					.getLocalGraphicsEnvironment();
+			ge.registerFont(customFont);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		StyleConstants.setFontFamily(attrs, customFont.getFamily());
+		StyleConstants.setFontSize(attrs, customFont.getSize());
+		StyledDocument doc = txt.getStyledDocument();
+		doc.setCharacterAttributes(0, doc.getLength() + 1, attrs, false);
 	}
 
 	private void setupStage() {
@@ -227,13 +348,17 @@ public class View implements HotkeyListener {
 	}
 
 	private void setupScene() {
-		stage.setHeight(70);
-		scene = new Scene(root, Color.rgb(70, 70, 70));
+		stage.setHeight(70.0);
+		scene = new Scene(root2, Color.rgb(70, 70, 70));
 		customizeGUIWithCSS();
 		stage.setScene(scene);
 		stage.show();
 		removeTopAndCenter();
 		showOrHide.setId("larger");
+		showOrHide.requestFocus();
+		textField.setJDialogOnTop();
+		txt.requestFocus();
+		txt.setCaretPosition(txt.getText().length());
 	}
 
 	private void customizeGUIWithCSS() {
@@ -247,10 +372,7 @@ public class View implements HotkeyListener {
 		bottom.setPadding(new Insets(0, 0, 5, 44));
 
 		HBox upperPart = new HBox();
-		if (isTextColored)
-			upperPart = createNewUpperPartInBottom();
-		else
-			upperPart = createUpperPartInBottom();
+		upperPart = createUpperPartInBottom();
 
 		feedbacks = new HBox();
 		feedbacks.setSpacing(5);
@@ -270,6 +392,7 @@ public class View implements HotkeyListener {
 		temp.setSpacing(10);
 		commandLine = new TextField();
 		commandLine.setPrefWidth(630);
+		commandLine.opacityProperty().set(0.1);
 
 		showOrHide = new Button();
 		showOrHide.setPrefSize(30, 30);
@@ -278,168 +401,6 @@ public class View implements HotkeyListener {
 		temp.getChildren().addAll(commandLine, showOrHide);
 
 		return temp;
-	}
-
-	void hideCursor() {
-		commandLine.setStyle("-fx-text-fill: white;");
-	}
-
-	void displayCursor() {
-		commandLine.setStyle("-fx-text-fill: darkgrey;");
-	}
-
-	private HBox createNewUpperPartInBottom() {
-		HBox temp2 = new HBox();
-		HBox multiColorCommandFront = new HBox();
-		HBox multiColorCommandRear = new HBox();
-		multiColorCommand = new HBox();
-		temp3 = new HBox();
-		Pane temp = new Pane();
-		temp2.setSpacing(10);
-		try {
-			robot = new Robot();
-		} catch (Exception e) {
-			System.out.println(e);
-		}
-
-		commandLine = new TextField();
-		commandLine.setPrefWidth(630);
-		commandLine.setStyle("-fx-text-fill: darkgrey;");
-
-		showOrHide = new Button();
-		showOrHide.setPrefSize(30, 30);
-		showOrHide.setId("smaller");
-		hookUpEventForShowOrHide();
-		// multiColorCommand add texts of different colors.
-		for (int i = 0; i < 4; i++) {
-			multiColorCommandFront.getChildren().add(textList.get(i));
-		}
-		for (int i = 4; i < textList.size(); i++) {
-			multiColorCommandRear.getChildren().add(textList.get(i));
-		}
-		multiColorCommand.getChildren().addAll(multiColorCommandFront,
-				multiColorCommandRear);
-		multiColorCommandFront.setSpacing(-0.50001);
-		multiColorCommandRear.setSpacing(-0.50001);
-		multiColorCommand.setLayoutX(6.5);
-		temp3.setLayoutX(6.5);
-		//multiColorCommand.setLayoutY(5);
-		multiColorCommand.setLayoutY(0);
-		multiColorCommand.setSpacing(1);
-		multiColorCommand.setAlignment(Pos.CENTER_LEFT);
-		temp3.getChildren().add(multiColorCommand);
-		temp.getChildren().addAll(commandLine, temp3);
-		temp2.getChildren().addAll(temp, showOrHide);
-		return temp2;
-	}
-
-	void updateMultiColorCommand(String temporaryCommand) {
-		System.out.println("update " + isCommandChopped+" "+newChar);
-		if(!isCommandChopped || newChar == null) {
-			emptyTextList();
-			ArrayList<InfoWithIndex> infoList = Parser.parseForView(
-					temporaryCommand, model, this);
-			for (int i = 0; i < infoList.size(); i++) {
-				InfoWithIndex info = infoList.get(i);
-				Text text = textList.get(i);
-				text.setText(info.getInfo());
-				text.setStyle("-fx-font: 15.0px Ubantu;");
-				text.setTextAlignment(TextAlignment.LEFT);
-				text.setFill(colors[info.getInfoType() + 2]);	
-				// System.out.print(info.getInfo()+" "+info.getInfoType()+"  ");
-			}
-		}
-		else {
-			for(int i = textList.size()-1; i >= 0; i--)
-				if(textList.get(i).getText().length()>0) {
-					textList.get(i).setText(textList.get(i).getText()+newChar);
-					break;
-				}
-			isUpdated = true;
-			newChar = null;
-		}
-		
-		if(multiColorCommand.getWidth()>400)
-			checkCommandMaxWidth();
-		/*
-		 * if(multiColorCommand.getWidth() > COMMAND_MAX_WIDTH ||
-		 * (multiColorCommand.getWidth() < 0 && temporaryCommand.length()>10 &&
-		 * textList.get(0).getText().length()>0)) { for(int j = 0;
-		 * j<textList.size(); j++) System.out.print(textList.get(j).getText() +
-		 * " "); System.out.println(multiColorCommand.getWidth());
-		 * //
-		 * commandLine.setText(temporaryCommand.substring
-		 * (0,temporaryCommand.length()-1));
-		 * 
-		 * }
-		 */
-		// System.out.println();
-		// for (int i = 5; i < textList.size(); i++) {
-		// textList.get(i).setLayoutX(10);
-		// }
-		displayCursor();
-	}
-
-	public void checkCommandMaxWidth() {
-		long myLong = 20;
-		isChecked = false;
-		canGo = true;
-		partIndex = 0;
-		System.out.println("check max");
-
-			canGo = false;
-			timer = new Timer();
-			timer.schedule(new TimerTask() {
-				public int counter = 0;
-				@Override
-				public void run() {
-					System.out.println("commandWidth "+multiColorCommand.getWidth());
-					if(counter == 0) {
-						counter ++;
-					} else if(counter == 1) {
-						if (!(multiColorCommand.getWidth() > COMMAND_MAX_WIDTH
-								|| (textList.get(0).getText().length()>10 && multiColorCommand.getWidth() < 0))) {
-							System.out.println("commandWidth "+multiColorCommand.getWidth());
-							if(textList.get(0).getText().length()>0 && textList.get(0).getText().charAt(0)==(commandLine.getText().charAt(0)));
-							temp3.setLayoutX(6.5);
-							temp3.setAlignment(Pos.CENTER_LEFT);
-							isCommandChopped = false;
-							this.cancel();
-						} else
-							counter ++;
-					}
-					else {
-						multiColorCommand.setVisible(false);
-						isCommandChopped = true;
-						temp3.setPrefWidth(COMMAND_MAX_WIDTH + 7);
-						temp3.setLayoutX(0.7);
-						temp3.setAlignment(Pos.CENTER_RIGHT);
-					chopTextList();
-					System.out.print("time running  ");
-					for(int j = 0;j<textList.size(); j++) 
-						System.out.print(textList.get(j).getText()+" "); 
-					System.out.println(multiColorCommand.getWidth()+" "+isChecked);
-					if (multiColorCommand.getWidth() <= COMMAND_MAX_WIDTH && multiColorCommand.getWidth() >= 0) {
-						multiColorCommand.setVisible(true);
-						partIndex = 0;
-						canGo = false;
-						isChecked = true;
-						System.out.println("timer purge");
-						this.cancel();
-					}
-					}
-				}			
-			}, 0, myLong);
-	}
-
-	private void chopTextList() {
-		String text = textList.get(partIndex).getText();
-		if (text.length() <= 0) {
-			partIndex++;
-		} else {
-			System.out.println("text "+text);
-			textList.get(partIndex).setText(text.substring(1));
-		}
 	}
 
 	private void createCenterSection() {
@@ -662,7 +623,7 @@ public class View implements HotkeyListener {
 								if (item != null) {
 									if (item.equals("OVERDUE")) {
 										setId("overdue");
-									} else{
+									} else {
 										setId("empty");
 									}
 
@@ -1016,11 +977,6 @@ public class View implements HotkeyListener {
 		tabPane.getSelectionModel().select(tabIndex);
 	}
 
-	public void emptyTextList() {
-		for (int i = 0; i < textList.size(); i++)
-			textList.get(i).setText("");
-	}
-
 	/**
 	 * set the real-time multicolor feedback to remind some misuse or give some
 	 * suggestion
@@ -1136,3 +1092,125 @@ public class View implements HotkeyListener {
 		return tabPane.getSelectionModel().getSelectedIndex();
 	}
 }
+
+class CustomStyledDocument extends DefaultStyledDocument {
+	final StyleContext cont = StyleContext.getDefaultStyleContext();
+
+	final AttributeSet attrRed = cont.addAttribute(cont.getEmptySet(),
+			StyleConstants.Foreground, new java.awt.Color(231, 76, 60));
+	final AttributeSet attrBlue = cont.addAttribute(cont.getEmptySet(),
+			StyleConstants.Foreground, new java.awt.Color(92, 190, 247));
+	final AttributeSet attrDarkCyan = cont.addAttribute(cont.getEmptySet(),
+			StyleConstants.Foreground, new java.awt.Color(44, 62, 80));
+	final AttributeSet attrDarkBlue = cont.addAttribute(cont.getEmptySet(),
+			StyleConstants.Foreground, new java.awt.Color(41, 128, 185));
+	final AttributeSet attrOrange = cont.addAttribute(cont.getEmptySet(),
+			StyleConstants.Foreground, new java.awt.Color(241, 196, 15));
+	final AttributeSet attrGreen = cont.addAttribute(cont.getEmptySet(),
+			StyleConstants.Foreground, new java.awt.Color(46, 204, 113));
+	final AttributeSet attrCyan = cont.addAttribute(cont.getEmptySet(),
+			StyleConstants.Foreground, new java.awt.Color(26, 188, 156));
+	final AttributeSet attrGray = cont.addAttribute(cont.getEmptySet(),
+			StyleConstants.Foreground, new java.awt.Color(189, 195, 199));
+	final AttributeSet attrMagenta = cont.addAttribute(cont.getEmptySet(),
+			StyleConstants.Foreground, new java.awt.Color(155, 89, 182));
+
+	public void insertString(int offset, String str, AttributeSet a)
+			throws BadLocationException {
+		super.insertString(offset, str, a);
+
+		String text = getText(0, getLength());
+		ArrayList<InfoWithIndex> infoList = Parser.parseForView(text);
+		for (int i = 0; i < infoList.size(); i++) {
+			InfoWithIndex info = infoList.get(i);
+			switch (info.getInfoType()) {
+			case -2:
+				setCharacterAttributes(info.getStartIndex(), info.getInfo()
+						.length(), attrGray, false);
+				break;
+			case -1:
+				setCharacterAttributes(info.getStartIndex(), info.getInfo()
+						.length(), attrGreen, false);
+				break;
+			case 0:
+				setCharacterAttributes(info.getStartIndex(), info.getInfo()
+						.length(), attrDarkCyan, false);
+				break;
+			case 1:
+				setCharacterAttributes(info.getStartIndex(), info.getInfo()
+						.length(), attrOrange, false);
+				break;
+			case 2:
+				setCharacterAttributes(info.getStartIndex(), info.getInfo()
+						.length(), attrCyan, false);
+				break;
+			case 3:
+				setCharacterAttributes(info.getStartIndex(), info.getInfo()
+						.length(), attrBlue, false);
+				break;
+			case 4:
+				setCharacterAttributes(info.getStartIndex(), info.getInfo()
+						.length(), attrRed, false);
+				break;
+			case 5:
+				setCharacterAttributes(info.getStartIndex(), info.getInfo()
+						.length(), attrDarkBlue, false);
+				break;
+			case 6:
+				setCharacterAttributes(info.getStartIndex(), info.getInfo()
+						.length(), attrMagenta, false);
+				break;
+			}
+
+		}
+	}
+
+	public void remove(int offs, int len) throws BadLocationException {
+		super.remove(offs, len);
+
+		String text = getText(0, getLength());
+		ArrayList<InfoWithIndex> infoList = Parser.parseForView(text);
+		for (int i = 0; i < infoList.size(); i++) {
+			InfoWithIndex info = infoList.get(i);
+			switch (info.getInfoType()) {
+			case -2:
+				setCharacterAttributes(info.getStartIndex(), info.getInfo()
+						.length(), attrGray, false);
+				break;
+			case -1:
+				setCharacterAttributes(info.getStartIndex(), info.getInfo()
+						.length(), attrGreen, false);
+				break;
+			case 0:
+				setCharacterAttributes(info.getStartIndex(), info.getInfo()
+						.length(), attrDarkCyan, false);
+				break;
+			case 1:
+				setCharacterAttributes(info.getStartIndex(), info.getInfo()
+						.length(), attrOrange, false);
+				break;
+			case 2:
+				setCharacterAttributes(info.getStartIndex(), info.getInfo()
+						.length(), attrCyan, false);
+				break;
+			case 3:
+				setCharacterAttributes(info.getStartIndex(), info.getInfo()
+						.length(), attrBlue, false);
+				break;
+			case 4:
+				setCharacterAttributes(info.getStartIndex(), info.getInfo()
+						.length(), attrRed, false);
+				break;
+			case 5:
+				setCharacterAttributes(info.getStartIndex(), info.getInfo()
+						.length(), attrDarkBlue, false);
+				break;
+			case 6:
+				setCharacterAttributes(info.getStartIndex(), info.getInfo()
+						.length(), attrMagenta, false);
+				break;
+			}
+
+		}
+	}
+};

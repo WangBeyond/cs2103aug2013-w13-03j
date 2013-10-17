@@ -1,19 +1,17 @@
+import java.awt.event.KeyListener;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import org.omg.CosNaming.IstringHelper;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 import javafx.application.Application;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
-import javafx.event.EventHandler;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
@@ -49,17 +47,13 @@ public class Control extends Application {
 	static final KeyCombination redo_hot_key = new KeyCodeCombination(
 			KeyCode.Y, KeyCodeCombination.CONTROL_DOWN,
 			KeyCodeCombination.ALT_DOWN);
-	
+
 	public Model modelHandler = new Model();
 	public History commandHistory = new History();
 	public View view;
 	private Store dataFile;
 
-
-	static int maxCaretPos = 0;
 	static boolean isRealTimeSearch = false;
-	static KeyCode keyCode;
-	static String completedCommand;
 	static final boolean SEARCHED = true;
 	static final boolean SHOWN = false;
 
@@ -94,225 +88,162 @@ public class Control extends Application {
 	}
 
 	private void handleListener() {
-		view.commandLine.textProperty().addListener(
-				new ChangeListener<String>() {
-					public void changed(ObservableValue<? extends String> ov,
-							String oldValue, String newValue) {
-						String command = view.commandLine.getText();
-						if (Parser.checkEmptyCommand(command)) {
-							view.setFeedback(MESSAGE_REQUEST_COMMAND);
-						} else {
-							Parser.COMMAND_TYPES commandType = Parser
-									.determineCommandType(command);
-							if (commandType == Parser.COMMAND_TYPES.INVALID) {
-								view.setFeedback(command);
-							} else {
-								switch (commandType) {
-								case ADD:
-									view.setFeedback(MESSAGE_ADD_TIP);
-									break;
-								case EDIT:
-									view.setFeedback(MESSAGE_EDIT_TIP);
-									break;
-								case REMOVE:
-									view.setFeedback(MESSAGE_REMOVE_TIP);
-									break;
-								case SEARCH:
-									view.setFeedback(MESSAGE_SEARCH_TIP);
-									break;
-								case SHOW_ALL:
-									view.setFeedback(MESSAGE_SHOW_ALL_TIP);
-									break;
-								case UNDO:
-									view.setFeedback(MESSAGE_UNDO_TIP);
-									break;
-								case REDO:
-									view.setFeedback(MESSAGE_REDO_TIP);
-									break;
-								case MARK:
-									view.setFeedback(MESSAGE_MARK_TIP);
-									break;
-								case UNMARK:
-									view.setFeedback(MESSAGE_UNMARK_TIP);
-									break;
-								case COMPLETE:
-									view.setFeedback(MESSAGE_COMPLETE_TIP);
-									break;
-								case INCOMPLETE:
-									view.setFeedback(MESSAGE_INCOMPLETE_TIP);
-									break;
-								case TODAY:
-									view.setFeedback(MESSAGE_TODAY_TIP);
-									break;
-								case CLEAR_ALL:
-									view.setFeedback(MESSAGE_CLEAR_ALL_TIP);
-									break;
-								case HELP:
-									view.setFeedback(MESSAGE_HELP_TIP);
-									break;
-								case EXIT:
-									view.setFeedback(MESSAGE_EXIT_TIP);
-									break;
-								}
-							}
-						}
-					}
-				});
-	}
-
-	private void handleKeyPressEvent() {
-		view.commandLine.setOnKeyPressed(new EventHandler<KeyEvent>() {
-			public void handle(KeyEvent e) {
-				if (e.getCode() == KeyCode.ENTER) {
-					isRealTimeSearch = false;
-					String feedback = executeCommand(view.commandLine.getText());
-					updateFeedback(feedback);
-				} else if (e.getCode() == KeyCode.BACK_SPACE && View.isTextColored) {
-					// update multicolor command when backspace to avoid delay
-					// and shadow effect
-					updateMultiColorCommandWhenBackspacePressed();
-				} else if (undo_hot_key.match(e)) {
-					String feedback = executeCommand(UNDO_COMMAND);
-					updateFeedback(feedback);
-					e.consume();
-				} else if (redo_hot_key.match(e)) {
-					String feedback = executeCommand(REDO_COMMAND);
-					updateFeedback(feedback);
-					e.consume();
-				}
-				if(View.isTextColored){
-				String command = view.commandLine.getText();
-				if(view.isCommandChopped) {
-					view.hideCursor();
-				}
-				view.isUpdated = false;
-				System.out.println("caret "+view.commandLine.getCaretPosition() +" "+ command.length());
-				maxCaretPos = view.commandLine.getCaretPosition() > maxCaretPos? view.commandLine.getCaretPosition() : maxCaretPos;
-				if(e.getCode() == KeyCode.BACK_SPACE && view.commandLine.getText().length() > 0)
-					maxCaretPos --;
-				if (view.commandLine.getCaretPosition() == maxCaretPos)	
-					updateMultiColorCommandWhenInputPressed(e);
-				}
-			}
-		});
-		view.commandLine.setOnKeyReleased(new EventHandler<KeyEvent>() {
-			public void handle(KeyEvent e) {
-				String command = view.commandLine.getText();
-				if(View.isTextColored){
-				keyCode = e.getCode();
-				
-				System.out.print("check release1  ");
-				for(int i = 0; i<view.textList.size(); i++)
-					System.out.print(view.textList.get(i).getText() + " ");
-
-				if(keyCode != KeyCode.LEFT && keyCode != keyCode.RIGHT && view.isUpdated == false)
-					view.updateMultiColorCommand(command);
-				view.displayCursor();
-				//
-				System.out.print("check release2  ");
-				for(int i = 0; i<view.textList.size(); i++)
-					System.out.print(view.textList.get(i).getText() + " ");
-				}
-				//realTime-search and remove
+		view.txt.getDocument().addDocumentListener(new DocumentListener() {
+			@Override
+			public void removeUpdate(DocumentEvent e) {
+				String command = view.txt.getText();
+				realTimeFeedback(command);
 				if (Parser.determineCommandType(command) == Parser.COMMAND_TYPES.SEARCH)
-					realTimeSearch(command, e.getCode());
+					realTimeSearch(command);
 				else if (Parser.determineCommandType(command) == Parser.COMMAND_TYPES.REMOVE) {
 					String content = removeCommandTypeString(command);
 					try {
 						Integer.parseInt(Parser.getFirstWord(content));
 					} catch (NumberFormatException ex) {
-						realTimeSearch("search" + content, e.getCode());
+						realTimeSearch("search" + content);
 					}
 				}
-				if (e.getCode() == KeyCode.BACK_SPACE && isRealTimeSearch
+				if (isRealTimeSearch
 						&& !command.contains("search")) {
 					isRealTimeSearch = false;
 					executeShowCommand();
 				}
 			}
+
+			@Override
+			public void insertUpdate(DocumentEvent e) {
+				String command = view.txt.getText();
+				realTimeFeedback(command);
+				if (Parser.determineCommandType(command) == Parser.COMMAND_TYPES.SEARCH)
+					realTimeSearch(command);
+				else if (Parser.determineCommandType(command) == Parser.COMMAND_TYPES.REMOVE) {
+					String content = removeCommandTypeString(command);
+					try {
+						Integer.parseInt(Parser.getFirstWord(content));
+					} catch (NumberFormatException ex) {
+						realTimeSearch("search" + content);
+					}
+				}
+				if (isRealTimeSearch
+						&& !command.contains("search")) {
+					isRealTimeSearch = false;
+					executeShowCommand();
+				}
+			}
+
+			@Override
+			public void changedUpdate(DocumentEvent e) {
+				String command = view.txt.getText();
+				realTimeFeedback(command);
+				if (Parser.determineCommandType(command) == Parser.COMMAND_TYPES.SEARCH)
+					realTimeSearch(command);
+				else if (Parser.determineCommandType(command) == Parser.COMMAND_TYPES.REMOVE) {
+					String content = removeCommandTypeString(command);
+					try {
+						Integer.parseInt(Parser.getFirstWord(content));
+					} catch (NumberFormatException ex) {
+						realTimeSearch("search" + content);
+					}
+				}
+				if (isRealTimeSearch
+						&& !command.contains("search")) {
+					isRealTimeSearch = false;
+					executeShowCommand();
+				}
+			}
+			
+			private void realTimeFeedback(String command){
+
+				if (Parser.checkEmptyCommand(command)) {
+					view.setFeedback(MESSAGE_REQUEST_COMMAND);
+				} else {
+					Parser.COMMAND_TYPES commandType = Parser
+							.determineCommandType(command);
+					if (commandType == Parser.COMMAND_TYPES.INVALID) {
+						view.setFeedback(command);
+					} else {
+						switch (commandType) {
+						case ADD:
+							view.setFeedback(MESSAGE_ADD_TIP);
+							break;
+						case EDIT:
+							view.setFeedback(MESSAGE_EDIT_TIP);
+							break;
+						case REMOVE:
+							view.setFeedback(MESSAGE_REMOVE_TIP);
+							break;
+						case SEARCH:
+							view.setFeedback(MESSAGE_SEARCH_TIP);
+							break;
+						case SHOW_ALL:
+							view.setFeedback(MESSAGE_SHOW_ALL_TIP);
+							break;
+						case UNDO:
+							view.setFeedback(MESSAGE_UNDO_TIP);
+							break;
+						case REDO:
+							view.setFeedback(MESSAGE_REDO_TIP);
+							break;
+						case MARK:
+							view.setFeedback(MESSAGE_MARK_TIP);
+							break;
+						case UNMARK:
+							view.setFeedback(MESSAGE_UNMARK_TIP);
+							break;
+						case COMPLETE:
+							view.setFeedback(MESSAGE_COMPLETE_TIP);
+							break;
+						case INCOMPLETE:
+							view.setFeedback(MESSAGE_INCOMPLETE_TIP);
+							break;
+						case TODAY:
+							view.setFeedback(MESSAGE_TODAY_TIP);
+							break;
+						case CLEAR_ALL:
+							view.setFeedback(MESSAGE_CLEAR_ALL_TIP);
+							break;
+						case HELP:
+							view.setFeedback(MESSAGE_HELP_TIP);
+							break;
+						case EXIT:
+							view.setFeedback(MESSAGE_EXIT_TIP);
+							break;
+						}
+					}
+				}
+			}
 		});
 	}
 
-	
+	private void handleKeyPressEvent() {
+		view.txt.addKeyListener(new KeyListener() {
+			@Override
+			public void keyTyped(java.awt.event.KeyEvent e) {
+			}
+			@Override
+			public void keyReleased(java.awt.event.KeyEvent e) {
+			}
+			
+			@Override
+			public void keyPressed(java.awt.event.KeyEvent e) {
+				if(e.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER){
+					isRealTimeSearch = false;
+					String feedback = executeCommand(view.txt.getText());
+					updateFeedback(feedback);
+				}
+			}
+		});
+	}
+
 	private String removeCommandTypeString(String command) {
 		String commandTypeStr = Parser.getFirstWord(command);
 		return command.substring(commandTypeStr.length());
 	}
 
-	/**************************** method for multiColor command update **************************************************/
-	private void updateMultiColorCommandWhenBackspacePressed() {
-		int caretPosition = view.commandLine.getCaretPosition();
-		if (caretPosition > 0) {
-			for (int i = 0; i < view.textList.size(); i++) {
-				String str = view.textList.get(i).getText();
-				caretPosition -= str.length();
-				if (caretPosition <= 0) {
-					if (!str.equals("")) {
-						int target = str.length() + caretPosition;
-						String multiCommandAfterBackspace = str.substring(0,
-								target - 1)
-								+ str.substring(target, str.length());
-						view.textList.get(i)
-								.setText(multiCommandAfterBackspace);
-						break;
-					} else
-						break;
-				}
-			}
-		}
-	}
-
-	private void updateMultiColorCommandWhenInputPressed(KeyEvent e) {
-		view.newChar = null;
-		KeyCode code = e.getCode();
-		if (code.isDigitKey()) {
-			if (!new KeyCodeCombination(code, KeyCombination.SHIFT_DOWN)
-					.match(e))
-				if(view.isCommandChopped)
-					view.newChar =  code.getName();
-				else
-					view.updateMultiColorCommand(view.commandLine.getText()
-						+ code.getName());
-		} else if (code.isLetterKey()) {
-			// If the input key is upper case
-			if (new KeyCodeCombination(code, KeyCombination.SHIFT_DOWN)
-					.match(e))
-				if(view.isCommandChopped)
-					view.newChar =  code.getName();
-				else
-					view.updateMultiColorCommand(view.commandLine.getText()
-						+ code.getName());
-			else {
-				String commandAfterPress = view.commandLine.getText()
-						+ code.getName().toLowerCase();
-				if(view.isCommandChopped)
-					view.newChar =  code.getName().toLowerCase();
-				else
-					view.updateMultiColorCommand(commandAfterPress);
-			}
-		}
-		/*if(view.multiColorCommand.getWidth() > view.COMMAND_MAX_WIDTH 
-				|| (view.multiColorCommand.getWidth() < 0 && view.commandLine.getText().length()>10 && view.textList.get(0).getText().length()>0)) {
-			System.out.println("check "+view.commandLine.getWidth());
-			view.checkCommandMaxWidth();
-		}*/
-		System.out.print("check press  ");
-		for(int i = 0; i<view.textList.size(); i++)
-			System.out.print(view.textList.get(i).getText() + " ");
-
-	}
-
-	private void setCaretPosition(int position) {
-		view.commandLine.home();
-		for (int i = 0; i < position; i++) {
-			view.commandLine.forward();
-		}
-	}
-
 	private void updateFeedback(String feedback) {
 		if (successfulExecution(feedback)) {
-			view.commandLine.setText("");
-			view.emptyTextList();
+			view.txt.setText("");
+			view.txt.setCaretPosition(0);
 		}
 		view.emptyFeedback(0);
 		view.setFeedbackStyle(0, feedback, Color.WHITE);
@@ -329,12 +260,12 @@ public class Control extends Application {
 					.determineCommandType(userCommand);
 
 			String[] parsedUserCommand = Parser.parseCommand(userCommand,
-					commandType, modelHandler, view);
+					commandType);
 
 			return executeCommandCorrespondingType(parsedUserCommand,
 					commandType);
 		} catch (Exception e) {
-			return e.getMessage();
+			return  "testing" +e.getMessage();
 		}
 	}
 
@@ -383,7 +314,7 @@ public class Control extends Application {
 		}
 	}
 
-	private void realTimeSearch(String command, KeyCode keyCode) {
+	private void realTimeSearch(String command) {
 		isRealTimeSearch = true;
 		if (command.trim().equals("search"))
 			executeShowCommand();
@@ -391,8 +322,9 @@ public class Control extends Application {
 			executeCommand(command);
 		}
 	}
-	
-	private String executeAddCommand(String[] parsedUserCommand) throws IOException {
+
+	private String executeAddCommand(String[] parsedUserCommand)
+			throws IOException {
 		int tabIndex = view.getTabIndex();
 		Command s = new AddCommand(parsedUserCommand, modelHandler, tabIndex);
 		String feedback = s.execute();
@@ -428,7 +360,7 @@ public class Control extends Application {
 		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_REMOVE)) {
 			commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
 			dataFile.storeToFile();
-			//syncFile.storeToFile();
+			// syncFile.storeToFile();
 			executeShowCommand();
 		}
 		return feedback;
@@ -459,8 +391,10 @@ public class Control extends Application {
 			return MESSAGE_INVALID_REDO;
 	}
 
-	private String executeSearchCommand(String[] parsedUserCommand, boolean isRealTimeSearch) {
-		Command s = new SearchCommand(parsedUserCommand, modelHandler, view, isRealTimeSearch);
+	private String executeSearchCommand(String[] parsedUserCommand,
+			boolean isRealTimeSearch) {
+		Command s = new SearchCommand(parsedUserCommand, modelHandler, view,
+				isRealTimeSearch);
 		return s.execute();
 	}
 
@@ -602,8 +536,8 @@ public class Control extends Application {
 		Collections.sort(list);
 		updateIndexInList(list);
 	}
-	
-	private static void updateIndexInList(ObservableList<Task> list){
+
+	private static void updateIndexInList(ObservableList<Task> list) {
 		for (int i = 0; i < list.size(); i++) {
 			list.get(i).setIndexInList(i);
 		}
