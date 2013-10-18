@@ -170,7 +170,14 @@ public class View implements HotkeyListener {
 	}
 
 	public void showHelpPage() {
-		helpPage.showHelpPage();
+		Platform.runLater(new Runnable() {
+			
+			@Override
+			public void run() {
+				helpPage.showHelpPage();
+			}
+		});
+		
 	}
 
 	private void setupShortcuts() {
