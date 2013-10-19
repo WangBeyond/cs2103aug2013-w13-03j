@@ -28,7 +28,8 @@ public abstract class Command {
 	protected static final String MESSAGE_SUCCESSFUL_UNDO = "Undo was successful.";
 	protected static final String MESSAGE_WRONG_COMPLETE_TABS = "Cannot complete the tasks in this current tab.";
 	protected static final String MESSAGE_WRONG_INCOMPLETE_TABS = "Cannot incomplete the tasks in this current tab.";
-	protected static final String MESSAGE_HELP = "Opening the Help window...";
+	protected static final String MESSAGE_HELP = "Help window opened.";
+	protected static final String MESSAGE_OPEN_SETTINGS_DIALOG = "Settings window opened.";
 	protected static final String MESSAGE_SUCCESSFUL_SYNC = "successful synchronized.";
 
 	protected static final String HAVING_START_DATE = "having start date";
@@ -1250,6 +1251,30 @@ class HelpCommand extends Command {
 	}
 }
 
+/**
+ * 
+ * Class SettingsCommand
+ * 
+ */
+class SettingsCommand extends Command {
+	View view;
+
+	public SettingsCommand(Model model, View view, String[] parsedUserCommand) {
+		super(model, view.getTabIndex());
+		this.view = view;
+	}
+
+	public String execute() {
+		view.showSettingsPage();
+		return MESSAGE_OPEN_SETTINGS_DIALOG;
+	}
+}
+
+/**
+ * 
+ * Class SyncCommand
+ * 
+ */
 class SyncCommand extends Command {
 	String username = null;
 	String password = null;
