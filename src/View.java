@@ -89,8 +89,8 @@ public class View implements HotkeyListener {
 	final KeyCombination changeTab = new KeyCodeCombination(KeyCode.TAB,
 			KeyCombination.CONTROL_DOWN);
 
-	// Help page
 	public Help helpPage;
+	public Settings settingsPage;
 
 	// Command Line for user to input command
 	public TextField commandLine;
@@ -152,6 +152,7 @@ public class View implements HotkeyListener {
 		this.model = model;
 
 		setupHelpPage();
+		setupSettingsPage();
 		setupStage();
 		loadLibrary();
 		checkIntellitype();
@@ -175,6 +176,21 @@ public class View implements HotkeyListener {
 			@Override
 			public void run() {
 				helpPage.showHelpPage();
+			}
+		});
+		
+	}
+	
+	private void setupSettingsPage(){
+		settingsPage = new Settings();
+	}
+	
+	public void showSettingsPage() {
+		Platform.runLater(new Runnable() {
+			
+			@Override
+			public void run() {
+				settingsPage.showSettingsPage();
 			}
 		});
 		
@@ -865,6 +881,7 @@ public class View implements HotkeyListener {
 		popup.addSeparator();
 
 		MenuItem settingsItem = new MenuItem("Preferences");
+		settingsItem.addActionListener(createPreferencesListener());
 		popup.add(settingsItem);
 
 		MenuItem closeItem = new MenuItem("Exit");
@@ -883,6 +900,20 @@ public class View implements HotkeyListener {
 					public void run() {
 						stage.toFront();
 						stage.show();
+					}
+				});
+			}
+		};
+	}
+	
+	private ActionListener createPreferencesListener() {
+		return new ActionListener() {
+			@Override
+			public void actionPerformed(java.awt.event.ActionEvent e) {
+				Platform.runLater(new Runnable() {
+					@Override
+					public void run() {
+						showSettingsPage();
 					}
 				});
 			}

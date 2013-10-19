@@ -127,7 +127,7 @@ public class Help{
 		helpStage = new Stage();
 		helpStage.initStyle(StageStyle.UNDECORATED);
 		helpStage.setWidth(600);
-		helpStage.setHeight(730);
+		helpStage.setHeight(750);
 		Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
 		helpStage.setX((screenBounds.getWidth() - helpStage.getWidth()) / 2);
 		helpStage.setY((screenBounds.getHeight() - helpStage.getHeight()) / 2);
@@ -166,7 +166,7 @@ public class Help{
 					log.log(Level.INFO, "Pressing ctrl + left...");
 					changeToFirstPage();
 				} else if (esc.match(e)){
-					log.log(Level.INFO, "Pressing esc...");
+					log.log(Level.INFO, "Pressing esc for help page...");
 					helpStage.close();
 				}
 			}
