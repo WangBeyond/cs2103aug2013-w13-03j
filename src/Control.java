@@ -36,8 +36,9 @@ public class Control extends Application {
 	static final String MESSAGE_COMPLETE_TIP = "<complete/done> <index 1> <index 2> <index 3> ...";
 	static final String MESSAGE_INCOMPLETE_TIP = "<incomplete/undone> <index 1> <index 2> <index 3> ...";
 	static final String MESSAGE_HELP_TIP = "<help>";
+	static final String MESSAGE_SETTINGS_TIP = "<settings>";
 	static final String MESSAGE_EXIT_TIP = "<exit>";
-	static final String MESSAGE_REQUEST_COMMAND = "Please enter a command, or type help to view commands.";
+	static final String MESSAGE_REQUEST_COMMAND = "Please enter a command or type help to view commands.";
 
 	static final String UNDO_COMMAND = "undo";
 	static final String REDO_COMMAND = "redo";
@@ -206,6 +207,9 @@ public class Control extends Application {
 						case HELP:
 							view.setFeedback(MESSAGE_HELP_TIP);
 							break;
+						case SETTINGS:
+							view.setFeedback(MESSAGE_SETTINGS_TIP);
+							break;
 						case EXIT:
 							view.setFeedback(MESSAGE_EXIT_TIP);
 							break;
@@ -300,8 +304,8 @@ public class Control extends Application {
 			return executeMarkCommand(parsedUserCommand);
 		case UNMARK:
 			return executeUnmarkCommand(parsedUserCommand);
-			// case SETTINGS:
-			// return executeSettingsCommand(parsedUserCommand);
+		case SETTINGS:
+			return executeSettingsCommand(parsedUserCommand);
 		case HELP:
 			return executeHelpCommand();
 		case SYNC:
@@ -481,6 +485,11 @@ public class Control extends Application {
 
 	private String executeHelpCommand() {
 		Command s = new HelpCommand(modelHandler, view);
+		return s.execute();
+	}
+	
+	private String executeSettingsCommand(String[] parsedUserCommand) {
+		Command s = new SettingsCommand(modelHandler, view, parsedUserCommand);
 		return s.execute();
 	}
 	

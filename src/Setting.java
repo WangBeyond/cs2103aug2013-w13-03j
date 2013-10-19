@@ -8,7 +8,6 @@ import java.io.File;
 
 public class Setting extends Store {
 
-
 	private final static String TRUE = "true";
 
 	private String googleAccount;
