@@ -1,3 +1,6 @@
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import javafx.event.EventHandler;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
@@ -14,11 +17,12 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
-// TODO: keyboard shortcuts, fix imaged bottom
-public class Help {
-	
-	final KeyCombination nextPage = new KeyCodeCombination(KeyCode.RIGHT);
-	final KeyCombination backPage = new KeyCodeCombination(KeyCode.LEFT);
+// TODO: fix image 
+public class Help{
+	private static Logger log = Logger.getLogger("Help");
+	private final KeyCombination nextPage = new KeyCodeCombination(KeyCode.RIGHT, KeyCombination.SHORTCUT_DOWN);
+	private final KeyCombination backPage = new KeyCodeCombination(KeyCode.LEFT, KeyCombination.SHORTCUT_DOWN);
+	private final KeyCombination esc = new KeyCodeCombination(KeyCode.ESCAPE);
 	
 	private Scene helpScene;
 	private Stage helpStage;
@@ -31,31 +35,27 @@ public class Help {
 	private double dragAnchorX;
 	private double dragAnchorY;
 	
-	private boolean onFirstPage;
-	private boolean onSecondPage;
-	
-	public Help(){
-		helpPage = new ImageView();
-		onFirstPage = true;
-		onSecondPage = false;
-		root = new Group();
-		buttons = new Group();
-		
+	public Help(){	
 		setupInitialStage();
 		setupButtons();
 		changeToFirstPage();	
+		setupShortcuts();
+		setupDraggable();
+		setupScene();
+	}
+	
+	public void showHelpPage(){
+		changeToFirstPage();
+		helpStage.show();
+	}
+	
+	private void setupScene(){
 		root.getChildren().add(helpPage);
 		root.getChildren().add(buttons);
 		helpScene = new Scene(root, 600, 730);
 		helpScene.getStylesheets().addAll(
 				getClass().getResource("customize.css").toExternalForm());
 		helpStage.setScene(helpScene);
-		setupDraggable();
-	}
-	
-	public void showHelpPage(){
-		changeToFirstPage();
-		helpStage.show();
 	}
 	
 	private void setupNextButton() {
@@ -110,8 +110,6 @@ public class Help {
 		nextButton.setDisable(false);
 		backButton.setVisible(false);
 		backButton.setDisable(true);
-		onSecondPage = false;
-		onFirstPage = true;
 	}
 	
 	private void changeToSecondPage(){
@@ -120,11 +118,12 @@ public class Help {
 		backButton.setDisable(false);
 		nextButton.setVisible(false);
 		nextButton.setDisable(true);
-		onSecondPage = true;
-		onFirstPage = false;
 	}
 	
 	private void setupInitialStage(){
+		helpPage = new ImageView();
+		root = new Group();
+		buttons = new Group();
 		helpStage = new Stage();
 		helpStage.initStyle(StageStyle.UNDECORATED);
 		helpStage.setWidth(600);
@@ -132,6 +131,10 @@ public class Help {
 		Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
 		helpStage.setX((screenBounds.getWidth() - helpStage.getWidth()) / 2);
 		helpStage.setY((screenBounds.getHeight() - helpStage.getHeight()) / 2);
+		helpStage.setTitle("iDo Help Page");
+		helpStage.getIcons().add(
+				new Image(getClass().getResource("iDo_traybar.png")
+						.toExternalForm()));
 	}
 	
 	private void setupImage(Image helpImage){
@@ -150,6 +153,24 @@ public class Help {
 	private Image getSecondHelpImage(){
 		Image secondHelpImage = new Image(getClass().getResourceAsStream("help_2.png"));		
 		return secondHelpImage;
+	}
+	
+	private void setupShortcuts(){
+		root.setOnKeyPressed(new EventHandler<KeyEvent>(){
+			public void handle(KeyEvent e) {
+				log.log(Level.INFO, "Executing shortcut key...");
+				if (nextPage.match(e)) {
+					log.log(Level.INFO, "Pressing ctrl + right...");
+					changeToSecondPage();
+				} else if (backPage.match(e)){
+					log.log(Level.INFO, "Pressing ctrl + left...");
+					changeToFirstPage();
+				} else if (esc.match(e)){
+					log.log(Level.INFO, "Pressing esc...");
+					helpStage.close();
+				}
+			}
+		});
 	}
 	
 	private void setupDraggable() {
