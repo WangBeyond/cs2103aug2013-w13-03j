@@ -28,7 +28,7 @@ public class Task implements Comparable<Task> {
 	private ObjectProperty<Tag> tag;
 
 	// Index ID of this task in Google Calendar
-	private int indexId;
+	private String indexId;
 	// Index in the list containing the task
 	private int indexInList;
 	// Current status of the task
@@ -42,7 +42,7 @@ public class Task implements Comparable<Task> {
 	}
 
 	public Task(boolean isImportant, CustomDate startDate, CustomDate endDate,
-			String workInfo, Tag tag, int indexId, Status status) {
+			String workInfo, Tag tag, String indexId, Status status) {
 		checkProperty();
 
 		setIsImportant(isImportant);
@@ -64,7 +64,7 @@ public class Task implements Comparable<Task> {
 		setStartDateString("-");
 		setWorkInfo("");
 		setTag(new Tag("", ""));
-		indexId = 0;
+		indexId = "";
 		indexInList = 0;
 		setStatus(Status.NEWLY_ADDED);
 		updateLatestModifiedDate();
@@ -245,7 +245,7 @@ public class Task implements Comparable<Task> {
 		return tag.get();
 	}
 
-	public int getIndexId() {
+	public String getIndexId() {
 		return indexId;
 	}
 
@@ -314,7 +314,7 @@ public class Task implements Comparable<Task> {
 		this.tag.set(tag);
 	}
 
-	public void setIndexId(int indexId) {
+	public void setIndexId(String indexId) {
 		this.indexId = indexId;
 	}
 

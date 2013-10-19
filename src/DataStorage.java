@@ -133,7 +133,7 @@ public class DataStorage extends Store {
 		String textLine = in.readLine();
 		if (textLine == null || textLine.equals(SPLITLINE))
 			return true;
-		newTask.setIndexId(Integer.parseInt(textLine));
+		newTask.setIndexId(textLine);
 		newTask.setWorkInfo(in.readLine());
 		if (!(textLine = in.readLine()).equals("-"))
 			newTask.setStartDate(new CustomDate(textLine));
@@ -142,6 +142,7 @@ public class DataStorage extends Store {
 		newTask.setTag(new Tag(in.readLine(), in.readLine()));
 		newTask.setIsImportant((in.readLine()).equals(TRUE) ? true : false);
 		newTask.setIndexInList(Integer.parseInt(in.readLine()));
+		newTask.setLatestModifiedDate(new CustomDate(in.readLine()));
 		String statusString = in.readLine();
 		if (statusString.equals("new"))
 			newTask.setStatus(Task.Status.NEWLY_ADDED);
@@ -149,7 +150,6 @@ public class DataStorage extends Store {
 			newTask.setStatus(Task.Status.UNCHANGED);
 		else
 			newTask.setStatus(Task.Status.DELETED);
-		newTask.setLatestModifiedDate(new CustomDate(in.readLine()));
 		switch (taskType) {
 		case PENDING:
 			model.addTaskToPending(newTask);

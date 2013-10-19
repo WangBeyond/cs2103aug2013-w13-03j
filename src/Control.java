@@ -50,6 +50,7 @@ public class Control extends Application {
 
 	public Model modelHandler = new Model();
 	public History commandHistory = new History();
+	public Synchronization sync = new Synchronization(modelHandler);
 	public View view;
 	private Store dataFile;
 
@@ -261,11 +262,11 @@ public class Control extends Application {
 
 			String[] parsedUserCommand = Parser.parseCommand(userCommand,
 					commandType);
-
+			
 			return executeCommandCorrespondingType(parsedUserCommand,
 					commandType);
 		} catch (Exception e) {
-			return  "testing" +e.getMessage();
+			return  "testing " +e.getMessage();
 		}
 	}
 
@@ -303,8 +304,8 @@ public class Control extends Application {
 			// return executeSettingsCommand(parsedUserCommand);
 		case HELP:
 			return executeHelpCommand();
-			// case SYNC:
-			// return executeSyncCommand(parsedUserCommand);
+		case SYNC:
+			return executeSyncCommand(parsedUserCommand);
 		case EXIT:
 			return executeExitCommand();
 		case INVALID:
@@ -482,6 +483,11 @@ public class Control extends Application {
 		Command s = new HelpCommand(modelHandler, view);
 		return s.execute();
 	}
+	
+	private String executeSyncCommand(String[] parsedUserCommand){
+		Command s = new SyncCommand(parsedUserCommand, modelHandler, sync);
+		return s.execute();
+	}
 
 	private String executeExitCommand() {
 		int tabIndex = view.getTabIndex();
@@ -507,7 +513,8 @@ public class Control extends Application {
 				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_SHOW_ALL)
 				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_UNMARK)
 				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_UNDO)
-				|| feedback.equals(MESSAGE_SUCCESSFUL_REDO);
+				|| feedback.equals(MESSAGE_SUCCESSFUL_REDO)
+				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_SYNC);
 	}
 
 	private void loadUpdateTimer() {

@@ -29,7 +29,7 @@ public abstract class Command {
 	protected static final String MESSAGE_WRONG_COMPLETE_TABS = "Cannot complete the tasks in this current tab.";
 	protected static final String MESSAGE_WRONG_INCOMPLETE_TABS = "Cannot incomplete the tasks in this current tab.";
 	protected static final String MESSAGE_HELP = "Opening the Help window...";
-	protected static final String MESSAGE_SYNCING = "Synchronizing...";
+	protected static final String MESSAGE_SUCCESSFUL_SYNC = "successful synchronized.";
 
 	protected static final String HAVING_START_DATE = "having start date";
 	protected static final String HAVING_END_DATE = "having end date";
@@ -1268,8 +1268,9 @@ class SyncCommand extends Command {
 
 	@Override
 	public String execute() {
+		sync.setUsernameAndPassword(username, password);
 		sync.execute();
-		return MESSAGE_SYNCING;
+		return MESSAGE_SUCCESSFUL_SYNC;
 	}
 }
 

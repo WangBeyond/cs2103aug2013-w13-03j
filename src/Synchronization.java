@@ -1,11 +1,9 @@
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.TimeZone;
 
 import javafx.collections.ObservableList;
 
@@ -19,11 +17,8 @@ import com.google.gdata.data.batch.BatchUtils;
 import com.google.gdata.data.calendar.CalendarEntry;
 import com.google.gdata.data.calendar.CalendarEventEntry;
 import com.google.gdata.data.calendar.CalendarEventFeed;
-import com.google.gdata.data.calendar.CalendarFeed;
-import com.google.gdata.data.calendar.ColorProperty;
 import com.google.gdata.data.calendar.HiddenProperty;
 import com.google.gdata.data.calendar.TimeZoneProperty;
-import com.google.gdata.data.calendar.WebContent;
 import com.google.gdata.data.extensions.Recurrence;
 import com.google.gdata.data.extensions.When;
 import com.google.gdata.util.AuthenticationException;
@@ -63,34 +58,46 @@ public class Synchronization {
 	/*a list of event entry from Google calendar*/
 	private List<CalendarEventEntry> eventEntry = new ArrayList<CalendarEventEntry>();
 	
-	/*a list of tasks which have been deleted locally since last synchronization*/
-	private List<Task> deletedTasks;
-	
-	/*a list of tasks which have been added locally since last synchronization*/
-	private List<Task> newlyAddedTasks;
-	
-	private List<Task> unchangedTasks;
-	
-	public Synchronization(){
+	public Synchronization(Model m){
+		model = m;
 	}
 	
 	public void setUsernameAndPassword(String n, String p){
 		username = n;
 		password = p;
 	}
-	public void setModel(Model m){
-		model = m;
-	}
 	
 	public void execute() {
 		
-		//process model
-		processModel(model);
+		try {
+			initService();
+		} catch (AuthenticationException e1) {
+			System.out.println("fail to init");
+		}
 		
 		//form feed url
 		try {
 			eventFeedUrl = formEventFeedUrl(service);
 		} catch (IOException | ServiceException e) {
+			System.out.println("fail to form event url");
+		}
+		
+		//sync newly added tasks to GCal
+		try {
+			syncNewTasksToGCal(service, model, eventFeedUrl);
+		} catch (ServiceException e) {
+			System.out.println("fail to sync new");
+		} catch (IOException e) {
+			System.out.println("fail to sync new");
+		}
+		/*
+		try{
+		//delete events on GCal which have been deleted locally
+		snycDeletedTasksToGCal(service, model, eventEntry, eventFeedUrl);
+		} catch (ServiceException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -106,63 +113,20 @@ public class Synchronization {
 			e.printStackTrace();
 		}
 		
-		//sync newly added tasks to GCal
-		try {
-			syncNewTasksToGCal(service, newlyAddedTasks, eventFeedUrl);
-		} catch (ServiceException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		try{
-		//delete events on GCal which have been deleted locally
-		snycDeletedTasksToGCal(service, deletedTasks, eventEntry, eventFeedUrl);
-		} catch (ServiceException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
 		//delete tasks locally which have been deleted on GCal
-		deleteTasksLocally(unchangedTasks, eventEntry);
+		deleteTasksLocally(eventEntry, model);
 		
 		//add tasks locally which have been added on GCal
-		addEventsLocally(unchangedTasks, eventEntry);
+		addEventsLocally(eventEntry, model);
+		*/
 	}
 	
-	void processModel(Model model){
-		List<Task> temp = model.getPendingList();
-		for(int i=0;i<temp.size();i++){
-			if(temp.get(i).getStatus().equals(Task.Status.UNCHANGED)){
-				unchangedTasks.add(temp.get(i));
-			} else if(temp.get(i).getStatus().equals(Task.Status.NEWLY_ADDED)){
-				newlyAddedTasks.add(temp.get(i));
-			} else {
-				throw new Error("something");
-			}
-		}
-		
-		deletedTasks = model.getCompleteList();
-		deletedTasks.addAll(model.getTrashList());
-	}
-	
-	public void init(String n, String p, Model model) throws AuthenticationException{
-		setUsernameAndPassword(n, p);
-		setModel(model);
+	private void initService() throws AuthenticationException{
 		//create a new service
 		service = new CalendarService(SERVICE_NAME);
 		
 		//authenticate using ClientLogin
 		service.setUserCredentials(username, password);
-	}
-	
-	void loadLocalData(Model model){
-		
 	}
 	
 	URL formEventFeedUrl(CalendarService service) throws IOException, ServiceException{
@@ -179,22 +143,37 @@ public class Synchronization {
 		return temp[temp.length-1].toString();
 	}
 	
-	void syncNewTasksToGCal(CalendarService service, List<Task> newlyAddedTasks, URL feedUrl) throws ServiceException, IOException{
-		for(int i=0; i<newlyAddedTasks.size(); i++){
-			Task task = newlyAddedTasks.get(i);
-			if(task.isRecurringTask()){
-				createRecurringEvent(service, task.getWorkInfo(), task.getStartDate(), task.getEndDate(), "WEEKLY", feedUrl);
-			} else {
-				createSingleEvent(service, task.getWorkInfo(), task.getStartDate(), task.getEndDate(),feedUrl);
+	void syncNewTasksToGCal(CalendarService service, Model model, URL feedUrl) throws ServiceException, IOException{
+		ObservableList<Task> pendingList = model.getPendingList();
+		for(int i=0; i<pendingList.size(); i++){
+			Task task = pendingList.get(i);
+			if(task.getStatus() == Task.Status.NEWLY_ADDED){
+				CalendarEventEntry e;
+//				if(task.isRecurringTask()){
+//					e = createRecurringEvent(service, task.getWorkInfo(), task.getStartDate(), task.getEndDate(), "WEEKLY", feedUrl);
+//				} else {
+					e = createSingleEvent(service, task.getWorkInfo(), task.getStartDate(), task.getEndDate(),feedUrl);
+//				}
+				task.setIndexId(e.getId());
 			}
 		}
 	}
 	
-	private void snycDeletedTasksToGCal(CalendarService service, List<Task> tasks, List<CalendarEventEntry> entries, URL feedUrl) throws ServiceException, IOException{
+	private void snycDeletedTasksToGCal(CalendarService service, Model model, List<CalendarEventEntry> entries, URL feedUrl) throws ServiceException, IOException{
 		List<CalendarEventEntry> tobeDelete = new ArrayList<CalendarEventEntry>();
-		for(int i=0; i<tasks.size(); i++){
+		List<Task> completedTasks = model.getCompleteList();
+		List<Task> deletedTasks = model.getTrashList();
+		for(int i=0; i<completedTasks.size(); i++){
 			for(int j=0; j<entries.size();j++){
-				if(tasks.get(i).equals(entries.get(j).getId())){
+				if(completedTasks.get(i).equals(entries.get(j).getId())){
+					tobeDelete.add(entries.get(j));
+					break;
+				}
+			}
+		}
+		for(int i=0; i<deletedTasks.size(); i++){
+			for(int j=0; j<entries.size();j++){
+				if(deletedTasks.get(i).equals(entries.get(j).getId())){
 					tobeDelete.add(entries.get(j));
 					break;
 				}
@@ -203,27 +182,41 @@ public class Synchronization {
 		deleteEvents(service, tobeDelete, feedUrl);
 	}
 	
-	private void deleteTasksLocally(List<Task> remainingTasks, List<CalendarEventEntry> entries){
-		ArrayList<String> entryId = new ArrayList<String>();
+	private void deleteTasksLocally(List<CalendarEventEntry> entries, Model model){
+		ArrayList<String> entryIds = new ArrayList<String>();
+		List<Task> pendingList = model.getPendingList();
 		for(int i=0;i<entries.size();i++){
-			entryId.add(entries.get(i).getId());
+			entryIds.add(entries.get(i).getId());
 		}
-		for(int i=0;i<remainingTasks.size();i++){
-			if(!entryId.contains(remainingTasks.get(i).getIndexId())){
-				/*delete this task on the disk. to be implemented.*/
+		for(int i=0;i<pendingList.size();i++){
+			if(!entryIds.contains(pendingList.get(i).getIndexId())){
+				Task t = pendingList.remove(i);
+				t.setStatus(Task.Status.DELETED);
+				model.getTrashList().add(t);
+				i--;
 			}
 		}
 	}
 	
-	private void addEventsLocally(List<Task> remainingTasks, List<CalendarEventEntry> entries){
-		ArrayList<String> entryId = new ArrayList<String>();
-		ArrayList<String> taskId = new ArrayList<String>();
-		for(int i=0;i<entries.size();i++){
-			entryId.add(entries.get(i).getId());
+	private void addEventsLocally(List<CalendarEventEntry> entries, Model model){
+		ArrayList<String> taskIds = new ArrayList<String>();
+		List<Task> pendingList = model.getPendingList();
+		for(int i=0;i<pendingList.size();i++){
+			taskIds.add(pendingList.get(i).getIndexId());
 		}
-		for(int i=0;i<entryId.size();i++){
-			if(!taskId.contains(entryId.get(i))){
-				/*add this event on the disk. to be implemented.*/
+		for(int i=0;i<entries.size();i++){
+			CalendarEventEntry e = entries.get(i);
+			if(!taskIds.contains(e.getId())){
+				Task t = new Task();
+				t.setWorkInfo(e.getTitle().getPlainText());
+				t.setStartDateString(e.getTimes().get(0).getStartTime().toString());
+				t.setEndDateString(e.getTimes().get(0).getEndTime().toString());
+				t.setIndexId(e.getId());
+				if(e.getRecurrence().getValue() != null){
+					t.setTag(new Tag(null, e.getRecurrence().getValue()));
+				}
+				
+				pendingList.add(t);
 			}
 		}
 	}
