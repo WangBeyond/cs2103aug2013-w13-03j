@@ -493,9 +493,16 @@ public class Control extends Application {
 		return s.execute();
 	}
 	
-	private String executeSyncCommand(String[] parsedUserCommand){
+	private String executeSyncCommand(String[] parsedUserCommand) throws IOException{
+		
 		Command s = new SyncCommand(parsedUserCommand, modelHandler, sync);
-		return s.execute();
+		String feedback = s.execute();
+		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_SYNC)) {
+			dataFile.storeToFile();
+			view.setTab(0);
+			executeShowCommand();
+		}
+		return feedback;
 	}
 
 	private String executeExitCommand() {

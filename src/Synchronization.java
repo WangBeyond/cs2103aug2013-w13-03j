@@ -39,7 +39,7 @@ public class Synchronization {
 	Model model;
 	
 	/*calendar id*/
-	 String calendarId = null;
+	 String calendarId = "vu963cblmjb8b9dn1nmm1qnhr8@group.calendar.google.com";
 	
 	/*calendar service*/
 	CalendarService service;
@@ -90,7 +90,21 @@ public class Synchronization {
 		} catch (IOException e) {
 			System.out.println("fail to sync new");
 		}
-		/*
+		
+		//get all events from Google calendar
+		try {
+			eventEntry = getEventsFromGCal(service, eventFeedUrl);
+		} catch (IOException e) {
+			System.out.println("fail to pull: io");
+		} catch (ServiceException e) {
+			System.out.println("fail to pull: service");
+		}
+		
+		for(int i=0;i<eventEntry.size();i++){
+			System.out.println(eventEntry.get(i).getTitle().getPlainText());
+		}
+		System.out.println (eventEntry.get(0).getTimes().get(0).getStartTime().toStringRfc822());
+		
 		try{
 		//delete events on GCal which have been deleted locally
 		snycDeletedTasksToGCal(service, model, eventEntry, eventFeedUrl);
@@ -101,24 +115,11 @@ public class Synchronization {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		//get all events from Google calendar
-		try {
-			eventEntry = getEventsFromGCal(service, eventFeedUrl);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ServiceException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
 		//delete tasks locally which have been deleted on GCal
 		deleteTasksLocally(eventEntry, model);
-		
+
 		//add tasks locally which have been added on GCal
 		addEventsLocally(eventEntry, model);
-		*/
 	}
 	
 	private void initService() throws AuthenticationException{
@@ -155,6 +156,7 @@ public class Synchronization {
 					e = createSingleEvent(service, task.getWorkInfo(), task.getStartDate(), task.getEndDate(),feedUrl);
 //				}
 				task.setIndexId(e.getId());
+				task.setStatus(Task.Status.UNCHANGED);
 			}
 		}
 	}
@@ -165,7 +167,7 @@ public class Synchronization {
 		List<Task> deletedTasks = model.getTrashList();
 		for(int i=0; i<completedTasks.size(); i++){
 			for(int j=0; j<entries.size();j++){
-				if(completedTasks.get(i).equals(entries.get(j).getId())){
+				if(completedTasks.get(i).getIndexId().equals(entries.get(j).getId())){
 					tobeDelete.add(entries.get(j));
 					break;
 				}
@@ -173,7 +175,7 @@ public class Synchronization {
 		}
 		for(int i=0; i<deletedTasks.size(); i++){
 			for(int j=0; j<entries.size();j++){
-				if(deletedTasks.get(i).equals(entries.get(j).getId())){
+				if(deletedTasks.get(i).getIndexId().equals(entries.get(j).getId())){
 					tobeDelete.add(entries.get(j));
 					break;
 				}
@@ -207,16 +209,25 @@ public class Synchronization {
 		for(int i=0;i<entries.size();i++){
 			CalendarEventEntry e = entries.get(i);
 			if(!taskIds.contains(e.getId())){
+				System.out.println("new: "+e.getTitle().getPlainText());
 				Task t = new Task();
 				t.setWorkInfo(e.getTitle().getPlainText());
+				
+				System.out.println("stime: "+e.getTimes().get(0).getStartTime().toString());
+				
 				t.setStartDateString(e.getTimes().get(0).getStartTime().toString());
+				t.setStartDate(new CustomDate(t.getStartDateString()));
+				System.out.println("etime: "+e.getTimes().get(0).getEndTime().toString());
 				t.setEndDateString(e.getTimes().get(0).getEndTime().toString());
+				t.setEndDate(new CustomDate(t.getEndDateString()));
 				t.setIndexId(e.getId());
+				/*
 				if(e.getRecurrence().getValue() != null){
 					t.setTag(new Tag(null, e.getRecurrence().getValue()));
 				}
-				
+				*/
 				pendingList.add(t);
+				System.out.println("done");
 			}
 		}
 	}
