@@ -28,9 +28,9 @@ public abstract class Command {
 	protected static final String MESSAGE_SUCCESSFUL_UNDO = "Undo was successful.";
 	protected static final String MESSAGE_WRONG_COMPLETE_TABS = "Cannot complete the tasks in this current tab.";
 	protected static final String MESSAGE_WRONG_INCOMPLETE_TABS = "Cannot incomplete the tasks in this current tab.";
-	protected static final String MESSAGE_HELP = "Help window opened.";
-	protected static final String MESSAGE_OPEN_SETTINGS_DIALOG = "Settings window opened.";
-	protected static final String MESSAGE_SUCCESSFUL_SYNC = "successful synchronized.";
+	protected static final String MESSAGE_SUCCESSFUL_HELP = "Help window opened.";
+	protected static final String MESSAGE_SUCCESSFUL_SETTINGS = "Settings window opened.";
+	protected static final String MESSAGE_SUCCESSFUL_SYNC = "Successful synchronized.";
 
 	protected static final String HAVING_START_DATE = "having start date";
 	protected static final String HAVING_END_DATE = "having end date";
@@ -1247,7 +1247,7 @@ class HelpCommand extends Command {
 
 	public String execute() {
 		view.showHelpPage();
-		return MESSAGE_HELP;
+		return MESSAGE_SUCCESSFUL_HELP;
 	}
 }
 
@@ -1266,7 +1266,7 @@ class SettingsCommand extends Command {
 
 	public String execute() {
 		view.showSettingsPage();
-		return MESSAGE_OPEN_SETTINGS_DIALOG;
+		return MESSAGE_SUCCESSFUL_SETTINGS;
 	}
 }
 

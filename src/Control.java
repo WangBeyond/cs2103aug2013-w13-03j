@@ -4,10 +4,15 @@ import java.util.Collections;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.InputMap;
+import javax.swing.KeyStroke;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
@@ -136,7 +141,7 @@ public class Control extends Application {
 			@Override
 			public void changedUpdate(DocumentEvent e) {
 				String command = view.txt.getText();
-				realTimeFeedback(command);
+				
 				if (Parser.determineCommandType(command) == Parser.COMMAND_TYPES.SEARCH)
 					realTimeSearch(command);
 				else if (Parser.determineCommandType(command) == Parser.COMMAND_TYPES.REMOVE) {
@@ -221,23 +226,26 @@ public class Control extends Application {
 	}
 
 	private void handleKeyPressEvent() {
-		view.txt.addKeyListener(new KeyListener() {
+		Action enterAction = new AbstractAction() {
 			@Override
-			public void keyTyped(java.awt.event.KeyEvent e) {
+			public void actionPerformed(java.awt.event.ActionEvent e) {
+				Platform.runLater(new Runnable() {
+					@Override
+					public void run() {
+						isRealTimeSearch = false;
+						String feedback = executeCommand(view.txt.getText());
+						updateFeedback(feedback);
+					}
+				});
 			}
-			@Override
-			public void keyReleased(java.awt.event.KeyEvent e) {
-			}
-			
-			@Override
-			public void keyPressed(java.awt.event.KeyEvent e) {
-				if(e.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER){
-					isRealTimeSearch = false;
-					String feedback = executeCommand(view.txt.getText());
-					updateFeedback(feedback);
-				}
-			}
-		});
+		};
+		// Get KeyStroke for enter key
+				KeyStroke enterKey = KeyStroke.getKeyStroke(
+						com.sun.glass.events.KeyEvent.VK_ENTER, 0);
+				// Override enter for a pane
+				String actionKey = "none";
+				InputMap map = view.txt.getInputMap();
+				map.put(enterKey, enterAction);
 	}
 
 	private String removeCommandTypeString(String command) {
@@ -530,6 +538,8 @@ public class Control extends Application {
 				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_UNMARK)
 				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_UNDO)
 				|| feedback.equals(MESSAGE_SUCCESSFUL_REDO)
+				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_HELP)
+				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_SETTINGS)
 				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_SYNC);
 	}
 

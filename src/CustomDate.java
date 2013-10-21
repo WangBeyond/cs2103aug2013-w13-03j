@@ -41,7 +41,18 @@ public class CustomDate {
 	public CustomDate() {
 		targetDate = new GregorianCalendar();
 	}
-
+	
+	public CustomDate(DateTime dateTime){
+		targetDate = new GregorianCalendar();
+		String str = dateTime.toString();
+		String date = str.substring(8, 10);
+		String month = str.substring(5,7);
+		String year = str.substring(0, 4);
+		String time = str.substring(11, 16);
+		String customDateFormat = date+"/"+month+"/"+year+ " " + time;
+		convert(customDateFormat);
+	}
+	
 	public CustomDate(String s) {
 		targetDate = new GregorianCalendar();
 		convert(s);

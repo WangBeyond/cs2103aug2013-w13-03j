@@ -39,7 +39,7 @@ public class Synchronization {
 	Model model;
 	
 	/*calendar id*/
-	 String calendarId = "vu963cblmjb8b9dn1nmm1qnhr8@group.calendar.google.com";
+	 String calendarId = null;
 	
 	/*calendar service*/
 	CalendarService service;
@@ -215,11 +215,10 @@ public class Synchronization {
 				
 				System.out.println("stime: "+e.getTimes().get(0).getStartTime().toString());
 				
-				t.setStartDateString(e.getTimes().get(0).getStartTime().toString());
-				t.setStartDate(new CustomDate(t.getStartDateString()));
+				t.setStartDate(new CustomDate(e.getTimes().get(0).getStartTime()));
 				System.out.println("etime: "+e.getTimes().get(0).getEndTime().toString());
-				t.setEndDateString(e.getTimes().get(0).getEndTime().toString());
-				t.setEndDate(new CustomDate(t.getEndDateString()));
+			
+				t.setEndDate(new CustomDate(e.getTimes().get(0).getEndTime()));
 				t.setIndexId(e.getId());
 				/*
 				if(e.getRecurrence().getValue() != null){

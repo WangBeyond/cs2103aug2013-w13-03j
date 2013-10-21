@@ -24,8 +24,6 @@ import javax.swing.SwingUtilities;
 
 /**
  * Swing "integration" on top of this JavaFX node
- *
- * @author arnaud nouard
  */
 public class SwingNode extends Region {
 
@@ -37,7 +35,7 @@ public class SwingNode extends Region {
         }
     }
     /*
-     * Windows offet (Frame decoration bounds)
+     * Windows offset (Frame decoration bounds)
      * Should be dynamically determined
      */
     static public int STAGE_BORDER_X = 8;
@@ -57,10 +55,8 @@ public class SwingNode extends Region {
     
     public void setJDialogOnTop(){
     	SwingUtilities.invokeLater(new Runnable() {
-			
 			@Override
 			public void run() {
-			jDialog.setVisible(true);
 			jDialog.toFront();
 			}
 		});
@@ -206,7 +202,7 @@ public class SwingNode extends Region {
     public Container toDialog(Component comp) {
         jFrameParent = new JFrame();
         jDialog = new JDialog(jFrameParent);
-        jDialog.setVisible(false);
+       
         setSwingComponentAlwaysOnTop(false);
 
         jDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE); // Avoid ALT+F4
@@ -217,7 +213,7 @@ public class SwingNode extends Region {
         jDialog.setType(Window.Type.UTILITY);
         jDialog.setModalExclusionType(Dialog.ModalExclusionType.APPLICATION_EXCLUDE);
 
-        jDialog.setResizable(true);
+        jDialog.setResizable(false);
         jDialog.setFocusable(true);
 
         jDialog.setAutoRequestFocus(true);
@@ -226,7 +222,8 @@ public class SwingNode extends Region {
             @Override
             public void windowOpened(WindowEvent e) {
                 // To ensure Stage to be set to front at the same time as Swing
-                Platform.runLater(new Runnable() {
+            	 setSwingComponentAlwaysOnTop(true);
+            	Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
                         
@@ -255,13 +252,13 @@ public class SwingNode extends Region {
 
             @Override
             public void windowActivated(WindowEvent e) {
-                Platform.runLater(new Runnable() {
+            	  setSwingComponentAlwaysOnTop(true);
+            	Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
                         setStageToFront();
                     }
                 });
-                setSwingComponentAlwaysOnTop(true);
             }
 
             @Override
@@ -285,6 +282,7 @@ public class SwingNode extends Region {
 
             @Override
             public void focusLost(FocusEvent e) {
+            	setSwingComponentAlwaysOnTop(false);
             }
         });
         /* Window Focus */
@@ -295,26 +293,29 @@ public class SwingNode extends Region {
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
-                        setStageToFront();
+                       stage.toFront();
                     }
                 });
             }
 
             @Override
             public void windowLostFocus(WindowEvent e) {
-                jDialog.toBack();
+            	setSwingComponentAlwaysOnTop(false);
+            	jDialog.toBack();
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
+                    	if(stage.isFocused() == false)
                         stage.toBack();
                     }
                 });
             }
         }); 
+
         return jDialog;
     }
 
-    void setSwingComponentAlwaysOnTop(boolean value) {
+    public void setSwingComponentAlwaysOnTop(boolean value) {
         jDialog.setAlwaysOnTop(value);
     }
 
