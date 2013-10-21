@@ -9,7 +9,7 @@ public class Task implements Comparable<Task> {
 	final static boolean IS_START_DATE = true;
 	final static boolean IS_END_DATE = false;
 
-	// Enum Class representing status of a task
+	// Enumeration Class representing status of a task
 	public static enum Status {
 		UNCHANGED, NEWLY_ADDED, DELETED
 	}
@@ -26,7 +26,8 @@ public class Task implements Comparable<Task> {
 	private StringProperty workInfo;
 	// Property of the tag containing category and repetitive tag
 	private ObjectProperty<Tag> tag;
-
+	private int num_occurrences;
+	private int current_occurrence;
 	// Index ID of this task in Google Calendar
 	private String indexId;
 	// Index in the list containing the task
@@ -41,21 +42,6 @@ public class Task implements Comparable<Task> {
 		defaultInitialization();
 	}
 
-	public Task(boolean isImportant, CustomDate startDate, CustomDate endDate,
-			String workInfo, Tag tag, String indexId, Status status) {
-		checkProperty();
-
-		setIsImportant(isImportant);
-		setStartDate(startDate);
-		setEndDate(endDate);
-		setWorkInfo(workInfo);
-		setTag(tag);
-
-		this.indexId = indexId;
-		setStatus(status);
-		updateLatestModifiedDate();
-	}
-
 	private void defaultInitialization() {
 		setIsImportant(false);
 		setStartDate(null);
@@ -63,11 +49,12 @@ public class Task implements Comparable<Task> {
 		setEndDate(null);
 		setStartDateString("-");
 		setWorkInfo("");
-		setTag(new Tag("", ""));
+		setTag(new Tag("-", "null"));
 		indexId = "";
 		indexInList = 0;
 		setStatus(Status.NEWLY_ADDED);
 		updateLatestModifiedDate();
+		initOccurrence(1);
 	}
 
 	/**
@@ -130,9 +117,11 @@ public class Task implements Comparable<Task> {
 		long difference = CustomDate.getUpdateDifference(getTag()
 				.getRepetition());
 		while (getEndDate().beforeCurrentTime()) {
-			updateStartDate(difference);
-			updateEndDate(difference);
-
+			current_occurrence++;
+			if (current_occurrence <= num_occurrences) {
+				updateStartDate(difference);
+				updateEndDate(difference);
+			}
 		}
 	}
 
@@ -260,17 +249,25 @@ public class Task implements Comparable<Task> {
 	public CustomDate getLatestModifiedDate() {
 		return latestModifiedDate;
 	}
-	
-	public boolean hasNewlyAddedStatus(){
+
+	public boolean hasNewlyAddedStatus() {
 		return status == Status.NEWLY_ADDED;
 	}
-	
-	public boolean hasDeletedStatus(){
+
+	public boolean hasDeletedStatus() {
 		return status == Status.DELETED;
 	}
-	
-	public boolean hasUnchangedStatus(){
+
+	public boolean hasUnchangedStatus() {
 		return status == Status.UNCHANGED;
+	}
+
+	public int getNumOccurrences() {
+		return num_occurrences;
+	}
+
+	public int getCurrentOccurrence() {
+		return current_occurrence;
 	}
 
 	/*************************************** Set Value Functions ****************************************/
@@ -328,6 +325,19 @@ public class Task implements Comparable<Task> {
 
 	public void updateLatestModifiedDate() {
 		latestModifiedDate = new CustomDate();
+	}
+
+	public void initOccurrence(int num_occurrences) {
+		this.num_occurrences = num_occurrences;
+		current_occurrence = 1;
+	}
+
+	public void setNumOccurrences(int num_occurrences) {
+		this.num_occurrences = num_occurrences;
+	}
+
+	public void setCurrentOccurrence(int current) {
+		current_occurrence = current;
 	}
 }
 

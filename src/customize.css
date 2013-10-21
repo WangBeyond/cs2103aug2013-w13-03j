@@ -103,14 +103,14 @@
 
 .table-row-cell {
     -fx-skin: "com.sun.javafx.scene.control.skin.TableRowSkin";
-    -fx-background-color: -fx-table-cell-border-color, -fx-control-inner-background;
+    -fx-background-color: white;
     -fx-background-insets: 0.0, 0.0 0.0 1.0 0.0;
     -fx-padding: 0.0em; /* 0 */
     -fx-text-fill: -fx-text-inner-color;
 }
  
 .table-row-cell:odd {
-    -fx-background-color: -fx-table-cell-border-color, -fx-control-inner-background;
+    -fx-background-color: white;
     -fx-background-insets: 0.0, 0.0 0.0 1.0 0.0;
 }
 .table-cell {
@@ -178,9 +178,15 @@
 	-fx-background-color:  rgb(43, 235, 120);
 }
 
-.unimportant {
-	-fx-background-color:  white;
+.unimportant{
+	-fx-background-color: white;
 }
+
+.unimportant-odd{
+	-fx-background-color: rgb(245,245,245);
+}
+
+
 
 /********************************************* Button  ***********************************************/
 .button {
