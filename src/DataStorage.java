@@ -5,9 +5,22 @@ import java.io.IOException;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.lang.String;
+
 import javafx.collections.ObservableList;
 
+import org.jdom2.Attribute;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
+import org.jdom2.input.SAXBuilder;
+import org.jdom2.JDOMException;
+
 public class DataStorage extends Store {
+	
+	/*public static void main (String[] args) {
+		WriteXMLFile xml = new WriteXMLFile();
+	}*/
 
 	static enum TASK_TYPES {
 		PENDING, COMPLETE, TRASH
@@ -28,44 +41,9 @@ public class DataStorage extends Store {
 		this.model = model;
 	}
 
-	/**
-	 * create the directory of iDo folder in user's documents folder
-	 */
-	private void createDir() {
-		File theDir = new File(findUserDocDir() + FOLDERNAME);
-		// if the directory does not exist, create it
-		if (!theDir.exists()) {
-			System.out.println("creating directory: ");
-			boolean result = theDir.mkdir();
-			if (result) {
-				System.out.println("DIR created");
-			}
-		}
-	}
 
-	/**
-	 * find user's Documents directory
-	 * 
-	 * @return user Documents dir
-	 */
-	private String findUserDocDir() {
-		return System.getProperty("user.home") + "/Documents/";
-	}
 
-	/**
-	 * check if target file exists
-	 * 
-	 * @param file
-	 */
-	private static void checkIfFileExists(File file) {
-		if (!file.exists()) {
-			try {
-				file.createNewFile();
-			} catch (IOException e) {
-				System.out.println("Cannot create the text file");
-			}
-		}
-	}
+
 
 	public void loadFromFile() throws IOException {
 		in = new BufferedReader(new FileReader(textFile));
@@ -182,119 +160,104 @@ public class DataStorage extends Store {
 	}
 }
 
-/*
-class SyncStorage extends Store {
-	static enum INDEX_TYPES {
-		DELETED, NEWLY_ADDED
-	};
 
-	private final static String DELETED_TITLE = "deleted";
-	private final static String NEWLY_ADDED_TITLE = "newly added";
-	private final static String SPLITLINE = "**************";
 
-	private BufferedReader in;
-	private PrintWriter out;
+ 
 
-	public SyncStorage(String fileName, Model model) {
+/**  
+*   
+* @author hongliang.dinghl  
+* JDOM generateXML file  
+*   
+*/
+class SyncStore extends Store {
+	
+	String dir;
+	
+	/*public static void main(String[] args) {
+		WriteXMLFile writer = new WriteXMLFile();
+		writer.storeAccount("haha","jiji");
+		writer.updateAccount(null, "hihi");
+	}
+	*/
+	public SyncStore (String fileName) {
 		createDir();
-		textFile = new File(findUserDocDir() + FOLDERNAME + "/" + fileName);
-		checkIfFileExists(textFile);
-		this.model = model;
+		dir = findUserDocDir() + FOLDERNAME + "/" + fileName;
+		//xmlFile = new File(dir);
 	}
-
 	
-	private void createDir() {
-		File theDir = new File(findUserDocDir() + FOLDERNAME);
-		// if the directory does not exist, create it
-		if (!theDir.exists()) {
-			System.out.println("creating directory: ");
-			boolean result = theDir.mkdir();
-			if (result) {
-				System.out.println("DIR created");
-			}
-		}
-	}
-
-	
-	private String findUserDocDir() {
-		return System.getProperty("user.home") + "/Documents/";
-	}
-
-
-	private static void checkIfFileExists(File file) {
-		if (!file.exists()) {
-			try {
-				file.createNewFile();
-			} catch (IOException e) {
-				System.out.println("Cannot create the text file");
-			}
-		}
-	}
-
-	public void loadFromFile() throws IOException {
-		in = new BufferedReader(new FileReader(textFile));
-
-		String newLine = in.readLine();
-		if (newLine == null)
-			return;
-		while (!newLine.equals(NEWLY_ADDED_TITLE)) {
-			boolean meetSplitLine = addIndexToModel(in, INDEX_TYPES.DELETED);
-			newLine = in.readLine();
-			if (meetSplitLine)
-				break;
-		}
-
-		while (newLine != null) {
-			boolean meetSplitLine = addIndexToModel(in, INDEX_TYPES.NEWLY_ADDED);
-			newLine = in.readLine();
-			if (meetSplitLine)
-				break;
-		}
-		in.close();
-	}
-
-	// write to file
-	public void storeToFile() throws IOException {
+	public void storeAccount(String userName, String passWord) {
 		try {
-			out = new PrintWriter(new FileWriter(textFile, false));
-
-			out.println(DELETED_TITLE);
-			addIndicesToWriter(out, model.getDeletedIndexList());
-			out.println(SPLITLINE);
-			out.println(NEWLY_ADDED_TITLE);
-			addIndicesToWriter(out, model.getAddedIndexList());
-			out.println(SPLITLINE);
-			out.close();
-
-		} catch (IOException e) {
-			throw new IllegalArgumentException();
+			Element root = new Element("root");
+			Document doc = new Document(root);
+			Element account = new Element("account");
+			doc.getRootElement().getChildren().add(account);
+			
+			account.addContent(new Element("username").setText(userName));
+			account.addContent(new Element("password").setText(passWord));
+			
+			XMLOutputter xmlOutput = new XMLOutputter();
+			xmlOutput.setFormat(Format.getPrettyFormat());
+			xmlOutput.output(doc, new FileWriter(dir));
+			System.out.println("Setting saved");
+		} catch (IOException io) {
+			System.out.println(io.getMessage());
 		}
 	}
-
-	private boolean addIndexToModel(BufferedReader in, INDEX_TYPES indexType)
-			throws IOException {
-		String textLine = in.readLine();
-		if (textLine == null || textLine.equals(SPLITLINE))
-			return DONE_READING;
-		switch (indexType) {
-		case DELETED:
-			model.loadIndicesToDeletedList(textLine);
-			break;
-		case NEWLY_ADDED:
-			model.loadIndicesToAddedList(textLine);
-			break;
-		}
-		return UNDONE_READING;
-	}
-
-	private void addIndicesToWriter(PrintWriter out,
-			ArrayList<Integer> indexList) {
-		if (indexList.size() > 0) {
-			for (int i = 0; i < indexList.size(); i++) {
-				out.print(indexList.get(i) + " ");
+	
+	public void updateAccount(String newUsername, String newPassword) {
+		 
+		  try {
+	 
+			SAXBuilder builder = new SAXBuilder();
+			File xmlFile = new File("sync.xml");
+	 
+			Document doc = (Document) builder.build(xmlFile);
+			Element rootNode = doc.getRootElement();
+			Element account = rootNode.getChild("account");
+			if (newUsername != null) {
+				account.getChild("username").setText(newUsername);				
 			}
-			out.println();
-		}
+			if (newPassword != null) {
+				account.getChild("password").setText(newPassword);			
+			}
+			XMLOutputter xmlOutput = new XMLOutputter();
+			xmlOutput.setFormat(Format.getPrettyFormat());
+			xmlOutput.output(doc, new FileWriter(dir));
+	 
+			// xmlOutput.output(doc, System.out);
+	 
+			System.out.println("File updated!");
+		  } catch (IOException io) {
+			io.printStackTrace();
+		  } catch (JDOMException e) {
+			e.printStackTrace();
+		  }
+	}
+	
+	public String[] retrieveAccount() {
+		 
+		SAXBuilder builder = new SAXBuilder();
+		File xmlFile = new File(dir);
+		String[] accountInfo = new String[2];
+		  try {
+			Document doc = (Document) builder.build(xmlFile);
+			Element rootNode = doc.getRootElement();
+			Element account = rootNode.getChild("account");
+			Element username = account.getChild("username");
+
+			if (username == null)
+				System.out.println("no account info");
+			else {
+				accountInfo[0] = username.getText();
+				accountInfo[1] = account.getChildText("password");
+			}			
+		  } catch (IOException io) {
+			System.out.println(io.getMessage());
+		  } catch (JDOMException jdomex) {
+			System.out.println(jdomex.getMessage());
+		  }
+		  return accountInfo;
 	}
 }
-*/
+  

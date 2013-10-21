@@ -10,6 +10,7 @@ public abstract class Store {
 	public final static String FOLDERNAME = "iDo Files";
 	protected Model model;
 	protected File textFile;
+	protected File xmlFile;
 	
 	public void loadFromFile() throws IOException {
 		
@@ -18,4 +19,44 @@ public abstract class Store {
 	public void storeToFile() throws IOException {
 		
 	};
+	
+	/**
+	 * create the directory of iDo folder in user's documents folder
+	 */
+	protected void createDir() {
+		File theDir = new File(findUserDocDir() + FOLDERNAME);
+		// if the directory does not exist, create it
+		if (!theDir.exists()) {
+			System.out.println("creating directory: ");
+			boolean result = theDir.mkdir();
+			if (result) {
+				System.out.println("DIR created");
+			}
+		}
+	}
+	
+	/**
+	 * find user's Documents directory
+	 * 
+	 * @return user Documents dir
+	 */
+	protected String findUserDocDir() {
+		return System.getProperty("user.home") + "/Documents/";
+	}
+
+	/**
+	 * check if target file exists
+	 * 
+	 * @param file
+	 */
+
+	protected static void checkIfFileExists(File file) {
+		if (!file.exists()) {
+			try {
+				file.createNewFile();
+			} catch (IOException e) {
+				System.out.println("Cannot create the text file");
+			}
+		}
+	}
 }
