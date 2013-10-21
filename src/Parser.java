@@ -7,17 +7,14 @@ public class Parser {
 		ADD, REMOVE, SEARCH, EDIT, COMPLETE, INCOMPLETE, UNDO, REDO, CLEAR_ALL, TODAY, SHOW_ALL, SYNC, SETTINGS, HELP, EXIT, INVALID, MARK, UNMARK
 	}
 
-	// static enum INFO_TYPES { COMMANDTYPE, WROKFLOW, START_TIME, END_TIME,
-	// TAG, IMPORTANCE, REPEATING, INDEX, SEARCH_INFO }
-
 	/* start date keys */
 	static String[] startDateKeys = { "start from", "start at",
-			"start on", "begin from", "begin at", "begin on", "from", "on",
+			"start on", "begin from", "begin at", "begin on", "from", "after", "on",
 			"at" };
 
 	/* end date keys */
 	static String[] endDateKeys = { "end on", "end at", "end by",
-			"end before", "to", "till", "until", "by", "due", "next", "today",
+			"end before", "to", "till", "until", "by", "due", "before", "next", "today",
 			"tonight" };
 
 	private static String[] repeatingKeys = { "daily", "weekly", "monthly",
