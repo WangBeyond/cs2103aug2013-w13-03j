@@ -63,23 +63,26 @@ public class Settings {
 		Label googleAccount = new Label("Google account:");
 		grid.add(googleAccount, 0, 1);
 		TextField googleAccountTextfield = new TextField();
+		googleAccountTextfield.setId("input");
 		grid.add(googleAccountTextfield, 1, 1);
 
 		Label pw = new Label("Password:");
 		grid.add(pw, 0, 2);
 		PasswordField pwBox = new PasswordField();
+		pwBox.setId("input");
 		grid.add(pwBox, 1, 2);
 		
 		Label pwRetype = new Label("Retype password:");
 		grid.add(pwRetype, 0, 3);
 		PasswordField pwRetypeBox = new PasswordField();
+		pwRetypeBox.setId("input");
 		grid.add(pwRetypeBox, 1, 3);
 	}
 	
 	private void setupScene(){
 		settingsScene = new Scene(root, Color.rgb(70, 70, 70));
-	//	settingsScene.getStylesheets().addAll(
-	//			getClass().getResource("customize.css").toExternalForm());
+		settingsScene.getStylesheets().addAll(
+				getClass().getResource("customize.css").toExternalForm());
 		settingsStage.setScene(settingsScene);
 	}
 	
@@ -96,6 +99,10 @@ public class Settings {
 		settingsStage.getIcons().add(
 				new Image(getClass().getResource("iDo_traybar.png")
 						.toExternalForm()));
+		setupBackground();
+	}
+	
+	private void setupBackground(){
 		Image bg = new Image(getClass().getResourceAsStream("settings.png"));
 		ImageView bgImage = new ImageView();
 		bgImage.setImage(bg);
@@ -103,14 +110,13 @@ public class Settings {
 		bgImage.setPreserveRatio(true);
 		bgImage.setSmooth(true);
 		bgImage.setCache(true); 
-		
 		root.getChildren().add(bgImage);
 	}
 	
 	private void setupButtons(){
 		Button exitButton = new Button("");
-		exitButton.setId("close");
-		exitButton.setPrefSize(30, 30);
+		exitButton.setId("esc");
+		exitButton.setPrefSize(42, 42);
 		exitButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
 			public void handle(MouseEvent e) {
 				settingsStage.close();

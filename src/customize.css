@@ -71,6 +71,16 @@
     -fx-prompt-text-fill: transparent;
 }
 
+#input{
+	-fx-border-color: greenyellow;
+	-fx-border-width: 1.0px;    
+}
+
+#input:focused{
+	-fx-border-color: greenyellow; 
+	-fx-border-width: 2.0px;  
+}
+
 /************************************************************************************************************ */
 
 /* Table View */
@@ -293,4 +303,28 @@
 	-fx-background-repeat: no-repeat;
 	-fx-background-size: 30 30; 
 	-fx-background-image: url("backHover.png") ;
+}
+
+#save{
+	-fx-background-repeat: no-repeat;
+	-fx-background-size: 90 42; 
+	-fx-background-image: url("save.png") ;
+}
+
+#save:hover{
+	-fx-background-repeat: no-repeat;
+	-fx-background-size: 90 42; 
+	-fx-background-image: url("saveHover.png") ;
+}
+
+#esc{
+	-fx-background-repeat: no-repeat;
+	-fx-background-size: 42 42; 
+	-fx-background-image: url("esc.png") ;
+}
+
+#esc:hover{
+	-fx-background-repeat: no-repeat;
+	-fx-background-size: 42 42; 
+	-fx-background-image: url("escHover.png") ;
 }

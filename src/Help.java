@@ -39,9 +39,9 @@ public class Help{
 		setupInitialStage();
 		setupButtons();
 		changeToFirstPage();	
+		setupScene();
 		setupShortcuts();
 		setupDraggable();
-		setupScene();
 	}
 	
 	public void showHelpPage(){
@@ -50,6 +50,7 @@ public class Help{
 	}
 	
 	private void setupScene(){
+		root = new Group();
 		root.getChildren().add(helpPage);
 		root.getChildren().add(buttons);
 		helpScene = new Scene(root, 600, 730);
@@ -122,7 +123,6 @@ public class Help{
 	
 	private void setupInitialStage(){
 		helpPage = new ImageView();
-		root = new Group();
 		buttons = new Group();
 		helpStage = new Stage();
 		helpStage.initStyle(StageStyle.UNDECORATED);

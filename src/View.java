@@ -91,6 +91,7 @@ public class View implements HotkeyListener {
 
 	public Help helpPage;
 	public Settings settingsPage;
+	public Login loginPage;
 
 	// Command Line for user to input command
 	public TextField commandLine;
@@ -125,6 +126,7 @@ public class View implements HotkeyListener {
 			"incomplete", "all", "list", "today", "help", "del", "exit", "rm",
 			"show", "ls", "clr", "done", "undone", "settings", "sync" };
 	public HBox feedbacks;
+	private boolean firstTimeLogin = true;
 	private static Color IDO_GREEN = Color.rgb(130, 255, 121);
 	// private HBox multiColorCommand;
 
@@ -151,6 +153,7 @@ public class View implements HotkeyListener {
 		stage = primaryStage;
 		this.model = model;
 
+		showLoginPage();
 		setupHelpPage();
 		setupSettingsPage();
 		setupStage();
@@ -164,6 +167,13 @@ public class View implements HotkeyListener {
 		setupShortcuts();
 		setDraggable();
 		setupScene();
+	}
+	
+	private void showLoginPage(){
+		if (firstTimeLogin){
+			loginPage = Login.getInstanceLogin();
+			loginPage.showLoginPage();
+		}
 	}
 
 	private void setupHelpPage() {
