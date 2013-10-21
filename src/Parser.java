@@ -562,7 +562,7 @@ public class Parser {
 				endIndex = command.length();
 			if (startIndex < endIndex)
 				infoList.add(new InfoWithIndex(command.substring(startIndex,
-						endIndex), startIndex, INDEX_USELESS_INFO));
+						endIndex), startIndex, INDEX_WORK_INFO));
 		}
 		Collections.sort(infoList);
 		return infoList;

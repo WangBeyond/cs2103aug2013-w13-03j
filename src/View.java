@@ -172,28 +172,28 @@ public class View implements HotkeyListener {
 
 	public void showHelpPage() {
 		Platform.runLater(new Runnable() {
-			
+
 			@Override
 			public void run() {
 				helpPage.showHelpPage();
 			}
 		});
-		
+
 	}
-	
-	private void setupSettingsPage(){
+
+	private void setupSettingsPage() {
 		settingsPage = new Settings();
 	}
-	
+
 	public void showSettingsPage() {
 		Platform.runLater(new Runnable() {
-			
+
 			@Override
 			public void run() {
 				settingsPage.showSettingsPage();
 			}
 		});
-		
+
 	}
 
 	private void setupShortcuts() {
@@ -215,29 +215,39 @@ public class View implements HotkeyListener {
 				} else if (e.getCode() == KeyCode.BACK_SPACE) {
 					textField.setJDialogOnTop();
 					txt.requestFocus();
-					if (txt.getText().length() > 0)
-						txt.setText(txt.getText().substring(0,
-								txt.getText().length() - 1));
-					txt.setCaretPosition(txt.getText().length());
-				} else if (!e.isAltDown() && !e.isControlDown()
-						&& !e.isShiftDown() && !e.isShortcutDown()) {
+					int pos = txt.getCaretPosition();
+					if (pos > 0) {
+						txt.setText(txt.getText().substring(0, pos - 1)
+								+ txt.getText().substring(pos));
+						txt.setCaretPosition(pos - 1);
+					} 
+				} else if (!e.isAltDown() && !e.isControlDown() && !e.isShiftDown()
+						&& !e.isShortcutDown()) {
 					textField.setJDialogOnTop();
 					txt.requestFocus();
-					txt.setText(txt.getText() + e.getText());
-					txt.setCaretPosition(txt.getText().length());
+					if (e.getCode() != KeyCode.ENTER) {
+						int pos = txt.getCaretPosition();
+						txt.setText(txt.getText().substring(0, pos)
+								+ e.getText() + txt.getText().substring(pos));
+						txt.setCaretPosition(pos + 1);
+					}
+				}
+			}
+		});
+		
+
+		stage.focusedProperty().addListener(new ChangeListener<Boolean>() {
+			public void changed(ObservableValue<? extends Boolean> ov,
+					Boolean oldVal, Boolean newVal) {
+				if (newVal.booleanValue() == true) {
+					root.requestFocus();
+					 textField.setSwingComponentAlwaysOnTop(false);
 				}
 			}
 		});
 
-		// Get KeyStroke for enter key
-		KeyStroke enterKey = KeyStroke.getKeyStroke(
-				com.sun.glass.events.KeyEvent.VK_ENTER, 0);
-		// Override enter for a pane
-		String actionKey = "none";
-		InputMap map = txt.getInputMap();
-		map.put(enterKey, actionKey);
-
 		/* Get KeyStroke for Ctrl+Tab key */
+		InputMap map = txt.getInputMap();
 		txt.setFocusTraversalKeysEnabled(false);
 		KeyStroke changeTabKey = KeyStroke.getKeyStroke(
 				com.sun.glass.events.KeyEvent.VK_TAB,
@@ -378,8 +388,6 @@ public class View implements HotkeyListener {
 		stage.show();
 		removeTopAndCenter();
 		showOrHide.setId("larger");
-		showOrHide.requestFocus();
-		textField.setJDialogOnTop();
 		txt.requestFocus();
 		txt.setCaretPosition(txt.getText().length());
 	}
@@ -398,7 +406,7 @@ public class View implements HotkeyListener {
 		upperPart = createUpperPartInBottom();
 
 		feedbacks = new HBox();
-		feedbacks.setSpacing(5);
+		feedbacks.setSpacing(10);
 		feedbackList.clear();
 		for (int i = 0; i < 10; i++) {
 			Text feedbackPiece = TextBuilder.create().styleClass("feedback")
@@ -406,7 +414,7 @@ public class View implements HotkeyListener {
 			feedbackList.add(feedbackPiece);
 			feedbacks.getChildren().add(feedbackList.get(i));
 		}
-		feedbackList.get(0).setText("Please enter a command");
+		feedbackList.get(0).setText(Control.MESSAGE_REQUEST_COMMAND);
 		bottom.getChildren().addAll(upperPart, feedbacks);
 	}
 
@@ -415,7 +423,7 @@ public class View implements HotkeyListener {
 		temp.setSpacing(10);
 		commandLine = new TextField();
 		commandLine.setPrefWidth(630);
-		commandLine.opacityProperty().set(0.1);
+		commandLine.opacityProperty().set(0.0);
 
 		showOrHide = new Button();
 		showOrHide.setPrefSize(30, 30);
@@ -779,9 +787,9 @@ public class View implements HotkeyListener {
 	private void hookUpEventForShowOrHide() {
 		showOrHide.setOnAction(new EventHandler<ActionEvent>() {
 			public void handle(ActionEvent e) {
-				if (stage.getHeight() > 500) {
+				if (stage.getHeight() == 540) {
 					collapseAnimation();
-				} else {
+				} else if (stage.getHeight() == 70) {
 					expandAnimation();
 				}
 			}
@@ -803,8 +811,8 @@ public class View implements HotkeyListener {
 			public void run() {
 				if (stage.getHeight() > 70.0) {
 					double i = stage.getHeight() - 10.0;
-					stage.setHeight(i);
 					stage.setMaxHeight(i);
+					stage.setHeight(i);
 				} else {
 					this.cancel();
 				}
@@ -826,8 +834,8 @@ public class View implements HotkeyListener {
 
 				if (stage.getHeight() < 540.0) {
 					double i = stage.getHeight() + 10.0;
-					stage.setHeight(i);
 					stage.setMinHeight(i);
+					stage.setHeight(i);
 				} else {
 					this.cancel();
 				}
@@ -905,7 +913,7 @@ public class View implements HotkeyListener {
 			}
 		};
 	}
-	
+
 	private ActionListener createPreferencesListener() {
 		return new ActionListener() {
 			@Override
@@ -1022,6 +1030,7 @@ public class View implements HotkeyListener {
 	 * @param feedback
 	 */
 	void setFeedback(String feedback) {
+		emptyFeedback(0);
 		if (feedback.equals(Control.MESSAGE_INVALID_COMMAND_TYPE)
 				|| feedback.equals(Control.MESSAGE_REQUEST_COMMAND)
 				|| feedback.equals(Control.MESSAGE_INVALID_UNDO)

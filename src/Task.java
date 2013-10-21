@@ -170,7 +170,7 @@ public class Task implements Comparable<Task> {
 	 * @return true if this is indeed a recurring task, vice versa
 	 */
 	public boolean isRecurringTask() {
-		return tag.get().getRepetition().equals(Parser.NULL);
+		return !tag.get().getRepetition().equals(Parser.NULL);
 	}
 
 	/************************ Get Property Functions **********************************/
