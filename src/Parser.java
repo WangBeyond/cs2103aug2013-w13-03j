@@ -312,7 +312,7 @@ public class Parser {
 	private static String[] parseSyncCommand(String content){
 		String[] splittedUserCommand = splitBySpace(content);
 		
-		if(splittedUserCommand.length != 0 && splittedUserCommand.length != 2){
+		if(splittedUserCommand.length != 1 && !splittedUserCommand[0].equals("") && splittedUserCommand.length != 2){
 			throw new IllegalArgumentException("Invalid sync command.");
 		}
 		return splittedUserCommand;

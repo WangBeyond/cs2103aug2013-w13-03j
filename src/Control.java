@@ -59,6 +59,7 @@ public class Control extends Application {
 	public Synchronization sync = new Synchronization(modelHandler);
 	public View view;
 	private Store dataFile;
+	private SyncStore syncStore;
 
 	static boolean isRealTimeSearch = false;
 	static final boolean SEARCHED = true;
@@ -79,13 +80,14 @@ public class Control extends Application {
 		try {
 			dataFile = new DataStorage("dataStorage.txt", modelHandler);
 			dataFile.loadFromFile();
+			syncStore = new SyncStore("sync.xml");
 		} catch (IOException e) {
 			System.out.println("Cannot read the given file");
 		}
 	}
 
 	private void loadGUI(Stage primaryStage) {
-		view = new View(modelHandler, primaryStage);
+		view = new View(modelHandler, primaryStage, syncStore);
 		handleEventForCommandLine();
 	}
 
@@ -503,7 +505,7 @@ public class Control extends Application {
 	
 	private String executeSyncCommand(String[] parsedUserCommand) throws IOException{
 		
-		Command s = new SyncCommand(parsedUserCommand, modelHandler, sync);
+		Command s = new SyncCommand(parsedUserCommand, modelHandler, sync, syncStore);
 		String feedback = s.execute();
 		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_SYNC)) {
 			dataFile.storeToFile();

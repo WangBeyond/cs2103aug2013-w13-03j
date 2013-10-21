@@ -128,6 +128,7 @@ public class View implements HotkeyListener {
 	public HBox feedbacks;
 	private boolean firstTimeLogin = true;
 	private static Color IDO_GREEN = Color.rgb(130, 255, 121);
+	private static final String WELCOME_MESSAGE = "Welcome back, %s";
 	// private HBox multiColorCommand;
 
 	// The 3 sections
@@ -139,6 +140,7 @@ public class View implements HotkeyListener {
 	TrayIcon trayIcon;
 
 	Model model;
+	SyncStore syncStore;
 
 	/**
 	 * This is the constructor for class View. It will create the content in the
@@ -149,9 +151,10 @@ public class View implements HotkeyListener {
 	 * @param primaryStage
 	 *            main stage of the GUI
 	 */
-	public View(final Model model, final Stage primaryStage) {
+	public View(final Model model, final Stage primaryStage, SyncStore syncStore) {
 		stage = primaryStage;
 		this.model = model;
+		this.syncStore = syncStore;
 
 		showLoginPage();
 		setupHelpPage();
@@ -170,12 +173,16 @@ public class View implements HotkeyListener {
 	}
 	
 	private void showLoginPage(){
-		if (firstTimeLogin){
-			loginPage = Login.getInstanceLogin();
+		if (checkFirstTimeLogin()){
+			loginPage = Login.getInstanceLogin(syncStore);
 			loginPage.showLoginPage();
-		}
+		} 
 	}
-
+	
+	private boolean checkFirstTimeLogin() {
+		return syncStore.retrieveAccount()[0] == null;
+	}
+	
 	private void setupHelpPage() {
 		helpPage = new Help();
 	}
@@ -423,7 +430,8 @@ public class View implements HotkeyListener {
 			feedbackList.add(feedbackPiece);
 			feedbacks.getChildren().add(feedbackList.get(i));
 		}
-		feedbackList.get(0).setText(Control.MESSAGE_REQUEST_COMMAND);
+		String account = syncStore.retrieveAccount()[0];
+		setFeedbackStyle(0, String.format(WELCOME_MESSAGE,account), Color.WHITE);
 		bottom.getChildren().addAll(upperPart, feedbacks);
 	}
 
