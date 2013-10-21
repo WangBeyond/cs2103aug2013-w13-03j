@@ -220,9 +220,9 @@ public class View implements HotkeyListener {
 						txt.setText(txt.getText().substring(0, pos - 1)
 								+ txt.getText().substring(pos));
 						txt.setCaretPosition(pos - 1);
-					} 
-				} else if (!e.isAltDown() && !e.isControlDown() && !e.isShiftDown()
-						&& !e.isShortcutDown()) {
+					}
+				} else if (!e.isAltDown() && !e.isControlDown()
+						&& !e.isShiftDown() && !e.isShortcutDown()) {
 					textField.setJDialogOnTop();
 					txt.requestFocus();
 					if (e.getCode() != KeyCode.ENTER) {
@@ -234,14 +234,13 @@ public class View implements HotkeyListener {
 				}
 			}
 		});
-		
 
 		stage.focusedProperty().addListener(new ChangeListener<Boolean>() {
 			public void changed(ObservableValue<? extends Boolean> ov,
 					Boolean oldVal, Boolean newVal) {
 				if (newVal.booleanValue() == true) {
 					root.requestFocus();
-					 textField.setSwingComponentAlwaysOnTop(false);
+					textField.setSwingComponentAlwaysOnTop(false);
 				}
 			}
 		});
@@ -558,6 +557,7 @@ public class View implements HotkeyListener {
 				"There is currently no task in this tab");
 		emptyTableSign.setFont(new Font(15));
 		taskList.setPlaceholder(emptyTableSign);
+		TableColumn<Task, String> indexColumn = createIndexColumn();
 		TableColumn<Task, String> taskInfoColumn = createTaskInfoColumn();
 		TableColumn<Task, Tag> tagColumn = createTagColumn();
 		TableColumn<Task, String> startDateColumn = createStartDateColumn();
@@ -567,11 +567,42 @@ public class View implements HotkeyListener {
 		taskList.setStyle("-fx-table-cell-border-color: transparent;");
 
 		ObservableList<TableColumn<Task, ?>> columns = taskList.getColumns();
+		columns.add(indexColumn);
 		columns.add(taskInfoColumn);
 		columns.add(startDateColumn);
 		columns.add(endDateColumn);
 		columns.add(tagColumn);
 		columns.add(isImportantColumn);
+	}
+
+	private TableColumn<Task, String> createIndexColumn() {
+		TableColumn<Task, String> tempColumn = TableColumnBuilder
+				.<Task, String> create().visible(true).text("").prefWidth(20)
+				.sortable(false).resizable(false).build();
+		setupEndDateProperty(tempColumn);
+		setupIndexUpdateFormat(tempColumn);
+		return tempColumn;
+	}
+
+	private void setupIndexUpdateFormat(TableColumn<Task, String> tempColumn) {
+		tempColumn
+				.setCellFactory(new Callback<TableColumn<Task, String>, TableCell<Task, String>>() {
+
+					@Override
+					public TableCell<Task, String> call(
+							TableColumn<Task, String> param) {
+						TableCell<Task, String> tc = new TableCell<Task, String>() {
+							@Override
+							public void updateItem(String item, boolean empty) {
+								if (item != null) {
+									setText(getTableRow().getIndex() + 1 + ".");
+								}
+							}
+						};
+						tc.setAlignment(Pos.TOP_LEFT);
+						return tc;
+					}
+				});
 	}
 
 	private TableColumn<Task, Boolean> createIsImportantColumn() {
@@ -608,16 +639,21 @@ public class View implements HotkeyListener {
 							private void clearStyle() {
 								getTableRow().getStyleClass().removeAll(
 										"table-row-cell", "unimportant",
-										"important");
+										"important", "unimportant-odd" );
+					
 							}
 
 							private void setStyle(boolean isImportant) {
 								if (isImportant)
 									getTableRow().getStyleClass().add(
 											"important");
-								else
-									getTableRow().getStyleClass().add(
-											"unimportant");
+								else{
+									if(getTableRow().getIndex() % 2 == 0){
+									getTableRow().getStyleClass().add("unimportant");
+									} else{
+									getTableRow().getStyleClass().add("unimportant-odd");
+									}
+								}
 							}
 						};
 						return tc;
@@ -628,7 +664,7 @@ public class View implements HotkeyListener {
 	private TableColumn<Task, String> createEndDateColumn() {
 		TableColumn<Task, String> tempColumn = TableColumnBuilder
 				.<Task, String> create().text("End").sortable(false)
-				.prefWidth(120).build();
+				.resizable(false).prefWidth(110).build();
 
 		setupEndDateProperty(tempColumn);
 		setupEndDateUpdateFormat(tempColumn);
@@ -662,7 +698,7 @@ public class View implements HotkeyListener {
 								}
 							}
 						};
-						tc.setAlignment(Pos.CENTER);
+						tc.setAlignment(Pos.TOP_CENTER);
 						return tc;
 					}
 				});
@@ -670,8 +706,8 @@ public class View implements HotkeyListener {
 
 	private TableColumn<Task, String> createStartDateColumn() {
 		TableColumn<Task, String> tempColumn = TableColumnBuilder
-				.<Task, String> create().text("Start").prefWidth(120)
-				.sortable(false).build();
+				.<Task, String> create().text("Start").prefWidth(110)
+				.resizable(false).sortable(false).build();
 
 		setupStartDateProperty(tempColumn);
 		setupStartDateUpdateFormat(tempColumn);
@@ -697,7 +733,7 @@ public class View implements HotkeyListener {
 									setText(item);
 							}
 						};
-						tc.setAlignment(Pos.CENTER);
+						tc.setAlignment(Pos.TOP_CENTER);
 						return tc;
 					}
 				});
@@ -706,7 +742,7 @@ public class View implements HotkeyListener {
 	private TableColumn<Task, Tag> createTagColumn() {
 		TableColumn<Task, Tag> tempColumn = TableColumnBuilder
 				.<Task, Tag> create().text("Tag").sortable(false)
-				.prefWidth(120).build();
+				.resizable(false).prefWidth(110).build();
 
 		setupTagProperty(tempColumn);
 		setupTagUpdateFormat(tempColumn);
@@ -719,7 +755,7 @@ public class View implements HotkeyListener {
 				"tag"));
 	}
 
-	private void setupTagUpdateFormat(TableColumn<Task, Tag> tempColumn) {
+	private void setupTagUpdateFormat(final TableColumn<Task, Tag> tempColumn) {
 		tempColumn
 				.setCellFactory(new Callback<TableColumn<Task, Tag>, TableCell<Task, Tag>>() {
 
@@ -727,22 +763,31 @@ public class View implements HotkeyListener {
 					public TableCell<Task, Tag> call(
 							TableColumn<Task, Tag> param) {
 						TableCell<Task, Tag> tc = new TableCell<Task, Tag>() {
+							Text text;
 							public void updateItem(Tag item, boolean empty) {
 								if (item != null) {
-									String text;
 									if (item.getRepetition()
-											.equals(Parser.NULL))
-										text = item.getTag();
-									else
-										text = (item.getTag().equals("-") ? ""
+											.equals(Parser.NULL)){
+										if(item.getTag().equals("-"))
+											text = new Text("            -");
+										else{
+											if(item.getTag().length() < 8)
+										text = new Text("\t" + item.getTag());
+											else
+												text = new Text(item.getTag());
+										}
+									}else
+										text = new Text((item.getTag().equals("-") ? ""
 												: item.getTag() + "\n")
 												+ "#"
-												+ item.getRepetition();
-									setText(text);
+												+ item.getRepetition());
+									text.getStyleClass().add("text");
+									text.wrappingWidthProperty().bind(tempColumn.widthProperty());
+									setGraphic(text);
 								}
 							}
 						};
-						tc.setAlignment(Pos.CENTER);
+						tc.setAlignment(Pos.TOP_CENTER);
 						return tc;
 					}
 				});
@@ -751,7 +796,7 @@ public class View implements HotkeyListener {
 	private TableColumn<Task, String> createTaskInfoColumn() {
 		TableColumn<Task, String> tempColumn = TableColumnBuilder
 				.<Task, String> create().text("Task").sortable(false)
-				.prefWidth(300).build();
+				.prefWidth(320).build();
 
 		setupTaskInfoProperty(tempColumn);
 		setupTaskInfoUpdateFormat(tempColumn);
@@ -764,7 +809,8 @@ public class View implements HotkeyListener {
 				"workInfo"));
 	}
 
-	private void setupTaskInfoUpdateFormat(TableColumn<Task, String> tempColumn) {
+	private void setupTaskInfoUpdateFormat(
+			final TableColumn<Task, String> tempColumn) {
 		tempColumn
 				.setCellFactory(new Callback<TableColumn<Task, String>, TableCell<Task, String>>() {
 
@@ -772,13 +818,19 @@ public class View implements HotkeyListener {
 					public TableCell<Task, String> call(
 							TableColumn<Task, String> arg0) {
 						TableCell<Task, String> tc = new TableCell<Task, String>() {
+							Text text;
+
 							@Override
 							public void updateItem(String item, boolean empty) {
-								if (item != null)
-									setText((getTableRow().getIndex() + 1)
-											+ ". " + item);
+								if (item != null) {
+									text = new Text(item);
+									text.getStyleClass().add("text");
+									text.wrappingWidthProperty().bind(tempColumn.widthProperty());
+									setGraphic(text);
+								}
 							}
 						};
+						tc.setAlignment(Pos.TOP_LEFT);
 						return tc;
 					}
 				});

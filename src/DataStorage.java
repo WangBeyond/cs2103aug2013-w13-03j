@@ -21,16 +21,6 @@ public class DataStorage extends Store {
 	private BufferedReader in;
 	private PrintWriter out;
 
-	/*
-	 * public static void main(String args[]) {
-	 * 
-	 * DataStorage dataStorage = new DataStorage("dataStorage.txt"); try {
-	 * //System
-	 * .out.println(Control.executeCommand("add go to library from 12:00 to 13:00"
-	 * )); //System.out.println(Control.getModel().getPendingList().size());
-	 * dataStorage.storeToFile(); dataStorage.loadFromFile(); } catch (Exception
-	 * e) { System.out.println(e); } }
-	 */
 	public DataStorage(String fileName, Model model) {
 		createDir();
 		textFile = new File(findUserDocDir() + FOLDERNAME + "/" + fileName);
@@ -143,6 +133,8 @@ public class DataStorage extends Store {
 		newTask.setIsImportant((in.readLine()).equals(TRUE) ? true : false);
 		newTask.setIndexInList(Integer.parseInt(in.readLine()));
 		newTask.setLatestModifiedDate(new CustomDate(in.readLine()));
+		newTask.setCurrentOccurrence(Integer.parseInt(in.readLine()));
+		newTask.setNumOccurrences(Integer.parseInt(in.readLine()));
 		String statusString = in.readLine();
 		if (statusString.equals("new"))
 			newTask.setStatus(Task.Status.NEWLY_ADDED);
@@ -177,6 +169,8 @@ public class DataStorage extends Store {
 			out.println((targetTask.getIsImportant() == true ? TRUE : FALSE));
 			out.println(targetTask.getIndexInList());
 			out.println(CustomDate.convertString(targetTask.getLatestModifiedDate()));
+			out.println(targetTask.getCurrentOccurrence());
+			out.println(targetTask.getNumOccurrences());
 			if(targetTask.getStatus() == Task.Status.NEWLY_ADDED)
 				out.println("new");
 			else if(targetTask.getStatus() == Task.Status.UNCHANGED)

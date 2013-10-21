@@ -559,7 +559,7 @@ public class Control extends Application {
 	private static void updateList(ObservableList<Task> list) {
 		for (int i = 0; i < list.size(); i++) {
 			list.get(i).updateDateString();
-			if (!list.get(i).getTag().getRepetition().equals(Parser.NULL)) {
+			if (list.get(i).isRecurringTask()) {
 				list.get(i).updateDateForRepetitiveTask();
 			}
 		}
