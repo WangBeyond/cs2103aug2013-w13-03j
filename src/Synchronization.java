@@ -91,7 +91,7 @@ public class Synchronization {
 		} catch (IOException e) {
 			System.out.println("fail to sync new");
 		}
-		
+
 		// get all events from Google calendar
 		try {
 			eventEntry = getEventsFromGCal(service, eventFeedUrl);
@@ -100,13 +100,13 @@ public class Synchronization {
 		} catch (ServiceException e) {
 			System.out.println("fail to pull: service");
 		}
-		
+
 		for (int i = 0; i < eventEntry.size(); i++) {
 			System.out.println(eventEntry.get(i).getTitle().getPlainText());
 		}
 		System.out.println(eventEntry.get(0).getTimes().get(0).getStartTime()
 				.toStringRfc822());
-		
+
 		// update Task
 		try {
 			updateUnchangedTasks(service, model, eventEntry, eventFeedUrl);
@@ -116,7 +116,7 @@ public class Synchronization {
 			System.out.println("fail to update");
 		}
 		System.out.println("tototot");
-		
+
 		try {
 			// delete events on GCal which have been deleted locally
 			syncDeletedTasksToGCal(service, model, eventEntry, eventFeedUrl);
@@ -127,6 +127,16 @@ public class Synchronization {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+
+		// get all events from Google calendar
+		try {
+			eventEntry = getEventsFromGCal(service, eventFeedUrl);
+		} catch (IOException e) {
+			System.out.println("fail to pull: io");
+		} catch (ServiceException e) {
+			System.out.println("fail to pull: service");
+		}
+
 		// delete tasks locally which have been deleted on GCal
 		deleteTasksLocally(eventEntry, model);
 
@@ -190,9 +200,10 @@ public class Synchronization {
 					if (pendingList.get(i).getIndexId()
 							.equals(entries.get(j).getId())) {
 						DateTime updated = entries.get(j).getUpdated();
-						updated.setTzShift(8*60);
+						updated.setTzShift(8 * 60);
 						if (CustomDate.compare(pendingList.get(i)
-								.getLatestModifiedDate(), new CustomDate(updated)) > 0) {
+								.getLatestModifiedDate(), new CustomDate(
+								updated)) > 0) {
 							entries.get(j).setTitle(
 									new PlainTextConstruct(pendingList.get(i)
 											.getWorkInfo()));
@@ -232,8 +243,8 @@ public class Synchronization {
 			List<CalendarEventEntry> entries, URL feedUrl)
 			throws ServiceException, IOException {
 		List<CalendarEventEntry> tobeDelete = new ArrayList<CalendarEventEntry>();
-		List<Task> completedTasks = model.getCompleteList();
-		List<Task> deletedTasks = model.getTrashList();
+		ObservableList<Task> completedTasks = model.getCompleteList();
+		ObservableList<Task> deletedTasks = model.getTrashList();
 		for (int i = 0; i < completedTasks.size(); i++) {
 			if (completedTasks.get(i).getStatus() == Task.Status.DELETED) {
 				for (int j = 0; j < entries.size(); j++) {
