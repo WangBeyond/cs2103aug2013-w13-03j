@@ -111,6 +111,7 @@ public class Login {
 		Label googleAccount = new Label("Google account:");
 		grid.add(googleAccount, 0, 1);
 		googleAccountTextfield = new TextField();
+		googleAccountTextfield.requestFocus();
 		googleAccountTextfield.setId("input");
 		grid.add(googleAccountTextfield, 1, 1);
 
@@ -171,9 +172,14 @@ public class Login {
 		String account = googleAccountTextfield.getText();
 		String pw = pwBox.getText();
 		String pwRetype = pwRetypeBox.getText();
-		if( account != null && pw != null && pwRetype != null && pw.equals(pwRetype)) {
-			syncStore.storeAccount(account, pw);
-			return STORE_SUCCESSFUL;
+		if(account != null){
+			if (pw != null && pwRetype != null && pw.equals(pwRetype)) {
+				syncStore.storeAccount(account, pw);
+				return STORE_SUCCESSFUL;
+			} else {
+				pwRetypeBox.clear();
+				pwRetypeBox.setPromptText("Passwords do not match!");
+			}
 		}
 		return STORE_FAIL;
 	}
