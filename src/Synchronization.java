@@ -38,6 +38,9 @@ public class Synchronization {
 
 	/* model */
 	Model model;
+	
+	/*sync store*/
+	SyncStore syncStore;
 
 	/* calendar id */
 	String calendarId = null;
@@ -67,6 +70,10 @@ public class Synchronization {
 	public void setUsernameAndPassword(String n, String p) {
 		username = n;
 		password = p;
+	}
+	
+	public void setSyncStore(SyncStore s){
+		syncStore  = s;
 	}
 
 	public void execute() {
@@ -159,11 +166,7 @@ public class Synchronization {
 	}
 	
 	void setCalendarID(String calID) {
-		try {
-		eventFeedUrl = new URL(calID);
-		} catch (IOException e) {
-			System.out.println(e.getMessage());
-		}
+		calendarId = calID;
 	}
 	
 	URL formEventFeedUrl(CalendarService service) throws IOException,
@@ -173,6 +176,7 @@ public class Synchronization {
 					+ OWNCALENDARS_FEED_URL_SUFFIX);
 			CalendarEntry calendar = createCalendar(service, owncalUrl);
 			calendarId = trimId(calendar.getId());
+			syncStore.storeCalendarID(calendarId);
 		}
 		return new URL(METAFEED_URL_BASE + calendarId + EVENT_FEED_URL_SUFFIX);
 	}
