@@ -126,7 +126,6 @@ public class View implements HotkeyListener {
 			"incomplete", "all", "list", "today", "help", "del", "exit", "rm",
 			"show", "ls", "clr", "done", "undone", "settings", "sync" };
 	public HBox feedbacks;
-	private boolean firstTimeLogin = true;
 	private static Color IDO_GREEN = Color.rgb(130, 255, 121);
 	private static final String WELCOME_MESSAGE = "Welcome back, %s";
 	// private HBox multiColorCommand;

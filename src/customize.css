@@ -71,6 +71,16 @@
     -fx-prompt-text-fill: transparent;
 }
 
+.password-field {
+	-fx-border-color: greenyellow;
+	-fx-border-width: 1.0px; 
+}
+
+.password-field:focused {
+	-fx-border-color: greenyellow; 
+	-fx-border-width: 2.0px;
+}
+
 #input{
 	-fx-border-color: greenyellow;
 	-fx-border-width: 1.0px;    

@@ -25,6 +25,8 @@ import javafx.stage.StageStyle;
 
 public class Login {
 	
+	static final boolean STORE_SUCCESSFUL = true;
+	static final boolean STORE_FAIL = false;
 	private final KeyCombination saveInput = new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN);
 	private final KeyCombination cancelLogin = new KeyCodeCombination(KeyCode.ESCAPE);
 	
@@ -55,7 +57,6 @@ public class Login {
 	public static Login getInstanceLogin(SyncStore syncStore){
 		if (oneLoginPage == null){
 			oneLoginPage = new Login(syncStore);
-
 		}		
 		return oneLoginPage;
 	}
@@ -116,13 +117,11 @@ public class Login {
 		Label pw = new Label("Password:");
 		grid.add(pw, 0, 2);
 		pwBox = new PasswordField();
-		pwBox.setId("input");
 		grid.add(pwBox, 1, 2);
 		
 		Label pwRetype = new Label("Retype password:");
 		grid.add(pwRetype, 0, 3);
 		pwRetypeBox = new PasswordField();
-		pwRetypeBox.setId("input");
 		grid.add(pwRetypeBox, 1, 3);
 	}
 	
@@ -133,7 +132,7 @@ public class Login {
 		saveButton.setTranslateX(-120);
 		saveButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
 			public void handle(MouseEvent e) {
-				// TODO: check input and store
+				storeUserInfo();
 			}
 		});
 		
@@ -147,6 +146,9 @@ public class Login {
 		cancelButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
 			public void handle(MouseEvent e) {
 				loginStage.close();
+				if (storeUserInfo()){
+					loginStage.close();
+				}
 			}
 		});
 		
@@ -165,19 +167,26 @@ public class Login {
 		return loginBg;
 	}
 	
+	private boolean storeUserInfo(){
+		String account = googleAccountTextfield.getText();
+		String pw = pwBox.getText();
+		String pwRetype = pwRetypeBox.getText();
+		if( account != null && pw != null && pwRetype != null && pw.equals(pwRetype)) {
+			syncStore.storeAccount(account, pw);
+			return STORE_SUCCESSFUL;
+		}
+		return STORE_FAIL;
+	}
+	
 	private void setupShortcuts(){
 		root.setOnKeyPressed(new EventHandler<KeyEvent>(){
 			public void handle(KeyEvent e) {
 				if (cancelLogin.match(e)) {
 					loginStage.close();
 				} else if (saveInput.match(e)){
-					// TODO: check input and store
-					String account = googleAccountTextfield.getText();
-					String pw = pwBox.getText();
-					String pwRetype = pwRetypeBox.getText();
-					if( account != null && pw != null && pwRetype != null && pw.equals(pwRetype)) {
-						syncStore.storeAccount(account, pw);
-					}
+					if (storeUserInfo()){
+						loginStage.close();
+					} 
 				}
 			}
 		});

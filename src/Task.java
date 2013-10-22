@@ -47,7 +47,7 @@ public class Task implements Comparable<Task> {
 		setStartDate(null);
 		setStartDateString("-");
 		setEndDate(null);
-		setStartDateString("-");
+		setEndDateString("-");
 		setWorkInfo("");
 		setTag(new Tag("-", "null"));
 		indexId = "";
