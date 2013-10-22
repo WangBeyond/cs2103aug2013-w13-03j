@@ -622,6 +622,36 @@ public class View implements HotkeyListener {
 					}
 				});
 	}
+	
+	private TableColumn<Task, String> createOccurenceColumn() {
+		TableColumn<Task, String> tempColumn = TableColumnBuilder
+				.<Task, String> create().visible(true).text("").prefWidth(20)
+				.sortable(false).resizable(false).build();
+		setupEndDateProperty(tempColumn);
+		setupIndexUpdateFormat(tempColumn);
+		return tempColumn;
+	}
+
+	private void setupOccurenceUpdateFormat(TableColumn<Task, String> tempColumn) {
+		tempColumn
+				.setCellFactory(new Callback<TableColumn<Task, String>, TableCell<Task, String>>() {
+
+					@Override
+					public TableCell<Task, String> call(
+							TableColumn<Task, String> param) {
+						TableCell<Task, String> tc = new TableCell<Task, String>() {
+							@Override
+							public void updateItem(String item, boolean empty) {
+								if (item != null) {
+									setText(getTableRow().getIndex() + 1 + ".");
+								}
+							}
+						};
+						tc.setAlignment(Pos.TOP_LEFT);
+						return tc;
+					}
+				});
+	}
 
 	private TableColumn<Task, Boolean> createIsImportantColumn() {
 		TableColumn<Task, Boolean> tempColumn = TableColumnBuilder

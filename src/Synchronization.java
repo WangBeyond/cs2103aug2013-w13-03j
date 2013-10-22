@@ -38,8 +38,8 @@ public class Synchronization {
 
 	/* model */
 	Model model;
-	
-	/*sync store*/
+
+	/* sync store */
 	SyncStore syncStore;
 
 	/* calendar id */
@@ -71,9 +71,9 @@ public class Synchronization {
 		username = n;
 		password = p;
 	}
-	
-	public void setSyncStore(SyncStore s){
-		syncStore  = s;
+
+	public void setSyncStore(SyncStore s) {
+		syncStore = s;
 	}
 
 	public void execute() {
@@ -85,24 +85,13 @@ public class Synchronization {
 		}
 
 		// form feed url
-		if(eventFeedUrl == null) {
+		if (eventFeedUrl == null) {
 			try {
 				eventFeedUrl = formEventFeedUrl(service);
 			} catch (IOException | ServiceException e) {
 				System.out.println("fail to form event url");
 			}
 		}
-
-		// sync newly added tasks to GCal
-		try {
-			syncNewTasksToGCal(service, model, eventFeedUrl);
-		} catch (ServiceException e) {
-			System.out.println("fail to sync new");
-		} catch (IOException e) {
-			System.out.println("fail to sync new");
-		}
-		
-		System.out.println("1");
 		// get all events from Google calendar
 		try {
 			eventEntry = getEventsFromGCal(service, eventFeedUrl);
@@ -111,9 +100,9 @@ public class Synchronization {
 		} catch (ServiceException e) {
 			System.out.println("fail to pull: service");
 		}
-		
+
 		System.out.println("1");
-		/*
+
 		// update Task
 		try {
 			updateUnchangedTasks(service, model, eventEntry, eventFeedUrl);
@@ -124,7 +113,17 @@ public class Synchronization {
 		}
 		System.out.println("tototot");
 		System.out.println("1");
-		*/
+		// sync newly added tasks to GCal
+		try {
+			syncNewTasksToGCal(service, model, eventFeedUrl);
+		} catch (ServiceException e) {
+			System.out.println("fail to sync new");
+		} catch (IOException e) {
+			System.out.println("fail to sync new");
+		}
+
+		System.out.println("1");
+
 		try {
 			// delete events on GCal which have been deleted locally
 			syncDeletedTasksToGCal(service, model, eventEntry, eventFeedUrl);
@@ -164,11 +163,11 @@ public class Synchronization {
 		// authenticate using ClientLogin
 		service.setUserCredentials(username, password);
 	}
-	
+
 	void setCalendarID(String calID) {
 		calendarId = calID;
 	}
-	
+
 	URL formEventFeedUrl(CalendarService service) throws IOException,
 			ServiceException {
 		if (calendarId == null) {
@@ -193,10 +192,11 @@ public class Synchronization {
 			Task task = pendingList.get(i);
 			if (task.getStatus() == Task.Status.NEWLY_ADDED) {
 				CalendarEventEntry e;
-				 if(task.isRecurringTask()){
-					 e = createRecurringEvent(service, task.getWorkInfo(),
-					 task.getStartDate().returnInRecurringFormat(), task.getEndDate().returnInRecurringFormat(), task.getTag().getRepetition(), null, feedUrl);
-				 } else {
+				if (task.isRecurringTask()) {
+					e = createRecurringEvent(service, task.getWorkInfo(),
+							task.getStartDate(), task.getEndDate(), task
+									.getTag().getRepetition(), feedUrl);
+				} else {
 					 if(task.getStartDate() != null && task.getEndDate() != null){//has start date and end date
 						 e = createSingleEvent(service, task.getWorkInfo(),
 								 task.getStartDate(), task.getEndDate(), feedUrl); 
@@ -211,7 +211,7 @@ public class Synchronization {
 						 throw new Error("date format error");
 					 }
 					
-				 }
+				}
 				task.setIndexId(e.getId());
 				task.setStatus(Task.Status.UNCHANGED);
 			}
@@ -503,12 +503,12 @@ public class Synchronization {
 	private CalendarEventEntry createRecurringEvent(CalendarService service,
 			String eventContent, String startDate, String endDate,
 			String freq, String until, URL feedUrl) throws ServiceException, IOException {
-		
-		String recurData = "DTSTART;TZID="+TimeZone.getDefault().getID()+":"
-				+ startDate + "\r\n"
-				+ "DTEND;TZID="+TimeZone.getDefault().getID()+":"
-				+ endDate + "\r\n"
-				+ "RRULE:FREQ=" + freq.toUpperCase();
+
+		String recurData = "DTSTART;TZID=" + TimeZone.getDefault().getID()
+				+ ":" + startDate.returnInRecurringFormat() + "\r\n"
+				+ "DTEND;TZID=" + TimeZone.getDefault().getID() + ":"
+				+ endDate.returnInRecurringFormat() + "\r\n" + "RRULE:FREQ="
+				+ freq.toUpperCase() + "\r\n";
 		if(until != null){
 			recurData = recurData+";UNTIL="+until;
 		}
