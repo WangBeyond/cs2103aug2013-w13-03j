@@ -28,7 +28,7 @@ public class Task implements Comparable<Task> {
 	private ObjectProperty<Tag> tag;
 	private int num_occurrences;
 	private int current_occurrence;
-	private StringProperty occurrence;
+	private StringProperty occurrenceString;
 	// Index ID of this task in Google Calendar
 	private String indexId;
 	// Index in the list containing the task
@@ -120,7 +120,7 @@ public class Task implements Comparable<Task> {
 				.getRepetition());
 		while (getEndDate().beforeCurrentTime()) {
 			current_occurrence++;
-			updateOccurrence();
+			updateOccurrenceString();
 			if (current_occurrence <= num_occurrences) {
 				updateStartDate(difference);
 				updateEndDate(difference);
@@ -165,11 +165,11 @@ public class Task implements Comparable<Task> {
 		return !tag.get().getRepetition().equals(Parser.NULL);
 	}
 
-	private void updateOccurrence() {
+	private void updateOccurrenceString() {
 		if(num_occurrences<=1)
-			occurrence.set("");
+			occurrenceString.set("");
 		else
-			occurrence.set(current_occurrence+"/"+num_occurrences);
+			occurrenceString.set(current_occurrence+"/"+num_occurrences);
 
 	}
 	
@@ -217,11 +217,11 @@ public class Task implements Comparable<Task> {
 	}
 	
 	public StringProperty occurrenceProperty() {
-		if (occurrence == null)
-			occurrence = new SimpleStringProperty(this, "occurrenceProperty");
-		return occurrence;
+		if (occurrenceString == null)
+			occurrenceString = new SimpleStringProperty(this, "occurrenceProperty");
+		return occurrenceString;
 	}
-
+	
 	/********************************* Get Value Functions ***********************************/
 	public boolean getIsImportant() {
 		return isImportant.get();
@@ -286,6 +286,7 @@ public class Task implements Comparable<Task> {
 	public int getCurrentOccurrence() {
 		return current_occurrence;
 	}
+	
 
 	/*************************************** Set Value Functions ****************************************/
 	public void setIsImportant(boolean isImportant) {
@@ -319,10 +320,7 @@ public class Task implements Comparable<Task> {
 	public void setEndDateString(String dateString) {
 		endDateString.set(dateString);
 	}
-	
-	public void setOccurrence(String occurrenceString) {
-		occurrence.set(occurrenceString);
-	}
+
 
 	public void setWorkInfo(String workInfo) {
 		this.workInfo.set(workInfo);
@@ -351,17 +349,24 @@ public class Task implements Comparable<Task> {
 	public void initOccurrence(int num_occurrences) {
 		this.num_occurrences = num_occurrences;
 		current_occurrence = 1;
-		updateOccurrence();
+		updateOccurrenceString();
 	}
 
 	public void setNumOccurrences(int num_occurrences) {
 		this.num_occurrences = num_occurrences;
-		updateOccurrence();
+		updateOccurrenceString();
 	}
 
 	public void setCurrentOccurrence(int current) {
 		current_occurrence = current;
-		updateOccurrence();
+		updateOccurrenceString();
+	}
+	
+	
+	public void setOccurrence(int occurNum, int curOccur) {
+		num_occurrences = occurNum;
+		current_occurrence = curOccur;
+		updateOccurrenceString();
 	}
 }
 
