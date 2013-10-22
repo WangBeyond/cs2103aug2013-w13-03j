@@ -201,7 +201,7 @@ class SyncStore extends Store {
 		  try {
 	 
 			SAXBuilder builder = new SAXBuilder();
-			File xmlFile = new File("sync.xml");
+			File xmlFile = new File(dir);
 	 
 			Document doc = (Document) builder.build(xmlFile);
 			Element rootNode = doc.getRootElement();
@@ -224,6 +224,52 @@ class SyncStore extends Store {
 		  } catch (JDOMException e) {
 			e.printStackTrace();
 		  }
+	}
+	
+	public void storeCalendarID (String calID) {
+		  try {
+				 
+			SAXBuilder builder = new SAXBuilder();
+			File xmlFile = new File(dir);
+	 
+			Document doc = (Document) builder.build(xmlFile);
+			Element rootNode = doc.getRootElement();
+			Element account = rootNode.getChild("account");
+			account.addContent(new Element("CalendarID").setText(calID));
+			XMLOutputter xmlOutput = new XMLOutputter();
+			xmlOutput.setFormat(Format.getPrettyFormat());
+			xmlOutput.output(doc, new FileWriter(dir));
+	 
+			// xmlOutput.output(doc, System.out);
+	 
+			System.out.println("calID saved!");
+		  } catch (IOException io) {
+			io.printStackTrace();
+		  } catch (JDOMException e) {
+			e.printStackTrace();
+		  }
+	}
+	
+	public String retrieveCalID() {
+		 
+		SAXBuilder builder = new SAXBuilder();
+		File xmlFile = new File(dir);
+		String calendarID = null;
+		  try {
+			Document doc = (Document) builder.build(xmlFile);
+			Element rootNode = doc.getRootElement();
+			Element account = rootNode.getChild("account");
+			Element calID = account.getChild("CalendarID");
+
+			if (calID != null)
+				calendarID = calID.getText();
+		
+		  } catch (IOException io) {
+			System.out.println(io.getMessage());
+		  } catch (JDOMException jdomex) {
+			System.out.println(jdomex.getMessage());
+		  }
+		  return calendarID;
 	}
 	
 	public String[] retrieveAccount() {
