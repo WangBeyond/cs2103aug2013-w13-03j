@@ -575,6 +575,7 @@ public class View implements HotkeyListener {
 		emptyTableSign.setFont(new Font(15));
 		taskList.setPlaceholder(emptyTableSign);
 		TableColumn<Task, String> indexColumn = createIndexColumn();
+		TableColumn<Task, String> occurrenceColumn = createOccurrenceColumn();
 		TableColumn<Task, String> taskInfoColumn = createTaskInfoColumn();
 		TableColumn<Task, Tag> tagColumn = createTagColumn();
 		TableColumn<Task, String> startDateColumn = createStartDateColumn();
@@ -585,6 +586,7 @@ public class View implements HotkeyListener {
 
 		ObservableList<TableColumn<Task, ?>> columns = taskList.getColumns();
 		columns.add(indexColumn);
+		columns.add(occurrenceColumn);
 		columns.add(taskInfoColumn);
 		columns.add(startDateColumn);
 		columns.add(endDateColumn);
@@ -622,16 +624,21 @@ public class View implements HotkeyListener {
 				});
 	}
 	
-	private TableColumn<Task, String> createOccurenceColumn() {
+	private TableColumn<Task, String> createOccurrenceColumn() {
 		TableColumn<Task, String> tempColumn = TableColumnBuilder
 				.<Task, String> create().visible(true).text("").prefWidth(20)
 				.sortable(false).resizable(false).build();
-		setupEndDateProperty(tempColumn);
-		setupIndexUpdateFormat(tempColumn);
+		setupOccurrenceProperty(tempColumn);
+		setupOccurrenceUpdateFormat(tempColumn);
 		return tempColumn;
 	}
+	
+	private void setupOccurrenceProperty(TableColumn<Task, String> tempColumn) {
+		tempColumn.setCellValueFactory(new PropertyValueFactory<Task, String>(
+				"occurrence"));
+	}
 
-	private void setupOccurenceUpdateFormat(TableColumn<Task, String> tempColumn) {
+	private void setupOccurrenceUpdateFormat(final TableColumn<Task, String> tempColumn) {
 		tempColumn
 				.setCellFactory(new Callback<TableColumn<Task, String>, TableCell<Task, String>>() {
 
@@ -639,10 +646,18 @@ public class View implements HotkeyListener {
 					public TableCell<Task, String> call(
 							TableColumn<Task, String> param) {
 						TableCell<Task, String> tc = new TableCell<Task, String>() {
+							Text text;
+							
 							@Override
 							public void updateItem(String item, boolean empty) {
 								if (item != null) {
-									setText(getTableRow().getIndex() + 1 + ".");
+									System.out.println("item "+item);
+									text = new Text(item);
+									//text.wrappingWidthProperty().bind(tempColumn.widthProperty());
+									text.setFill(Color.DARKCYAN);
+									text.setFont(Font.font("Verdana",10)); 
+									setGraphic(text);
+									
 								}
 							}
 						};
@@ -847,7 +862,7 @@ public class View implements HotkeyListener {
 	private TableColumn<Task, String> createTaskInfoColumn() {
 		TableColumn<Task, String> tempColumn = TableColumnBuilder
 				.<Task, String> create().text("Task").sortable(false)
-				.prefWidth(320).build();
+				.prefWidth(300).build();
 
 		setupTaskInfoProperty(tempColumn);
 		setupTaskInfoUpdateFormat(tempColumn);
