@@ -64,7 +64,7 @@ public class Setting extends Store {
 		fontSize = 14;
 	}
 
-	private void createDir() {
+	protected void createDir() {
 		File theDir = new File(findUserDocDir()+FOLDERNAME);
 		// if the directory does not exist, create it
 		if (!theDir.exists()) {
@@ -76,7 +76,7 @@ public class Setting extends Store {
 		}
 	}
 
-	private String findUserDocDir() {
+	protected String findUserDocDir() {
 		return System.getProperty("user.home") + "\\Documents\\" ;
 	}
 

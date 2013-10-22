@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.TimeZone;
 
 import javafx.collections.ObservableList;
 
@@ -91,7 +92,8 @@ public class Synchronization {
 		} catch (IOException e) {
 			System.out.println("fail to sync new");
 		}
-
+		
+		System.out.println("1");
 		// get all events from Google calendar
 		try {
 			eventEntry = getEventsFromGCal(service, eventFeedUrl);
@@ -100,13 +102,9 @@ public class Synchronization {
 		} catch (ServiceException e) {
 			System.out.println("fail to pull: service");
 		}
-
-		for (int i = 0; i < eventEntry.size(); i++) {
-			System.out.println(eventEntry.get(i).getTitle().getPlainText());
-		}
-		System.out.println(eventEntry.get(0).getTimes().get(0).getStartTime()
-				.toStringRfc822());
-
+		
+		System.out.println("1");
+		/*
 		// update Task
 		try {
 			updateUnchangedTasks(service, model, eventEntry, eventFeedUrl);
@@ -116,7 +114,8 @@ public class Synchronization {
 			System.out.println("fail to update");
 		}
 		System.out.println("tototot");
-
+		System.out.println("1");
+		*/
 		try {
 			// delete events on GCal which have been deleted locally
 			syncDeletedTasksToGCal(service, model, eventEntry, eventFeedUrl);
@@ -127,6 +126,7 @@ public class Synchronization {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		System.out.println("1");
 
 		// get all events from Google calendar
 		try {
@@ -137,12 +137,15 @@ public class Synchronization {
 			System.out.println("fail to pull: service");
 		}
 
+		System.out.println("1");
 		// delete tasks locally which have been deleted on GCal
 		deleteTasksLocally(eventEntry, model);
 
+		System.out.println("1");
 		// add tasks locally which have been added on GCal
 		addEventsLocally(eventEntry, model);
 		System.out.println("Done!");
+		System.out.println("1");
 	}
 
 	private void initService() throws AuthenticationException {
@@ -176,13 +179,13 @@ public class Synchronization {
 			Task task = pendingList.get(i);
 			if (task.getStatus() == Task.Status.NEWLY_ADDED) {
 				CalendarEventEntry e;
-				// if(task.isRecurringTask()){
-				// e = createRecurringEvent(service, task.getWorkInfo(),
-				// task.getStartDate(), task.getEndDate(), "WEEKLY", feedUrl);
-				// } else {
-				e = createSingleEvent(service, task.getWorkInfo(),
-						task.getStartDate(), task.getEndDate(), feedUrl);
-				// }
+				 if(task.isRecurringTask()){
+					 e = createRecurringEvent(service, task.getWorkInfo(),
+					 task.getStartDate(), task.getEndDate(), task.getTag().getRepetition(), feedUrl);
+				 } else {
+					 e = createSingleEvent(service, task.getWorkInfo(),
+					 task.getStartDate(), task.getEndDate(), feedUrl);
+				 }
 				task.setIndexId(e.getId());
 				task.setStatus(Task.Status.UNCHANGED);
 			}
@@ -474,13 +477,14 @@ public class Synchronization {
 	private CalendarEventEntry createRecurringEvent(CalendarService service,
 			String eventContent, CustomDate startDate, CustomDate endDate,
 			String freq, URL feedUrl) throws ServiceException, IOException {
+		
+		String recurData = "DTSTART;TZID="+TimeZone.getDefault().getID()+":"
+				+ startDate.returnInRecurringFormat() + "\r\n"
+				+ "DTEND;TZID="+TimeZone.getDefault().getID()+":"
+				+ endDate.returnInRecurringFormat() + "\r\n"
+				+ "RRULE:FREQ=" + freq.toUpperCase() + "\r\n";
 
-		String recurData = "DTSTART;VALUE=DATE:"
-				+ startDate.returnInDateTimeFormat().getValue() + "\r\n"
-				+ "DTEND;VALUE=DATE:"
-				+ endDate.returnInDateTimeFormat().getValue() + "\r\n"
-				+ "RRULE:FREQ=" + freq.toUpperCase() + ";UNTIL=20200101\r\n";
-
+		System.out.println(recurData);
 		return createEvent(service, eventContent, null, null, recurData, false,
 				feedUrl);
 	}

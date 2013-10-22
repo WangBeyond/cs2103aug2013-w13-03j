@@ -127,11 +127,11 @@ public class CustomDate {
 	public String returnInRecurringFormat(){
 		DecimalFormat df = new DecimalFormat("00");
 		String year = String.valueOf(getYear());
-		String month = df.format(getMonth());
+		String month = df.format(getMonth()+1);
 		String date = df.format(getDate());
 		String hour = df.format(getHour());
 		String minute = df.format(getMinute());
-		return year + month + date + "T" + hour + minute;
+		return year + month + date + "T" + hour + minute+"00";
 	}
 
 	/**
