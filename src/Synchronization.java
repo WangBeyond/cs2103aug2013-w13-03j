@@ -78,10 +78,12 @@ public class Synchronization {
 		}
 
 		// form feed url
-		try {
-			eventFeedUrl = formEventFeedUrl(service);
-		} catch (IOException | ServiceException e) {
-			System.out.println("fail to form event url");
+		if(eventFeedUrl == null) {
+			try {
+				eventFeedUrl = formEventFeedUrl(service);
+			} catch (IOException | ServiceException e) {
+				System.out.println("fail to form event url");
+			}
 		}
 
 		// sync newly added tasks to GCal
@@ -155,7 +157,15 @@ public class Synchronization {
 		// authenticate using ClientLogin
 		service.setUserCredentials(username, password);
 	}
-
+	
+	void setCalendarID(String calID) {
+		try {
+		eventFeedUrl = new URL(calID);
+		} catch (IOException e) {
+			System.out.println(e.getMessage());
+		}
+	}
+	
 	URL formEventFeedUrl(CalendarService service) throws IOException,
 			ServiceException {
 		if (calendarId == null) {
