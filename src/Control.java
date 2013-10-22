@@ -56,10 +56,10 @@ public class Control extends Application {
 
 	public Model modelHandler = new Model();
 	public History commandHistory = new History();
-	public Synchronization sync = new Synchronization(modelHandler);
 	public View view;
 	private Store dataFile;
 	private SyncStore syncStore;
+	public Synchronization sync = new Synchronization(modelHandler);
 
 	static boolean isRealTimeSearch = false;
 	static final boolean SEARCHED = true;
@@ -81,6 +81,7 @@ public class Control extends Application {
 			dataFile = new DataStorage("dataStorage.txt", modelHandler);
 			dataFile.loadFromFile();
 			syncStore = new SyncStore("sync.xml");
+			sync.setSyncStore(syncStore);
 		} catch (IOException e) {
 			System.out.println("Cannot read the given file");
 		}

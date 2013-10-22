@@ -1278,7 +1278,7 @@ class SettingsCommand extends Command {
 class SyncCommand extends Command {
 	String username = null;
 	String password = null;
-	String calUrl = null;
+	String calId = null;
 	
 	Synchronization sync;
 	
@@ -1294,15 +1294,15 @@ class SyncCommand extends Command {
 			username = accountInfo[0];
 			password = accountInfo[1];
 		}
-		calUrl = syncStore.retrieveCalID();
+		calId = syncStore.retrieveCalID();
 	}
 
 	@Override
 	public String execute() {
 		System.out.println(username+" "+password);
 		sync.setUsernameAndPassword(username, password);
-		if(calUrl != null)
-			sync.setCalendarID(calUrl);
+		if(calId != null)
+			sync.setCalendarID(calId);
 		sync.execute();
 		return MESSAGE_SUCCESSFUL_SYNC;
 	}
