@@ -283,7 +283,8 @@ class AddCommand extends TwoWayCommand {
 			updateTimeForEndDate(task.getStartDate(), endDate);
 			task.setEndDate(endDate);
 		}
-		
+		if(isRepetitive)
+			splitRepeatingInfo();
 		checkInvalidDates(isRepetitive, hasStartDate, hasEndDate, task.getStartDate(), task.getEndDate(), repeatingType);
 		
 		setTag(isRepetitive);
@@ -305,6 +306,24 @@ class AddCommand extends TwoWayCommand {
 		Control.sortList(model.getPendingList());
 		assert model.getTaskFromPending(index).equals(task);
 		return MESSAGE_SUCCESSFUL_UNDO;
+	}
+	
+	private void splitRepeatingInfo() {
+		String remainInfo = null;
+		for( String key : Parser.repeatingKeys ) {
+			if(repeatingType.contains(key)) {	
+				remainInfo = repeatingType.replace(key, "");
+				repeatingType = key;
+				break;
+			}
+		}
+		int num;
+		try {
+			num = Integer.valueOf(Parser.getFirstWord(remainInfo));
+			task.setNumOccurrences(num);
+		} catch(Exception e) {
+			task.setNumOccurrences(0);
+		}
 	}
 	
 	private void setTag(boolean isRepetitive){
@@ -389,7 +408,7 @@ class EditCommand extends TwoWayCommand {
 		if (hasEndDate) {
 			targetTask.setEndDate(endDate);
 		}
-		
+		System.out.println(repeatingType);
 		setTag();
 		if (isRepetitive) {
 			targetTask.updateDateForRepetitiveTask();

@@ -17,12 +17,14 @@ public class Parser {
 			"end before", "to", "till", "until", "by", "due", "before", "next", "today",
 			"tonight" };
 
-	private static String[] repeatingKeys = { "daily", "weekly", "monthly",
+	static String[] repeatingKeys = { "daily", "weekly", "monthly",
 			"yearly", "annually", "every monday", "every tuesday",
 			"every wednesday", "every thursday", "every friday",
 			"every saturday", "every sunday", "every day", "every month",
 			"every year", "everyday", "every week" };
-
+	
+	private static String[] occurenceKeys = { "time", "times" };
+	
 	public static final int INDEX_USELESS_INFO = -2;
 	public static final int INDEX_COMMAND_TYPE = -1;
 	public static final int INDEX_WORK_INFO = 0;
@@ -622,6 +624,7 @@ public class Parser {
 	 */
 	private static String[] getRepeatingType(String commandString) {
 		String repeatingKey = Parser.NULL;
+		boolean isOccurence = false;
 		for (int i = 0; i < repeatingKeys.length; i++) {
 			if (commandString.toLowerCase().contains(repeatingKeys[i])) {
 				if (repeatingKey.equals(Parser.NULL))
@@ -629,9 +632,27 @@ public class Parser {
 				else
 					throw new IllegalArgumentException(
 							"Invalid Command: More than 1 repetitive signals");
-				commandString = commandString.replace(repeatingKey, "");
 				break;
+			}		
+		}
+		if(!repeatingKey.equals(Parser.NULL)) {
+			int repeatingIndex = commandString.indexOf(repeatingKey);
+			int remainIndex = repeatingIndex + repeatingKey.length();
+			String remainInfo = commandString.substring(remainIndex);
+			String[] splitRemainInfo = splitBySpace(remainInfo);
+			try {
+				Integer.valueOf(splitRemainInfo[0]);
+				for( String key : occurenceKeys ) {
+					if(splitRemainInfo[1].equals(key)) {
+						int endIndex = remainInfo.indexOf(key) + key.length();
+						repeatingKey = commandString.substring(repeatingIndex, remainIndex + endIndex);
+						isOccurence = true;
+						break;
+					}
+				}
+			} catch (NumberFormatException e) {		
 			}
+			commandString = commandString.replace(repeatingKey, "");
 		}
 		return new String[] { commandString, repeatingKey };
 	}
