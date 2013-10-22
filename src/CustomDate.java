@@ -131,7 +131,8 @@ public class CustomDate {
 		String date = df.format(getDate());
 		String hour = df.format(getHour());
 		String minute = df.format(getMinute());
-		return year + month + date + "T" + hour + minute+"00";
+		String second = "00";
+		return year + month + date + "T" + hour + minute+second;
 	}
 
 	/**

@@ -274,14 +274,39 @@ class AddCommand extends TwoWayCommand {
 		boolean hasStartDate = !startDateString.equals(Parser.NULL);
 		boolean hasEndDate = !endDateString.equals(Parser.NULL);
 		
-		if (hasStartDate) {
+		if (hasStartDate && hasEndDate) {
 			CustomDate startDate = new CustomDate(startDateString);
 			task.setStartDate(startDate);
-		}
-		if (hasEndDate) {
+			
 			CustomDate endDate = new CustomDate(endDateString);
 			updateTimeForEndDate(task.getStartDate(), endDate);
 			task.setEndDate(endDate);
+		} else if(hasStartDate){
+			CustomDate startDate = new CustomDate(startDateString);
+			task.setStartDate(startDate);
+			
+			CustomDate cd = new CustomDate();
+			cd.setYear(task.getStartDate().getYear());
+			cd.setMonth(task.getStartDate().getMonth());
+			cd.setDate(task.getStartDate().getDate());
+			cd.setHour(23);
+			cd.setMinute(59);
+			
+			task.setEndDate(cd);
+		} else if(hasEndDate){
+			CustomDate endDate = new CustomDate(endDateString);
+			CustomDate cur = new CustomDate();
+			cur.setHour(0);
+			cur.setMinute(0);
+			if(endDate.beforeCurrentTime()){
+				return "End Date before current time";
+			} else {
+				task.setStartDate(cur);
+				task.setEndDate(endDate);
+				updateTimeForEndDate(task.getStartDate(), endDate);
+			}
+		} else {
+			
 		}
 		
 		checkInvalidDates(isRepetitive, hasStartDate, hasEndDate, task.getStartDate(), task.getEndDate(), repeatingType);

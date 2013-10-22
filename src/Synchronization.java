@@ -195,10 +195,22 @@ public class Synchronization {
 				CalendarEventEntry e;
 				 if(task.isRecurringTask()){
 					 e = createRecurringEvent(service, task.getWorkInfo(),
-					 task.getStartDate(), task.getEndDate(), task.getTag().getRepetition(), feedUrl);
+					 task.getStartDate().returnInRecurringFormat(), task.getEndDate().returnInRecurringFormat(), task.getTag().getRepetition(), null, feedUrl);
 				 } else {
-					 e = createSingleEvent(service, task.getWorkInfo(),
-					 task.getStartDate(), task.getEndDate(), feedUrl);
+					 if(task.getStartDate() != null && task.getEndDate() != null){//has start date and end date
+						 e = createSingleEvent(service, task.getWorkInfo(),
+								 task.getStartDate(), task.getEndDate(), feedUrl); 
+					 } else if(task.getStartDate() == null && task.getEndDate() == null){//no start date and no end date
+						 CustomDate cd = new CustomDate();
+						 CustomDate cd1 = new CustomDate();
+						 cd1.setDate(cd.getDate()+1);
+						 e = createRecurringEvent(service, task.getWorkInfo(),
+								 cd.returnInRecurringFormat().substring(0, 8),
+								 cd1.returnInRecurringFormat().substring(0, 8), "Daily", null, feedUrl);
+					 } else {
+						 throw new Error("date format error");
+					 }
+					
 				 }
 				task.setIndexId(e.getId());
 				task.setStatus(Task.Status.UNCHANGED);
@@ -489,14 +501,18 @@ public class Synchronization {
 	 *             Error communicating with the server.
 	 */
 	private CalendarEventEntry createRecurringEvent(CalendarService service,
-			String eventContent, CustomDate startDate, CustomDate endDate,
-			String freq, URL feedUrl) throws ServiceException, IOException {
+			String eventContent, String startDate, String endDate,
+			String freq, String until, URL feedUrl) throws ServiceException, IOException {
 		
 		String recurData = "DTSTART;TZID="+TimeZone.getDefault().getID()+":"
-				+ startDate.returnInRecurringFormat() + "\r\n"
+				+ startDate + "\r\n"
 				+ "DTEND;TZID="+TimeZone.getDefault().getID()+":"
-				+ endDate.returnInRecurringFormat() + "\r\n"
-				+ "RRULE:FREQ=" + freq.toUpperCase() + "\r\n";
+				+ endDate + "\r\n"
+				+ "RRULE:FREQ=" + freq.toUpperCase();
+		if(until != null){
+			recurData = recurData+";UNTIL="+until;
+		}
+		recurData += "\r\n";
 
 		System.out.println(recurData);
 		return createEvent(service, eventContent, null, null, recurData, false,
