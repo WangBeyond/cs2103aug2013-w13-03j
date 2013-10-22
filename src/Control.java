@@ -29,7 +29,8 @@ public class Control extends Application {
 	static final String MESSAGE_SUCCESSFUL_REDO = "Redo was successful.";
 	static final String MESSAGE_ADD_TIP = "<add> <task info 1> <task info 2> <task info 3> <task info 4> ...";
 	static final String MESSAGE_EDIT_TIP = "<edit/mod/modify> <index> <task info 1> <task info 2> <task info 3> ...";
-	static final String MESSAGE_REMOVE_TIP = "<delete/del/remove/rm> <index 1> <index 2> <index 3> ...";
+	static final String MESSAGE_REMOVE_INDEX_TIP = "<delete/del/remove/rm> <index 1> <index 2> <index 3> ...";
+	static final String MESSAGE_REMOVE_INFO_TIP	 ="<remove> <task info 1> <task info 2> <task info 3> <task info 4> ...";
 	static final String MESSAGE_SEARCH_TIP = "<search/find> <task info 1> <task info 2> <task info 3> ...";
 	static final String MESSAGE_TODAY_TIP = "<today>";
 	static final String MESSAGE_SHOW_ALL_TIP = "<show/all/list/ls>";
@@ -114,7 +115,7 @@ public class Control extends Application {
 					}
 				}
 				if (isRealTimeSearch
-						&& !command.contains("search")) {
+						&& !command.contains("search") && !command.contains("remove")) {
 					isRealTimeSearch = false;
 					executeShowCommand();
 				}
@@ -135,7 +136,7 @@ public class Control extends Application {
 					}
 				}
 				if (isRealTimeSearch
-						&& !command.contains("search")) {
+						&& !command.contains("search") && !command.contains("remove")) {
 					isRealTimeSearch = false;
 					executeShowCommand();
 				}
@@ -156,9 +157,20 @@ public class Control extends Application {
 					}
 				}
 				if (isRealTimeSearch
-						&& !command.contains("search")) {
+						&& !command.contains("search") && !command.contains("remove")) {
 					isRealTimeSearch = false;
 					executeShowCommand();
+				}
+			}
+			
+			private boolean checkRemoveIndex(String command) {
+				String content = Parser.removeFirstWord(command);
+				String[] splitContent = Parser.splitBySpace(content);
+				try {
+					Integer.valueOf(splitContent[0]);
+					return true;
+				} catch(NumberFormatException e) {
+					return false;
 				}
 			}
 			
@@ -180,7 +192,10 @@ public class Control extends Application {
 							view.setFeedback(MESSAGE_EDIT_TIP);
 							break;
 						case REMOVE:
-							view.setFeedback(MESSAGE_REMOVE_TIP);
+							if(checkRemoveIndex(command))
+								view.setFeedback(MESSAGE_REMOVE_INDEX_TIP);
+							else
+								view.setFeedback(MESSAGE_REMOVE_INFO_TIP);
 							break;
 						case SEARCH:
 							view.setFeedback(MESSAGE_SEARCH_TIP);
@@ -276,7 +291,7 @@ public class Control extends Application {
 					.determineCommandType(userCommand);
 
 			String[] parsedUserCommand = Parser.parseCommand(userCommand,
-					commandType);
+					commandType, view, modelHandler);
 			
 			return executeCommandCorrespondingType(parsedUserCommand,
 					commandType);
