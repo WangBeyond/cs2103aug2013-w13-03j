@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Vector;
+import javafx.collections.ObservableList;
 
 public class Parser {
 	static enum COMMAND_TYPES {
@@ -57,6 +58,9 @@ public class Parser {
 
 	private static final int VALID = 1;
 	private static final int INVALID = -1;
+	
+	private static Model model;
+	private static View view;
 
 	/**
 	 * This function is used to determine the command type of the command input
@@ -130,7 +134,7 @@ public class Parser {
 	 * @return the array of infos necessary for each command
 	 */
 	public static String[] parseCommand(String userCommand,
-			COMMAND_TYPES commandType) {
+			COMMAND_TYPES commandType, View view, Model model) {
 		String content = removeFirstWord(userCommand);
 		content = removeUnneededSpaces(content);
 		if (commandType == COMMAND_TYPES.ADD)
@@ -140,7 +144,7 @@ public class Parser {
 		else if (commandType == COMMAND_TYPES.EDIT)
 			return parseEditCommand(content);
 		else if (commandType == COMMAND_TYPES.REMOVE)
-			return parseRemoveCommand(content);
+			return parseRemoveCommand(content, view, model);
 		else if (commandType == COMMAND_TYPES.COMPLETE
 				|| commandType == COMMAND_TYPES.INCOMPLETE
 				|| commandType == COMMAND_TYPES.MARK
@@ -262,10 +266,10 @@ public class Parser {
 		return parsedCommand;
 	}
 
-	private static String[] parseRemoveCommand(String content) {
-	
+	private static String[] parseRemoveCommand(String content, View view, Model model) {
+		try {
 			return parseCommandWithIndex(content);
-	/*} catch (Exception e) {
+		} catch (Exception e) {
 			System.out.println(TwoWayCommand.listedIndexType);
 			ObservableList<Task> modifiedList;
 			int tabIndex = view.tabPane.getSelectionModel().getSelectedIndex();
@@ -278,7 +282,7 @@ public class Parser {
 			}
 			String indexRange = "1" + HYPHEN + modifiedList.size();
 			return parseCommandWithIndex(indexRange);
-		} */
+		} 
 	}
 
 	/**
@@ -361,7 +365,7 @@ public class Parser {
 		
 		infoList.add(new InfoWithIndex(commandTypeStr, 0, INDEX_COMMAND_TYPE));
 		try {
-			String[] result = parseCommand(command, commandType);
+			String[] result = parseCommand(command, commandType, view, model);
 			// Add the commandType first
 
 			if (commandType == COMMAND_TYPES.EDIT) {
@@ -441,7 +445,7 @@ public class Parser {
 			infoList.clear();
 			infoList.add(new InfoWithIndex(commandTypeStr, 0, INDEX_COMMAND_TYPE));
 			String remainingInfo = removeFirstWord(command);
-			if (e.getMessage().equals(NO_EDITING_INFO))
+			if (e.getMessage()!=null && e.getMessage().equals(NO_EDITING_INFO))
 				infoList.add(new InfoWithIndex(remainingInfo, commandTypeStr
 						.length(), INDEX_INDEX_INFO));
 			else
@@ -868,7 +872,7 @@ public class Parser {
 		return stringArray[0];
 	}
 
-	private static String removeFirstWord(String commandString) {
+	static String removeFirstWord(String commandString) {
 		return commandString.replaceFirst(getFirstWord(commandString), "")
 				.trim();
 	}
