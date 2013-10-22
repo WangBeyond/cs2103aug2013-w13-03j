@@ -787,22 +787,26 @@ public class View implements HotkeyListener {
 									if (item.getRepetition()
 											.equals(Parser.NULL)){
 										if(item.getTag().equals("-"))
-											text = new Text("            -");
+											text = new Text("             -");
 										else{
-											if(item.getTag().length() < 8)
-										text = new Text("\t" + item.getTag());
-											else
-												text = new Text(item.getTag());
+											text = new Text(appendTab(item.getTag()));
 										}
 									}else
 										text = new Text((item.getTag().equals("-") ? ""
-												: item.getTag() + "\n")
-												+ "#"
-												+ item.getRepetition());
+												: appendTab(item.getTag()) + "\n")
+												+ appendTab("#"
+												+ item.getRepetition()));
 									text.getStyleClass().add("text");
 									text.wrappingWidthProperty().bind(tempColumn.widthProperty());
 									setGraphic(text);
 								}
+							}
+							
+							private String appendTab(String info){
+								if(info.length() < 8)
+									return "\t" + info;
+								else
+									return info;
 							}
 						};
 						tc.setAlignment(Pos.TOP_CENTER);
@@ -1173,7 +1177,7 @@ public class View implements HotkeyListener {
 				break;
 			default:
 				emptyFeedback(0);
-				ArrayList<String> availCommands = getAvailCommandNum(feedback);
+				ArrayList<String> availCommands = getAvailCommandNum(feedback.trim());
 				for (int i = 0; i < availCommands.size(); i++) {
 					setFeedbackStyle(i + 1, availCommands.get(i), IDO_GREEN);
 				}

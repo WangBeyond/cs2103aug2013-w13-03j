@@ -349,7 +349,14 @@ public class Parser {
 			infoList.add(new InfoWithIndex(command, 0, INDEX_USELESS_INFO));
 			return infoList;
 		}
-		commandTypeStr = completeWithSpace(getFirstWord(command), command, 0);
+		
+		int indexCommand = command.indexOf(getFirstWord(command));
+		commandTypeStr = completeWithSpace(getFirstWord(command), command, indexCommand);
+		while(indexCommand != 0){
+			commandTypeStr = (command.charAt(indexCommand) == '\t' ? "\t" : " ") + commandTypeStr;
+			indexCommand--;
+		}
+		
 		infoList.add(new InfoWithIndex(commandTypeStr, 0, INDEX_COMMAND_TYPE));
 		try {
 			String[] result = parseCommand(command, commandType);
@@ -577,10 +584,15 @@ public class Parser {
 			int startIndex) {
 		int endIndex = startIndex + info.length();
 		int i = 0;
-		while ((endIndex + i) < command.length()
-				&& command.charAt(endIndex + i) == ' ') {
-			info += " ";
-			i++;
+		while ((endIndex + i) < command.length()) {
+			if(command.charAt(endIndex + i) == ' '){
+				info += " ";
+				i++;
+			} else if(command.charAt(endIndex + i) == '\t'){
+				info += "\t";
+				i++;
+			} else
+				break;
 		}
 		return info;
 	}
@@ -609,10 +621,10 @@ public class Parser {
 	 * @return a string array including command string and repeating tag
 	 */
 	private static String[] getRepeatingType(String commandString) {
-		String repeatingKey = null;
+		String repeatingKey = Parser.NULL;
 		for (int i = 0; i < repeatingKeys.length; i++) {
 			if (commandString.toLowerCase().contains(repeatingKeys[i])) {
-				if (repeatingKey == null)
+				if (repeatingKey.equals(Parser.NULL))
 					repeatingKey = repeatingKeys[i];
 				else
 					throw new IllegalArgumentException(
@@ -621,28 +633,7 @@ public class Parser {
 				break;
 			}
 		}
-		return new String[] { commandString, getRepeatingTag(repeatingKey) };
-	}
-
-	/**
-	 * Get the repeating tag of the task by the repeating key
-	 * 
-	 * @param key
-	 * @return repeating tag
-	 */
-	private static String getRepeatingTag(String key) {
-		if (key == null)
-			return Parser.NULL;
-		if (key.equals("every day") || key.equals("daily")
-				|| key.equals("everyday"))
-			return "daily";
-		else if (key.equals("monthly") || key.equals("every month"))
-			return "monthly";
-		else if (key.equals("yearly") || key.equals("every year")
-				|| key.equals("annually"))
-			return "yearly";
-		else
-			return "weekly";
+		return new String[] { commandString, repeatingKey };
 	}
 
 	/**

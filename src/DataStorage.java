@@ -40,11 +40,7 @@ public class DataStorage extends Store {
 		checkIfFileExists(textFile);
 		this.model = model;
 	}
-
-
-
-
-
+	
 	public void loadFromFile() throws IOException {
 		in = new BufferedReader(new FileReader(textFile));
 
@@ -174,16 +170,11 @@ class SyncStore extends Store {
 	
 	String dir;
 	
-	/*public static void main(String[] args) {
-		WriteXMLFile writer = new WriteXMLFile();
-		writer.storeAccount("haha","jiji");
-		writer.updateAccount(null, "hihi");
-	}
-	*/
 	public SyncStore (String fileName) {
 		createDir();
 		dir = findUserDocDir() + FOLDERNAME + "/" + fileName;
-		//xmlFile = new File(dir);
+		xmlFile = new File(dir);
+		checkIfFileExists(xmlFile);
 	}
 	
 	public void storeAccount(String userName, String passWord) {
