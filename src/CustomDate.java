@@ -121,7 +121,7 @@ public class CustomDate {
 	 * @return the DateTime object
 	 */
 	public DateTime returnInDateTimeFormat() {
-		return new DateTime(targetDate.getTime(), TimeZone.getDefault());
+		return new DateTime(targetDate.getTime(), TimeZone.getTimeZone("Asia/Singapore"));
 	}
 
 	/**
