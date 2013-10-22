@@ -123,6 +123,16 @@ public class CustomDate {
 	public DateTime returnInDateTimeFormat() {
 		return new DateTime(targetDate.getTime(), TimeZone.getTimeZone("Asia/Singapore"));
 	}
+	
+	public String returnInRecurringFormat(){
+		DecimalFormat df = new DecimalFormat("00");
+		String year = String.valueOf(getYear());
+		String month = df.format(getMonth());
+		String date = df.format(getDate());
+		String hour = df.format(getHour());
+		String minute = df.format(getMinute());
+		return year + month + date + "T" + hour + minute;
+	}
 
 	/**
 	 * Convert a CustomDate object into String format to store in storage
