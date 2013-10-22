@@ -32,6 +32,7 @@ public class Settings {
 	private Scene settingsScene;
 	private GridPane grid;
 	private Group root;
+	private Group buttons;
 	private double dragAnchorX;
 	private double dragAnchorY;
 	
@@ -39,9 +40,9 @@ public class Settings {
 		setupStage();
 		setupContent();
 		setupButtons();
+		setupScene();
 		setupShortcuts();
 		setupDraggable();
-		setupScene();
 	}
 	
 	public void showSettingsPage(){
@@ -55,8 +56,6 @@ public class Settings {
 		grid.setVgap(10);
 		grid.setPadding(new Insets(85, 25, 25, 40));
 		setupTextfields();
-		
-		root.getChildren().add(grid);
 	}
 	
 	private void setupTextfields(){
@@ -69,17 +68,19 @@ public class Settings {
 		Label pw = new Label("Password:");
 		grid.add(pw, 0, 2);
 		PasswordField pwBox = new PasswordField();
-		pwBox.setId("input");
 		grid.add(pwBox, 1, 2);
 		
 		Label pwRetype = new Label("Retype password:");
 		grid.add(pwRetype, 0, 3);
 		PasswordField pwRetypeBox = new PasswordField();
-		pwRetypeBox.setId("input");
 		grid.add(pwRetypeBox, 1, 3);
 	}
 	
 	private void setupScene(){
+		root = new Group();
+		root.getChildren().add(setupBackground());
+		root.getChildren().add(grid);
+		root.getChildren().add(buttons);
 		settingsScene = new Scene(root, Color.rgb(70, 70, 70));
 		settingsScene.getStylesheets().addAll(
 				getClass().getResource("customize.css").toExternalForm());
@@ -87,7 +88,6 @@ public class Settings {
 	}
 	
 	private void setupStage(){
-		root = new Group();
 		settingsStage = new Stage();
 		settingsStage.initStyle(StageStyle.UNDECORATED);
 		settingsStage.setWidth(599);
@@ -99,10 +99,9 @@ public class Settings {
 		settingsStage.getIcons().add(
 				new Image(getClass().getResource("iDo_traybar.png")
 						.toExternalForm()));
-		setupBackground();
 	}
 	
-	private void setupBackground(){
+	private ImageView setupBackground(){
 		Image bg = new Image(getClass().getResourceAsStream("settings.png"));
 		ImageView bgImage = new ImageView();
 		bgImage.setImage(bg);
@@ -110,10 +109,33 @@ public class Settings {
 		bgImage.setPreserveRatio(true);
 		bgImage.setSmooth(true);
 		bgImage.setCache(true); 
-		root.getChildren().add(bgImage);
+		
+		return bgImage;
 	}
 	
 	private void setupButtons(){
+		buttons = new Group();
+		buttons.getChildren().add(setupSaveButton());
+		buttons.getChildren().add(setupExitButton());
+		buttons.setLayoutX(520);
+		buttons.setLayoutY(375);
+	}
+	
+	private Button setupSaveButton(){
+		Button saveButton = new Button("");
+		saveButton.setId("save");
+		saveButton.setPrefSize(90, 42);
+		saveButton.setTranslateX(-120);
+		saveButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
+			public void handle(MouseEvent e) {
+				// TODO: save changes
+			}
+		});
+		
+		return saveButton;
+	}
+	
+	private Button setupExitButton(){
 		Button exitButton = new Button("");
 		exitButton.setId("esc");
 		exitButton.setPrefSize(42, 42);
@@ -122,6 +144,8 @@ public class Settings {
 				settingsStage.close();
 			}
 		});
+		
+		return exitButton;
 	}
 	
 	private void setupShortcuts(){
