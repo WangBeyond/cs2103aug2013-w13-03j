@@ -422,6 +422,8 @@ class EditCommand extends TwoWayCommand {
 		boolean isRepetitive = !repeatingType.equals(Parser.NULL);
 		boolean hasStartDate = startDate != null;
 		boolean hasEndDate = endDate != null;
+		if(isRepetitive)
+			splitRepeatingInfo();
 		checkInvalidDates(isRepetitive, hasStartDate, hasEndDate, startDate, endDate, repeatingType);
 		
 		if (hasWorkInfoKey) {
@@ -433,7 +435,6 @@ class EditCommand extends TwoWayCommand {
 		if (hasEndDate) {
 			targetTask.setEndDate(endDate);
 		}
-		System.out.println(repeatingType);
 		setTag();
 		if (isRepetitive) {
 			targetTask.updateDateForRepetitiveTask();
@@ -470,6 +471,25 @@ class EditCommand extends TwoWayCommand {
 		originalTask.setTag(targetTask.getTag());
 		originalTask.setIndexId(targetTask.getIndexId());
 		originalTask.setLatestModifiedDate(targetTask.getLatestModifiedDate());
+		originalTask.setOccurrence(targetTask.getNumOccurrences(), targetTask.getCurrentOccurrence());
+	}
+	
+	private void splitRepeatingInfo() {
+		String remainInfo = null;
+		for( String key : Parser.repeatingKeys ) {
+			if(repeatingType.contains(key)) {	
+				remainInfo = repeatingType.replace(key, "");
+				repeatingType = key;
+				break;
+			}
+		}
+		int num;
+		try {
+			num = Integer.valueOf(Parser.getFirstWord(remainInfo));
+			targetTask.setNumOccurrences(num);
+		} catch(Exception e) {
+			targetTask.setNumOccurrences(0);
+		}
 	}
 
 	public String undo() {
@@ -482,6 +502,7 @@ class EditCommand extends TwoWayCommand {
 		targetTask.setTag(originalTask.getTag());
 		targetTask.setIndexId(originalTask.getIndexId());
 		targetTask.setLatestModifiedDate(originalTask.getLatestModifiedDate());
+		targetTask.setOccurrence(originalTask.getNumOccurrences(), originalTask.getCurrentOccurrence());
 		Control.sortList(modifiedList);
 
 		return MESSAGE_SUCCESSFUL_UNDO;
@@ -869,6 +890,9 @@ class SearchCommand extends Command {
 	String endDateString;
 	String repeatingType;
 	String isImpt;
+	int numOccurrences = 0;
+	int currentOccurrence;
+	
 	View view;
 	ObservableList<Task> initialList;
 	ObservableList<Task> searchList;
@@ -888,7 +912,7 @@ class SearchCommand extends Command {
 		endDateString = parsedUserCommand[3];
 		isImpt = parsedUserCommand[4];
 		repeatingType = parsedUserCommand[5];
-		
+		splitRepeatingInfo();
 		initialList = getModifiedList(tabIndex);
 		searchList = FXCollections.observableArrayList();
 		tempSearchList = FXCollections.observableArrayList();
@@ -975,6 +999,24 @@ class SearchCommand extends Command {
 
 		processIsImportant();
 		processRepeatingType();
+		processNumOccurrences();
+	}
+	
+	private void splitRepeatingInfo() {
+		String remainInfo = null;
+		for( String key : Parser.repeatingKeys ) {
+			if(repeatingType.contains(key)) {	
+				remainInfo = repeatingType.replace(key, "");
+				repeatingType = key;
+				break;
+			}
+		}
+		int num;
+		try {
+			num = Integer.valueOf(Parser.getFirstWord(remainInfo));
+			numOccurrences = num;
+		} catch(Exception e) {
+		}
 	}
 	
 	private void processStartDate(){
@@ -1031,6 +1073,18 @@ class SearchCommand extends Command {
 			}
 		}
 	}
+	
+	private void processNumOccurrences(){
+		if (numOccurrences != 0) {
+			if (isFirstTimeSearch) {
+				searchList = searchOccurrenceNum(initialList, numOccurrences);
+			} else {
+				searchList = searchOccurrenceNum(searchList, numOccurrences);
+			}
+			isFirstTimeSearch = false;
+		}
+	}
+	
 	private void processRepeatingType(){
 		if (!repeatingType.equals(Parser.NULL)) {
 			if (isFirstTimeSearch) {
@@ -1109,6 +1163,16 @@ class SearchCommand extends Command {
 			}
 		}
 		return false;
+	}
+	
+	private static ObservableList<Task> searchOccurrenceNum(ObservableList<Task> list, int occurNum) {
+		ObservableList<Task> result = FXCollections.observableArrayList();
+		for (int i = 0; i < list.size(); i++) {
+			if (list.get(i).getNumOccurrences() == occurNum) {
+				result.add(list.get(i));
+			}
+		}
+		return result;
 	}
 	
 	private static ObservableList<Task> searchImportantTask(

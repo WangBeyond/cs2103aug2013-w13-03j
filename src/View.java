@@ -652,7 +652,6 @@ public class View implements HotkeyListener {
 							@Override
 							public void updateItem(String item, boolean empty) {
 								if (item != null) {
-									System.out.println("item "+item);
 									text = new Text(item);
 									//text.wrappingWidthProperty().bind(tempColumn.widthProperty());
 									text.setFill(Color.DARKCYAN);
@@ -1182,10 +1181,19 @@ public class View implements HotkeyListener {
 				setFeedbackStyle(6, "<#tag>", Color.ORANGE);
 				emptyFeedback(7);
 				break;
-			case Control.MESSAGE_REMOVE_TIP:
+			case Control.MESSAGE_REMOVE_INDEX_TIP:
 				setFeedbackStyle(0, "remove", IDO_GREEN);
 				setFeedbackStyle(1, "<index>", Color.ORCHID);
 				emptyFeedback(2);
+				break;
+			case Control.MESSAGE_REMOVE_INFO_TIP:
+				setFeedbackStyle(0, "remove", IDO_GREEN);
+				setFeedbackStyle(1, "<workflow>", Color.WHITE);
+				setFeedbackStyle(2, "<start time>", Color.LIGHTBLUE);
+				setFeedbackStyle(3, "<end time>", Color.DARKCYAN);
+				setFeedbackStyle(4, "<importance *>", Color.RED);
+				setFeedbackStyle(5, "<#tag>", Color.ORANGE);
+				emptyFeedback(6);
 				break;
 			case Control.MESSAGE_SEARCH_TIP:
 				setFeedbackStyle(0, "search", IDO_GREEN);
