@@ -4,6 +4,8 @@ import java.util.ArrayList;
 
 
 
+
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -30,7 +32,11 @@ public abstract class Command {
 	protected static final String MESSAGE_WRONG_INCOMPLETE_TABS = "Cannot incomplete the tasks in this current tab.";
 	protected static final String MESSAGE_SUCCESSFUL_HELP = "Help window opened.";
 	protected static final String MESSAGE_SUCCESSFUL_SETTINGS = "Settings window opened.";
-	protected static final String MESSAGE_SUCCESSFUL_SYNC = "Successful synchronized.";
+	protected static final String MESSAGE_SYNC_SUCCESSFUL = "Successful synchronized.";
+	protected static final String MESSAGE_SYNC_INVALID_USERNAME_PASSWORD = "Synchronization failed: Invalid username and password.";
+	protected static final String MESSAGE_SYNC_SERVICE_STOPPED = "Synchronization service has stopped working.";
+	protected static final String MESSAGE_SYNC_FAIL_TO_CREATE_CALENDAR = "Fail to create a calendar.";
+	
 
 	protected static final String HAVING_START_DATE = "having start date";
 	protected static final String HAVING_END_DATE = "having end date";
@@ -1411,8 +1417,7 @@ class SyncCommand extends Command {
 		sync.setUsernameAndPassword(username, password);
 		if(calId != null)
 			sync.setCalendarID(calId);
-		sync.execute();
-		return MESSAGE_SUCCESSFUL_SYNC;
+		return sync.execute();
 	}
 }
 

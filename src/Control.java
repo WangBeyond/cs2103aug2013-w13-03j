@@ -523,7 +523,7 @@ public class Control extends Application {
 		
 		Command s = new SyncCommand(parsedUserCommand, modelHandler, sync, syncStore);
 		String feedback = s.execute();
-		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_SYNC)) {
+		if (feedback.equals(Command.MESSAGE_SYNC_SUCCESSFUL)) {
 			dataFile.storeToFile();
 			view.setTab(0);
 			executeShowCommand();
@@ -558,7 +558,7 @@ public class Control extends Application {
 				|| feedback.equals(MESSAGE_SUCCESSFUL_REDO)
 				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_HELP)
 				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_SETTINGS)
-				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_SYNC);
+				|| feedback.equals(Command.MESSAGE_SYNC_SUCCESSFUL);
 	}
 
 	private void loadUpdateTimer() {

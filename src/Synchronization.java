@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -76,12 +77,12 @@ public class Synchronization {
 		syncStore  = s;
 	}
 
-	public void execute() {
+	public String execute(){
 
 		try {
 			initService();
-		} catch (AuthenticationException e1) {
-			System.out.println("fail to init");
+		} catch (AuthenticationException e) {
+			return Command.MESSAGE_SYNC_INVALID_USERNAME_PASSWORD;
 		}
 
 		// form feed url
@@ -89,30 +90,20 @@ public class Synchronization {
 			try {
 				eventFeedUrl = formEventFeedUrl(service);
 			} catch (IOException | ServiceException e) {
-				System.out.println("fail to form event url");
+				return Command.MESSAGE_SYNC_FAIL_TO_CREATE_CALENDAR;
 			}
 		}
 
-		// sync newly added tasks to GCal
 		try {
+			// sync newly added tasks to GCal
 			syncNewTasksToGCal(service, model, eventFeedUrl);
-		} catch (ServiceException e) {
-			System.out.println("fail to sync new");
-		} catch (IOException e) {
-			System.out.println("fail to sync new");
-		}
-		
-		System.out.println("1");
-		// get all events from Google calendar
-		try {
+			
+			// get all events from Google calendar
 			eventEntry = getEventsFromGCal(service, eventFeedUrl);
-		} catch (IOException e) {
-			System.out.println("fail to pull: io");
-		} catch (ServiceException e) {
-			System.out.println("fail to pull: service");
+		} catch (ServiceException | IOException e) {
+			return Command.MESSAGE_SYNC_SERVICE_STOPPED;
 		}
 		
-		System.out.println("1");
 		/*
 		// update Task
 		try {
@@ -122,39 +113,27 @@ public class Synchronization {
 		} catch (IOException e) {
 			System.out.println("fail to update");
 		}
-		System.out.println("tototot");
-		System.out.println("1");
 		*/
 		try {
 			// delete events on GCal which have been deleted locally
 			syncDeletedTasksToGCal(service, model, eventEntry, eventFeedUrl);
-		} catch (ServiceException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (ServiceException | IOException e) {
+			return Command.MESSAGE_SYNC_SERVICE_STOPPED;
 		}
-		System.out.println("1");
-
+		
 		// get all events from Google calendar
 		try {
 			eventEntry = getEventsFromGCal(service, eventFeedUrl);
-		} catch (IOException e) {
-			System.out.println("fail to pull: io");
-		} catch (ServiceException e) {
-			System.out.println("fail to pull: service");
+		} catch (IOException | ServiceException e) {
+			return Command.MESSAGE_SYNC_SERVICE_STOPPED;
 		}
 
-		System.out.println("1");
 		// delete tasks locally which have been deleted on GCal
 		deleteTasksLocally(eventEntry, model);
 
-		System.out.println("1");
 		// add tasks locally which have been added on GCal
 		addEventsLocally(eventEntry, model);
-		System.out.println("Done!");
-		System.out.println("1");
+		return Command.MESSAGE_SYNC_SUCCESSFUL;
 	}
 
 	private void initService() throws AuthenticationException {
@@ -169,8 +148,7 @@ public class Synchronization {
 		calendarId = calID;
 	}
 	
-	URL formEventFeedUrl(CalendarService service) throws IOException,
-			ServiceException {
+	URL formEventFeedUrl(CalendarService service) throws ServiceException, IOException {
 		if (calendarId == null) {
 			URL owncalUrl = new URL(METAFEED_URL_BASE + username
 					+ OWNCALENDARS_FEED_URL_SUFFIX);
