@@ -92,7 +92,6 @@ public class View implements HotkeyListener {
 	public Help helpPage;
 	public Settings settingsPage;
 	public Login loginPage;
-
 	// Command Line for user to input command
 	public TextField commandLine;
 	// Instant feedback
@@ -170,18 +169,18 @@ public class View implements HotkeyListener {
 		setDraggable();
 		setupScene();
 	}
-	
-	private void showLoginPage(){
-		if (checkFirstTimeLogin()){
+
+	private void showLoginPage() {
+		if (checkFirstTimeLogin()) {
 			loginPage = Login.getInstanceLogin(syncStore);
 			loginPage.showLoginPage();
-		} 
+		}
 	}
-	
+
 	private boolean checkFirstTimeLogin() {
 		return syncStore.retrieveAccount()[0] == null;
 	}
-	
+
 	private void setupHelpPage() {
 		helpPage = new Help();
 	}
@@ -213,6 +212,15 @@ public class View implements HotkeyListener {
 	}
 
 	private void setupShortcuts() {
+		stage.focusedProperty().addListener(new ChangeListener<Boolean>() {
+			public void changed(ObservableValue<? extends Boolean> ov, Boolean oldValue, Boolean newValue){
+				if(newValue.booleanValue() == false)
+					txt.setCaretColor(java.awt.Color.black);
+				else
+					txt.setCaretColor(java.awt.Color.white);
+			}
+		});
+		
 		root.setOnKeyPressed(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent e) {
 				if (changeTab.match(e)) {
@@ -237,20 +245,33 @@ public class View implements HotkeyListener {
 								+ txt.getText().substring(pos));
 						txt.setCaretPosition(pos - 1);
 					}
-				} else if (!e.isAltDown() && !e.isControlDown()
-						&& !e.isShiftDown() && !e.isShortcutDown()) {
+				} else if (e.getCode() == KeyCode.RIGHT) {
+					textField.setJDialogOnTop();
+					txt.requestFocus();
+					int pos = txt.getCaretPosition();
+					if (pos != txt.getText().length())
+						txt.setCaretPosition(pos + 1);
+				} else if (e.getCode() == KeyCode.LEFT) {
+					textField.setJDialogOnTop();
+					txt.requestFocus();
+					int pos = txt.getCaretPosition();
+					if (pos != 0)
+						txt.setCaretPosition(pos - 1);
+				} else {
 					textField.setJDialogOnTop();
 					txt.requestFocus();
 					if (e.getCode() != KeyCode.ENTER) {
+
 						int pos = txt.getCaretPosition();
 						txt.setText(txt.getText().substring(0, pos)
 								+ e.getText() + txt.getText().substring(pos));
-						txt.setCaretPosition(pos + 1);
+						if (pos != txt.getText().length())
+							txt.setCaretPosition(pos + 1);
 					}
 				}
 			}
 		});
-
+					
 		stage.focusedProperty().addListener(new ChangeListener<Boolean>() {
 			public void changed(ObservableValue<? extends Boolean> ov,
 					Boolean oldVal, Boolean newVal) {
@@ -260,7 +281,6 @@ public class View implements HotkeyListener {
 				}
 			}
 		});
-
 		/* Get KeyStroke for Ctrl+Tab key */
 		InputMap map = txt.getInputMap();
 		txt.setFocusTraversalKeysEnabled(false);
@@ -430,7 +450,11 @@ public class View implements HotkeyListener {
 			feedbacks.getChildren().add(feedbackList.get(i));
 		}
 		String account = syncStore.retrieveAccount()[0];
-		setFeedbackStyle(0, String.format(WELCOME_MESSAGE,account), Color.WHITE);
+		if(account != null)
+		setFeedbackStyle(0, String.format(WELCOME_MESSAGE, account),
+				Color.WHITE);
+		else
+			setFeedbackStyle(0, "Welcome to iDo! Please enter your google account info", Color.WHITE);
 		bottom.getChildren().addAll(upperPart, feedbacks);
 	}
 
@@ -623,7 +647,7 @@ public class View implements HotkeyListener {
 					}
 				});
 	}
-	
+
 	private TableColumn<Task, String> createOccurrenceColumn() {
 		TableColumn<Task, String> tempColumn = TableColumnBuilder
 				.<Task, String> create().visible(true).text("").prefWidth(20)
@@ -632,13 +656,14 @@ public class View implements HotkeyListener {
 		setupOccurrenceUpdateFormat(tempColumn);
 		return tempColumn;
 	}
-	
+
 	private void setupOccurrenceProperty(TableColumn<Task, String> tempColumn) {
 		tempColumn.setCellValueFactory(new PropertyValueFactory<Task, String>(
 				"occurrence"));
 	}
 
-	private void setupOccurrenceUpdateFormat(final TableColumn<Task, String> tempColumn) {
+	private void setupOccurrenceUpdateFormat(
+			final TableColumn<Task, String> tempColumn) {
 		tempColumn
 				.setCellFactory(new Callback<TableColumn<Task, String>, TableCell<Task, String>>() {
 
@@ -647,16 +672,16 @@ public class View implements HotkeyListener {
 							TableColumn<Task, String> param) {
 						TableCell<Task, String> tc = new TableCell<Task, String>() {
 							Text text;
-							
+
 							@Override
 							public void updateItem(String item, boolean empty) {
 								if (item != null) {
 									text = new Text(item);
-									//text.wrappingWidthProperty().bind(tempColumn.widthProperty());
+									// text.wrappingWidthProperty().bind(tempColumn.widthProperty());
 									text.setFill(Color.DARKCYAN);
-									text.setFont(Font.font("Verdana",10)); 
+									text.setFont(Font.font("Verdana", 10));
 									setGraphic(text);
-									
+
 								}
 							}
 						};
@@ -700,19 +725,21 @@ public class View implements HotkeyListener {
 							private void clearStyle() {
 								getTableRow().getStyleClass().removeAll(
 										"table-row-cell", "unimportant",
-										"important", "unimportant-odd" );
-					
+										"important", "unimportant-odd");
+
 							}
 
 							private void setStyle(boolean isImportant) {
 								if (isImportant)
 									getTableRow().getStyleClass().add(
 											"important");
-								else{
-									if(getTableRow().getIndex() % 2 == 0){
-									getTableRow().getStyleClass().add("unimportant");
-									} else{
-									getTableRow().getStyleClass().add("unimportant-odd");
+								else {
+									if (getTableRow().getIndex() % 2 == 0) {
+										getTableRow().getStyleClass().add(
+												"unimportant");
+									} else {
+										getTableRow().getStyleClass().add(
+												"unimportant-odd");
 									}
 								}
 							}
@@ -825,28 +852,32 @@ public class View implements HotkeyListener {
 							TableColumn<Task, Tag> param) {
 						TableCell<Task, Tag> tc = new TableCell<Task, Tag>() {
 							Text text;
+
 							public void updateItem(Tag item, boolean empty) {
 								if (item != null) {
 									if (item.getRepetition()
-											.equals(Parser.NULL)){
-										if(item.getTag().equals("-"))
+											.equals(Parser.NULL)) {
+										if (item.getTag().equals("-"))
 											text = new Text("             -");
-										else{
-											text = new Text(appendTab(item.getTag()));
+										else {
+											text = new Text(appendTab(item
+													.getTag()));
 										}
-									}else
-										text = new Text((item.getTag().equals("-") ? ""
-												: appendTab(item.getTag()) + "\n")
+									} else
+										text = new Text((item.getTag().equals(
+												"-") ? "" : appendTab(item
+												.getTag()) + "\n")
 												+ appendTab("#"
-												+ item.getRepetition()));
+														+ item.getRepetition()));
 									text.getStyleClass().add("text");
-									text.wrappingWidthProperty().bind(tempColumn.widthProperty());
+									text.wrappingWidthProperty().bind(
+											tempColumn.widthProperty());
 									setGraphic(text);
 								}
 							}
-							
-							private String appendTab(String info){
-								if(info.length() < 8)
+
+							private String appendTab(String info) {
+								if (info.length() < 8)
 									return "\t" + info;
 								else
 									return info;
@@ -890,7 +921,8 @@ public class View implements HotkeyListener {
 								if (item != null) {
 									text = new Text(item);
 									text.getStyleClass().add("text");
-									text.wrappingWidthProperty().bind(tempColumn.widthProperty());
+									text.wrappingWidthProperty().bind(
+											tempColumn.widthProperty());
 									setGraphic(text);
 								}
 							}
@@ -1164,8 +1196,8 @@ public class View implements HotkeyListener {
 			case Control.MESSAGE_ADD_TIP:
 				setFeedbackStyle(0, "add", IDO_GREEN);
 				setFeedbackStyle(1, "<workflow>", Color.WHITE);
-				setFeedbackStyle(2, "<start time>", Color.LIGHTBLUE);
-				setFeedbackStyle(3, "<end time>", Color.DARKCYAN);
+				setFeedbackStyle(2, "<start time>", Color.rgb(18, 235, 166));
+				setFeedbackStyle(3, "<end time>", Color.rgb(92, 190, 247));
 				setFeedbackStyle(4, "<importance *>", Color.RED);
 				setFeedbackStyle(5, "<#tag>", Color.ORANGE);
 				emptyFeedback(6);
@@ -1174,8 +1206,8 @@ public class View implements HotkeyListener {
 				setFeedbackStyle(0, "edit", IDO_GREEN);
 				setFeedbackStyle(1, "<index>", Color.ORCHID);
 				setFeedbackStyle(2, "<workflow>", Color.WHITE);
-				setFeedbackStyle(3, "<start time>", Color.LIGHTBLUE);
-				setFeedbackStyle(4, "<end time>", Color.DARKCYAN);
+				setFeedbackStyle(3, "<start time>", Color.rgb(18, 235, 166));
+				setFeedbackStyle(4, "<end time>", Color.rgb(92, 190, 247));
 				setFeedbackStyle(5, "<importance *>", Color.RED);
 				setFeedbackStyle(6, "<#tag>", Color.ORANGE);
 				emptyFeedback(7);
@@ -1188,8 +1220,8 @@ public class View implements HotkeyListener {
 			case Control.MESSAGE_REMOVE_INFO_TIP:
 				setFeedbackStyle(0, "remove", IDO_GREEN);
 				setFeedbackStyle(1, "<workflow>", Color.WHITE);
-				setFeedbackStyle(2, "<start time>", Color.LIGHTBLUE);
-				setFeedbackStyle(3, "<end time>", Color.DARKCYAN);
+				setFeedbackStyle(2, "<start time>", Color.rgb(18, 235, 166));
+				setFeedbackStyle(3, "<end time>", Color.rgb(92, 190, 247));
 				setFeedbackStyle(4, "<importance *>", Color.RED);
 				setFeedbackStyle(5, "<#tag>", Color.ORANGE);
 				emptyFeedback(6);
@@ -1197,8 +1229,8 @@ public class View implements HotkeyListener {
 			case Control.MESSAGE_SEARCH_TIP:
 				setFeedbackStyle(0, "search", IDO_GREEN);
 				setFeedbackStyle(1, "<workflow>", Color.WHITE);
-				setFeedbackStyle(2, "<start time>", Color.LIGHTBLUE);
-				setFeedbackStyle(3, "<end time>", Color.DARKCYAN);
+				setFeedbackStyle(2, "<start time>", Color.rgb(18, 235, 166));
+				setFeedbackStyle(3, "<end time>", Color.rgb(92, 190, 247));
 				setFeedbackStyle(4, "<importance *>", Color.RED);
 				setFeedbackStyle(5, "<#tag>", Color.ORANGE);
 				emptyFeedback(6);
@@ -1229,7 +1261,8 @@ public class View implements HotkeyListener {
 				break;
 			default:
 				emptyFeedback(0);
-				ArrayList<String> availCommands = getAvailCommandNum(feedback.trim());
+				ArrayList<String> availCommands = getAvailCommandNum(feedback
+						.trim());
 				for (int i = 0; i < availCommands.size(); i++) {
 					setFeedbackStyle(i + 1, availCommands.get(i), IDO_GREEN);
 				}
@@ -1270,19 +1303,19 @@ class CustomStyledDocument extends DefaultStyledDocument {
 	final StyleContext cont = StyleContext.getDefaultStyleContext();
 
 	final AttributeSet attrRed = cont.addAttribute(cont.getEmptySet(),
-			StyleConstants.Foreground, new java.awt.Color(231, 76, 60));
+			StyleConstants.Foreground, new java.awt.Color(255, 41 , 41));
 	final AttributeSet attrBlue = cont.addAttribute(cont.getEmptySet(),
-			StyleConstants.Foreground, new java.awt.Color(92, 190, 247));
+			StyleConstants.Foreground, new java.awt.Color(84, 173, 225));
 	final AttributeSet attrDarkCyan = cont.addAttribute(cont.getEmptySet(),
 			StyleConstants.Foreground, new java.awt.Color(44, 62, 80));
 	final AttributeSet attrDarkBlue = cont.addAttribute(cont.getEmptySet(),
-			StyleConstants.Foreground, new java.awt.Color(41, 128, 185));
+			StyleConstants.Foreground, new java.awt.Color(5, 82, 199));
 	final AttributeSet attrOrange = cont.addAttribute(cont.getEmptySet(),
-			StyleConstants.Foreground, new java.awt.Color(241, 196, 15));
+			StyleConstants.Foreground, new java.awt.Color(255, 165, 0));
 	final AttributeSet attrGreen = cont.addAttribute(cont.getEmptySet(),
-			StyleConstants.Foreground, new java.awt.Color(46, 204, 113));
+			StyleConstants.Foreground, new java.awt.Color(39, 174, 96));
 	final AttributeSet attrCyan = cont.addAttribute(cont.getEmptySet(),
-			StyleConstants.Foreground, new java.awt.Color(26, 188, 156));
+			StyleConstants.Foreground, new java.awt.Color(16, 217, 153));
 	final AttributeSet attrGray = cont.addAttribute(cont.getEmptySet(),
 			StyleConstants.Foreground, new java.awt.Color(189, 195, 199));
 	final AttributeSet attrMagenta = cont.addAttribute(cont.getEmptySet(),
