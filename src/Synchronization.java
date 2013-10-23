@@ -104,7 +104,7 @@ public class Synchronization {
 			return Command.MESSAGE_SYNC_SERVICE_STOPPED;
 		}
 		
-		/*
+		
 		// update Task
 		try {
 			updateUnchangedTasks(service, model, eventEntry, eventFeedUrl);
@@ -113,7 +113,7 @@ public class Synchronization {
 		} catch (IOException e) {
 			System.out.println("fail to update");
 		}
-		*/
+		
 		try {
 			// delete events on GCal which have been deleted locally
 			syncDeletedTasksToGCal(service, model, eventEntry, eventFeedUrl);
@@ -181,7 +181,7 @@ public class Synchronization {
 					 } else if(task.getStartDate() == null && task.getEndDate() == null){//no start date and no end date
 						 CustomDate cd = new CustomDate();
 						 CustomDate cd1 = new CustomDate();
-						 cd1.setDate(cd.getDate()+1);
+						 cd1.setTimeInMillis(cd.getTimeInMillis()+ 24*60*60*1000);
 						 e = createRecurringEvent(service, task.getWorkInfo(),
 								 cd.returnInRecurringFormat().substring(0, 8),
 								 cd1.returnInRecurringFormat().substring(0, 8), "Daily", null, feedUrl);
@@ -214,7 +214,9 @@ public class Synchronization {
 							entries.get(j).setTitle(
 									new PlainTextConstruct(pendingList.get(i)
 											.getWorkInfo()));
+						try{	
 							entries.get(j)
+						
 									.getTimes()
 									.get(0)
 									.setStartTime(
@@ -226,16 +228,39 @@ public class Synchronization {
 									.setEndTime(
 											pendingList.get(i).getEndDate()
 													.returnInDateTimeFormat());
+						} catch(IndexOutOfBoundsException e){
+							String recurrenceData = entries.get(j).getRecurrence().getValue();
+							int index1 = recurrenceData.indexOf(":");
+							recurrenceData = recurrenceData.substring(0, index1 + 1) + pendingList.get(i).getStartDate().returnInRecurringFormat() + recurrenceData.substring(index1 + 16);
+							int index2 = recurrenceData.indexOf(":", index1 + 1);
+							recurrenceData = recurrenceData.substring(0, index2 + 1) + pendingList.get(i).getEndDate().returnInRecurringFormat() + recurrenceData.substring(index2 + 16);
+							entries.get(j).getRecurrence().setValue(recurrenceData);
+						}
 							toBeUpdatedOnGCal.add(entries.get(j));
 						} else {
+						
 							pendingList.get(i).setWorkInfo(
 									entries.get(j).getTitle().getPlainText());
+							try{
 							pendingList.get(i).setStartDate(
 									new CustomDate(entries.get(j).getTimes()
 											.get(0).getStartTime()));
 							pendingList.get(i).setEndDate(
 									new CustomDate(entries.get(j).getTimes()
 											.get(0).getEndTime()));
+							} catch(IndexOutOfBoundsException e){
+								String recurrenceData = entries.get(j).getRecurrence().getValue();
+								int index1 = recurrenceData.indexOf(":");
+								String startDateString = recurrenceData.substring(index1+1,index1+16);
+								int index2 = recurrenceData.indexOf(":", index1 + 1);
+								String endDateString = recurrenceData.substring(index2+1, index2+16);
+								CustomDate startDate = CustomDate.convertFromRecurringDateString(startDateString);
+								CustomDate endDate = CustomDate.convertFromRecurringDateString(endDateString);
+								if(pendingList.get(i).getStartDate() != null && pendingList.get(i).getEndDate() != null){
+								pendingList.get(i).setStartDate(startDate);
+								pendingList.get(i).setEndDate(endDate);
+								}
+							}
 							pendingList.get(i).updateLatestModifiedDate();
 						}
 						break;
@@ -244,6 +269,13 @@ public class Synchronization {
 			}
 		}
 		updateEvents(service, toBeUpdatedOnGCal, feedURL);
+	}
+	
+	private boolean isFloatingTask(CustomDate startDate, CustomDate endDate){
+		long difference = endDate.getTimeInMillis()/(1000*60) - startDate.getTimeInMillis()/(1000*60);
+		boolean sameHourAsZero = endDate.getHour() == 0 && startDate.getHour() == 0;
+		boolean sameMinuteAsZero = endDate.getMinute() == 0 && startDate.getMinute() == 0;
+		return sameHourAsZero && sameMinuteAsZero && difference == 0;
 	}
 
 	private void syncDeletedTasksToGCal(CalendarService service, Model model,
@@ -261,6 +293,7 @@ public class Synchronization {
 						break;
 					}
 				}
+				completedTasks.get(i).setStatus(Task.Status.UNCHANGED);
 			}
 		}
 		for (int i = 0; i < deletedTasks.size(); i++) {

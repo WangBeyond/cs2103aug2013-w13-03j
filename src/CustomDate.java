@@ -124,6 +124,16 @@ public class CustomDate {
 		return new DateTime(targetDate.getTime(), TimeZone.getTimeZone("Asia/Singapore"));
 	}
 	
+	public static CustomDate convertFromRecurringDateString(String recurrenceDateString){
+		String year = recurrenceDateString.substring(0, 4);
+		String month = recurrenceDateString.substring(4, 6);
+		String date = recurrenceDateString.substring(6, 8);
+		String hour = recurrenceDateString.substring(9, 11);
+		String minute = recurrenceDateString.substring(11, 13);
+		return new CustomDate(date+"/" + Integer.parseInt(month) + "/" + year + " " + hour + ":" + minute);
+	}
+	
+	
 	public String returnInRecurringFormat(){
 		DecimalFormat df = new DecimalFormat("00");
 		String year = String.valueOf(getYear());
