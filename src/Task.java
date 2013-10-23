@@ -121,10 +121,9 @@ public class Task implements Comparable<Task> {
 		while (getEndDate().beforeCurrentTime()) {
 			current_occurrence++;
 			updateOccurrenceString();
-			if (current_occurrence <= num_occurrences) {
-				updateStartDate(difference);
-				updateEndDate(difference);
-			}
+
+			updateStartDate(difference);
+			updateEndDate(difference);
 		}
 	}
 
@@ -166,13 +165,13 @@ public class Task implements Comparable<Task> {
 	}
 
 	private void updateOccurrenceString() {
-		if(num_occurrences<=1)
+		if (num_occurrences <= 1)
 			occurrenceString.set("");
 		else
-			occurrenceString.set(current_occurrence+"/"+num_occurrences);
+			occurrenceString.set(current_occurrence + "/" + num_occurrences);
 
 	}
-	
+
 	/************************ Get Property Functions **********************************/
 	public BooleanProperty isImportantProperty() {
 		if (isImportant == null)
@@ -215,13 +214,14 @@ public class Task implements Comparable<Task> {
 			endDateString = new SimpleStringProperty(this, "endDateString");
 		return endDateString;
 	}
-	
+
 	public StringProperty occurrenceProperty() {
 		if (occurrenceString == null)
-			occurrenceString = new SimpleStringProperty(this, "occurrenceProperty");
+			occurrenceString = new SimpleStringProperty(this,
+					"occurrenceProperty");
 		return occurrenceString;
 	}
-	
+
 	/********************************* Get Value Functions ***********************************/
 	public boolean getIsImportant() {
 		return isImportant.get();
@@ -286,7 +286,6 @@ public class Task implements Comparable<Task> {
 	public int getCurrentOccurrence() {
 		return current_occurrence;
 	}
-	
 
 	/*************************************** Set Value Functions ****************************************/
 	public void setIsImportant(boolean isImportant) {
@@ -320,7 +319,6 @@ public class Task implements Comparable<Task> {
 	public void setEndDateString(String dateString) {
 		endDateString.set(dateString);
 	}
-
 
 	public void setWorkInfo(String workInfo) {
 		this.workInfo.set(workInfo);
@@ -361,8 +359,7 @@ public class Task implements Comparable<Task> {
 		current_occurrence = current;
 		updateOccurrenceString();
 	}
-	
-	
+
 	public void setOccurrence(int occurNum, int curOccur) {
 		num_occurrences = occurNum;
 		current_occurrence = curOccur;

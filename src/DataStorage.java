@@ -106,7 +106,11 @@ public class DataStorage extends Store {
 		newTask.setTag(new Tag(in.readLine(), in.readLine()));
 		newTask.setIsImportant((in.readLine()).equals(TRUE) ? true : false);
 		newTask.setIndexInList(Integer.parseInt(in.readLine()));
-		newTask.setLatestModifiedDate(new CustomDate(in.readLine()));
+		String latestDateString = in.readLine();
+		String second = latestDateString.substring(latestDateString.lastIndexOf(":") + 1);
+		String remains = latestDateString.substring(0, latestDateString.lastIndexOf(":"));
+		newTask.setLatestModifiedDate(new CustomDate(remains));
+		newTask.getLatestModifiedDate().setSecond(Integer.parseInt(second));
 		newTask.setCurrentOccurrence(Integer.parseInt(in.readLine()));
 		newTask.setNumOccurrences(Integer.parseInt(in.readLine()));
 		String statusString = in.readLine();
@@ -142,7 +146,7 @@ public class DataStorage extends Store {
 			out.println(targetTask.getTag().getRepetition());
 			out.println((targetTask.getIsImportant() == true ? TRUE : FALSE));
 			out.println(targetTask.getIndexInList());
-			out.println(CustomDate.convertString(targetTask.getLatestModifiedDate()));
+			out.println(CustomDate.convertString(targetTask.getLatestModifiedDate()) +":"+ targetTask.getLatestModifiedDate().getSecond());
 			out.println(targetTask.getCurrentOccurrence());
 			out.println(targetTask.getNumOccurrences());
 			if(targetTask.getStatus() == Task.Status.NEWLY_ADDED)
