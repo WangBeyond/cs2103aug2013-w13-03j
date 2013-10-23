@@ -134,7 +134,7 @@ public class Parser {
 	 * @return the array of infos necessary for each command
 	 */
 	public static String[] parseCommand(String userCommand,
-			COMMAND_TYPES commandType, View view, Model model) {
+			COMMAND_TYPES commandType, Model model, View view) {
 		String content = removeFirstWord(userCommand);
 		content = removeUnneededSpaces(content);
 		if (commandType == COMMAND_TYPES.ADD)
@@ -365,7 +365,7 @@ public class Parser {
 		
 		infoList.add(new InfoWithIndex(commandTypeStr, 0, INDEX_COMMAND_TYPE));
 		try {
-			String[] result = parseCommand(command, commandType, view, model);
+			String[] result = parseCommand(command, commandType, model, view);
 			// Add the commandType first
 
 			if (commandType == COMMAND_TYPES.EDIT) {

@@ -291,7 +291,7 @@ public class Control extends Application {
 					.determineCommandType(userCommand);
 
 			String[] parsedUserCommand = Parser.parseCommand(userCommand,
-					commandType, view, modelHandler);
+					commandType, modelHandler, view);
 			
 			return executeCommandCorrespondingType(parsedUserCommand,
 					commandType);

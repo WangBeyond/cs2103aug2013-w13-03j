@@ -49,8 +49,10 @@ public class CustomDate {
 		String month = str.substring(5,7);
 		String year = str.substring(0, 4);
 		String time = str.substring(11, 16);
+		String second = str.substring(17, 19);
 		String customDateFormat = date+"/"+month+"/"+year+ " " + time;
 		convert(customDateFormat);
+		setSecond(Integer.parseInt(second));
 	}
 	
 	public CustomDate(String s) {
@@ -79,6 +81,10 @@ public class CustomDate {
 		return targetDate.get(Calendar.MINUTE);
 	}
 	
+	public int getSecond(){
+		return targetDate.get(Calendar.SECOND);
+	}
+	
 	public boolean hasIndicatedDate(){
 		return hasIndicatedDate;
 	}
@@ -102,6 +108,10 @@ public class CustomDate {
 	
 	public void setYear(int year){
 		targetDate.set(Calendar.YEAR, year);
+	}
+	
+	public void setSecond(int second){
+		targetDate.set(Calendar.SECOND, second);
 	}
 	
 
@@ -244,7 +254,7 @@ public class CustomDate {
 			return SMALLER;
 		}
 
-		for (int i = 0; i < 5; i++) {
+		for (int i = 0; i < 6; i++) {
 			if (i == 0) {
 				difference = date1.getYear() - date2.getYear();
 			} else if (i == 1) {
@@ -253,8 +263,10 @@ public class CustomDate {
 				difference = date1.getDate() - date2.getDate();
 			} else if (i == 3) {
 				difference = date1.getHour() - date2.getHour();
-			} else {
+			} else if(i == 4) {
 				difference = date1.getMinute() - date2.getMinute();
+			} else{
+				difference = date1.getSecond() - date2.getSecond();
 			}
 			if (difference != 0) {
 				return difference;
