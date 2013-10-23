@@ -104,6 +104,7 @@ public class Synchronization {
 			return Command.MESSAGE_SYNC_SERVICE_STOPPED;
 		}
 		
+		System.out.println("dasdas");
 		
 		// update Task
 		try {
@@ -112,7 +113,7 @@ public class Synchronization {
 			System.out.println("fail to update");
 		} catch (IOException e) {
 			System.out.println("fail to update");
-		}
+		} 
 		
 		try {
 			// delete events on GCal which have been deleted locally
@@ -216,7 +217,6 @@ public class Synchronization {
 											.getWorkInfo()));
 						try{	
 							entries.get(j)
-						
 									.getTimes()
 									.get(0)
 									.setStartTime(
@@ -229,12 +229,14 @@ public class Synchronization {
 											pendingList.get(i).getEndDate()
 													.returnInDateTimeFormat());
 						} catch(IndexOutOfBoundsException e){
+							if(pendingList.get(i).getStartDate() != null && pendingList.get(i).getEndDate() != null){
 							String recurrenceData = entries.get(j).getRecurrence().getValue();
 							int index1 = recurrenceData.indexOf(":");
 							recurrenceData = recurrenceData.substring(0, index1 + 1) + pendingList.get(i).getStartDate().returnInRecurringFormat() + recurrenceData.substring(index1 + 16);
 							int index2 = recurrenceData.indexOf(":", index1 + 1);
 							recurrenceData = recurrenceData.substring(0, index2 + 1) + pendingList.get(i).getEndDate().returnInRecurringFormat() + recurrenceData.substring(index2 + 16);
 							entries.get(j).getRecurrence().setValue(recurrenceData);
+							}
 						}
 							toBeUpdatedOnGCal.add(entries.get(j));
 						} else {

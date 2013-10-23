@@ -195,8 +195,6 @@ public class CustomDate {
 	private String getDateString() {
 		if (isToday()) {
 			return "Today";
-		} else if (isTomorrow()) {
-			return "Tomorrow";
 		} else {
 			String str;
 			str = targetDate.get(Calendar.DATE) + " " + getMonthString(targetDate.get(Calendar.MONTH));
