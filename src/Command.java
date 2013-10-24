@@ -1422,7 +1422,9 @@ class SyncCommand extends Command {
 		sync.setUsernameAndPassword(username, password);
 		if(calId != null)
 			sync.setCalendarID(calId);
-		return sync.execute();
+		String feedback = sync.execute();
+		Control.sortList(model.getPendingList());
+		return feedback;
 	}
 }
 
