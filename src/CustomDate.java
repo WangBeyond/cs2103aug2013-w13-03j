@@ -48,8 +48,12 @@ public class CustomDate {
 		String date = str.substring(8, 10);
 		String month = str.substring(5,7);
 		String year = str.substring(0, 4);
-		String time = str.substring(11, 16);
-		String second = str.substring(17, 19);
+		String time = "00:00";
+		String second = "00";
+		if(str.length()>10){
+			time = str.substring(11, 16);
+			second = str.substring(17, 19);			
+		}
 		String customDateFormat = date+"/"+month+"/"+year+ " " + time;
 		convert(customDateFormat);
 		setSecond(Integer.parseInt(second));
