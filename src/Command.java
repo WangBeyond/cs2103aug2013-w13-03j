@@ -945,6 +945,7 @@ class SearchCommand extends Command {
 		if (!isRealTimeSearch && searchList.isEmpty()) {
 			return MESSAGE_NO_RESULTS;
 		}
+		
 		TwoWayCommand.setIndexType(TwoWayCommand.SEARCHED);
 		if (tabIndex == PENDING_TAB) {
 			model.setSearchPendingList(searchList);
@@ -993,6 +994,7 @@ class SearchCommand extends Command {
 			for (int i = index1; i < list1.size(); i++)
 				mergedList.add(list1.get(i));
 		}
+		Control.sortList(mergedList);
 		return mergedList;
 	}
 
@@ -1337,10 +1339,13 @@ class ShowAllCommand extends Command {
 		int tabIndex = view.getTabIndex();
 		if (tabIndex == PENDING_TAB) {
 			view.taskPendingList.setItems(model.getPendingList());
+			Control.updateOverdueLine(model.getPendingList());
 		} else if (tabIndex == COMPLETE_TAB) {
 			view.taskCompleteList.setItems(model.getCompleteList());
+			Control.updateOverdueLine(model.getCompleteList());
 		} else {
 			view.taskTrashList.setItems(model.getTrashList());
+			Control.updateOverdueLine(model.getTrashList());
 		}
 		return MESSAGE_SUCCESSFUL_SHOW_ALL;
 	}
