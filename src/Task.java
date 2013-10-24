@@ -14,8 +14,8 @@ public class Task implements Comparable<Task> {
 		UNCHANGED, NEWLY_ADDED, DELETED
 	}
 
-	// Property indicating a task is important or not
-	private BooleanProperty isImportant;
+	// Property indicating a task is the last overdue task
+	private ObjectProperty<RowStatus> rowStatus;
 	// Properties of the start date and its string
 	private ObjectProperty<CustomDate> startDate;
 	private StringProperty startDateString;
@@ -44,7 +44,7 @@ public class Task implements Comparable<Task> {
 	}
 
 	private void defaultInitialization() {
-		setIsImportant(false);
+		setRowStatus(new RowStatus(false, false));
 		setStartDate(null);
 		setStartDateString("-");
 		setEndDate(null);
@@ -63,7 +63,7 @@ public class Task implements Comparable<Task> {
 	 * initialized If there are, it will initialize these properties.
 	 */
 	private void checkProperty() {
-		isImportantProperty();
+		rowStatusProperty();
 		workInfoProperty();
 		tagProperty();
 		startDateProperty();
@@ -164,6 +164,12 @@ public class Task implements Comparable<Task> {
 		return !tag.get().getRepetition().equals(Parser.NULL);
 	}
 
+	public boolean isOverdueTask() {
+		if (getEndDate() != null)
+			return getEndDate().beforeCurrentTime();
+		return false;
+	}
+
 	private void updateOccurrenceString() {
 		if (num_occurrences <= 1)
 			occurrenceString.set("");
@@ -173,10 +179,10 @@ public class Task implements Comparable<Task> {
 	}
 
 	/************************ Get Property Functions **********************************/
-	public BooleanProperty isImportantProperty() {
-		if (isImportant == null)
-			isImportant = new SimpleBooleanProperty(this, "isimportant");
-		return isImportant;
+	public ObjectProperty<RowStatus> rowStatusProperty(){
+		if(rowStatus == null)
+			rowStatus = new SimpleObjectProperty<RowStatus>(this, "rowstatus");
+		return rowStatus;
 	}
 
 	public StringProperty workInfoProperty() {
@@ -223,8 +229,16 @@ public class Task implements Comparable<Task> {
 	}
 
 	/********************************* Get Value Functions ***********************************/
+	public boolean getIsLastOverdue() {
+		return rowStatus.get().getIsLastOverdue();
+	}
+
 	public boolean getIsImportant() {
-		return isImportant.get();
+		return rowStatus.get().getIsImportant();
+	}
+	
+	public RowStatus getRowStatus(){
+		return rowStatus.get();
 	}
 
 	public String getStartDateString() {
@@ -288,8 +302,16 @@ public class Task implements Comparable<Task> {
 	}
 
 	/*************************************** Set Value Functions ****************************************/
+	public void setIsLastOverdue(boolean isLastOverdue) {
+		rowStatus.set(new RowStatus(rowStatus.get().getIsImportant(), isLastOverdue));
+	}
+
 	public void setIsImportant(boolean isImportant) {
-		this.isImportant.set(isImportant);
+		rowStatus.set(new RowStatus(isImportant, rowStatus.get().getIsLastOverdue()));
+	}
+	
+	public void setRowStatus(RowStatus rowStatus){
+		this.rowStatus.set(rowStatus);
 	}
 
 	public void setStatus(Status status) {
@@ -391,5 +413,31 @@ class Tag {
 
 	public String getRepetition() {
 		return this.repetition;
+	}
+}
+
+class RowStatus{
+	private boolean isImportant;
+	private boolean isLastOverdue;
+	
+	public RowStatus(boolean isImportant, boolean isLastOverdue){
+		this.isImportant = isImportant;
+		this.isLastOverdue = isLastOverdue;
+	}
+	
+	public void setIsImportant(boolean isImportant){
+		this.isImportant = isImportant;
+	}
+	
+	public void setIsLastOverdue(boolean isLastOverdue){
+		this.isLastOverdue = isLastOverdue;
+	}
+	
+	public boolean getIsImportant(){
+		return this.isImportant;
+	}
+	
+	public boolean getIsLastOverdue(){
+		return this.isLastOverdue;
 	}
 }

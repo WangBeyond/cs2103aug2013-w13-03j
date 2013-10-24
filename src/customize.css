@@ -107,13 +107,13 @@
      */
     -fx-table-header-border-color: black;
 /*    -fx-table-header-background-color: linear (0%,0%) to (0%,100%) stops (80%, #bbbbbb) (10%, #f6f6f6);*/
-    -fx-table-cell-border-color: #bbbbbb;
 }
 
 .table-row-cell {
     -fx-skin: "com.sun.javafx.scene.control.skin.TableRowSkin";
     -fx-background-color: white;
     -fx-background-insets: 0.0, 0.0 0.0 1.0 0.0;
+    -fx-border-color: transparent transparent transparent transparent;
     -fx-padding: 0.0em; /* 0 */
     -fx-text-fill: -fx-text-inner-color;
 }
@@ -145,7 +145,7 @@
    to the edge of the tableview, or up to the 'column control' button. */
 .table-view .column-header, .table-view .filler {
     -fx-text-fill: -fx-selection-bar-text;
-	
+	-fx-translate-x: -8px;	
     /* TODO: for some reason, this doesn't scale. */
     -fx-font-size: 1.083333em; /* 13pt - 1 more than the default font */
     -fx-font-weight: bold;
@@ -184,14 +184,36 @@
 }
 
 .important{
+    -fx-border-color: transparent transparent transparent transparent;
 	-fx-background-color:  rgb(43, 235, 120);
 }
 
+.important-last{
+	-fx-border-color: transparent transparent red transparent;
+	-fx-background-color:  rgb(43, 235, 120);
+}
+
+.unimportant-last{
+	-fx-border-color: transparent transparent red transparent;
+	-fx-background-color: white;
+}
+
+.unimportant-odd-last{
+	-fx-border-color: transparent transparent red transparent;
+	-fx-background-color: rgb(250,250,250);
+}
+
+.last-overdue{
+	-fx-border-color: transparent transparent red transparent;
+}
+
 .unimportant{
+    -fx-border-color: transparent transparent transparent transparent;
 	-fx-background-color: white;
 }
 
 .unimportant-odd{
+    -fx-border-color: transparent transparent transparent transparent;
 	-fx-background-color: rgb(250,250,250);
 }
 

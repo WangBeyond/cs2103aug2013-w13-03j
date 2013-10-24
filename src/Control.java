@@ -91,6 +91,9 @@ public class Control extends Application {
 	private void loadGUI(Stage primaryStage) {
 		view = new View(modelHandler, primaryStage, syncStore);
 		handleEventForCommandLine();
+		updateOverdueLine(modelHandler.getPendingList());
+		updateOverdueLine(modelHandler.getCompleteList());
+		updateOverdueLine(modelHandler.getTrashList());
 	}
 
 	private void handleEventForCommandLine() {
@@ -296,7 +299,7 @@ public class Control extends Application {
 			return executeCommandCorrespondingType(parsedUserCommand,
 					commandType);
 		} catch (Exception e) {
-			return  "testing " +e.getMessage();
+			return  e.getMessage();
 		}
 	}
 
@@ -589,8 +592,25 @@ public class Control extends Application {
 	}
 
 	private static void updateIndexInList(ObservableList<Task> list) {
-		for (int i = 0; i < list.size(); i++) {
+		boolean hasLastOverdue = false;
+		for (int i = list.size() - 1; i >= 0; i--) {
 			list.get(i).setIndexInList(i);
+			list.get(i).setIsLastOverdue(false);
+			if(!hasLastOverdue && list.get(i).isOverdueTask()){
+				list.get(i).setIsLastOverdue(true);
+				hasLastOverdue = true;
+			}
+		}
+	}
+	
+	public static void updateOverdueLine(ObservableList<Task> list){
+		boolean hasLastOverdue = false;
+		for (int i = list.size() - 1; i >= 0; i--) {
+			list.get(i).setIsLastOverdue(false);
+			if(!hasLastOverdue && list.get(i).isOverdueTask()){
+				list.get(i).setIsLastOverdue(true);
+				hasLastOverdue = true;
+			}
 		}
 	}
 }

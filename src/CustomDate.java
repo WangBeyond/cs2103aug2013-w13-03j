@@ -186,9 +186,6 @@ public class CustomDate {
 		updateCurrentDate();
 		boolean hasTime = hasTime(isStartDate);
 
-		if (beforeCurrentTime() && !isStartDate) {
-				return "OVERDUE";
-		}
 		if (!beforeCurrentTime() && lessThan6Hours()) {
 			return getRemainingTime();
 		}

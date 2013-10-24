@@ -213,14 +213,15 @@ public class View implements HotkeyListener {
 
 	private void setupShortcuts() {
 		stage.focusedProperty().addListener(new ChangeListener<Boolean>() {
-			public void changed(ObservableValue<? extends Boolean> ov, Boolean oldValue, Boolean newValue){
-				if(newValue.booleanValue() == false)
+			public void changed(ObservableValue<? extends Boolean> ov,
+					Boolean oldValue, Boolean newValue) {
+				if (newValue.booleanValue() == false)
 					txt.setCaretColor(java.awt.Color.black);
 				else
 					txt.setCaretColor(java.awt.Color.white);
 			}
 		});
-		
+
 		root.setOnKeyPressed(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent e) {
 				if (changeTab.match(e)) {
@@ -271,7 +272,7 @@ public class View implements HotkeyListener {
 				}
 			}
 		});
-					
+
 		stage.focusedProperty().addListener(new ChangeListener<Boolean>() {
 			public void changed(ObservableValue<? extends Boolean> ov,
 					Boolean oldVal, Boolean newVal) {
@@ -450,11 +451,13 @@ public class View implements HotkeyListener {
 			feedbacks.getChildren().add(feedbackList.get(i));
 		}
 		String account = syncStore.retrieveAccount()[0];
-		if(account != null)
-		setFeedbackStyle(0, String.format(WELCOME_MESSAGE, account),
-				Color.WHITE);
+		if (account != null)
+			setFeedbackStyle(0, String.format(WELCOME_MESSAGE, account),
+					Color.WHITE);
 		else
-			setFeedbackStyle(0, "Welcome to iDo! Please enter your google account info", Color.WHITE);
+			setFeedbackStyle(0,
+					"Welcome to iDo! Please enter your google account info",
+					Color.WHITE);
 		bottom.getChildren().addAll(upperPart, feedbacks);
 	}
 
@@ -604,7 +607,7 @@ public class View implements HotkeyListener {
 		TableColumn<Task, Tag> tagColumn = createTagColumn();
 		TableColumn<Task, String> startDateColumn = createStartDateColumn();
 		TableColumn<Task, String> endDateColumn = createEndDateColumn();
-		TableColumn<Task, Boolean> isImportantColumn = createIsImportantColumn();
+		TableColumn<Task, RowStatus> rowStatusColumn = createRowStatusColumn();
 
 		taskList.setStyle("-fx-table-cell-border-color: transparent;");
 
@@ -615,12 +618,95 @@ public class View implements HotkeyListener {
 		columns.add(startDateColumn);
 		columns.add(endDateColumn);
 		columns.add(tagColumn);
-		columns.add(isImportantColumn);
+		columns.add(rowStatusColumn);
+	}
+
+	private TableColumn<Task, RowStatus> createRowStatusColumn() {
+		TableColumn<Task, RowStatus> tempColumn = TableColumnBuilder
+				.<Task, RowStatus> create().visible(true).text("").prefWidth(1)
+				.build();
+		setupRowStatusProperty(tempColumn);
+		setupRowStatusUpdateFormat(tempColumn);
+		return tempColumn;
+	}
+
+	private void setupRowStatusProperty(TableColumn<Task, RowStatus> tempColumn) {
+		tempColumn
+				.setCellValueFactory(new PropertyValueFactory<Task, RowStatus>(
+						"rowStatus"));
+	}
+
+	private void setupRowStatusUpdateFormat(
+			TableColumn<Task, RowStatus> tempColumn) {
+		tempColumn
+				.setCellFactory(new Callback<TableColumn<Task, RowStatus>, TableCell<Task, RowStatus>>() {
+
+					@Override
+					public TableCell<Task, RowStatus> call(
+							TableColumn<Task, RowStatus> param) {
+						TableCell<Task, RowStatus> tc = new TableCell<Task, RowStatus>() {
+							@Override
+							public void updateItem(RowStatus item, boolean empty) {
+								super.updateItem(item, empty);
+								if (item != null) {
+									clearStyle();
+									setStyle(item);
+								}
+							}
+
+							private void clearStyle() {
+								getTableRow().getStyleClass().removeAll(
+										"table-row-cell", "unimportant",
+										"important", "unimportant-odd",
+										"unimportant-last", "important-last",
+										"unimportant-odd-last");
+
+							}
+
+							private void setStyle(RowStatus rowStatus) {
+								Task t = (Task) getTableRow().getItem();
+								boolean isLastOverdue = rowStatus
+										.getIsLastOverdue();
+								boolean isOdd = getTableRow().getIndex() % 2 != 0;
+								boolean isImportant = rowStatus
+										.getIsImportant();
+								if (isLastOverdue) {
+									if (isImportant) {
+										getTableRow().getStyleClass().add(
+												"important-last");
+									} else {
+										if (isOdd) {
+											getTableRow().getStyleClass().add(
+													"unimportant-odd-last");
+										} else {
+											getTableRow().getStyleClass().add(
+													"unimportant-last");
+										}
+									}
+								} else {
+									if (isImportant) {
+										getTableRow().getStyleClass().add(
+												"important");
+									} else {
+										if (isOdd) {
+											getTableRow().getStyleClass().add(
+													"unimportant-odd");
+										} else {
+											getTableRow().getStyleClass().add(
+													"unimportant");
+										}
+									}
+								}
+							}
+						};
+						return tc;
+					}
+				});
 	}
 
 	private TableColumn<Task, String> createIndexColumn() {
 		TableColumn<Task, String> tempColumn = TableColumnBuilder
-				.<Task, String> create().visible(true).text("").prefWidth(20)
+				.<Task, String> create().visible(true).text("").prefWidth(28)
 				.sortable(false).resizable(false).build();
 		setupEndDateProperty(tempColumn);
 		setupIndexUpdateFormat(tempColumn);
@@ -650,7 +736,7 @@ public class View implements HotkeyListener {
 
 	private TableColumn<Task, String> createOccurrenceColumn() {
 		TableColumn<Task, String> tempColumn = TableColumnBuilder
-				.<Task, String> create().visible(true).text("").prefWidth(20)
+				.<Task, String> create().visible(true).text("").prefWidth(28)
 				.sortable(false).resizable(false).build();
 		setupOccurrenceProperty(tempColumn);
 		setupOccurrenceUpdateFormat(tempColumn);
@@ -686,64 +772,6 @@ public class View implements HotkeyListener {
 							}
 						};
 						tc.setAlignment(Pos.TOP_LEFT);
-						return tc;
-					}
-				});
-	}
-
-	private TableColumn<Task, Boolean> createIsImportantColumn() {
-		TableColumn<Task, Boolean> tempColumn = TableColumnBuilder
-				.<Task, Boolean> create().visible(true).prefWidth(10).build();
-		setupIsImportantProperty(tempColumn);
-		setupIsImportantUpdateFormat(tempColumn);
-		return tempColumn;
-	}
-
-	private void setupIsImportantProperty(TableColumn<Task, Boolean> tempColumn) {
-		tempColumn.setCellValueFactory(new PropertyValueFactory<Task, Boolean>(
-				"isImportant"));
-	}
-
-	private void setupIsImportantUpdateFormat(
-			TableColumn<Task, Boolean> tempColumn) {
-		tempColumn
-				.setCellFactory(new Callback<TableColumn<Task, Boolean>, TableCell<Task, Boolean>>() {
-
-					@Override
-					public TableCell<Task, Boolean> call(
-							TableColumn<Task, Boolean> param) {
-						TableCell<Task, Boolean> tc = new TableCell<Task, Boolean>() {
-							@Override
-							public void updateItem(Boolean item, boolean empty) {
-								super.updateItem(item, empty);
-								if (item != null) {
-									clearStyle();
-									setStyle(item);
-								}
-							}
-
-							private void clearStyle() {
-								getTableRow().getStyleClass().removeAll(
-										"table-row-cell", "unimportant",
-										"important", "unimportant-odd");
-
-							}
-
-							private void setStyle(boolean isImportant) {
-								if (isImportant)
-									getTableRow().getStyleClass().add(
-											"important");
-								else {
-									if (getTableRow().getIndex() % 2 == 0) {
-										getTableRow().getStyleClass().add(
-												"unimportant");
-									} else {
-										getTableRow().getStyleClass().add(
-												"unimportant-odd");
-									}
-								}
-							}
-						};
 						return tc;
 					}
 				});
@@ -1303,7 +1331,7 @@ class CustomStyledDocument extends DefaultStyledDocument {
 	final StyleContext cont = StyleContext.getDefaultStyleContext();
 
 	final AttributeSet attrRed = cont.addAttribute(cont.getEmptySet(),
-			StyleConstants.Foreground, new java.awt.Color(255, 41 , 41));
+			StyleConstants.Foreground, new java.awt.Color(255, 41, 41));
 	final AttributeSet attrBlue = cont.addAttribute(cont.getEmptySet(),
 			StyleConstants.Foreground, new java.awt.Color(84, 173, 225));
 	final AttributeSet attrDarkCyan = cont.addAttribute(cont.getEmptySet(),
