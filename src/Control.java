@@ -1,3 +1,4 @@
+import java.awt.event.ActionEvent;
 import java.awt.event.KeyListener;
 import java.io.IOException;
 import java.util.Collections;
@@ -14,9 +15,11 @@ import javax.swing.event.DocumentListener;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
@@ -30,7 +33,7 @@ public class Control extends Application {
 	static final String MESSAGE_ADD_TIP = "<add> <task info 1> <task info 2> <task info 3> <task info 4> ...";
 	static final String MESSAGE_EDIT_TIP = "<edit/mod/modify> <index> <task info 1> <task info 2> <task info 3> ...";
 	static final String MESSAGE_REMOVE_INDEX_TIP = "<delete/del/remove/rm> <index 1> <index 2> <index 3> ...";
-	static final String MESSAGE_REMOVE_INFO_TIP	 ="<remove> <task info 1> <task info 2> <task info 3> <task info 4> ...";
+	static final String MESSAGE_REMOVE_INFO_TIP = "<remove> <task info 1> <task info 2> <task info 3> <task info 4> ...";
 	static final String MESSAGE_SEARCH_TIP = "<search/find> <task info 1> <task info 2> <task info 3> ...";
 	static final String MESSAGE_TODAY_TIP = "<today>";
 	static final String MESSAGE_SHOW_ALL_TIP = "<show/all/list/ls>";
@@ -49,11 +52,9 @@ public class Control extends Application {
 	static final String UNDO_COMMAND = "undo";
 	static final String REDO_COMMAND = "redo";
 	static final KeyCombination undo_hot_key = new KeyCodeCombination(
-			KeyCode.Z, KeyCodeCombination.CONTROL_DOWN,
-			KeyCodeCombination.ALT_DOWN);
+			KeyCode.Z, KeyCodeCombination.CONTROL_DOWN);
 	static final KeyCombination redo_hot_key = new KeyCodeCombination(
-			KeyCode.Y, KeyCodeCombination.CONTROL_DOWN,
-			KeyCodeCombination.ALT_DOWN);
+			KeyCode.Y, KeyCodeCombination.CONTROL_DOWN);
 
 	public Model modelHandler = new Model();
 	public History commandHistory = new History();
@@ -117,8 +118,8 @@ public class Control extends Application {
 						realTimeSearch("search" + content);
 					}
 				}
-				if (isRealTimeSearch
-						&& !command.contains("search") && !command.contains("remove")) {
+				if (isRealTimeSearch && !command.contains("search")
+						&& !command.contains("remove")) {
 					isRealTimeSearch = false;
 					executeShowCommand();
 				}
@@ -138,8 +139,8 @@ public class Control extends Application {
 						realTimeSearch("search" + content);
 					}
 				}
-				if (isRealTimeSearch
-						&& !command.contains("search") && !command.contains("remove")) {
+				if (isRealTimeSearch && !command.contains("search")
+						&& !command.contains("remove")) {
 					isRealTimeSearch = false;
 					executeShowCommand();
 				}
@@ -148,7 +149,7 @@ public class Control extends Application {
 			@Override
 			public void changedUpdate(DocumentEvent e) {
 				String command = view.txt.getText();
-				
+
 				if (Parser.determineCommandType(command) == Parser.COMMAND_TYPES.SEARCH)
 					realTimeSearch(command);
 				else if (Parser.determineCommandType(command) == Parser.COMMAND_TYPES.REMOVE) {
@@ -159,25 +160,25 @@ public class Control extends Application {
 						realTimeSearch("search" + content);
 					}
 				}
-				if (isRealTimeSearch
-						&& !command.contains("search") && !command.contains("remove")) {
+				if (isRealTimeSearch && !command.contains("search")
+						&& !command.contains("remove")) {
 					isRealTimeSearch = false;
 					executeShowCommand();
 				}
 			}
-			
+
 			private boolean checkRemoveIndex(String command) {
 				String content = Parser.removeFirstWord(command);
 				String[] splitContent = Parser.splitBySpace(content);
 				try {
 					Integer.valueOf(splitContent[0]);
 					return true;
-				} catch(NumberFormatException e) {
+				} catch (NumberFormatException e) {
 					return false;
 				}
 			}
-			
-			private void realTimeFeedback(String command){
+
+			private void realTimeFeedback(String command) {
 
 				if (Parser.checkEmptyCommand(command)) {
 					view.setFeedback(MESSAGE_REQUEST_COMMAND);
@@ -195,7 +196,7 @@ public class Control extends Application {
 							view.setFeedback(MESSAGE_EDIT_TIP);
 							break;
 						case REMOVE:
-							if(checkRemoveIndex(command))
+							if (checkRemoveIndex(command))
 								view.setFeedback(MESSAGE_REMOVE_INDEX_TIP);
 							else
 								view.setFeedback(MESSAGE_REMOVE_INFO_TIP);
@@ -247,6 +248,20 @@ public class Control extends Application {
 	}
 
 	private void handleKeyPressEvent() {
+		view.root2.setOnKeyPressed(new EventHandler<KeyEvent>() {
+			public void handle(KeyEvent e) {
+				if (undo_hot_key.match(e)) {
+					isRealTimeSearch = false;
+					String feedback = executeCommand("undo");
+					updateFeedback(feedback);
+				} else if (redo_hot_key.match(e)) {
+					isRealTimeSearch = false;
+					String feedback = executeCommand("redo");
+					updateFeedback(feedback);
+				}
+			}
+		});
+
 		Action enterAction = new AbstractAction() {
 			@Override
 			public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -261,12 +276,47 @@ public class Control extends Application {
 			}
 		};
 		// Get KeyStroke for enter key
-				KeyStroke enterKey = KeyStroke.getKeyStroke(
-						com.sun.glass.events.KeyEvent.VK_ENTER, 0);
-				// Override enter for a pane
-				String actionKey = "none";
-				InputMap map = view.txt.getInputMap();
-				map.put(enterKey, enterAction);
+		KeyStroke enterKey = KeyStroke.getKeyStroke(
+				com.sun.glass.events.KeyEvent.VK_ENTER, 0);
+		// Override enter for a pane
+		InputMap map = view.txt.getInputMap();
+		map.put(enterKey, enterAction);
+
+		Action undoAction = new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Platform.runLater(new Runnable() {
+					@Override
+					public void run() {
+						isRealTimeSearch = false;
+						String feedback = executeCommand("undo");
+						updateFeedback(feedback);
+					}
+				});
+			}
+		};
+		KeyStroke undoKey = KeyStroke.getKeyStroke(
+				com.sun.glass.events.KeyEvent.VK_Z,
+				java.awt.event.InputEvent.CTRL_DOWN_MASK);
+		map.put(undoKey, undoAction);
+
+		Action redoAction = new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Platform.runLater(new Runnable() {
+					@Override
+					public void run() {
+						isRealTimeSearch = false;
+						String feedback = executeCommand("redo");
+						updateFeedback(feedback);
+					}
+				});
+			}
+		};
+		KeyStroke redoKey = KeyStroke.getKeyStroke(
+				com.sun.glass.events.KeyEvent.VK_Y,
+				java.awt.event.InputEvent.CTRL_DOWN_MASK);
+		map.put(redoKey, redoAction);
 	}
 
 	private String removeCommandTypeString(String command) {
@@ -295,11 +345,11 @@ public class Control extends Application {
 
 			String[] parsedUserCommand = Parser.parseCommand(userCommand,
 					commandType, modelHandler, view);
-			
+
 			return executeCommandCorrespondingType(parsedUserCommand,
 					commandType);
 		} catch (Exception e) {
-			return  e.getMessage();
+			return e.getMessage();
 		}
 	}
 
@@ -516,15 +566,17 @@ public class Control extends Application {
 		Command s = new HelpCommand(modelHandler, view);
 		return s.execute();
 	}
-	
+
 	private String executeSettingsCommand(String[] parsedUserCommand) {
 		Command s = new SettingsCommand(modelHandler, view, parsedUserCommand);
 		return s.execute();
 	}
-	
-	private String executeSyncCommand(String[] parsedUserCommand) throws IOException{
-		
-		Command s = new SyncCommand(parsedUserCommand, modelHandler, sync, syncStore);
+
+	private String executeSyncCommand(String[] parsedUserCommand)
+			throws IOException {
+
+		Command s = new SyncCommand(parsedUserCommand, modelHandler, sync,
+				syncStore);
 		String feedback = s.execute();
 		if (feedback.equals(Command.MESSAGE_SYNC_SUCCESSFUL)) {
 			dataFile.storeToFile();
@@ -584,6 +636,7 @@ public class Control extends Application {
 				list.get(i).updateDateForRepetitiveTask();
 			}
 		}
+		sortList(list);
 	}
 
 	public static void sortList(ObservableList<Task> list) {
@@ -596,18 +649,18 @@ public class Control extends Application {
 		for (int i = list.size() - 1; i >= 0; i--) {
 			list.get(i).setIndexInList(i);
 			list.get(i).setIsLastOverdue(false);
-			if(!hasLastOverdue && list.get(i).isOverdueTask()){
+			if (!hasLastOverdue && list.get(i).isOverdueTask()) {
 				list.get(i).setIsLastOverdue(true);
 				hasLastOverdue = true;
 			}
 		}
 	}
-	
-	public static void updateOverdueLine(ObservableList<Task> list){
+
+	public static void updateOverdueLine(ObservableList<Task> list) {
 		boolean hasLastOverdue = false;
 		for (int i = list.size() - 1; i >= 0; i--) {
 			list.get(i).setIsLastOverdue(false);
-			if(!hasLastOverdue && list.get(i).isOverdueTask()){
+			if (!hasLastOverdue && list.get(i).isOverdueTask()) {
 				list.get(i).setIsLastOverdue(true);
 				hasLastOverdue = true;
 			}
