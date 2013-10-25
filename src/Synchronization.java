@@ -39,8 +39,8 @@ public class Synchronization {
 
 	/* model */
 	Model model;
-	
-	/*sync store*/
+
+	/* sync store */
 	SyncStore syncStore;
 
 	/* calendar id */
@@ -72,12 +72,12 @@ public class Synchronization {
 		username = n;
 		password = p;
 	}
-	
-	public void setSyncStore(SyncStore s){
-		syncStore  = s;
+
+	public void setSyncStore(SyncStore s) {
+		syncStore = s;
 	}
 
-	public String execute(){
+	public String execute() {
 
 		try {
 			initService();
@@ -86,7 +86,7 @@ public class Synchronization {
 		}
 
 		// form feed url
-		if(eventFeedUrl == null) {
+		if (eventFeedUrl == null) {
 			try {
 				eventFeedUrl = formEventFeedUrl(service);
 			} catch (IOException | ServiceException e) {
@@ -97,16 +97,13 @@ public class Synchronization {
 		try {
 			// sync newly added tasks to GCal
 			syncNewTasksToGCal(service, model, eventFeedUrl);
-			
+
 			// get all events from Google calendar
 			eventEntry = getEventsFromGCal(service, eventFeedUrl);
 		} catch (ServiceException | IOException e) {
 			return Command.MESSAGE_SYNC_SERVICE_STOPPED;
 		}
-		
-		System.out.println("dasdas");
-		
-		/*
+
 		// update Task
 		try {
 			updateUnchangedTasks(service, model, eventEntry, eventFeedUrl);
@@ -114,15 +111,16 @@ public class Synchronization {
 			System.out.println("fail to update");
 		} catch (IOException e) {
 			System.out.println("fail to update");
-		} 
+		}
 		System.out.println("updated unchanged task.");
+
 		try {
 			// delete events on GCal which have been deleted locally
 			syncDeletedTasksToGCal(service, model, eventEntry, eventFeedUrl);
 		} catch (ServiceException | IOException e) {
 			return Command.MESSAGE_SYNC_SERVICE_STOPPED;
 		}
-		*/
+
 		// get all events from Google calendar
 		try {
 			eventEntry = getEventsFromGCal(service, eventFeedUrl);
@@ -145,12 +143,13 @@ public class Synchronization {
 		// authenticate using ClientLogin
 		service.setUserCredentials(username, password);
 	}
-	
+
 	void setCalendarID(String calID) {
 		calendarId = calID;
 	}
-	
-	URL formEventFeedUrl(CalendarService service) throws ServiceException, IOException {
+
+	URL formEventFeedUrl(CalendarService service) throws ServiceException,
+			IOException {
 		if (calendarId == null) {
 			URL owncalUrl = new URL(METAFEED_URL_BASE + username
 					+ OWNCALENDARS_FEED_URL_SUFFIX);
@@ -173,25 +172,33 @@ public class Synchronization {
 			Task task = pendingList.get(i);
 			if (task.getStatus() == Task.Status.NEWLY_ADDED) {
 				CalendarEventEntry e;
-				 if(task.isRecurringTask()){
-					 e = createRecurringEvent(service, task.getWorkInfo(),
-					 task.getStartDate().returnInRecurringFormat(), task.getEndDate().returnInRecurringFormat(), task.getTag().getRepetition(), null, feedUrl);
-				 } else {
-					 if(task.getStartDate() != null && task.getEndDate() != null){//has start date and end date
-						 e = createSingleEvent(service, task.getWorkInfo(),
-								 task.getStartDate(), task.getEndDate(), feedUrl); 
-					 } else if(task.getStartDate() == null && task.getEndDate() == null){//no start date and no end date
-						 CustomDate cd = new CustomDate();
-						 CustomDate cd1 = new CustomDate();
-						 cd1.setTimeInMillis(cd.getTimeInMillis()+ 24*60*60*1000);
-						 e = createRecurringEvent(service, task.getWorkInfo(),
-								 cd.returnInRecurringFormat().substring(0, 8),
-								 cd1.returnInRecurringFormat().substring(0, 8), "Daily", null, feedUrl);
-					 } else {
-						 throw new Error("date format error");
-					 }
-					
-				 }
+				if (task.isRecurringTask()) {
+					e = createRecurringEvent(service, task.getWorkInfo(), task
+							.getStartDate().returnInRecurringFormat(), task
+							.getEndDate().returnInRecurringFormat(), task
+							.getTag().getRepetition(), null, feedUrl);
+				} else {
+					if (task.getStartDate() != null
+							&& task.getEndDate() != null) {// has start date and
+															// end date
+						e = createSingleEvent(service, task.getWorkInfo(),
+								task.getStartDate(), task.getEndDate(), feedUrl);
+					} else if (task.getStartDate() == null
+							&& task.getEndDate() == null) {// no start date and
+															// no end date
+						CustomDate cd = new CustomDate();
+						CustomDate cd1 = new CustomDate();
+						cd1.setTimeInMillis(cd.getTimeInMillis() + 24 * 60 * 60
+								* 1000);
+						e = createRecurringEvent(service, task.getWorkInfo(),
+								cd.returnInRecurringFormat().substring(0, 8),
+								cd1.returnInRecurringFormat().substring(0, 8),
+								"Daily", null, feedUrl);
+					} else {
+						throw new Error("date format error");
+					}
+
+				}
 				task.setIndexId(e.getId());
 				task.setStatus(Task.Status.UNCHANGED);
 			}
@@ -216,52 +223,142 @@ public class Synchronization {
 							entries.get(j).setTitle(
 									new PlainTextConstruct(pendingList.get(i)
 											.getWorkInfo()));
-						try{	
-							entries.get(j)
-									.getTimes()
-									.get(0)
-									.setStartTime(
-											pendingList.get(i).getStartDate()
-													.returnInDateTimeFormat());
-							entries.get(j)
-									.getTimes()
-									.get(0)
-									.setEndTime(
-											pendingList.get(i).getEndDate()
-													.returnInDateTimeFormat());
-						} catch(IndexOutOfBoundsException e){
-							if(pendingList.get(i).getStartDate() != null && pendingList.get(i).getEndDate() != null){
-							String recurrenceData = entries.get(j).getRecurrence().getValue();
-							int index1 = recurrenceData.indexOf(":");
-							recurrenceData = recurrenceData.substring(0, index1 + 1) + pendingList.get(i).getStartDate().returnInRecurringFormat() + recurrenceData.substring(index1 + 16);
-							int index2 = recurrenceData.indexOf(":", index1 + 1);
-							recurrenceData = recurrenceData.substring(0, index2 + 1) + pendingList.get(i).getEndDate().returnInRecurringFormat() + recurrenceData.substring(index2 + 16);
-							entries.get(j).getRecurrence().setValue(recurrenceData);
+							if (pendingList.get(i).getTag().getRepetition()
+									.equals("null")
+									&& pendingList.get(i).getStartDate() != null) {
+								if (entries.get(j).getRecurrence() == null) {
+									entries.get(j)
+											.getTimes()
+											.get(0)
+											.setStartTime(
+													pendingList
+															.get(i)
+															.getStartDate()
+															.returnInDateTimeFormat());
+									entries.get(j)
+											.getTimes()
+											.get(0)
+											.setEndTime(
+													pendingList
+															.get(i)
+															.getEndDate()
+															.returnInDateTimeFormat());
+									toBeUpdatedOnGCal.add(entries.get(j));
+								} else {
+									entries.get(j).delete();
+									CalendarEventEntry replace = new CalendarEventEntry();
+									replace.setTitle(new PlainTextConstruct(
+											pendingList.get(i).getWorkInfo()));
+									DateTime startTime = pendingList.get(i)
+											.getStartDate()
+											.returnInDateTimeFormat();
+									DateTime endTime = pendingList.get(i)
+											.getEndDate()
+											.returnInDateTimeFormat();
+									When eventTimes = new When();
+									eventTimes.setStartTime(startTime);
+									eventTimes.setEndTime(endTime);
+									replace.addTime(eventTimes);
+									CalendarEventEntry insertedEntry = service
+											.insert(feedURL, replace);
+									entries.set(j, insertedEntry);
+									pendingList.get(i).setIndexId(insertedEntry.getId());
+								}
+							} else {
+								entries.get(j).getTimes().clear();
+								if (pendingList.get(i).getStartDate() != null
+										&& pendingList.get(i).getEndDate() != null) {
+									String startDate = pendingList.get(i)
+											.getStartDate()
+											.returnInRecurringFormat();
+									String endDate = pendingList.get(i)
+											.getEndDate()
+											.returnInRecurringFormat();
+									String freq = pendingList.get(i).getTag()
+											.getRepetition();
+									String recurData = "DTSTART;TZID="
+											+ TimeZone.getDefault().getID()
+											+ ":" + startDate + "\r\n"
+											+ "DTEND;TZID="
+											+ TimeZone.getDefault().getID()
+											+ ":" + endDate + "\r\n"
+											+ "RRULE:FREQ="
+											+ freq.toUpperCase();
+									Recurrence rec = new Recurrence();
+									System.out.println("test");
+									rec.setValue(recurData);
+									entries.get(j).setRecurrence(rec);
+								}
+								toBeUpdatedOnGCal.add(entries.get(j));
 							}
-						}
-							toBeUpdatedOnGCal.add(entries.get(j));
+							
 						} else {
-						
 							pendingList.get(i).setWorkInfo(
 									entries.get(j).getTitle().getPlainText());
-							try{
-							pendingList.get(i).setStartDate(
-									new CustomDate(entries.get(j).getTimes()
-											.get(0).getStartTime()));
-							pendingList.get(i).setEndDate(
-									new CustomDate(entries.get(j).getTimes()
-											.get(0).getEndTime()));
-							} catch(IndexOutOfBoundsException e){
-								String recurrenceData = entries.get(j).getRecurrence().getValue();
+							try {
+								pendingList.get(i).setStartDate(
+										new CustomDate(entries.get(j)
+												.getTimes().get(0)
+												.getStartTime()));
+								pendingList.get(i)
+										.setEndDate(
+												new CustomDate(entries.get(j)
+														.getTimes().get(0)
+														.getEndTime()));
+								pendingList.get(i).setTag(
+										new Tag(pendingList.get(i).getTag()
+												.getTag(), "null"));
+							} catch (IndexOutOfBoundsException e) {
+								String recurrenceData = entries.get(j)
+										.getRecurrence().getValue();
+								System.out.println(recurrenceData);
 								int index1 = recurrenceData.indexOf(":");
-								String startDateString = recurrenceData.substring(index1+1,index1+16);
-								int index2 = recurrenceData.indexOf(":", index1 + 1);
-								String endDateString = recurrenceData.substring(index2+1, index2+16);
-								CustomDate startDate = CustomDate.convertFromRecurringDateString(startDateString);
-								CustomDate endDate = CustomDate.convertFromRecurringDateString(endDateString);
-								if(pendingList.get(i).getStartDate() != null && pendingList.get(i).getEndDate() != null){
-								pendingList.get(i).setStartDate(startDate);
-								pendingList.get(i).setEndDate(endDate);
+								String startDateString = recurrenceData
+										.substring(index1 + 1, index1 + 16);
+								int index2 = recurrenceData.indexOf(":",
+										index1 + 1);
+								String endDateString = recurrenceData
+										.substring(index2 + 1, index2 + 16);
+								CustomDate startDate = CustomDate
+										.convertFromRecurringDateString(startDateString);
+								CustomDate endDate = CustomDate
+										.convertFromRecurringDateString(endDateString);
+								if (CustomDate.compare(startDate,
+										new CustomDate()) == 0) {
+									pendingList.get(i).setStartDate(null);
+									pendingList.get(i).setEndDate(null);
+									pendingList.get(i).setTag(
+											new Tag(pendingList.get(i).getTag()
+													.getTag(), "null"));
+								} else {
+									pendingList.get(i).setStartDate(startDate);
+									pendingList.get(i).setEndDate(endDate);
+
+									int freqStartIndex = recurrenceData
+											.indexOf("FREQ=");
+									System.out.println(freqStartIndex);
+									int freqEndIndex;
+									if (recurrenceData.contains("BYDAY")
+											|| recurrenceData
+													.contains("BYMONTHDAY")) {
+										freqEndIndex = recurrenceData.indexOf(
+												";", freqStartIndex);
+									} else {
+										freqEndIndex = recurrenceData.indexOf(
+												"\n", freqStartIndex);
+										if (freqEndIndex == -1)
+											freqEndIndex = recurrenceData
+													.length();
+									}
+
+									System.out.println(freqEndIndex);
+									String freq = recurrenceData.substring(
+											freqStartIndex + 5, freqEndIndex);
+									pendingList.get(i).setTag(
+											new Tag(pendingList.get(i).getTag()
+													.getTag(), freq
+													.toLowerCase()));
+
 								}
 							}
 							pendingList.get(i).updateLatestModifiedDate();
@@ -272,13 +369,6 @@ public class Synchronization {
 			}
 		}
 		updateEvents(service, toBeUpdatedOnGCal, feedURL);
-	}
-	
-	private boolean isFloatingTask(CustomDate startDate, CustomDate endDate){
-		long difference = endDate.getTimeInMillis()/(1000*60) - startDate.getTimeInMillis()/(1000*60);
-		boolean sameHourAsZero = endDate.getHour() == 0 && startDate.getHour() == 0;
-		boolean sameMinuteAsZero = endDate.getMinute() == 0 && startDate.getMinute() == 0;
-		return sameHourAsZero && sameMinuteAsZero && difference == 0;
 	}
 
 	private void syncDeletedTasksToGCal(CalendarService service, Model model,
@@ -344,81 +434,120 @@ public class Synchronization {
 				Task t = new Task();
 				t.setWorkInfo(e.getTitle().getPlainText());
 
-				try{	
-					DateTime start = entries.get(i).getTimes().get(0).getStartTime();
-					DateTime end = entries.get(i).getTimes().get(0).getEndTime();
-					if(!start.isDateOnly()){//date + time
-						t.setStartDate(new CustomDate(entries.get(i).getTimes().get(0).getStartTime()));
-						t.setEndDate(new CustomDate(entries.get(i).getTimes().get(0).getEndTime()));
-					} else {//all day event
-						CustomDate cd1 = new CustomDate(start);
-						System.out.println("start date: "+start.toString());
-						
-						CustomDate cd2 = new CustomDate(end);
-						System.out.println("end date: "+end.toString());
-						
+				try {
+					DateTime start = entries.get(i).getTimes().get(0)
+							.getStartTime();
+					DateTime end = entries.get(i).getTimes().get(0)
+							.getEndTime();
+					CustomDate cd1 = new CustomDate(start);
+					System.out.println("start date: " + start.toString());
+					CustomDate cd2 = new CustomDate(end);
+					System.out.println("end date: " + end.toString());
+					t.setStartDate(cd1);
+					t.setEndDate(cd2);
+
+				} catch (IndexOutOfBoundsException | NullPointerException exc) {
+					String recurData = entries.get(i).getRecurrence()
+							.getValue();
+					System.out.println(recurData);
+
+					if (recurData.contains("VALUE=DATE:")) {// all day recurring
+															// event
+						System.out.println("length: " + recurData.length());
+						int startDateIndex = recurData.indexOf(":");
+						System.out.println("start index: " + startDateIndex);
+						String startDateString = recurData.substring(
+								startDateIndex + 1, startDateIndex + 9);
+						System.out.println("start: " + startDateString);
+						CustomDate cd1 = new CustomDate(
+								startDateString.substring(6, 8) + "/"
+										+ startDateString.substring(4, 6) + "/"
+										+ startDateString.substring(0, 4));
+
+						int endDateIndex = recurData.indexOf(":",
+								startDateIndex + 1);
+						String endDateString = recurData.substring(
+								endDateIndex + 1, endDateIndex + 9);
+						System.out.println("end: " + endDateString);
+						CustomDate cd2 = new CustomDate(
+								endDateString.substring(6, 8) + "/"
+										+ endDateString.substring(4, 6) + "/"
+										+ endDateString.substring(0, 4));
+
 						t.setStartDate(cd1);
 						t.setEndDate(cd2);
-					}
-				} catch(IndexOutOfBoundsException | NullPointerException exc){
-						String recurData = entries.get(i).getRecurrence().getValue();
-						System.out.println(recurData);						
-						
-						if(recurData.contains("VALUE=DATE:")){//all day recurring event
-							System.out.println("length: "+recurData.length());
-							int startDateIndex = recurData.indexOf(":");
-							System.out.println("start index: "+startDateIndex);
-							String startDateString = recurData.substring(startDateIndex+1, startDateIndex+9);
-							System.out.println("start: "+startDateString);
-							CustomDate cd1 = new CustomDate(startDateString.substring(6, 8)+"/"+startDateString.substring(4, 6)+"/"+startDateString.substring(0, 4));
-							
-							int endDateIndex = recurData.indexOf(":", startDateIndex+1);
-							String endDateString = recurData.substring(endDateIndex+1, endDateIndex+9);
-							System.out.println("end: "+endDateString);
-							CustomDate cd2 = new CustomDate(endDateString.substring(6, 8)+"/"+endDateString.substring(4, 6)+"/"+endDateString.substring(0, 4));
-							
-							t.setStartDate(cd1);
-							t.setEndDate(cd2);
-							
-							int freqStartIndex = recurData.indexOf("FREQ=");
-							int freqEndIndex;
-							if(recurData.contains("BYDAY") || recurData.contains("BYMONTHDAY")){
-								freqEndIndex = recurData.indexOf(";", freqStartIndex);								
-							} else {
-								freqEndIndex = recurData.indexOf("\n", freqStartIndex);
-							}
-							String freq = recurData.substring(freqStartIndex+5, freqEndIndex);
-							System.out.println("freq: "+freq);
-							
-							t.setTag(new Tag(Parser.HYPHEN, freq));
-						} else {//timed recurring event
-							int startDateIndex = recurData.indexOf(":");
-							System.out.println("start index: "+startDateIndex);
-							String startDateString = recurData.substring(startDateIndex+1, startDateIndex+16);
-							System.out.println("start: "+startDateString);
-							CustomDate cd1 = new CustomDate(startDateString.substring(6, 8)+"/"+startDateString.substring(4, 6)+"/"+startDateString.substring(0, 4)+" "+startDateString.substring(9, 11)+":"+startDateString.substring(11, 13));
-							
-							int endDateIndex = recurData.indexOf(":", startDateIndex+1);
-							String endDateString = recurData.substring(endDateIndex+1, endDateIndex+16);
-							System.out.println("end: "+endDateString);
-							CustomDate cd2 = new CustomDate(endDateString.substring(6, 8)+"/"+endDateString.substring(4, 6)+"/"+endDateString.substring(0, 4)+" "+endDateString.substring(9, 11)+":"+endDateString.substring(11, 13));
-							
-							t.setStartDate(cd1);
-							t.setEndDate(cd2);
-							
-							int freqStartIndex = recurData.indexOf("FREQ=");
-							int freqEndIndex;
-							if(recurData.contains("BYDAY") || recurData.contains("BYMONTHDAY")){
-								freqEndIndex = recurData.indexOf(";", freqStartIndex);								
-							} else {
-								freqEndIndex = recurData.indexOf("\n", freqStartIndex);
-							}
-							String freq = recurData.substring(freqStartIndex+5, freqEndIndex);
-							System.out.println("freq: "+freq);
-							
-							t.setTag(new Tag(Parser.HYPHEN, freq));
+
+						int freqStartIndex = recurData.indexOf("FREQ=");
+						int freqEndIndex;
+						if (recurData.contains("BYDAY")
+								|| recurData.contains("BYMONTHDAY")) {
+							freqEndIndex = recurData.indexOf(";",
+									freqStartIndex);
+						} else {
+							freqEndIndex = recurData.indexOf("\n",
+									freqStartIndex);
+							if (freqEndIndex == -1)
+								freqEndIndex = recurData.length();
+						}
+						String freq = recurData.substring(freqStartIndex + 5,
+								freqEndIndex);
+						System.out.println("freq: " + freq);
+						t.setTag(new Tag(Parser.HYPHEN, freq.toLowerCase()));
+						if(freq.equals("DAILY")){
+							t.setStartDate(null);
+							t.setEndDate(null);
+							t.setTag(new Tag(Parser.HYPHEN, "null"));
 						}
 						
+						
+					} else {// timed recurring event
+						int startDateIndex = recurData.indexOf(":");
+						System.out.println("start index: " + startDateIndex);
+						String startDateString = recurData.substring(
+								startDateIndex + 1, startDateIndex + 16);
+						System.out.println("start: " + startDateString);
+						CustomDate cd1 = new CustomDate(
+								startDateString.substring(6, 8) + "/"
+										+ startDateString.substring(4, 6) + "/"
+										+ startDateString.substring(0, 4) + " "
+										+ startDateString.substring(9, 11)
+										+ ":"
+										+ startDateString.substring(11, 13));
+
+						int endDateIndex = recurData.indexOf(":",
+								startDateIndex + 1);
+						String endDateString = recurData.substring(
+								endDateIndex + 1, endDateIndex + 16);
+						System.out.println("end: " + endDateString);
+						CustomDate cd2 = new CustomDate(
+								endDateString.substring(6, 8) + "/"
+										+ endDateString.substring(4, 6) + "/"
+										+ endDateString.substring(0, 4) + " "
+										+ endDateString.substring(9, 11) + ":"
+										+ endDateString.substring(11, 13));
+
+						t.setStartDate(cd1);
+						t.setEndDate(cd2);
+
+						int freqStartIndex = recurData.indexOf("FREQ=");
+						int freqEndIndex;
+						if (recurData.contains("BYDAY")
+								|| recurData.contains("BYMONTHDAY")) {
+							freqEndIndex = recurData.indexOf(";",
+									freqStartIndex);
+						} else {
+							freqEndIndex = recurData.indexOf("\n",
+									freqStartIndex);
+							if (freqEndIndex == -1)
+								freqEndIndex = recurData.length();
+						}
+						String freq = recurData.substring(freqStartIndex + 5,
+								freqEndIndex);
+						System.out.println("freq: " + freq);
+
+						t.setTag(new Tag(Parser.HYPHEN, freq.toLowerCase()));
+					}
+
 				}
 				t.setIndexId(e.getId());
 				t.setStatus(Task.Status.UNCHANGED);
@@ -578,16 +707,15 @@ public class Synchronization {
 	 *             Error communicating with the server.
 	 */
 	private CalendarEventEntry createRecurringEvent(CalendarService service,
-			String eventContent, String startDate, String endDate,
-			String freq, String until, URL feedUrl) throws ServiceException, IOException {
-		
-		String recurData = "DTSTART;TZID="+TimeZone.getDefault().getID()+":"
-				+ startDate + "\r\n"
-				+ "DTEND;TZID="+TimeZone.getDefault().getID()+":"
-				+ endDate + "\r\n"
+			String eventContent, String startDate, String endDate, String freq,
+			String until, URL feedUrl) throws ServiceException, IOException {
+
+		String recurData = "DTSTART;TZID=" + TimeZone.getDefault().getID()
+				+ ":" + startDate + "\r\n" + "DTEND;TZID="
+				+ TimeZone.getDefault().getID() + ":" + endDate + "\r\n"
 				+ "RRULE:FREQ=" + freq.toUpperCase();
-		if(until != null){
-			recurData = recurData+";UNTIL="+until;
+		if (until != null) {
+			recurData = recurData + ";UNTIL=" + until;
 		}
 		recurData += "\r\n";
 

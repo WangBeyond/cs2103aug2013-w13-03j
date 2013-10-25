@@ -11,7 +11,7 @@ public class Parser {
 	/* start date keys */
 	static String[] startDateKeys = { "start from", "start at",
 			"start on", "begin from", "begin at", "begin on", "from", "after", "on",
-			"at" };
+			"at"};
 
 	/* end date keys */
 	static String[] endDateKeys = { "end on", "end at", "end by",
