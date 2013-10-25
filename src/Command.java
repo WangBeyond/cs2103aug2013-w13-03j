@@ -17,7 +17,7 @@ public abstract class Command {
 	protected static final String MESSAGE_NO_RESULTS = "Search no results!";
 	protected static final String MESSAGE_SUCCESSFUL_ADD = "One task has been added successfully";
 	protected static final String MESSAGE_INVALID_START_END_DATES = "There must be both start and end dates for repetitive task";
-	protected static final String MESSAGE_INVALID_TIME_REPETITIVE = "Invalid command: The difference between times is larger than the limit of repetitive period";
+	protected static final String MESSAGE_INVALID_TIME_REPETITIVE = "The difference is larger than the limit of repetitive period";
 	protected static final String MESSAGE_SUCCESSFUL_EDIT = "Indicated task has been edited successfully";
 	protected static final String MESSAGE_SUCCESSFUL_REMOVE = "Indicated tasks has/have been removed";
 	protected static final String MESSAGE_INVALID_DATE_RANGE = "Invalid date range as start date is after end date";
@@ -410,7 +410,7 @@ class EditCommand extends TwoWayCommand {
 		boolean hasStartDateKey = !startDateString.equals(Parser.NULL);
 		boolean hasEndDateKey = !endDateString.equals(Parser.NULL);
 		
-		if (!hasRepetitiveKey && !hasWorkInfoKey ) {
+		if (!hasRepetitiveKey && !hasWorkInfoKey) {
 			repeatingType = targetTask.getTag().getRepetition();
 		}
 		if (hasStartDateKey) {
@@ -462,7 +462,7 @@ class EditCommand extends TwoWayCommand {
 				targetTask.getTag().setTag(HYPHEN);
 			}
 		} else {
-			targetTask.setTag(new Tag(HYPHEN, repeatingType));
+			targetTask.setTag(new Tag(targetTask.getTag().getTag(), repeatingType));
 		}
 	}
 	
@@ -1418,6 +1418,7 @@ class SyncCommand extends Command {
 
 	@Override
 	public String execute() {
+		try{
 		System.out.println(username+" "+password);
 		sync.setUsernameAndPassword(username, password);
 		if(calId != null)
@@ -1425,6 +1426,11 @@ class SyncCommand extends Command {
 		String feedback = sync.execute();
 		Control.sortList(model.getPendingList());
 		return feedback;
+		} catch(Exception e){
+			e.printStackTrace();
+			return "haha";
+		}
+	
 	}
 }
 
