@@ -294,33 +294,58 @@ public class CustomDate {
 
 	/******** Get the difference between periods according to the type of repetition ***********/
 	public static long getUpdateDifference(String repetition) {
-		if (isDailyRoutine(repetition)) {
-			return DAY_IN_MILLIS;
-		} else if (isWeeklyRoutine(repetition)) {
-			return WEEK_IN_MILLIS;
-		} else if (isMonthlyRoutine(repetition)) {
-			return MONTH_IN_MILLIS;
-		} else if (isYearlyRoutine(repetition)) {
-			return YEAR_IN_MILLIS;
+		if (isDailyRoutine(repetition)>0) {
+			return DAY_IN_MILLIS * isDailyRoutine(repetition);
+		} else if (isWeeklyRoutine(repetition)>0) {
+			return WEEK_IN_MILLIS * isWeeklyRoutine(repetition);
+		} else if (isMonthlyRoutine(repetition)>0) {
+			return MONTH_IN_MILLIS * isMonthlyRoutine(repetition);
+		} else if (isYearlyRoutine(repetition)>0) {
+			return YEAR_IN_MILLIS * isYearlyRoutine(repetition);
 		} else {
 			return 0;
 		}
 	}
 
-	private static boolean isDailyRoutine(String repetition) {
-		return repetition.equals("daily");
+	private static int isDailyRoutine(String repetition) {
+		String regex = "(every)(\\d+)(days?)";
+		if(repetition.equals("daily"))
+			return 1;
+		else if(repetition.matches(regex)) {
+			System.out.println("regex "+repetition.replaceAll(regex, "$2"));
+			int dayNum = Integer.valueOf(repetition.replaceAll(regex, "$2"));
+			return dayNum;
+		} else return 0;
 	}
 
-	private static boolean isWeeklyRoutine(String repetition) {
-		return repetition.equals("weekly");
+	private static int isWeeklyRoutine(String repetition) {
+		String regex = "(every)(\\d+)(weeks?)";
+		if(repetition.equals("weekly"))
+			return 1;
+		else if(repetition.matches(regex)) {
+			int weekNum = Integer.valueOf(repetition.replaceAll(regex, "$2"));
+			return weekNum;
+		} else return 0;
 	}
 
-	private static boolean isMonthlyRoutine(String repetition) {
-		return repetition.equals("monthly");
+	private static int isMonthlyRoutine(String repetition) {
+		String regex = "(every)(\\d+)(months?)";
+		if(repetition.equals("monthly"))
+			return 1;
+		else if(repetition.matches(regex)) {
+			int monthNum = Integer.valueOf(repetition.replaceAll(regex, "$2"));
+			return monthNum;
+		} else return 0;
 	}
 
-	private static boolean isYearlyRoutine(String repetition) {
-		return repetition.equals("yearly");
+	private static int isYearlyRoutine(String repetition) {
+		String regex = "(every)(\\d+)(years?)";
+		if(repetition.equals("yearly"))
+			return 1;
+		else if(repetition.matches(regex)) {
+			int yearNum = Integer.valueOf(repetition.replaceAll(regex, "$2"));
+			return yearNum;
+		} else return 0;
 	}
 
 	/**
