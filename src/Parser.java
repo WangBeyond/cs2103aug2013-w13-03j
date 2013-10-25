@@ -1,7 +1,9 @@
 import java.util.ArrayList;
+
 import java.util.Collections;
 import java.util.Vector;
 import javafx.collections.ObservableList;
+import java.util.regex.*;
 
 public class Parser {
 	static enum COMMAND_TYPES {
@@ -22,7 +24,7 @@ public class Parser {
 			"yearly", "annually", "every monday", "every tuesday",
 			"every wednesday", "every thursday", "every friday",
 			"every saturday", "every sunday", "every day", "every month",
-			"every year", "everyday", "every week" };
+			"every year", "everyday", "every week", "every\\s+\\d+\\s+(days?|weeks?|months?|years?)" };
 	
 	private static String[] occurenceKeys = { "time", "times" };
 	
@@ -628,37 +630,22 @@ public class Parser {
 	 */
 	private static String[] getRepeatingType(String commandString) {
 		String repeatingKey = Parser.NULL;
-		boolean isOccurence = false;
 		for (int i = 0; i < repeatingKeys.length; i++) {
-			if (commandString.toLowerCase().contains(repeatingKeys[i])) {
+			String regex = "\\s+"+repeatingKeys[i]+"(\\s+\\d+\\s+times?)?";
+		    Pattern pattern = Pattern.compile(regex);
+		    Matcher matcher = pattern.matcher(commandString);
+			while (matcher.find()) {
 				if (repeatingKey.equals(Parser.NULL))
-					repeatingKey = repeatingKeys[i];
-				else
+					repeatingKey = matcher.group();
+				else {
 					throw new IllegalArgumentException(
 							"Invalid Command: More than 1 repetitive signals");
-				break;
+				}
 			}		
 		}
-		if(!repeatingKey.equals(Parser.NULL)) {
-			int repeatingIndex = commandString.indexOf(repeatingKey);
-			int remainIndex = repeatingIndex + repeatingKey.length();
-			String remainInfo = commandString.substring(remainIndex);
-			String[] splitRemainInfo = splitBySpace(remainInfo);
-			try {
-				Integer.valueOf(splitRemainInfo[0]);
-				for( String key : occurenceKeys ) {
-					if(splitRemainInfo[1].equals(key)) {
-						int endIndex = remainInfo.indexOf(key) + key.length();
-						repeatingKey = commandString.substring(repeatingIndex, remainIndex + endIndex);
-						isOccurence = true;
-						break;
-					}
-				}
-			} catch (NumberFormatException e) {		
-			}
+		if(!repeatingKey.equals(Parser.NULL))
 			commandString = commandString.replace(repeatingKey, "");
-		}
-		return new String[] { commandString, repeatingKey };
+		return new String[] { commandString, repeatingKey.trim() };
 	}
 
 	/**

@@ -318,7 +318,7 @@ class AddCommand extends TwoWayCommand {
 			splitRepeatingInfo();
 		checkInvalidDates(isRepetitive, hasStartDate, hasEndDate, task.getStartDate(), task.getEndDate(), repeatingType);
 		
-		setTag(isRepetitive);
+		setTag();
 		if (isRepetitive) {
 			task.updateDateForRepetitiveTask();
 		}
@@ -340,24 +340,20 @@ class AddCommand extends TwoWayCommand {
 	}
 	
 	private void splitRepeatingInfo() {
-		String remainInfo = null;
-		for( String key : Parser.repeatingKeys ) {
-			if(repeatingType.contains(key)) {	
-				remainInfo = repeatingType.replace(key, "");
-				repeatingType = key;
-				break;
-			}
-		}
-		int num;
-		try {
-			num = Integer.valueOf(Parser.getFirstWord(remainInfo));
+		String pattern = "(.*)(\\s+)(\\d+)(\\s+times?.*)";
+		if(repeatingType.matches(pattern)) {
+			int num = Integer.valueOf(repeatingType.replaceAll(pattern,"$3"));
 			task.setNumOccurrences(num);
-		} catch(Exception e) {
+			repeatingType = repeatingType.replaceAll(pattern, "$1");
+
+		} else 
 			task.setNumOccurrences(0);
+		if(repeatingType.matches("every\\s+\\d+\\s+(hours?|days?|weeks?|months?|years?)")) {
+			repeatingType = repeatingType.replaceAll("\\s+", "");
 		}
 	}
 	
-	private void setTag(boolean isRepetitive){
+	private void setTag(){
 		if (tag.equals(Parser.NULL) || tag.equals(HASH_TAG)) {
 				task.setTag(new Tag(Parser.HYPHEN, repeatingType));
 		} else {
@@ -1419,7 +1415,6 @@ class SyncCommand extends Command {
 	@Override
 	public String execute() {
 		try{
-		System.out.println(username+" "+password);
 		sync.setUsernameAndPassword(username, password);
 		if(calId != null)
 			sync.setCalendarID(calId);
