@@ -43,6 +43,7 @@ class History {
 	}
 	
 	public TwoWayCommand getPrevCommandForUndo() {
+		assert undoable == true;
 		TwoWayCommand previousCommand = prevCommandsForUndo.pop();
 		prevCommandsForRedo.push(previousCommand);
 		log.log(Level.INFO, "Moved one previous command from undo to redo.");
@@ -54,6 +55,7 @@ class History {
 	}
 	
 	public TwoWayCommand getPrevCommandForRedo(){
+		assert redoable == true;
 		TwoWayCommand previousCommand = prevCommandsForRedo.pop();
 		prevCommandsForUndo.push(previousCommand);
 		log.log(Level.INFO, "Moved one previous command from redo to undo.");

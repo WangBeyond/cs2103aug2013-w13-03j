@@ -31,6 +31,7 @@ public class Login {
 	private final KeyCombination cancelLogin = new KeyCodeCombination(KeyCode.ESCAPE);
 	
 	private static Login oneLoginPage;
+	private SyncStore syncStore;
 	
 	private Scene loginScene;
 	private Stage loginStage;
@@ -42,16 +43,15 @@ public class Login {
 	private TextField googleAccountTextfield;
 	private PasswordField pwBox;
 	private PasswordField pwRetypeBox;
-	private SyncStore syncStore;
 	
 	private Login(SyncStore syncStore){
+		this.syncStore = syncStore;
 		setupStage();
 		setupForm();
 		setupButtons();
 		setupScene();
 		setupDraggable();
 		setupShortcuts();
-		this.syncStore = syncStore;
 	}
 	
 	public static Login getInstanceLogin(SyncStore syncStore){
@@ -133,7 +133,9 @@ public class Login {
 		saveButton.setTranslateX(-120);
 		saveButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
 			public void handle(MouseEvent e) {
-				storeUserInfo();
+				if (storeUserInfo()){
+					loginStage.close();
+				} 
 			}
 		});
 		
@@ -172,6 +174,7 @@ public class Login {
 		String account = googleAccountTextfield.getText();
 		String pw = pwBox.getText();
 		String pwRetype = pwRetypeBox.getText();
+		
 		if(account != null){
 			if (pw != null && pwRetype != null && pw.equals(pwRetype)) {
 				syncStore.storeAccount(account, pw);
