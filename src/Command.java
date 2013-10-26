@@ -259,6 +259,7 @@ class AddCommand extends TwoWayCommand {
 	private String endDateString;
 	private boolean isImptTask;
 	private String repeatingType;
+	private String processedRepeatingType;
 	private Task task;
 
 	public AddCommand(String[] parsedUserCommand, Model model, int tabIndex) throws IllegalArgumentException {
@@ -276,6 +277,7 @@ class AddCommand extends TwoWayCommand {
 	public String execute() {
 		task = new Task();
 		task.setWorkInfo(workInfo);
+		processedRepeatingType = repeatingType;
 		boolean isRepetitive = !repeatingType.equals(Parser.NULL);
 		boolean hasStartDate = !startDateString.equals(Parser.NULL);
 		boolean hasEndDate = !endDateString.equals(Parser.NULL);
@@ -314,9 +316,10 @@ class AddCommand extends TwoWayCommand {
 		} else {
 			
 		}
-		if(isRepetitive)
+		if(isRepetitive) {
 			splitRepeatingInfo();
-		checkInvalidDates(isRepetitive, hasStartDate, hasEndDate, task.getStartDate(), task.getEndDate(), repeatingType);
+		}
+		checkInvalidDates(isRepetitive, hasStartDate, hasEndDate, task.getStartDate(), task.getEndDate(), processedRepeatingType);
 		
 		setTag();
 		if (isRepetitive) {
@@ -342,22 +345,22 @@ class AddCommand extends TwoWayCommand {
 	private void splitRepeatingInfo() {
 		String pattern = "(.*)(\\s+)(\\d+)(\\s+times?.*)";
 		if(repeatingType.matches(pattern)) {
-			int num = Integer.valueOf(repeatingType.replaceAll(pattern,"$3"));
+			int num = Integer.valueOf(processedRepeatingType.replaceAll(pattern,"$3"));
 			task.setNumOccurrences(num);
-			repeatingType = repeatingType.replaceAll(pattern, "$1");
+			processedRepeatingType = processedRepeatingType.replaceAll(pattern, "$1");
 
 		} else 
 			task.setNumOccurrences(0);
-		if(repeatingType.matches("every\\s+\\d+\\s+(hours?|days?|weeks?|months?|years?)")) {
-			repeatingType = repeatingType.replaceAll("\\s+", "");
+		if(processedRepeatingType.matches("every\\s+\\d+\\s+(hours?|days?|weeks?|months?|years?)")) {
+			processedRepeatingType = processedRepeatingType.replaceAll("\\s+", "");
 		}
 	}
 	
 	private void setTag(){
 		if (tag.equals(Parser.NULL) || tag.equals(HASH_TAG)) {
-				task.setTag(new Tag(Parser.HYPHEN, repeatingType));
+				task.setTag(new Tag(Parser.HYPHEN, processedRepeatingType));
 		} else {
-				task.setTag(new Tag(tag, repeatingType));
+				task.setTag(new Tag(tag, processedRepeatingType));
 		}
 	}
 }
