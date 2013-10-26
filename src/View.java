@@ -88,7 +88,8 @@ public class View implements HotkeyListener {
 			KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN);
 	final KeyCombination changeTab = new KeyCodeCombination(KeyCode.TAB,
 			KeyCombination.CONTROL_DOWN);
-
+	final KeyCombination help = new KeyCodeCombination(KeyCode.F1);
+	
 	public Help helpPage;
 	public Settings settingsPage;
 	public Login loginPage;
@@ -182,7 +183,7 @@ public class View implements HotkeyListener {
 	}
 
 	private void setupHelpPage() {
-		helpPage = new Help();
+		helpPage = Help.getInstanceHelp();
 	}
 
 	public void showHelpPage() {
@@ -197,7 +198,7 @@ public class View implements HotkeyListener {
 	}
 
 	private void setupSettingsPage() {
-		settingsPage = new Settings();
+		settingsPage = Settings.getInstanceSettings(syncStore);
 	}
 
 	public void showSettingsPage() {
@@ -237,6 +238,8 @@ public class View implements HotkeyListener {
 					expandAnimation();
 				} else if (hideWindow.match(e)) {
 					hide();
+				} else if (help.match(e)) {
+					showHelpPage();
 				} else if (e.getCode() == KeyCode.BACK_SPACE) {
 					textField.setJDialogOnTop();
 					txt.requestFocus();

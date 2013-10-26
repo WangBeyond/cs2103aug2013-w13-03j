@@ -1418,12 +1418,12 @@ class SyncCommand extends Command {
 	@Override
 	public String execute() {
 		try{
-		sync.setUsernameAndPassword(username, password);
-		if(calId != null)
-			sync.setCalendarID(calId);
-		String feedback = sync.execute();
-		Control.sortList(model.getPendingList());
-		return feedback;
+			sync.setUsernameAndPassword(username, password);
+			if(calId != null)
+				sync.setCalendarID(calId);
+			String feedback = sync.execute();
+			Control.sortList(model.getPendingList());
+			return feedback;
 		} catch(Exception e){
 			e.printStackTrace();
 			return "haha";

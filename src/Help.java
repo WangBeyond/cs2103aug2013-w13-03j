@@ -24,6 +24,8 @@ public class Help{
 	private final KeyCombination backPage = new KeyCodeCombination(KeyCode.LEFT, KeyCombination.CONTROL_DOWN);
 	private final KeyCombination esc = new KeyCodeCombination(KeyCode.ESCAPE);
 	
+	private static Help oneHelpPage;
+	
 	private Scene helpScene;
 	private Stage helpStage;
 	private Group root;
@@ -35,13 +37,20 @@ public class Help{
 	private double dragAnchorX;
 	private double dragAnchorY;
 	
-	public Help(){	
+	private Help(){	
 		setupInitialStage();
 		setupButtons();
 		changeToFirstPage();	
 		setupScene();
 		setupShortcuts();
 		setupDraggable();
+	}
+	
+	public static Help getInstanceHelp(){
+		if (oneHelpPage == null){
+			oneHelpPage = new Help();
+		}		
+		return oneHelpPage;
 	}
 	
 	public void showHelpPage(){

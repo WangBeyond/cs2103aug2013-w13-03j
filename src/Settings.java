@@ -25,8 +25,13 @@ import javafx.stage.StageStyle;
 // Pop up settings dialog.
 public class Settings {
 
+	static final boolean STORE_SUCCESSFUL = true;
+	static final boolean STORE_FAIL = false;
 	private final KeyCombination esc = new KeyCodeCombination(KeyCode.ESCAPE);
 	private final KeyCombination saveSettings = new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN);
+	
+	private static Settings oneSettingsPage;
+	private SyncStore syncStore;
 	
 	private Stage settingsStage;
 	private Scene settingsScene;
@@ -35,14 +40,25 @@ public class Settings {
 	private Group buttons;
 	private double dragAnchorX;
 	private double dragAnchorY;
+	private TextField googleAccountTextfield;
+	private PasswordField pwBox;
+	private PasswordField pwRetypeBox;
 	
-	public Settings(){
+	private Settings(SyncStore syncStore){
+		this.syncStore = syncStore;
 		setupStage();
 		setupContent();
 		setupButtons();
 		setupScene();
 		setupShortcuts();
 		setupDraggable();
+	}
+	
+	public static Settings getInstanceSettings(SyncStore syncStore){
+		if (oneSettingsPage == null){
+			oneSettingsPage = new Settings(syncStore);
+		}		
+		return oneSettingsPage;
 	}
 	
 	public void showSettingsPage(){
@@ -61,18 +77,18 @@ public class Settings {
 	private void setupTextfields(){
 		Label googleAccount = new Label("Google account:");
 		grid.add(googleAccount, 0, 1);
-		TextField googleAccountTextfield = new TextField();
+		googleAccountTextfield = new TextField();
 		googleAccountTextfield.setId("input");
 		grid.add(googleAccountTextfield, 1, 1);
 
 		Label pw = new Label("Password:");
 		grid.add(pw, 0, 2);
-		PasswordField pwBox = new PasswordField();
+		pwBox = new PasswordField();
 		grid.add(pwBox, 1, 2);
 		
 		Label pwRetype = new Label("Retype password:");
 		grid.add(pwRetype, 0, 3);
-		PasswordField pwRetypeBox = new PasswordField();
+		pwRetypeBox = new PasswordField();
 		grid.add(pwRetypeBox, 1, 3);
 	}
 	
@@ -121,6 +137,23 @@ public class Settings {
 		buttons.setLayoutY(375);
 	}
 	
+	private boolean storeSettingChanges(){
+		String account = googleAccountTextfield.getText();
+		String pw = pwBox.getText();
+		String pwRetype = pwRetypeBox.getText();
+		
+		if(account != null){
+			if (pw != null && pwRetype != null && pw.equals(pwRetype)) {
+				syncStore.storeAccount(account, pw);
+				return STORE_SUCCESSFUL;
+			} else {
+				pwRetypeBox.clear();
+				pwRetypeBox.setPromptText("Passwords do not match!");
+			}
+		}
+		return STORE_FAIL;
+	}
+	
 	private Button setupSaveButton(){
 		Button saveButton = new Button("");
 		saveButton.setId("save");
@@ -128,7 +161,9 @@ public class Settings {
 		saveButton.setTranslateX(-120);
 		saveButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
 			public void handle(MouseEvent e) {
-				// TODO: save changes
+				if (storeSettingChanges()){
+					settingsStage.close();
+				} 
 			}
 		});
 		
@@ -154,7 +189,9 @@ public class Settings {
 				if (esc.match(e)) {
 					settingsStage.close();
 				} else if (saveSettings.match(e)){
-					// TODO: save changes
+					if (storeSettingChanges()){
+						settingsStage.close();
+					} 
 				}
 			}
 		});

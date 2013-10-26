@@ -582,8 +582,10 @@ public class Control extends Application {
 			dataFile.storeToFile();
 			view.setTab(0);
 			executeShowCommand();
+		} /*else if (feedback.equals(Command.MESSAGE_SYNC_INVALID_USERNAME_PASSWORD)){
+			view.showSettingsPage();
 		}
-		return feedback;
+	*/	return feedback;
 	}
 
 	private String executeExitCommand() {
