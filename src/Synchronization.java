@@ -22,6 +22,8 @@ import com.google.gdata.data.calendar.CalendarEventFeed;
 import com.google.gdata.data.calendar.HiddenProperty;
 import com.google.gdata.data.calendar.TimeZoneProperty;
 import com.google.gdata.data.extensions.Recurrence;
+import com.google.gdata.data.extensions.Reminder;
+import com.google.gdata.data.extensions.Reminder.Method;
 import com.google.gdata.data.extensions.When;
 import com.google.gdata.util.AuthenticationException;
 import com.google.gdata.util.ServiceException;
@@ -32,6 +34,7 @@ public class Synchronization {
 	private static final String CALENDAR_TITLE = "iDo";
 	private static final String CALENDAR_SUMMARY = "This calendar synchronizes with iDo Task Manager.";
 	private static final String SERVICE_NAME = "sg.edu.nus.cs2103aug2013-w13-03j";
+	private static final int REMINDER_MINUTES = 30;
 
 	/* use username and password to login */
 	String username = null;
@@ -198,6 +201,9 @@ public class Synchronization {
 						throw new Error("date format error");
 					}
 
+				}
+				if(task.getIsImportant()){//add reminder to important task
+					setReminder(e);
 				}
 				task.setIndexId(e.getId());
 				task.setStatus(Task.Status.UNCHANGED);
@@ -629,9 +635,6 @@ public class Synchronization {
 		myEntry.setTitle(new PlainTextConstruct(title));
 		myEntry.setQuickAdd(isQuickAdd);
 
-		// If a recurrence was requested, add it. Otherwise, set the
-		// time (the current date and time) and duration (30 minutes)
-		// of the event.
 		if (recurData == null) {
 			DateTime startTime = startDate.returnInDateTimeFormat();
 			DateTime endTime = endDate.returnInDateTimeFormat();
@@ -644,7 +647,7 @@ public class Synchronization {
 			recur.setValue(recurData);
 			myEntry.setRecurrence(recur);
 		}
-
+		
 		// Send the request and receive the response:
 		return service.insert(feedUrl, myEntry);
 	}
@@ -820,6 +823,24 @@ public class Synchronization {
 		if (isSuccess) {
 			System.out
 					.println("Successfully updated all events via batch request.");
+		}
+	}
+	
+	private void setReminder(CalendarEventEntry event){
+		Reminder r = new Reminder();
+		Method m = Method.ALERT;
+		
+		r.setMinutes(REMINDER_MINUTES);
+		r.setMethod(m);
+		event.getReminder().add(r);
+		try {
+			event.update();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ServiceException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 }
