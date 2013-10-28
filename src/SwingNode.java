@@ -1,6 +1,9 @@
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dialog;
+import java.awt.MouseInfo;
+import java.awt.Point;
+import java.awt.PointerInfo;
 import java.awt.Rectangle;
 import java.awt.Window;
 import java.awt.event.FocusEvent;
@@ -11,6 +14,7 @@ import java.awt.event.WindowListener;
 import java.lang.reflect.InvocationTargetException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -18,6 +22,8 @@ import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.layout.Region;
 import javafx.stage.Stage;
+
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
@@ -41,7 +47,9 @@ public class SwingNode extends Region {
     static public int STAGE_BORDER_X = 8;
     static public int STAGE_BORDER_Y = 30;
     JDialog jDialog;
+    Component comp;
     Stage stage;
+    int temp;
     ChangeListener<Number> changeListenerH;
     ChangeListener<Bounds> changeListenerBIL;
     ChangeListener<Number> changeListenerW;
@@ -50,7 +58,9 @@ public class SwingNode extends Region {
     JFrame jFrameParent;
 
     public SwingNode(Stage orgStage, final Component jcomponent) {
-        this(orgStage, jcomponent, STAGE_BORDER_X, STAGE_BORDER_X);
+      
+    	this(orgStage, jcomponent, STAGE_BORDER_X, STAGE_BORDER_X);
+    	
     }
     
     public void setJDialogOnTop(){
@@ -173,8 +183,27 @@ public class SwingNode extends Region {
                     @Override
                     public void run() {
                         setSwingComponentAlwaysOnTop(newValue.booleanValue());
+                       if(newValue.booleanValue() == false){
+                    	   if(temp != 1){
+                    		   PointerInfo a = MouseInfo.getPointerInfo();
+                    		   Point b = a.getLocation();
+                    		   double x = b.getX();
+                    		   double y =  b.getY();
+                    		   boolean check1 = x < stage.getX();
+                    		   boolean check2 = x > stage.getX() + stage.getWidth();
+                    		   boolean check3 = y < stage.getY();
+                    		   boolean check4 = y > stage.getY() + stage.getHeight();
+                    		   if(check1 || check2 || check3 || check4){
+                    			   jDialog.toBack();
+                    			   stage.toBack();
+                    		   }
+                    		   	
+                    	   }
+                       }
+                       temp = 0;
                     }
                 });
+               
             }
         });
         
@@ -211,7 +240,7 @@ public class SwingNode extends Region {
         jDialog.getContentPane().add(comp);
 
         jDialog.setType(Window.Type.UTILITY);
-        jDialog.setModalExclusionType(Dialog.ModalExclusionType.APPLICATION_EXCLUDE);
+        jDialog.setModalExclusionType(Dialog.ModalExclusionType.NO_EXCLUDE);
 
         jDialog.setResizable(false);
         jDialog.setFocusable(true);
@@ -226,7 +255,6 @@ public class SwingNode extends Region {
             	Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
-                        
                         stage.toFront();
                   
                     }
@@ -236,10 +264,12 @@ public class SwingNode extends Region {
 
             @Override
             public void windowClosing(WindowEvent e) {
+            
             }
 
             @Override
             public void windowClosed(WindowEvent e) {
+            
             }
 
             @Override
@@ -252,44 +282,23 @@ public class SwingNode extends Region {
 
             @Override
             public void windowActivated(WindowEvent e) {
-            	  setSwingComponentAlwaysOnTop(true);
-            	Platform.runLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        setStageToFront();
-                    }
-                });
+            	 
             }
 
             @Override
             public void windowDeactivated(WindowEvent e) {
-                setSwingComponentAlwaysOnTop(false);
+             
             }
         });
-
-        // Focus
-        jDialog.getContentPane().addFocusListener(new FocusListener() {
-            @Override
-            public void focusGained(FocusEvent e) {
-                setSwingComponentAlwaysOnTop(true);
-                Platform.runLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        setStageToFront();
-                    }
-                });
-            }
-
-            @Override
-            public void focusLost(FocusEvent e) {
-            	setSwingComponentAlwaysOnTop(false);
-            }
-        });
+      
         /* Window Focus */
         jDialog.addWindowFocusListener(new WindowFocusListener() {
             @Override
             public void windowGainedFocus(WindowEvent e) {
+              
+            
                 setSwingComponentAlwaysOnTop(true);
+          
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
