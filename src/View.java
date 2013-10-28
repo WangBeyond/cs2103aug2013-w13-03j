@@ -222,7 +222,7 @@ public class View implements HotkeyListener {
 					txt.setCaretColor(java.awt.Color.white);
 			}
 		});
-
+		
 		root.setOnKeyPressed(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent e) {
 				if (changeTab.match(e)) {
@@ -241,6 +241,7 @@ public class View implements HotkeyListener {
 				} else if (help.match(e)) {
 					showHelpPage();
 				} else if (e.getCode() == KeyCode.BACK_SPACE) {
+					textField.temp = 1;
 					textField.setJDialogOnTop();
 					txt.requestFocus();
 					int pos = txt.getCaretPosition();
@@ -250,18 +251,21 @@ public class View implements HotkeyListener {
 						txt.setCaretPosition(pos - 1);
 					}
 				} else if (e.getCode() == KeyCode.RIGHT) {
+					textField.temp = 1;
 					textField.setJDialogOnTop();
 					txt.requestFocus();
 					int pos = txt.getCaretPosition();
 					if (pos != txt.getText().length())
 						txt.setCaretPosition(pos + 1);
 				} else if (e.getCode() == KeyCode.LEFT) {
+					textField.temp = 1;
 					textField.setJDialogOnTop();
 					txt.requestFocus();
 					int pos = txt.getCaretPosition();
 					if (pos != 0)
 						txt.setCaretPosition(pos - 1);
 				} else {
+					textField.temp = 1;
 					textField.setJDialogOnTop();
 					txt.requestFocus();
 					if (e.getCode() != KeyCode.ENTER) {
@@ -281,7 +285,6 @@ public class View implements HotkeyListener {
 					Boolean oldVal, Boolean newVal) {
 				if (newVal.booleanValue() == true) {
 					root.requestFocus();
-					textField.setSwingComponentAlwaysOnTop(false);
 				}
 			}
 		});
@@ -526,6 +529,8 @@ public class View implements HotkeyListener {
 		root.setOnMousePressed(new EventHandler<MouseEvent>() {
 			@Override
 			public void handle(MouseEvent me) {
+				if(me.getScreenX() < stage.getX())
+					System.out.println("bleble");
 				dragAnchorX = me.getScreenX() - stage.getX();
 				dragAnchorY = me.getScreenY() - stage.getY();
 			}
