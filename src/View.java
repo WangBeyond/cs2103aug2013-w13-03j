@@ -38,16 +38,20 @@ import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.control.ScrollBar;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabBuilder;
 import javafx.scene.control.TabPane;
@@ -381,6 +385,8 @@ public class View implements HotkeyListener {
 		root = BorderPaneBuilder.create().top(top).center(center)
 				.bottom(bottom).build();
 		root2.getChildren().addAll(textField, root);
+		
+		
 	}
 
 	private void setFont(JTextPane txt) {
@@ -428,6 +434,18 @@ public class View implements HotkeyListener {
 		showOrHide.setId("larger");
 		txt.requestFocus();
 		txt.setCaretPosition(txt.getText().length());
+		taskPendingList.addEventFilter( KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
+		    @Override
+		public void handle(KeyEvent event) {
+
+		    if (event.getEventType() == KeyEvent.KEY_PRESSED){
+		        // Consume Event before Bubbling Phase, -> otherwise Scrollpane scrolls
+		        if ( event.getCode() == KeyCode.DOWN ){ 
+		            event.consume();
+		        }
+		    }
+		    }
+		});
 	}
 
 	public void customizeGUI() {
@@ -636,20 +654,21 @@ public class View implements HotkeyListener {
 
 	public void createTable(TableView<Task> taskList, ObservableList<Task> list) {
 		taskList.setItems(list);
+		taskList.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 		final Text emptyTableSign = new Text(
 				"There is currently no task in this tab");
 		emptyTableSign.setFont(new Font(15));
 		emptyTableSign.getStyleClass().add("text");
 		taskList.setPlaceholder(emptyTableSign);
-		TableColumn<Task, String> indexColumn = createIndexColumn();
-		TableColumn<Task, String> occurrenceColumn = createOccurrenceColumn();
-		TableColumn<Task, String> taskInfoColumn = createTaskInfoColumn();
-		TableColumn<Task, Tag> tagColumn = createTagColumn();
-		TableColumn<Task, String> startDateColumn = createStartDateColumn();
-		TableColumn<Task, String> endDateColumn = createEndDateColumn();
-		TableColumn<Task, RowStatus> rowStatusColumn = createRowStatusColumn();
+		final TableColumn<Task, String> indexColumn = createIndexColumn();
+		final TableColumn<Task, String> occurrenceColumn = createOccurrenceColumn();
+		final TableColumn<Task, String> taskInfoColumn = createTaskInfoColumn();
+		final TableColumn<Task, Tag> tagColumn = createTagColumn();
+		final TableColumn<Task, String> startDateColumn = createStartDateColumn();
+		final TableColumn<Task, String> endDateColumn = createEndDateColumn();
+		final TableColumn<Task, RowStatus> rowStatusColumn = createRowStatusColumn();
 
-		ObservableList<TableColumn<Task, ?>> columns = taskList.getColumns();
+		final ObservableList<TableColumn<Task, ?>> columns = taskList.getColumns();
 		columns.add(indexColumn);
 		columns.add(occurrenceColumn);
 		columns.add(taskInfoColumn);
@@ -657,11 +676,27 @@ public class View implements HotkeyListener {
 		columns.add(endDateColumn);
 		columns.add(tagColumn);
 		columns.add(rowStatusColumn);
+		columns.addListener(new ListChangeListener<TableColumn<Task, ?>>() {
+	        @Override
+	        public void onChanged(Change<? extends TableColumn<Task, ?> > change) {
+	          change.next();
+	          if(change.wasReplaced()) {
+	              columns.clear();
+	            columns.add(indexColumn);
+	      		columns.add(occurrenceColumn);
+	      		columns.add(taskInfoColumn);
+	      		columns.add(startDateColumn);
+	      		columns.add(endDateColumn);
+	      		columns.add(tagColumn);
+	      		columns.add(rowStatusColumn);
+	          }
+	        }
+	    });
 	}
 
 	private TableColumn<Task, RowStatus> createRowStatusColumn() {
 		TableColumn<Task, RowStatus> tempColumn = TableColumnBuilder
-				.<Task, RowStatus> create().visible(true).text("").prefWidth(1)
+				.<Task, RowStatus> create().resizable(false).visible(true).text("").prefWidth(1)
 				.build();
 		setupRowStatusProperty(tempColumn);
 		setupRowStatusUpdateFormat(tempColumn);
@@ -744,7 +779,7 @@ public class View implements HotkeyListener {
 
 	private TableColumn<Task, String> createIndexColumn() {
 		TableColumn<Task, String> tempColumn = TableColumnBuilder
-				.<Task, String> create().visible(true).text("").prefWidth(28)
+				.<Task, String> create().resizable(false).visible(true).text("").prefWidth(28)
 				.sortable(false).resizable(false).build();
 		setupEndDateProperty(tempColumn);
 		setupIndexUpdateFormat(tempColumn);
@@ -774,7 +809,7 @@ public class View implements HotkeyListener {
 
 	private TableColumn<Task, String> createOccurrenceColumn() {
 		TableColumn<Task, String> tempColumn = TableColumnBuilder
-				.<Task, String> create().visible(true).text("").prefWidth(28)
+				.<Task, String> create().resizable(false).visible(true).text("").prefWidth(28)
 				.sortable(false).resizable(false).build();
 		setupOccurrenceProperty(tempColumn);
 		setupOccurrenceUpdateFormat(tempColumn);
@@ -817,7 +852,7 @@ public class View implements HotkeyListener {
 
 	private TableColumn<Task, String> createEndDateColumn() {
 		TableColumn<Task, String> tempColumn = TableColumnBuilder
-				.<Task, String> create().text("End").sortable(false)
+				.<Task, String> create().resizable(false).text("End").sortable(false)
 				.resizable(false).prefWidth(110).build();
 
 		setupEndDateProperty(tempColumn);
@@ -860,7 +895,7 @@ public class View implements HotkeyListener {
 
 	private TableColumn<Task, String> createStartDateColumn() {
 		TableColumn<Task, String> tempColumn = TableColumnBuilder
-				.<Task, String> create().text("Start").prefWidth(110)
+				.<Task, String> create().resizable(false).text("Start").prefWidth(110)
 				.resizable(false).sortable(false).build();
 
 		setupStartDateProperty(tempColumn);
@@ -895,7 +930,7 @@ public class View implements HotkeyListener {
 
 	private TableColumn<Task, Tag> createTagColumn() {
 		TableColumn<Task, Tag> tempColumn = TableColumnBuilder
-				.<Task, Tag> create().text("Tag").sortable(false)
+				.<Task, Tag> create().resizable(false).text("Tag").sortable(false)
 				.resizable(false).prefWidth(110).build();
 
 		setupTagProperty(tempColumn);
@@ -957,7 +992,7 @@ public class View implements HotkeyListener {
 
 	private TableColumn<Task, String> createTaskInfoColumn() {
 		TableColumn<Task, String> tempColumn = TableColumnBuilder
-				.<Task, String> create().text("Task").sortable(false)
+				.<Task, String> create().resizable(false).text("Task").sortable(false)
 				.prefWidth(300).build();
 
 		setupTaskInfoProperty(tempColumn);
