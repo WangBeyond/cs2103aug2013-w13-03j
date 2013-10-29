@@ -133,7 +133,9 @@ public class View implements HotkeyListener {
 	private static Color IDO_GREEN = Color.rgb(130, 255, 121);
 	private static final String WELCOME_MESSAGE = "Welcome back, %s";
 	// private HBox multiColorCommand;
-
+	ScrollBar pendingBar;
+	ScrollBar completeBar;
+	ScrollBar trashBar;
 	// The 3 sections
 	VBox bottom;
 	HBox center;
@@ -169,10 +171,10 @@ public class View implements HotkeyListener {
 		hideInSystemTray();
 		Platform.setImplicitExit(false);
 		createContent();
-		setupShortcuts();
 		setDraggable();
 		showLoginPage();
 		setupScene();
+		setupShortcuts();
 		showInitialMessage();
 	}
 	
@@ -221,8 +223,71 @@ public class View implements HotkeyListener {
 		settingsPage.showSettingsPage();
 	}
 
-	private void setupShortcuts() {
+	private void setupScrollBar(){
+		for (Node n: taskPendingList.lookupAll(".scroll-bar")) {
+			  if (n instanceof ScrollBar) {
+			    pendingBar = (ScrollBar) n;
+			    if(pendingBar.getOrientation() == Orientation.VERTICAL)
+			    	break;
+			 }
+		}
+		
+		for (Node n: taskCompleteList.lookupAll(".scroll-bar")) {
+			  if (n instanceof ScrollBar) {
+			    completeBar = (ScrollBar) n;
+			    if(completeBar.getOrientation() == Orientation.VERTICAL)
+			    	break;
+			 }
+		}
+		
+		for (Node n: taskTrashList.lookupAll(".scroll-bar")) {
+			  if (n instanceof ScrollBar) {
+			    trashBar = (ScrollBar) n;
+			    if(trashBar.getOrientation() == Orientation.VERTICAL)
+			    	break;
+			 }
+		}
+		
+		InputMap map = txt.getInputMap();
+		KeyStroke scrollUpKey = KeyStroke.getKeyStroke(com.sun.glass.events.KeyEvent.VK_UP, 0);
+		Action scrollUpAction = new AbstractAction() {
+			@Override
+			public void actionPerformed(java.awt.event.ActionEvent e) {
+				Platform.runLater(new Runnable() {
+					@Override
+					public void run() {
+						if(getTabIndex() == 0 && pendingBar.getValue() > pendingBar.getMin())
+							pendingBar.setValue(pendingBar.getValue() - 0.05);
+						else if(getTabIndex() == 1 && completeBar.getValue() > completeBar.getMin())
+							completeBar.setValue(completeBar.getValue() - 0.05);
+						else if(getTabIndex() == 2 && trashBar.getValue() > trashBar.getMin())
+							trashBar.setValue(trashBar.getValue() - 0.05);
+					}
+				});
+			}
+		};
+		map.put(scrollUpKey, scrollUpAction);
+		
+		KeyStroke scrollDownKey = KeyStroke.getKeyStroke(com.sun.glass.events.KeyEvent.VK_DOWN, 0);
+		Action scrollDownAction = new AbstractAction() {
+			@Override
+			public void actionPerformed(java.awt.event.ActionEvent e) {
+				Platform.runLater(new Runnable() {
+					@Override
+					public void run() {
+						if(getTabIndex() == 0 && pendingBar.getValue() < pendingBar.getMax())
+							pendingBar.setValue(pendingBar.getValue() + 0.05);
+						else if(getTabIndex() == 1 && completeBar.getValue() < completeBar.getMax())
+							completeBar.setValue(completeBar.getValue() + 0.05);
+						else if(getTabIndex() == 2 && trashBar.getValue() < trashBar.getMax())
+							trashBar.setValue(trashBar.getValue() + 0.05);
+					}
+				});
+			}
+		};
+	}
 
+	private void setupShortcuts() {
 		root.setOnKeyPressed(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent e) {
 				if (changeTab.match(e)) {
@@ -248,7 +313,21 @@ public class View implements HotkeyListener {
 								+ txt.getText().substring(pos));
 						txt.setCaretPosition(pos - 1);
 					}
-				} else if (e.getCode() == KeyCode.RIGHT) {
+				} else if(e.getCode() == KeyCode.UP){
+					if(getTabIndex() == 0 && pendingBar.getValue() > pendingBar.getMin())
+						pendingBar.setValue(pendingBar.getValue() - 0.05);
+					else if(getTabIndex() == 1 && completeBar.getValue() > completeBar.getMin())
+						completeBar.setValue(completeBar.getValue() - 0.05);
+					else if(getTabIndex() == 2 && trashBar.getValue() > trashBar.getMin())
+						trashBar.setValue(trashBar.getValue() - 0.05);
+				} else if(e.getCode() == KeyCode.DOWN){
+					if(getTabIndex() == 0 && pendingBar.getValue() < pendingBar.getMax())
+						pendingBar.setValue(pendingBar.getValue() + 0.05);
+					else if(getTabIndex() == 1 && completeBar.getValue() < completeBar.getMax())
+						completeBar.setValue(completeBar.getValue() + 0.05);
+					else if(getTabIndex() == 2 && trashBar.getValue() < trashBar.getMax())
+						trashBar.setValue(trashBar.getValue() + 0.05);
+				}else if (e.getCode() == KeyCode.RIGHT) {
 					textField.temp = 1;
 					textField.setJDialogOnTop();
 					txt.requestFocus();
@@ -434,20 +513,9 @@ public class View implements HotkeyListener {
 		showOrHide.setId("larger");
 		txt.requestFocus();
 		txt.setCaretPosition(txt.getText().length());
-		taskPendingList.addEventFilter( KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
-		    @Override
-		public void handle(KeyEvent event) {
-
-		    if (event.getEventType() == KeyEvent.KEY_PRESSED){
-		        // Consume Event before Bubbling Phase, -> otherwise Scrollpane scrolls
-		        if ( event.getCode() == KeyCode.DOWN ){ 
-		            event.consume();
-		        }
-		    }
-		    }
-		});
+		setupScrollBar();
 	}
-
+	
 	public void customizeGUI() {
 		if (caretListener != null)
 			stage.focusedProperty().removeListener(caretListener);
