@@ -176,13 +176,13 @@ public class Synchronization {
 					e = createRecurringEvent(service, task.getWorkInfo(), task
 							.getStartDate().returnInRecurringFormat(), task
 							.getEndDate().returnInRecurringFormat(), task
-							.getTag().getRepetition(), null, feedUrl);
+							.getTag().getRepetition(), null, task.getIsImportant(), feedUrl);
 				} else {
 					if (task.getStartDate() != null
 							&& task.getEndDate() != null) {// has start date and
 															// end date
 						e = createSingleEvent(service, task.getWorkInfo(),
-								task.getStartDate(), task.getEndDate(), feedUrl);
+								task.getStartDate(), task.getEndDate(), task.getIsImportant(), feedUrl);
 					} else if (task.getStartDate() == null
 							&& task.getEndDate() == null) {// no start date and
 															// no end date
@@ -193,14 +193,11 @@ public class Synchronization {
 						e = createRecurringEvent(service, task.getWorkInfo(),
 								cd.returnInRecurringFormat().substring(0, 8),
 								cd1.returnInRecurringFormat().substring(0, 8),
-								"Daily", null, feedUrl);
+								"Daily", null, task.getIsImportant(), feedUrl);
 					} else {
 						throw new Error("date format error");
 					}
 
-				}
-				if(task.getIsImportant()){//add reminder to important task
-					setReminder(e);
 				}
 				task.setIndexId(e.getId());
 				task.setStatus(Task.Status.UNCHANGED);
@@ -624,7 +621,7 @@ public class Synchronization {
 	 *             Error communicating with the server.
 	 */
 	CalendarEventEntry createEvent(CalendarService service, String title,
-			CustomDate startDate, CustomDate endDate, String recurData,
+			CustomDate startDate, CustomDate endDate, String recurData, boolean isImport,
 			boolean isQuickAdd, URL feedUrl) throws ServiceException,
 			IOException {
 		CalendarEventEntry myEntry = new CalendarEventEntry();
@@ -645,6 +642,9 @@ public class Synchronization {
 			myEntry.setRecurrence(recur);
 		}
 		
+		if(isImport){
+			setReminder(myEntry);
+		}
 		// Send the request and receive the response:
 		return service.insert(feedUrl, myEntry);
 	}
@@ -665,30 +665,10 @@ public class Synchronization {
 	 *             Error communicating with the server.
 	 */
 	CalendarEventEntry createSingleEvent(CalendarService service,
-			String eventContent, CustomDate startDate, CustomDate endDate,
+			String eventContent, CustomDate startDate, CustomDate endDate, boolean isImport,
 			URL feedUrl) throws ServiceException, IOException {
-		return createEvent(service, eventContent, startDate, endDate, null,
+		return createEvent(service, eventContent, startDate, endDate, null, isImport,
 				false, feedUrl);
-	}
-
-	/**
-	 * Creates a quick add event.
-	 * 
-	 * @param service
-	 *            An authenticated CalendarService object.
-	 * @param quickAddContent
-	 *            The quick add text, including the event title, date and time.
-	 * @return The newly-created CalendarEventEntry.
-	 * @throws ServiceException
-	 *             If the service is unable to handle the request.
-	 * @throws IOException
-	 *             Error communicating with the server.
-	 */
-	CalendarEventEntry createQuickAddEvent(CalendarService service,
-			String quickAddContent, URL feedUrl) throws ServiceException,
-			IOException {
-		return createEvent(service, quickAddContent, null, null, null, true,
-				feedUrl);
 	}
 
 	/**
@@ -708,7 +688,7 @@ public class Synchronization {
 	 */
 	private CalendarEventEntry createRecurringEvent(CalendarService service,
 			String eventContent, String startDate, String endDate, String freq,
-			String until, URL feedUrl) throws ServiceException, IOException {
+			String until, boolean isImport, URL feedUrl) throws ServiceException, IOException {
 
 		String recurData = "DTSTART;TZID=" + TimeZone.getDefault().getID()
 				+ ":" + startDate + "\r\n" + "DTEND;TZID="
@@ -720,7 +700,7 @@ public class Synchronization {
 		recurData += "\r\n";
 
 		System.out.println(recurData);
-		return createEvent(service, eventContent, null, null, recurData, false,
+		return createEvent(service, eventContent, null, null, recurData, isImport, false,
 				feedUrl);
 	}
 
@@ -830,15 +810,6 @@ public class Synchronization {
 		r.setMinutes(REMINDER_MINUTES);
 		r.setMethod(m);
 		event.getReminder().add(r);
-		try {
-			event.update();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ServiceException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 	
 	private String isCalendarExist(CalendarService service, URL feedUrl){
