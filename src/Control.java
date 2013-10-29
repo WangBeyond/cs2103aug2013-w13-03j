@@ -599,8 +599,8 @@ public class Control extends Application {
 			updateList(modelHandler.getPendingList());
 			updateList(modelHandler.getCompleteList());
 			updateList(modelHandler.getTrashList());
+			handleListener();
 		}
-		
 		return feedback;
 	}
 
