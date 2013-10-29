@@ -435,7 +435,7 @@ public class View implements HotkeyListener {
 			stage.focusedProperty().removeListener(caretListener);
 	
 		scene.getStylesheets().clear();
-		if (!model.getThemeMode().equals(Model.DAY_MODE)) {
+		if (model.getThemeMode().equals(Model.DAY_MODE)) {
 			scene.getStylesheets().addAll(
 					getClass().getResource("customize.css").toExternalForm());
 			txt.setBackground(java.awt.Color.white);
