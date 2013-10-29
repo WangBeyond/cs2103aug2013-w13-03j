@@ -414,6 +414,23 @@ class Tag {
 	public String getRepetition() {
 		return this.repetition;
 	}
+	
+	public int getInterval() {
+		int startIndex = repetition.indexOf("every");
+		if(startIndex >= 0){
+			int endIndex;
+			if(repetition.contains("days")){
+				endIndex = repetition.indexOf("days");
+			} else if(repetition.contains("weeks")){
+				endIndex = repetition.indexOf("weeks");				
+			} else {				
+				endIndex = repetition.indexOf("years");				
+			}
+			int interval = Integer.parseInt(repetition.substring(startIndex+5, endIndex));
+			return interval;
+		}
+		return -1;
+	}
 }
 
 class RowStatus{
