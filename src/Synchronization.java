@@ -19,6 +19,7 @@ import com.google.gdata.data.batch.BatchUtils;
 import com.google.gdata.data.calendar.CalendarEntry;
 import com.google.gdata.data.calendar.CalendarEventEntry;
 import com.google.gdata.data.calendar.CalendarEventFeed;
+import com.google.gdata.data.calendar.CalendarFeed;
 import com.google.gdata.data.calendar.HiddenProperty;
 import com.google.gdata.data.calendar.TimeZoneProperty;
 import com.google.gdata.data.extensions.Recurrence;
@@ -147,20 +148,16 @@ public class Synchronization {
 		service.setUserCredentials(username, password);
 	}
 
-	void setCalendarID(String calID) {
-		calendarId = calID;
-	}
-
 	URL formEventFeedUrl(CalendarService service) throws ServiceException,
 			IOException {
-		if (calendarId == null) {
-			URL owncalUrl = new URL(METAFEED_URL_BASE + username
-					+ OWNCALENDARS_FEED_URL_SUFFIX);
+		URL owncalUrl = new URL(METAFEED_URL_BASE + username
+				+ OWNCALENDARS_FEED_URL_SUFFIX);
+		String calId = isCalendarExist(service, owncalUrl);
+		if (calId == null) {
 			CalendarEntry calendar = createCalendar(service, owncalUrl);
-			calendarId = trimId(calendar.getId());
-			syncStore.storeCalendarID(calendarId);
+			calId = trimId(calendar.getId());
 		}
-		return new URL(METAFEED_URL_BASE + calendarId + EVENT_FEED_URL_SUFFIX);
+		return new URL(METAFEED_URL_BASE + calId + EVENT_FEED_URL_SUFFIX);
 	}
 
 	private String trimId(String id) {
@@ -842,5 +839,30 @@ public class Synchronization {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	private String isCalendarExist(CalendarService service, URL feedUrl){
+		String calendarId = null;
+		CalendarFeed resultFeed = null;
+		List<CalendarEntry> entries = null;
+		try {
+			resultFeed = service.getFeed(feedUrl, CalendarFeed.class);
+			entries = resultFeed.getEntries();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ServiceException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		if(entries != null){
+			for(int i=0;i<entries.size();i++){
+				if(entries.get(i).getTitle().getPlainText().equals(CALENDAR_TITLE)){
+					calendarId = trimId(entries.get(i).getId());
+					break;
+				}
+			}
+		}
+		return calendarId;
 	}
 }
