@@ -5,7 +5,9 @@ public class Model {
 	final static int PENDING_LIST = 0;
 	final static int COMPLETE_LIST = 1;
 	final static int TRASH_LIST = 2;
-
+	final static String DAY_MODE = "day";
+	final static String NIGHT_MODE = "night";
+	
 	private ObservableList<Task> pending;
 	private ObservableList<Task> complete;
 	private ObservableList<Task> trash;
@@ -21,6 +23,8 @@ public class Model {
 		searchPending = FXCollections.observableArrayList();
 		searchComplete = FXCollections.observableArrayList();
 		searchTrash = FXCollections.observableArrayList();
+		displayRemaining = true;
+		themeMode = DAY_MODE;
 	}
 
 	/************************** Get a task from given index ************************************/
@@ -133,27 +137,52 @@ public class Model {
 	public void setSearchTrashList(ObservableList<Task> searchList) {
 		searchTrash = searchList;
 	}
-
-	/*
-	 * public ArrayList<Integer> getDeletedIndexList() { return deletedIndices;
-	 * }
-	 * 
-	 * public ArrayList<Integer> getAddedIndexList() { return newlyAddedIndices;
-	 * }
-	 * 
-	 * public void loadIndicesToDeletedList(String indices) {
-	 * deletedIndices.clear(); if(!indices.trim().equals("")) { String[]
-	 * indexStrList = indices.split(" "); for(String indexStr : indexStrList) {
-	 * deletedIndices.add(Integer.parseInt(indexStr)); } } }
-	 * 
-	 * public void loadIndicesToAddedList(String indices) {
-	 * newlyAddedIndices.clear(); if(!indices.trim().equals("")) { String[]
-	 * indexStrList = indices.split(" "); for(String indexStr : indexStrList) {
-	 * newlyAddedIndices.add(Integer.parseInt(indexStr)); } } }
-	 * 
-	 * public void addIndicesToDeleted(int index) { deletedIndices.add(index); }
-	 * 
-	 * public void addIndicesToAdded(int index) { newlyAddedIndices.add(index);
-	 * }
-	 */
+	
+	/************************************ Settings Model *************************************************/
+	private String username;
+	private String password;
+	private String calendarID;
+	private boolean displayRemaining;
+	private String themeMode;
+	
+	public boolean doDisplayRemaining(){
+		return displayRemaining;
+	}
+	
+	public String getThemeMode(){
+		return themeMode;
+	}
+	
+	public void setThemeMode(String themeMode){
+		this.themeMode = themeMode;
+	}
+	
+	public void setDisplayRemaining(boolean displayRemaining){
+		this.displayRemaining = displayRemaining;
+	}
+	
+	
+	public String getUsername(){
+		return username;
+	}
+	
+	public String getPassword(){
+		return password;
+	}
+	
+	public String getCalendarID(){
+		return calendarID;
+	}
+	
+	public void setUsername(String username){
+		this.username = username;
+	}
+	
+	public void setPassword(String password){
+		this.password = password;
+	}
+	
+	public void setCalendarID(String calendarID){
+		this.calendarID = calendarID;
+	}
 }

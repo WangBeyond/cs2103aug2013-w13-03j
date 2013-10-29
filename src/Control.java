@@ -1,5 +1,4 @@
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyListener;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Timer;
@@ -82,8 +81,9 @@ public class Control extends Application {
 		try {
 			dataFile = new DataStorage("dataStorage.txt", modelHandler);
 			dataFile.loadFromFile();
-			syncStore = new SyncStore("sync.xml");
-			sync.setSyncStore(syncStore);
+			syncStore = new SyncStore("sync.xml", modelHandler);
+			syncStore.retrieveAccount();
+			syncStore.retrieveCalID();
 		} catch (IOException e) {
 			System.out.println("Cannot read the given file");
 		}
@@ -95,6 +95,7 @@ public class Control extends Application {
 		updateOverdueLine(modelHandler.getPendingList());
 		updateOverdueLine(modelHandler.getCompleteList());
 		updateOverdueLine(modelHandler.getTrashList());
+		syncStore.storeAccount();
 	}
 
 	private void handleEventForCommandLine() {
@@ -258,6 +259,10 @@ public class Control extends Application {
 					isRealTimeSearch = false;
 					String feedback = executeCommand("redo");
 					updateFeedback(feedback);
+				} else if(e.getCode() == KeyCode.F1){
+					isRealTimeSearch = false;
+					String feedback = executeCommand("help");
+					updateFeedback(feedback);
 				}
 			}
 		});
@@ -317,6 +322,23 @@ public class Control extends Application {
 				com.sun.glass.events.KeyEvent.VK_Y,
 				java.awt.event.InputEvent.CTRL_DOWN_MASK);
 		map.put(redoKey, redoAction);
+		
+		Action helpAction = new AbstractAction() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Platform.runLater(new Runnable() {
+					@Override
+					public void run() {
+						isRealTimeSearch = false;
+						String feedback = executeCommand("help");
+						updateFeedback(feedback);
+					}
+				});
+			}
+		};
+		KeyStroke helpKey = KeyStroke.getKeyStroke(com.sun.glass.events.KeyEvent.VK_F1, 0);
+		map.put(helpKey, helpAction);
 	}
 
 	private String removeCommandTypeString(String command) {
@@ -330,7 +352,7 @@ public class Control extends Application {
 			view.txt.setCaretPosition(0);
 		}
 		view.emptyFeedback(0);
-		view.setFeedbackStyle(0, feedback, Color.WHITE);
+		view.setFeedbackStyle(0, feedback, view.getDefaultColor());
 	}
 
 	/***************************************** execution part ********************************************/
@@ -569,17 +591,27 @@ public class Control extends Application {
 
 	private String executeSettingsCommand(String[] parsedUserCommand) {
 		Command s = new SettingsCommand(modelHandler, view, parsedUserCommand);
-		return s.execute();
+		String feedback = s.execute();
+		if(feedback.equals(Command.MESSAGE_SUCCESSFUL_SETTINGS)){
+			syncStore.storeAccount();
+			view.customizeGUI();
+			CustomDate.setDisplayRemaining(modelHandler.doDisplayRemaining());
+			updateList(modelHandler.getPendingList());
+			updateList(modelHandler.getCompleteList());
+			updateList(modelHandler.getTrashList());
+		}
+		
+		return feedback;
 	}
 
 	private String executeSyncCommand(String[] parsedUserCommand)
 			throws IOException {
 
-		Command s = new SyncCommand(parsedUserCommand, modelHandler, sync,
-				syncStore);
+		Command s = new SyncCommand(parsedUserCommand, modelHandler, sync);
 		String feedback = s.execute();
 		if (feedback.equals(Command.MESSAGE_SYNC_SUCCESSFUL)) {
 			dataFile.storeToFile();
+			syncStore.storeCalendarID();
 			view.setTab(0);
 			executeShowCommand();
 		} /*else if (feedback.equals(Command.MESSAGE_SYNC_INVALID_USERNAME_PASSWORD)){

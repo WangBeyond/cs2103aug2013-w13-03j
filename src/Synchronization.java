@@ -158,7 +158,7 @@ public class Synchronization {
 					+ OWNCALENDARS_FEED_URL_SUFFIX);
 			CalendarEntry calendar = createCalendar(service, owncalUrl);
 			calendarId = trimId(calendar.getId());
-			syncStore.storeCalendarID(calendarId);
+			syncStore.storeCalendarID();
 		}
 		return new URL(METAFEED_URL_BASE + calendarId + EVENT_FEED_URL_SUFFIX);
 	}

@@ -7,7 +7,6 @@ import java.lang.String;
 import java.io.File;
 
 public class Setting extends Store {
-
 	private final static String TRUE = "true";
 
 	private String googleAccount;
@@ -106,13 +105,13 @@ public class Setting extends Store {
 		out.close();
 	}
 
-	private void encryptFile() throws Exception {
+	public void encryptFile() throws Exception {
 		new FileEncryptor("DES/ECB/PKCS5Padding", fileName).encrypt();
 		new File(fileName).delete();
 
 	}
 
-	private void decryptFile() throws Exception {
+	public void decryptFile() throws Exception {
 		new FileEncryptor("DES/ECB/PKCS5Padding", fileName).decrypt();
 	}
 
