@@ -23,11 +23,13 @@ public class CustomDate {
 	final public static long YEAR_IN_MILLIS = 365 * 24 * 60 * 60 * 1000;
 	final public static long FIRST_TWELVE_HOURS = 12 * 60;
 	final public static int HOUR_IN_MINUTES = 60;
+
 	
 	final public static int LARGER = 1;
 	final public static int SMALLER = -1;
 	final public static int EQUAL = 0;
-
+	
+	private static boolean displayRemaining = true;
 	// The target date of CustomDate object
 	private GregorianCalendar targetDate;
 	// The date info of this target date
@@ -36,7 +38,7 @@ public class CustomDate {
 
 	// The common current date among CustomDate object
 	private static GregorianCalendar currentDate;
-
+	
 	// Constructors
 	public CustomDate() {
 		targetDate = new GregorianCalendar();
@@ -63,7 +65,11 @@ public class CustomDate {
 		targetDate = new GregorianCalendar();
 		convert(s);
 	}
-
+	
+	public static void setDisplayRemaining(boolean display){
+		displayRemaining = display;
+	}
+	
 	/*************** Get functions to get corresponding elements in the CustomDate *****************/
 	public int getYear() {
 		return targetDate.get(Calendar.YEAR);
@@ -190,7 +196,7 @@ public class CustomDate {
 		updateCurrentDate();
 		boolean hasTime = hasTime(isStartDate);
 
-		if (!beforeCurrentTime() && lessThan6Hours()) {
+		if (displayRemaining && !beforeCurrentTime() && lessThan6Hours()) {
 			return getRemainingTime();
 		}
 		if (isTonight()) {
@@ -964,20 +970,11 @@ public class CustomDate {
 		return isCurrentYear && isCurrentMonth && isCurrentDate;
 	}
 
-	private boolean isTomorrow() {
-		long targetTime = targetDate.getTimeInMillis();
-		long currentTime = currentDate.getTimeInMillis();
-		long nearestDayTime = ((currentTime / DAY_IN_MILLIS) + 1) * DAY_IN_MILLIS;
-		long nextNearestDayTime = nearestDayTime + DAY_IN_MILLIS;
-		
-		return targetTime >= nearestDayTime && targetTime <= nextNearestDayTime;
-	}
-
 	private boolean isTonight() {
 		boolean isCurrentYear = targetDate.get(Calendar.YEAR) == currentDate.get(Calendar.YEAR);
 		boolean isCurrentMonth = targetDate.get(Calendar.MONTH) == currentDate.get(Calendar.MONTH);
 		boolean isCurrentDate = targetDate.get(Calendar.DATE) == currentDate.get(Calendar.DATE);
-		boolean isMidnight = targetDate.get(Calendar.HOUR_OF_DAY) == 23 && targetDate.get(Calendar.MINUTE) == 59;
+		boolean isMidnight = (targetDate.get(Calendar.HOUR_OF_DAY) == 23 && targetDate.get(Calendar.MINUTE) == 59) || (targetDate.get(Calendar.HOUR_OF_DAY) == 0 && targetDate.get(Calendar.MINUTE) == 0);
 		
 		return isCurrentYear && isCurrentMonth && isCurrentDate && isMidnight;
 	}

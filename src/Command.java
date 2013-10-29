@@ -1399,17 +1399,16 @@ class SyncCommand extends Command {
 	
 	Synchronization sync;
 	
-	public SyncCommand(String[] parsedUserCommand, Model model, Synchronization sync, SyncStore syncStore) {
+	public SyncCommand(String[] parsedUserCommand, Model model, Synchronization sync) {
 		super(model);
 		this.sync = sync;
 		int size = parsedUserCommand.length;
 		if(size == 2){
 			username = parsedUserCommand[0];
 			password = parsedUserCommand[1];
-		} else if(size == 1) {
-			String[] accountInfo = syncStore.retrieveAccount();
-			username = accountInfo[0];
-			password = accountInfo[1];
+		} else if(size == 1){
+			username = model.getUsername();
+			password = model.getPassword();
 		}
 	}
 

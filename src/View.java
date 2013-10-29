@@ -88,8 +88,7 @@ public class View implements HotkeyListener {
 			KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN);
 	final KeyCombination changeTab = new KeyCodeCombination(KeyCode.TAB,
 			KeyCombination.CONTROL_DOWN);
-	final KeyCombination help = new KeyCodeCombination(KeyCode.F1);
-	
+
 	public Help helpPage;
 	public Settings settingsPage;
 	public Login loginPage;
@@ -107,18 +106,19 @@ public class View implements HotkeyListener {
 	public TableView<Task> taskPendingList;
 	public TableView<Task> taskCompleteList;
 	public TableView<Task> taskTrashList;
-
+	private ImageView title;
 	public Scene scene;
 	public BorderPane root;
 	public StackPane root2;
 	public Stage stage;
 	JScrollPane scrollPane;
 	SwingNode textField;
-
+	private ChangeListener<Boolean> caretListener;
 	// Store the coordinates of the anchor of the window
 	double dragAnchorX;
 	double dragAnchorY;
-
+	private Color defaultColor;
+	private Color commandColor;
 	public JTextPane txt;
 	public ArrayList<Text> feedbackList = new ArrayList<Text>();
 	static String[] COMMAND_TYPES = { "add", "remove", "delete", "edit",
@@ -155,7 +155,6 @@ public class View implements HotkeyListener {
 		this.model = model;
 		this.syncStore = syncStore;
 
-		showLoginPage();
 		setupHelpPage();
 		setupSettingsPage();
 		setupStage();
@@ -168,18 +167,31 @@ public class View implements HotkeyListener {
 		createContent();
 		setupShortcuts();
 		setDraggable();
+		showLoginPage();
 		setupScene();
+		showInitialMessage();
+	}
+	
+	private void showInitialMessage(){
+		if (model.getUsername() != null)
+			setFeedbackStyle(
+					0,
+					String.format(WELCOME_MESSAGE,
+							model.getUsername().replace("@gmail.com", "")),
+					defaultColor);
+		else
+			setFeedbackStyle(0, "Welcome to iDo!", defaultColor);
 	}
 
 	private void showLoginPage() {
 		if (checkFirstTimeLogin()) {
-			loginPage = Login.getInstanceLogin(syncStore);
+			loginPage = Login.getInstanceLogin(model);
 			loginPage.showLoginPage();
 		}
 	}
 
 	private boolean checkFirstTimeLogin() {
-		return syncStore.retrieveAccount()[0] == null;
+		return model.getUsername() == null;
 	}
 
 	private void setupHelpPage() {
@@ -198,31 +210,15 @@ public class View implements HotkeyListener {
 	}
 
 	private void setupSettingsPage() {
-		settingsPage = Settings.getInstanceSettings(syncStore);
+		settingsPage = Settings.getInstanceSettings(model);
 	}
 
 	public void showSettingsPage() {
-		Platform.runLater(new Runnable() {
-
-			@Override
-			public void run() {
-				settingsPage.showSettingsPage();
-			}
-		});
-
+		settingsPage.showSettingsPage();
 	}
 
 	private void setupShortcuts() {
-		stage.focusedProperty().addListener(new ChangeListener<Boolean>() {
-			public void changed(ObservableValue<? extends Boolean> ov,
-					Boolean oldValue, Boolean newValue) {
-				if (newValue.booleanValue() == false)
-					txt.setCaretColor(java.awt.Color.black);
-				else
-					txt.setCaretColor(java.awt.Color.white);
-			}
-		});
-		
+
 		root.setOnKeyPressed(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent e) {
 				if (changeTab.match(e)) {
@@ -238,8 +234,6 @@ public class View implements HotkeyListener {
 					expandAnimation();
 				} else if (hideWindow.match(e)) {
 					hide();
-				} else if (help.match(e)) {
-					showHelpPage();
 				} else if (e.getCode() == KeyCode.BACK_SPACE) {
 					textField.temp = 1;
 					textField.setJDialogOnTop();
@@ -366,8 +360,9 @@ public class View implements HotkeyListener {
 		createTopSection();
 		createCenterSection();
 		createBottomSection();
-		txt = new JTextPane(new CustomStyledDocument());
+		txt = new JTextPane();
 		txt.setAutoscrolls(false);
+
 		setFont(txt);
 		JPanel noWrapPanel = new JPanel(new BorderLayout());
 		noWrapPanel.add(txt);
@@ -376,9 +371,10 @@ public class View implements HotkeyListener {
 				.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		scrollPane
 				.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+		scrollPane.setBorder(null);
 
 		textField = new SwingNode(stage, scrollPane);
-		textField.setTranslateX(34);
+		textField.setTranslateX(36);
 		textField.setTranslateY(-93);
 
 		root2 = new StackPane();
@@ -424,8 +420,8 @@ public class View implements HotkeyListener {
 
 	private void setupScene() {
 		stage.setHeight(70.0);
-		scene = new Scene(root2, Color.rgb(70, 70, 70));
-		customizeGUIWithCSS();
+		scene = new Scene(root2);
+		customizeGUI();
 		stage.setScene(scene);
 		stage.show();
 		removeTopAndCenter();
@@ -434,11 +430,55 @@ public class View implements HotkeyListener {
 		txt.setCaretPosition(txt.getText().length());
 	}
 
-	private void customizeGUIWithCSS() {
-		scene.getStylesheets().addAll(
-				getClass().getResource("customize.css").toExternalForm());
+	public void customizeGUI() {
+		if (caretListener != null)
+			stage.focusedProperty().removeListener(caretListener);
+	
+		scene.getStylesheets().clear();
+		if (!model.getThemeMode().equals(Model.DAY_MODE)) {
+			scene.getStylesheets().addAll(
+					getClass().getResource("customize.css").toExternalForm());
+			txt.setBackground(java.awt.Color.white);
+			caretListener = new ChangeListener<Boolean>() {
+				public void changed(ObservableValue<? extends Boolean> ov,
+						Boolean oldValue, Boolean newValue) {
+					if (newValue.booleanValue() == false)
+						txt.setCaretColor( java.awt.Color.black);
+					else
+						txt.setCaretColor(new java.awt.Color(0,0,0,0));
+				}
+			};
+			title.setImage(new Image(getClass().getResourceAsStream("ido_new.png")));
+			txt.setStyledDocument(new CustomStyledDocumentForDayMode());
+			defaultColor = Color.WHITE;
+			commandColor = IDO_GREEN;
+			
+			stage.focusedProperty().addListener(caretListener);
+		} else {
+			scene.getStylesheets().addAll(
+					getClass().getResource("customize2.css").toExternalForm());
+			txt.setBackground(new java.awt.Color(135, 135, 135));
+			caretListener = new ChangeListener<Boolean>() {
+				public void changed(ObservableValue<? extends Boolean> ov,
+						Boolean oldValue, Boolean newValue) {
+					if (newValue.booleanValue() == false)
+						txt.setCaretColor(java.awt.Color.white);
+					else
+						txt.setCaretColor(new java.awt.Color(0,0,0,0));
+				}
+			};
+			txt.setStyledDocument(new CustomStyledDocumentForNightMode());
+			title.setImage(new Image(getClass().getResourceAsStream("ido_new_night.png")));
+			defaultColor = Color.rgb(150, 150, 150);
+			commandColor = Color.rgb(89, 213, 100);
+			stage.focusedProperty().addListener(caretListener);
+		}
 	}
-
+	
+	public Color getDefaultColor(){
+		return defaultColor;
+	}
+	
 	private void createBottomSection() {
 		bottom = new VBox();
 		bottom.setSpacing(5);
@@ -452,18 +492,11 @@ public class View implements HotkeyListener {
 		feedbackList.clear();
 		for (int i = 0; i < 10; i++) {
 			Text feedbackPiece = TextBuilder.create().styleClass("feedback")
-					.fill(Color.WHITE).text("").build();
+					.fill(defaultColor).text("").build();
 			feedbackList.add(feedbackPiece);
 			feedbacks.getChildren().add(feedbackList.get(i));
 		}
-		String account = syncStore.retrieveAccount()[0];
-		if (account != null)
-			setFeedbackStyle(0, String.format(WELCOME_MESSAGE, account),
-					Color.WHITE);
-		else
-			setFeedbackStyle(0,
-					"Welcome to iDo! Please enter your google account info",
-					Color.WHITE);
+		
 		bottom.getChildren().addAll(upperPart, feedbacks);
 	}
 
@@ -516,7 +549,7 @@ public class View implements HotkeyListener {
 		top = new AnchorPane();
 		top.setPadding(new Insets(-15, 15, -30, 44));
 
-		ImageView title = createTitle();
+		title = createTitle();
 
 		HBox buttons = createModifyingButtons();
 
@@ -529,7 +562,7 @@ public class View implements HotkeyListener {
 		root.setOnMousePressed(new EventHandler<MouseEvent>() {
 			@Override
 			public void handle(MouseEvent me) {
-				if(me.getScreenX() < stage.getX())
+				if (me.getScreenX() < stage.getX())
 					System.out.println("bleble");
 				dragAnchorX = me.getScreenX() - stage.getX();
 				dragAnchorY = me.getScreenY() - stage.getY();
@@ -556,9 +589,7 @@ public class View implements HotkeyListener {
 	}
 
 	private ImageView createTitle() {
-		Image iDo = new Image("iDo_new.png");
 		ImageView title = new ImageView();
-		title.setImage(iDo);
 		title.setFitWidth(110);
 		title.setPreserveRatio(true);
 		title.setSmooth(true);
@@ -608,6 +639,7 @@ public class View implements HotkeyListener {
 		final Text emptyTableSign = new Text(
 				"There is currently no task in this tab");
 		emptyTableSign.setFont(new Font(15));
+		emptyTableSign.getStyleClass().add("text");
 		taskList.setPlaceholder(emptyTableSign);
 		TableColumn<Task, String> indexColumn = createIndexColumn();
 		TableColumn<Task, String> occurrenceColumn = createOccurrenceColumn();
@@ -616,8 +648,6 @@ public class View implements HotkeyListener {
 		TableColumn<Task, String> startDateColumn = createStartDateColumn();
 		TableColumn<Task, String> endDateColumn = createEndDateColumn();
 		TableColumn<Task, RowStatus> rowStatusColumn = createRowStatusColumn();
-
-		taskList.setStyle("-fx-table-cell-border-color: transparent;");
 
 		ObservableList<TableColumn<Task, ?>> columns = taskList.getColumns();
 		columns.add(indexColumn);
@@ -1225,13 +1255,13 @@ public class View implements HotkeyListener {
 				|| feedback.equals(Control.MESSAGE_SHOW_ALL_TIP)
 				|| feedback.equals(Control.MESSAGE_UNDO_TIP)
 				|| feedback.equals(Control.MESSAGE_REDO_TIP)) {
-			setFeedbackStyle(0, feedback, Color.WHITE);
+			setFeedbackStyle(0, feedback, defaultColor);
 			emptyFeedback(1);
 		} else {
 			switch (feedback) {
 			case Control.MESSAGE_ADD_TIP:
-				setFeedbackStyle(0, "add", IDO_GREEN);
-				setFeedbackStyle(1, "<workflow>", Color.WHITE);
+				setFeedbackStyle(0, "add", commandColor);
+				setFeedbackStyle(1, "<workflow>", defaultColor);
 				setFeedbackStyle(2, "<start time>", Color.rgb(18, 235, 166));
 				setFeedbackStyle(3, "<end time>", Color.rgb(92, 190, 247));
 				setFeedbackStyle(4, "<importance *>", Color.RED);
@@ -1239,9 +1269,9 @@ public class View implements HotkeyListener {
 				emptyFeedback(6);
 				break;
 			case Control.MESSAGE_EDIT_TIP:
-				setFeedbackStyle(0, "edit", IDO_GREEN);
+				setFeedbackStyle(0, "edit", commandColor);
 				setFeedbackStyle(1, "<index>", Color.ORCHID);
-				setFeedbackStyle(2, "<workflow>", Color.WHITE);
+				setFeedbackStyle(2, "<workflow>", defaultColor );
 				setFeedbackStyle(3, "<start time>", Color.rgb(18, 235, 166));
 				setFeedbackStyle(4, "<end time>", Color.rgb(92, 190, 247));
 				setFeedbackStyle(5, "<importance *>", Color.RED);
@@ -1249,13 +1279,13 @@ public class View implements HotkeyListener {
 				emptyFeedback(7);
 				break;
 			case Control.MESSAGE_REMOVE_INDEX_TIP:
-				setFeedbackStyle(0, "remove", IDO_GREEN);
+				setFeedbackStyle(0, "remove", commandColor);
 				setFeedbackStyle(1, "<index>", Color.ORCHID);
 				emptyFeedback(2);
 				break;
 			case Control.MESSAGE_REMOVE_INFO_TIP:
-				setFeedbackStyle(0, "remove", IDO_GREEN);
-				setFeedbackStyle(1, "<workflow>", Color.WHITE);
+				setFeedbackStyle(0, "remove", commandColor);
+				setFeedbackStyle(1, "<workflow>", defaultColor);
 				setFeedbackStyle(2, "<start time>", Color.rgb(18, 235, 166));
 				setFeedbackStyle(3, "<end time>", Color.rgb(92, 190, 247));
 				setFeedbackStyle(4, "<importance *>", Color.RED);
@@ -1263,8 +1293,8 @@ public class View implements HotkeyListener {
 				emptyFeedback(6);
 				break;
 			case Control.MESSAGE_SEARCH_TIP:
-				setFeedbackStyle(0, "search", IDO_GREEN);
-				setFeedbackStyle(1, "<workflow>", Color.WHITE);
+				setFeedbackStyle(0, "search", commandColor);
+				setFeedbackStyle(1, "<workflow>", defaultColor);
 				setFeedbackStyle(2, "<start time>", Color.rgb(18, 235, 166));
 				setFeedbackStyle(3, "<end time>", Color.rgb(92, 190, 247));
 				setFeedbackStyle(4, "<importance *>", Color.RED);
@@ -1272,25 +1302,25 @@ public class View implements HotkeyListener {
 				emptyFeedback(6);
 				break;
 			case Control.MESSAGE_MARK_TIP:
-				setFeedbackStyle(0, "<mark>", IDO_GREEN);
+				setFeedbackStyle(0, "<mark>", commandColor);
 				setFeedbackStyle(1, "<index1> <index2> <index3> ...",
 						Color.ORCHID);
 				emptyFeedback(2);
 				break;
 			case Control.MESSAGE_UNMARK_TIP:
-				setFeedbackStyle(0, "<unmark>", IDO_GREEN);
+				setFeedbackStyle(0, "<unmark>", commandColor);
 				setFeedbackStyle(1, "<index1> <index2> <index3> ...",
 						Color.ORCHID);
 				emptyFeedback(2);
 				break;
 			case Control.MESSAGE_COMPLETE_TIP:
-				setFeedbackStyle(0, "<complete/done>", IDO_GREEN);
+				setFeedbackStyle(0, "<complete/done>", commandColor);
 				setFeedbackStyle(1, "<index1> <index2> <index3> ...",
 						Color.ORCHID);
 				emptyFeedback(2);
 				break;
 			case Control.MESSAGE_INCOMPLETE_TIP:
-				setFeedbackStyle(0, "<incomplete/undone>", IDO_GREEN);
+				setFeedbackStyle(0, "<incomplete/undone>", commandColor);
 				setFeedbackStyle(1, "<index1> <index2> <index3> ...",
 						Color.ORCHID);
 				emptyFeedback(2);
@@ -1300,11 +1330,11 @@ public class View implements HotkeyListener {
 				ArrayList<String> availCommands = getAvailCommandNum(feedback
 						.trim());
 				for (int i = 0; i < availCommands.size(); i++) {
-					setFeedbackStyle(i + 1, availCommands.get(i), IDO_GREEN);
+					setFeedbackStyle(i + 1, availCommands.get(i), commandColor);
 				}
 				setFeedbackStyle(0,
 						availCommands.size() > 0 ? "Available commands: "
-								: Control.MESSAGE_REQUEST_COMMAND, Color.WHITE);
+								: Control.MESSAGE_REQUEST_COMMAND, defaultColor);
 				break;
 			}
 		}
@@ -1335,7 +1365,7 @@ public class View implements HotkeyListener {
 	}
 }
 
-class CustomStyledDocument extends DefaultStyledDocument {
+class CustomStyledDocumentForDayMode extends DefaultStyledDocument {
 	final StyleContext cont = StyleContext.getDefaultStyleContext();
 
 	final AttributeSet attrRed = cont.addAttribute(cont.getEmptySet(),
@@ -1361,6 +1391,15 @@ class CustomStyledDocument extends DefaultStyledDocument {
 			throws BadLocationException {
 		super.insertString(offset, str, a);
 
+		setColor();
+	}
+	
+	public void remove(int offs, int len) throws BadLocationException {
+		super.remove(offs, len);
+		setColor();
+	}
+	
+	private void setColor() throws BadLocationException{
 		String text = getText(0, getLength());
 		ArrayList<InfoWithIndex> infoList = Parser.parseForView(text);
 		for (int i = 0; i < infoList.size(); i++) {
@@ -1406,10 +1445,43 @@ class CustomStyledDocument extends DefaultStyledDocument {
 
 		}
 	}
+};
 
+class CustomStyledDocumentForNightMode extends DefaultStyledDocument {
+	final StyleContext cont = StyleContext.getDefaultStyleContext();
+
+	final AttributeSet attrRed = cont.addAttribute(cont.getEmptySet(),
+			StyleConstants.Foreground, new java.awt.Color(247, 139, 139));
+	final AttributeSet attrBlue = cont.addAttribute(cont.getEmptySet(),
+			StyleConstants.Foreground, new java.awt.Color(110, 242, 243));
+	final AttributeSet attrWhite = cont.addAttribute(cont.getEmptySet(),
+			StyleConstants.Foreground, new java.awt.Color(252, 252, 252));
+	final AttributeSet attrDarkBlue = cont.addAttribute(cont.getEmptySet(),
+			StyleConstants.Foreground, new java.awt.Color(66, 185, 254));
+	final AttributeSet attrOrange = cont.addAttribute(cont.getEmptySet(),
+			StyleConstants.Foreground, new java.awt.Color(254, 186, 63));
+	final AttributeSet attrGreen = cont.addAttribute(cont.getEmptySet(),
+			StyleConstants.Foreground, new java.awt.Color(108, 248, 134));
+	final AttributeSet attrCyan = cont.addAttribute(cont.getEmptySet(),
+			StyleConstants.Foreground, new java.awt.Color(63, 248, 189));
+	final AttributeSet attrGray = cont.addAttribute(cont.getEmptySet(),
+			StyleConstants.Foreground, new java.awt.Color(220, 220, 220));
+	final AttributeSet attrMagenta = cont.addAttribute(cont.getEmptySet(),
+			StyleConstants.Foreground, new java.awt.Color(238, 152, 233));
+
+	public void insertString(int offset, String str, AttributeSet a)
+			throws BadLocationException {
+		super.insertString(offset, str, a);
+
+		setColor();
+	}
+	
 	public void remove(int offs, int len) throws BadLocationException {
 		super.remove(offs, len);
-
+		setColor();
+	}
+	
+	private void setColor() throws BadLocationException{
 		String text = getText(0, getLength());
 		ArrayList<InfoWithIndex> infoList = Parser.parseForView(text);
 		for (int i = 0; i < infoList.size(); i++) {
@@ -1425,7 +1497,7 @@ class CustomStyledDocument extends DefaultStyledDocument {
 				break;
 			case 0:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
-						.length(), attrDarkCyan, false);
+						.length(), attrWhite, false);
 				break;
 			case 1:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()

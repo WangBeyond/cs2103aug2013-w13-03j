@@ -7,7 +7,10 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.RadioButtonBuilder;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
@@ -16,8 +19,8 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import javafx.stage.Modality;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -31,7 +34,7 @@ public class Settings {
 	private final KeyCombination saveSettings = new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN);
 	
 	private static Settings oneSettingsPage;
-	private SyncStore syncStore;
+	private Model model;
 	
 	private Stage settingsStage;
 	private Scene settingsScene;
@@ -43,9 +46,13 @@ public class Settings {
 	private TextField googleAccountTextfield;
 	private PasswordField pwBox;
 	private PasswordField pwRetypeBox;
+	private RadioButton dayMode;
+	private RadioButton nightMode;
+	private RadioButton remaining;
+	private RadioButton exact;
 	
-	private Settings(SyncStore syncStore){
-		this.syncStore = syncStore;
+	private Settings(Model model){
+		this.model = model;
 		setupStage();
 		setupContent();
 		setupButtons();
@@ -54,15 +61,15 @@ public class Settings {
 		setupDraggable();
 	}
 	
-	public static Settings getInstanceSettings(SyncStore syncStore){
+	public static Settings getInstanceSettings(Model model){
 		if (oneSettingsPage == null){
-			oneSettingsPage = new Settings(syncStore);
+			oneSettingsPage = new Settings(model);
 		}		
 		return oneSettingsPage;
 	}
 	
 	public void showSettingsPage(){
-		settingsStage.show();
+		settingsStage.showAndWait();
 	}
 	
 	private void setupContent(){
@@ -72,24 +79,57 @@ public class Settings {
 		grid.setVgap(10);
 		grid.setPadding(new Insets(85, 25, 25, 40));
 		setupTextfields();
+		setupTimeFormat();
+		setupThemeMode();
 	}
 	
 	private void setupTextfields(){
 		Label googleAccount = new Label("Google account:");
 		grid.add(googleAccount, 0, 1);
 		googleAccountTextfield = new TextField();
+		googleAccountTextfield.setText(model.getUsername());
 		googleAccountTextfield.setId("input");
 		grid.add(googleAccountTextfield, 1, 1);
 
 		Label pw = new Label("Password:");
 		grid.add(pw, 0, 2);
 		pwBox = new PasswordField();
+		pwBox.setText(model.getPassword());
 		grid.add(pwBox, 1, 2);
 		
 		Label pwRetype = new Label("Retype password:");
 		grid.add(pwRetype, 0, 3);
 		pwRetypeBox = new PasswordField();
+		pwRetypeBox.setText(model.getPassword());
 		grid.add(pwRetypeBox, 1, 3);
+	}
+	
+	private void setupTimeFormat(){
+		Label timeFormat = new Label("Time format:");
+		grid.add(timeFormat, 0, 4);
+		ToggleGroup toggleGroup = new ToggleGroup();
+		remaining = RadioButtonBuilder.create().text("Show remaining time").toggleGroup(toggleGroup).build();
+		exact = RadioButtonBuilder.create().text("Show exact time").toggleGroup(toggleGroup).build();
+		if(model.doDisplayRemaining())
+			remaining.setSelected(true);
+		else
+			exact.setSelected(true);
+		grid.add(remaining, 1, 4);
+		grid.add(exact, 2, 4);
+	}
+	
+	private void setupThemeMode(){
+		Label themeMode = new Label("Theme mode: ");
+		grid.add(themeMode, 0, 5);
+		ToggleGroup toggleGroup = new ToggleGroup();
+		dayMode = RadioButtonBuilder.create().text("Day mode").toggleGroup(toggleGroup).selected(true).build();
+		nightMode = RadioButtonBuilder.create().text("Night mode").toggleGroup(toggleGroup).build();
+		if(model.getThemeMode().equals(Model.DAY_MODE))
+			dayMode.setSelected(true);
+		else
+			nightMode.setSelected(true);
+		grid.add(dayMode, 1, 5);
+		grid.add(nightMode, 2, 5);
 	}
 	
 	private void setupScene(){
@@ -142,15 +182,27 @@ public class Settings {
 		String pw = pwBox.getText();
 		String pwRetype = pwRetypeBox.getText();
 		
+		if(dayMode.isSelected())
+			model.setThemeMode(Model.DAY_MODE);
+		else
+			model.setThemeMode(Model.NIGHT_MODE);
+		
+		if(remaining.isSelected())
+			model.setDisplayRemaining(true);
+		else
+			model.setDisplayRemaining(false);
+		
 		if(account != null){
 			if (pw != null && pwRetype != null && pw.equals(pwRetype)) {
-				syncStore.storeAccount(account, pw);
+				model.setUsername(account);
+				model.setPassword(pw);
 				return STORE_SUCCESSFUL;
 			} else {
 				pwRetypeBox.clear();
 				pwRetypeBox.setPromptText("Passwords do not match!");
 			}
 		}
+	
 		return STORE_FAIL;
 	}
 	
