@@ -131,8 +131,8 @@ public class Login {
 	private Button setupSaveButton(){
 		Button saveButton = new Button("");
 		saveButton.setId("save");
-		saveButton.setPrefSize(90, 42);
-		saveButton.setTranslateX(-120);
+		saveButton.setPrefSize(76, 42);
+		saveButton.setTranslateX(-95);
 		saveButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
 			public void handle(MouseEvent e) {
 				if (storeUserInfo()){

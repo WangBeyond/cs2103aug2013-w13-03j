@@ -349,13 +349,13 @@
 
 #save{
 	-fx-background-repeat: no-repeat;
-	-fx-background-size: 90 42; 
+	-fx-background-size: 76 42; 
 	-fx-background-image: url("save.png") ;
 }
 
 #save:hover{
 	-fx-background-repeat: no-repeat;
-	-fx-background-size: 90 42; 
+	-fx-background-size: 76 42; 
 	-fx-background-image: url("saveHover.png") ;
 }
 
