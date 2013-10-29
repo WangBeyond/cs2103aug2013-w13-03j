@@ -176,7 +176,7 @@ public class Synchronization {
 					e = createRecurringEvent(service, task.getWorkInfo(), task
 							.getStartDate().returnInRecurringFormat(), task
 							.getEndDate().returnInRecurringFormat(), task
-							.getTag().getRepetition(), null, task.getIsImportant(), feedUrl);
+							.getTag().getRepetition(), null, task.getNumOccurrences(), task.getIsImportant(), feedUrl);
 				} else {
 					if (task.getStartDate() != null
 							&& task.getEndDate() != null) {// has start date and
@@ -193,7 +193,7 @@ public class Synchronization {
 						e = createRecurringEvent(service, task.getWorkInfo(),
 								cd.returnInRecurringFormat().substring(0, 8),
 								cd1.returnInRecurringFormat().substring(0, 8),
-								"Daily", null, task.getIsImportant(), feedUrl);
+								"Daily", null, task.getNumOccurrences(), task.getIsImportant(), feedUrl);
 					} else {
 						throw new Error("date format error");
 					}
@@ -476,11 +476,11 @@ public class Synchronization {
 
 						t.setStartDate(cd1);
 						t.setEndDate(cd2);
-
+						
 						int freqStartIndex = recurData.indexOf("FREQ=");
 						int freqEndIndex;
 						if (recurData.contains("BYDAY")
-								|| recurData.contains("BYMONTHDAY")) {
+								|| recurData.contains("BYMONTHDAY") || recurData.contains("COUNT")) {
 							freqEndIndex = recurData.indexOf(";",
 									freqStartIndex);
 						} else {
@@ -532,7 +532,7 @@ public class Synchronization {
 						int freqStartIndex = recurData.indexOf("FREQ=");
 						int freqEndIndex;
 						if (recurData.contains("BYDAY")
-								|| recurData.contains("BYMONTHDAY")) {
+								|| recurData.contains("BYMONTHDAY") || recurData.contains("COUNT")) {
 							freqEndIndex = recurData.indexOf(";",
 									freqStartIndex);
 						} else {
@@ -645,6 +645,7 @@ public class Synchronization {
 		if(isImport){
 			setReminder(myEntry);
 		}
+		
 		// Send the request and receive the response:
 		return service.insert(feedUrl, myEntry);
 	}
@@ -688,12 +689,15 @@ public class Synchronization {
 	 */
 	private CalendarEventEntry createRecurringEvent(CalendarService service,
 			String eventContent, String startDate, String endDate, String freq,
-			String until, boolean isImport, URL feedUrl) throws ServiceException, IOException {
+			String until, int count, boolean isImport, URL feedUrl) throws ServiceException, IOException {
 
 		String recurData = "DTSTART;TZID=" + TimeZone.getDefault().getID()
 				+ ":" + startDate + "\r\n" + "DTEND;TZID="
 				+ TimeZone.getDefault().getID() + ":" + endDate + "\r\n"
 				+ "RRULE:FREQ=" + freq.toUpperCase();
+		if(count > 0){
+			recurData = recurData + ";COUNT=" + count;
+		}
 		if (until != null) {
 			recurData = recurData + ";UNTIL=" + until;
 		}
