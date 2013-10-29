@@ -205,7 +205,7 @@ public class CustomDate {
 
 		String result = "";
 		result += getDateString();
-		result += getTimeString(hasTime, result.equals("Tomorrow"));
+		result += getTimeString(hasTime);
 		return result;
 	}
 
@@ -222,10 +222,10 @@ public class CustomDate {
 		}
 	}
 
-	private String getTimeString(boolean hasTime, boolean isTomorrow) {
+	private String getTimeString(boolean hasTime) {
 		if (hasTime) {
 			DecimalFormat df = new DecimalFormat("00");
-			return "\n " + (isTomorrow ? "    " : "") + targetDate.get(Calendar.HOUR_OF_DAY) + ":"
+			return "\n " + targetDate.get(Calendar.HOUR_OF_DAY) + ":"
 					+ df.format(targetDate.get(Calendar.MINUTE));
 		}
 		return "";

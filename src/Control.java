@@ -259,7 +259,7 @@ public class Control extends Application {
 					isRealTimeSearch = false;
 					String feedback = executeCommand("redo");
 					updateFeedback(feedback);
-				} else if(e.getCode() == KeyCode.F1){
+				} else if (e.getCode() == KeyCode.F1) {
 					isRealTimeSearch = false;
 					String feedback = executeCommand("help");
 					updateFeedback(feedback);
@@ -322,9 +322,9 @@ public class Control extends Application {
 				com.sun.glass.events.KeyEvent.VK_Y,
 				java.awt.event.InputEvent.CTRL_DOWN_MASK);
 		map.put(redoKey, redoAction);
-		
+
 		Action helpAction = new AbstractAction() {
-			
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				Platform.runLater(new Runnable() {
@@ -337,7 +337,8 @@ public class Control extends Application {
 				});
 			}
 		};
-		KeyStroke helpKey = KeyStroke.getKeyStroke(com.sun.glass.events.KeyEvent.VK_F1, 0);
+		KeyStroke helpKey = KeyStroke.getKeyStroke(
+				com.sun.glass.events.KeyEvent.VK_F1, 0);
 		map.put(helpKey, helpAction);
 	}
 
@@ -592,14 +593,22 @@ public class Control extends Application {
 	private String executeSettingsCommand(String[] parsedUserCommand) {
 		Command s = new SettingsCommand(modelHandler, view, parsedUserCommand);
 		String feedback = s.execute();
-		if(feedback.equals(Command.MESSAGE_SUCCESSFUL_SETTINGS)){
+		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_SETTINGS)) {
 			syncStore.storeAccount();
 			view.customizeGUI();
 			CustomDate.setDisplayRemaining(modelHandler.doDisplayRemaining());
-			updateList(modelHandler.getPendingList());
-			updateList(modelHandler.getCompleteList());
-			updateList(modelHandler.getTrashList());
+			CustomDate.updateCurrentDate();
 			handleListener();
+			Platform.runLater(new Runnable() {
+
+				@Override
+				public void run() {
+					updateList(modelHandler.getPendingList());
+					updateList(modelHandler.getCompleteList());
+					updateList(modelHandler.getTrashList());
+				}
+			});
+
 		}
 		return feedback;
 	}
@@ -614,10 +623,12 @@ public class Control extends Application {
 			syncStore.storeCalendarID();
 			view.setTab(0);
 			executeShowCommand();
-		} /*else if (feedback.equals(Command.MESSAGE_SYNC_INVALID_USERNAME_PASSWORD)){
-			view.showSettingsPage();
-		}
-	*/	return feedback;
+		} /*
+		 * else if
+		 * (feedback.equals(Command.MESSAGE_SYNC_INVALID_USERNAME_PASSWORD)){
+		 * view.showSettingsPage(); }
+		 */
+		return feedback;
 	}
 
 	private String executeExitCommand() {
@@ -655,6 +666,7 @@ public class Control extends Application {
 		t.schedule(new TimerTask() {
 			@Override
 			public void run() {
+				System.out.println("eeee");
 				CustomDate.updateCurrentDate();
 				updateList(modelHandler.getPendingList());
 				updateList(modelHandler.getCompleteList());
