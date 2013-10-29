@@ -174,22 +174,23 @@ class SyncStore extends Store {
 	
 	String dir;
 	
-	public SyncStore (String fileName) {
+	public SyncStore (String fileName, Model model) {
 		createDir();
 		dir = findUserDocDir() + FOLDERNAME + "/" + fileName;
 		xmlFile = new File(dir);
 		checkIfFileExists(xmlFile);
+		this.model = model;
 	}
 	
-	public void storeAccount(String userName, String passWord) {
+	public void storeAccount() {
 		try {
 			Element root = new Element("root");
 			Document doc = new Document(root);
 			Element account = new Element("account");
 			doc.getRootElement().getChildren().add(account);
 			
-			account.addContent(new Element("username").setText(userName));
-			account.addContent(new Element("password").setText(passWord));
+			account.addContent(new Element("username").setText(model.getUsername()));
+			account.addContent(new Element("password").setText(model.getPassword()));
 			
 			XMLOutputter xmlOutput = new XMLOutputter();
 			xmlOutput.setFormat(Format.getPrettyFormat());
@@ -200,7 +201,7 @@ class SyncStore extends Store {
 		}
 	}
 	
-	public void updateAccount(String newUsername, String newPassword) {
+	public void updateAccount() {
 		 
 		  try {
 	 
@@ -210,11 +211,11 @@ class SyncStore extends Store {
 			Document doc = (Document) builder.build(xmlFile);
 			Element rootNode = doc.getRootElement();
 			Element account = rootNode.getChild("account");
-			if (newUsername != null) {
-				account.getChild("username").setText(newUsername);				
+			if (model.getUsername() != null) {
+				account.getChild("username").setText(model.getUsername());				
 			}
-			if (newPassword != null) {
-				account.getChild("password").setText(newPassword);			
+			if (model.getPassword() != null) {
+				account.getChild("password").setText(model.getPassword());			
 			}
 			XMLOutputter xmlOutput = new XMLOutputter();
 			xmlOutput.setFormat(Format.getPrettyFormat());
@@ -230,7 +231,7 @@ class SyncStore extends Store {
 		  }
 	}
 	
-	public void storeCalendarID (String calID) {
+	public void storeCalendarID () {
 		  try {
 				 
 			SAXBuilder builder = new SAXBuilder();
@@ -239,7 +240,7 @@ class SyncStore extends Store {
 			Document doc = (Document) builder.build(xmlFile);
 			Element rootNode = doc.getRootElement();
 			Element account = rootNode.getChild("account");
-			account.addContent(new Element("CalendarID").setText(calID));
+			account.addContent(new Element("CalendarID").setText(model.getCalendarID()));
 			XMLOutputter xmlOutput = new XMLOutputter();
 			xmlOutput.setFormat(Format.getPrettyFormat());
 			xmlOutput.output(doc, new FileWriter(dir));
@@ -254,10 +255,9 @@ class SyncStore extends Store {
 		  }
 	}
 	
-	public String retrieveCalID() {
+	public void retrieveCalID() {
 		 
 		SAXBuilder builder = new SAXBuilder();
-		File xmlFile = new File(dir);
 		String calendarID = null;
 		  try {
 			Document doc = (Document) builder.build(xmlFile);
@@ -266,21 +266,18 @@ class SyncStore extends Store {
 			Element calID = account.getChild("CalendarID");
 
 			if (calID != null)
-				calendarID = calID.getText();
+				model.setCalendarID(calID.getText());
 		
 		  } catch (IOException io) {
 			System.out.println(io.getMessage());
 		  } catch (JDOMException jdomex) {
 			System.out.println(jdomex.getMessage());
 		  }
-		  return calendarID;
 	}
 	
-	public String[] retrieveAccount() {
+	public void retrieveAccount() {
 		 
 		SAXBuilder builder = new SAXBuilder();
-		File xmlFile = new File(dir);
-		String[] accountInfo = new String[2];
 		  try {
 			Document doc = (Document) builder.build(xmlFile);
 			Element rootNode = doc.getRootElement();
@@ -290,15 +287,14 @@ class SyncStore extends Store {
 			if (username == null)
 				System.out.println("no account info");
 			else {
-				accountInfo[0] = username.getText();
-				accountInfo[1] = account.getChildText("password");
+				model.setUsername(username.getText());
+				model.setPassword(account.getChildText("password"));
 			}			
 		  } catch (IOException io) {
 			System.out.println(io.getMessage());
 		  } catch (JDOMException jdomex) {
 			System.out.println(jdomex.getMessage());
 		  }
-		  return accountInfo;
 	}
 }
   

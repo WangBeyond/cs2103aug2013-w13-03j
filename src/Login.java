@@ -18,6 +18,7 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
+import javafx.stage.Modality;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -31,7 +32,7 @@ public class Login {
 	private final KeyCombination cancelLogin = new KeyCodeCombination(KeyCode.ESCAPE);
 	
 	private static Login oneLoginPage;
-	private SyncStore syncStore;
+	private Model model;
 	
 	private Scene loginScene;
 	private Stage loginStage;
@@ -44,8 +45,8 @@ public class Login {
 	private PasswordField pwBox;
 	private PasswordField pwRetypeBox;
 	
-	private Login(SyncStore syncStore){
-		this.syncStore = syncStore;
+	private Login(Model model){
+		this.model = model;
 		setupStage();
 		setupForm();
 		setupButtons();
@@ -54,20 +55,21 @@ public class Login {
 		setupShortcuts();
 	}
 	
-	public static Login getInstanceLogin(SyncStore syncStore){
+	public static Login getInstanceLogin(Model model){
 		if (oneLoginPage == null){
-			oneLoginPage = new Login(syncStore);
+			oneLoginPage = new Login(model);
 		}		
 		return oneLoginPage;
 	}
 	
 	public void showLoginPage(){
-		loginStage.show();
+		loginStage.showAndWait();
 	}
 	
 	private void setupStage(){
 		loginStage = new Stage();
 		loginStage.initStyle(StageStyle.UNDECORATED);
+		loginStage.initModality(Modality.APPLICATION_MODAL);
 		loginStage.setWidth(415.5);
 		loginStage.setHeight(315);
 		Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
@@ -177,7 +179,8 @@ public class Login {
 		
 		if(account != null){
 			if (pw != null && pwRetype != null && pw.equals(pwRetype)) {
-				syncStore.storeAccount(account, pw);
+				model.setUsername(account);
+				model.setPassword(pw);
 				return STORE_SUCCESSFUL;
 			} else {
 				pwRetypeBox.clear();
