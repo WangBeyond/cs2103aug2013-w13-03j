@@ -99,15 +99,16 @@ public class Synchronization {
 		}
 
 		try {
-			// sync newly added tasks to GCal
-			syncNewTasksToGCal(service, model, eventFeedUrl);
-
 			// get all events from Google calendar
 			eventEntry = getEventsFromGCal(service, eventFeedUrl);
+
+			// sync newly added tasks to GCal
+			syncNewTasksToGCal(service, model, eventFeedUrl);
 		} catch (ServiceException | IOException e) {
 			return Command.MESSAGE_SYNC_SERVICE_STOPPED;
 		}
-
+		
+		/*
 		// update Task
 		try {
 			updateUnchangedTasks(service, model, eventEntry, eventFeedUrl);
@@ -118,6 +119,7 @@ public class Synchronization {
 		}
 		System.out.println("updated unchanged task.");
 
+		*/
 		try {
 			// delete events on GCal which have been deleted locally
 			syncDeletedTasksToGCal(service, model, eventEntry, eventFeedUrl);
@@ -176,7 +178,7 @@ public class Synchronization {
 					e = createRecurringEvent(service, task.getWorkInfo(), task
 							.getStartDate().returnInRecurringFormat(), task
 							.getEndDate().returnInRecurringFormat(), task
-							.getTag().getRepetition(), null, task.getNumOccurrences(), task.getIsImportant(), feedUrl);
+							.getTag().getRepetition(), null, task.getNumOccurrences(), task.getTag().getInterval(), task.getIsImportant(), feedUrl);
 				} else {
 					if (task.getStartDate() != null
 							&& task.getEndDate() != null) {// has start date and
@@ -193,7 +195,7 @@ public class Synchronization {
 						e = createRecurringEvent(service, task.getWorkInfo(),
 								cd.returnInRecurringFormat().substring(0, 8),
 								cd1.returnInRecurringFormat().substring(0, 8),
-								"Daily", null, task.getNumOccurrences(), task.getIsImportant(), feedUrl);
+								"Daily", null, task.getNumOccurrences(), task.getTag().getInterval(), task.getIsImportant(), feedUrl);
 					} else {
 						throw new Error("date format error");
 					}
@@ -479,8 +481,9 @@ public class Synchronization {
 						
 						int freqStartIndex = recurData.indexOf("FREQ=");
 						int freqEndIndex;
+						
 						if (recurData.contains("BYDAY")
-								|| recurData.contains("BYMONTHDAY") || recurData.contains("COUNT")) {
+								|| recurData.contains("BYMONTHDAY") || recurData.contains("COUNT") || recurData.contains("INTERVAL")) {
 							freqEndIndex = recurData.indexOf(";",
 									freqStartIndex);
 						} else {
@@ -491,12 +494,40 @@ public class Synchronization {
 						}
 						String freq = recurData.substring(freqStartIndex + 5,
 								freqEndIndex);
+						if(recurData.contains("INTERVAL=")){
+							int startIndex = recurData.indexOf("INTERVAL=")+9;
+							int endIndex = recurData.indexOf(";", startIndex);
+							if(endIndex < 0){
+								endIndex = recurData.indexOf("\n", startIndex);
+							}
+							int interval = Integer.parseInt(recurData.substring(startIndex, endIndex));
+							String suffix = "";
+							if(freq.equalsIgnoreCase("daily")){
+								suffix = "days";
+							} else if(freq.equalsIgnoreCase("weekly")){
+								suffix = "weeks";
+							} else if(freq.equalsIgnoreCase("monthly")){
+								suffix = "months";
+							} else {
+								suffix = "years";
+							}
+							freq = "every" + interval + suffix;
+						}
 						System.out.println("freq: " + freq);
 						t.setTag(new Tag(Parser.HYPHEN, freq.toLowerCase()));
 						if(freq.equals("DAILY")){
 							t.setStartDate(null);
 							t.setEndDate(null);
 							t.setTag(new Tag(Parser.HYPHEN, "null"));
+						}
+						if(recurData.contains("COUNT=")){
+							int startIndex = recurData.indexOf("COUNT=")+6;
+							int endIndex = recurData.indexOf(";", startIndex);								
+							if(endIndex < 0) {
+								endIndex = recurData.indexOf("\n", startIndex);
+							}
+							int count = Integer.parseInt(recurData.substring(startIndex, endIndex));
+							t.setNumOccurrences(count);
 						}
 						
 						
@@ -532,7 +563,7 @@ public class Synchronization {
 						int freqStartIndex = recurData.indexOf("FREQ=");
 						int freqEndIndex;
 						if (recurData.contains("BYDAY")
-								|| recurData.contains("BYMONTHDAY") || recurData.contains("COUNT")) {
+								|| recurData.contains("BYMONTHDAY") || recurData.contains("COUNT") || recurData.contains("INTERVAL")) {
 							freqEndIndex = recurData.indexOf(";",
 									freqStartIndex);
 						} else {
@@ -543,9 +574,37 @@ public class Synchronization {
 						}
 						String freq = recurData.substring(freqStartIndex + 5,
 								freqEndIndex);
+						if(recurData.contains("INTERVAL=")){
+							int startIndex = recurData.indexOf("INTERVAL=")+9;
+							int endIndex = recurData.indexOf(";", startIndex);
+							if(endIndex < 0){
+								endIndex = recurData.indexOf("\n", startIndex);								
+							}
+							int interval = Integer.parseInt(recurData.substring(startIndex, endIndex));
+							String suffix = "";
+							if(freq.equalsIgnoreCase("daily")){
+								suffix = "days";
+							} else if(freq.equalsIgnoreCase("weekly")){
+								suffix = "weeks";
+							} else if(freq.equalsIgnoreCase("monthly")){
+								suffix = "months";
+							} else {
+								suffix = "years";
+							}
+							freq = "every" + interval + suffix;
+						}
 						System.out.println("freq: " + freq);
 
 						t.setTag(new Tag(Parser.HYPHEN, freq.toLowerCase()));
+						if(recurData.contains("COUNT=")){
+							int startIndex = recurData.indexOf("COUNT=")+6;
+							int endIndex = recurData.indexOf(";", startIndex);								
+							if(endIndex < 0) {
+								endIndex = recurData.indexOf("\n", startIndex);
+							}
+							int count = Integer.parseInt(recurData.substring(startIndex, endIndex));
+							t.setNumOccurrences(count);
+						}
 					}
 
 				}
@@ -689,12 +748,23 @@ public class Synchronization {
 	 */
 	private CalendarEventEntry createRecurringEvent(CalendarService service,
 			String eventContent, String startDate, String endDate, String freq,
-			String until, int count, boolean isImport, URL feedUrl) throws ServiceException, IOException {
+			String until, int count, int interval, boolean isImport, URL feedUrl) throws ServiceException, IOException {
 
 		String recurData = "DTSTART;TZID=" + TimeZone.getDefault().getID()
 				+ ":" + startDate + "\r\n" + "DTEND;TZID="
-				+ TimeZone.getDefault().getID() + ":" + endDate + "\r\n"
-				+ "RRULE:FREQ=" + freq.toUpperCase();
+				+ TimeZone.getDefault().getID() + ":" + endDate + "\r\n";
+		if(interval > 0){
+			if(freq.contains("days")){
+				recurData = recurData + "RRULE:FREQ=" + "DAILY";				
+			} else if(freq.contains("weeks")){
+				recurData = recurData + "RRULE:FREQ=" + "WEEKLY";
+			} else {				
+				recurData = recurData + "RRULE:FREQ=" + "YEARLY";								
+			}
+			recurData = recurData + ";INTERVAL=" + interval;
+		} else {
+			recurData = recurData + "RRULE:FREQ=" + freq.toUpperCase();
+		}
 		if(count > 0){
 			recurData = recurData + ";COUNT=" + count;
 		}
