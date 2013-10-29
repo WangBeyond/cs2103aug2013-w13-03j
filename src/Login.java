@@ -28,7 +28,7 @@ public class Login {
 	
 	static final boolean STORE_SUCCESSFUL = true;
 	static final boolean STORE_FAIL = false;
-	private final KeyCombination saveInput = new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN);
+	private final KeyCombination saveInput = new KeyCodeCombination(KeyCode.ENTER);
 	private final KeyCombination cancelLogin = new KeyCodeCombination(KeyCode.ESCAPE);
 	
 	private static Login oneLoginPage;
@@ -178,7 +178,7 @@ public class Login {
 		String pwRetype = pwRetypeBox.getText();
 		
 		if(account != null){
-			if (pw != null && pwRetype != null && pw.equals(pwRetype)) {
+			if (!pw.equals("") && !pwRetype.equals("") && pw.equals(pwRetype)) {
 				model.setUsername(account);
 				model.setPassword(pw);
 				return STORE_SUCCESSFUL;
