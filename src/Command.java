@@ -1396,7 +1396,6 @@ class SettingsCommand extends Command {
 class SyncCommand extends Command {
 	String username = null;
 	String password = null;
-	String calId = null;
 	
 	Synchronization sync;
 	
@@ -1411,15 +1410,12 @@ class SyncCommand extends Command {
 			username = model.getUsername();
 			password = model.getPassword();
 		}
-		calId = model.getCalendarID();
 	}
 
 	@Override
 	public String execute() {
 		try{
 			sync.setUsernameAndPassword(username, password);
-			if(calId != null)
-				sync.setCalendarID(calId);
 			String feedback = sync.execute();
 			Control.sortList(model.getPendingList());
 			return feedback;
