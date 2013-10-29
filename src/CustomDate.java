@@ -974,7 +974,7 @@ public class CustomDate {
 		boolean isCurrentYear = targetDate.get(Calendar.YEAR) == currentDate.get(Calendar.YEAR);
 		boolean isCurrentMonth = targetDate.get(Calendar.MONTH) == currentDate.get(Calendar.MONTH);
 		boolean isCurrentDate = targetDate.get(Calendar.DATE) == currentDate.get(Calendar.DATE);
-		boolean isMidnight = (targetDate.get(Calendar.HOUR_OF_DAY) == 23 && targetDate.get(Calendar.MINUTE) == 59) || (targetDate.get(Calendar.HOUR_OF_DAY) == 0 && targetDate.get(Calendar.MINUTE) == 0);
+		boolean isMidnight = (targetDate.get(Calendar.HOUR_OF_DAY) == 23 && targetDate.get(Calendar.MINUTE) == 59);
 		
 		return isCurrentYear && isCurrentMonth && isCurrentDate && isMidnight;
 	}

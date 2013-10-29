@@ -146,6 +146,7 @@ public class Settings {
 	private void setupStage(){
 		settingsStage = new Stage();
 		settingsStage.initStyle(StageStyle.UNDECORATED);
+		settingsStage.initModality(Modality.APPLICATION_MODAL);
 		settingsStage.setWidth(599);
 		settingsStage.setHeight(450);
 		Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
