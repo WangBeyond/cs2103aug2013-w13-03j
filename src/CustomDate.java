@@ -19,7 +19,7 @@ public class CustomDate {
 	final public static long DAY_IN_MILLIS = 24 * 60 * 60 * 1000;
 	final public static long SIX_HOURS_IN_MILLIS = 6 * 60 * 60 * 1000;
 	final public static long WEEK_IN_MILLIS = 7 * 24 * 60 * 60 * 1000;
-	final public static long MONTH_IN_MILLIS = 30 * 24 * 60 * 60 * 1000;
+	final public static long MONTH_IN_MILLIS = 30L * 24 * 60 * 60 * 1000;
 	final public static long YEAR_IN_MILLIS = 365 * 24 * 60 * 60 * 1000;
 	final public static long FIRST_TWELVE_HOURS = 12 * 60;
 	final public static int HOUR_IN_MINUTES = 60;
@@ -300,6 +300,7 @@ public class CustomDate {
 
 	/******** Get the difference between periods according to the type of repetition ***********/
 	public static long getUpdateDifference(String repetition) {
+		System.out.println(repetition);
 		if (isDailyRoutine(repetition)>0) {
 			return DAY_IN_MILLIS * isDailyRoutine(repetition);
 		} else if (isWeeklyRoutine(repetition)>0) {
@@ -315,7 +316,7 @@ public class CustomDate {
 
 	private static int isDailyRoutine(String repetition) {
 		String regex = "(every)(\\d+)(days?)";
-		if(repetition.equals("daily"))
+		if(repetition.equals("daily") || repetition.equals("every day"))
 			return 1;
 		else if(repetition.matches(regex)) {
 			System.out.println("regex "+repetition.replaceAll(regex, "$2"));
@@ -326,7 +327,7 @@ public class CustomDate {
 
 	private static int isWeeklyRoutine(String repetition) {
 		String regex = "(every)(\\d+)(weeks?)";
-		if(repetition.equals("weekly"))
+		if(repetition.equals("weekly") || repetition.equals("every week"))
 			return 1;
 		else if(repetition.matches(regex)) {
 			int weekNum = Integer.valueOf(repetition.replaceAll(regex, "$2"));
@@ -336,7 +337,7 @@ public class CustomDate {
 
 	private static int isMonthlyRoutine(String repetition) {
 		String regex = "(every)(\\d+)(months?)";
-		if(repetition.equals("monthly"))
+		if(repetition.equals("monthly") || repetition.equals("every month"))
 			return 1;
 		else if(repetition.matches(regex)) {
 			int monthNum = Integer.valueOf(repetition.replaceAll(regex, "$2"));
@@ -346,7 +347,7 @@ public class CustomDate {
 
 	private static int isYearlyRoutine(String repetition) {
 		String regex = "(every)(\\d+)(years?)";
-		if(repetition.equals("yearly"))
+		if(repetition.equals("yearly") || repetition.equals("every year"))
 			return 1;
 		else if(repetition.matches(regex)) {
 			int yearNum = Integer.valueOf(repetition.replaceAll(regex, "$2"));

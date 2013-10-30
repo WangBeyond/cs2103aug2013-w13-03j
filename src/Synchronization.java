@@ -1,5 +1,4 @@
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -105,10 +104,9 @@ public class Synchronization {
 			// sync newly added tasks to GCal
 			syncNewTasksToGCal(service, model, eventFeedUrl);
 		} catch (ServiceException | IOException e) {
-			return Command.MESSAGE_SYNC_SERVICE_STOPPED;
+			e.printStackTrace();
 		}
-		
-		/*
+
 		// update Task
 		try {
 			updateUnchangedTasks(service, model, eventEntry, eventFeedUrl);
@@ -119,7 +117,6 @@ public class Synchronization {
 		}
 		System.out.println("updated unchanged task.");
 
-		*/
 		try {
 			// delete events on GCal which have been deleted locally
 			syncDeletedTasksToGCal(service, model, eventEntry, eventFeedUrl);
@@ -178,13 +175,17 @@ public class Synchronization {
 					e = createRecurringEvent(service, task.getWorkInfo(), task
 							.getStartDate().returnInRecurringFormat(), task
 							.getEndDate().returnInRecurringFormat(), task
-							.getTag().getRepetition(), null, task.getNumOccurrences(), task.getTag().getInterval(), task.getIsImportant(), feedUrl);
+							.getTag().getRepetition(), null,
+							task.getNumOccurrences(), task.getTag()
+									.getInterval(), task.getIsImportant(),
+							feedUrl);
 				} else {
 					if (task.getStartDate() != null
 							&& task.getEndDate() != null) {// has start date and
 															// end date
 						e = createSingleEvent(service, task.getWorkInfo(),
-								task.getStartDate(), task.getEndDate(), task.getIsImportant(), feedUrl);
+								task.getStartDate(), task.getEndDate(),
+								task.getIsImportant(), feedUrl);
 					} else if (task.getStartDate() == null
 							&& task.getEndDate() == null) {// no start date and
 															// no end date
@@ -195,7 +196,8 @@ public class Synchronization {
 						e = createRecurringEvent(service, task.getWorkInfo(),
 								cd.returnInRecurringFormat().substring(0, 8),
 								cd1.returnInRecurringFormat().substring(0, 8),
-								"Daily", null, task.getNumOccurrences(), task.getTag().getInterval(), task.getIsImportant(), feedUrl);
+								"daily", null, 0, task.getTag().getInterval(),
+								task.getIsImportant(), feedUrl);
 					} else {
 						throw new Error("date format error");
 					}
@@ -225,6 +227,7 @@ public class Synchronization {
 							entries.get(j).setTitle(
 									new PlainTextConstruct(pendingList.get(i)
 											.getWorkInfo()));
+
 							if (pendingList.get(i).getTag().getRepetition()
 									.equals("null")
 									&& pendingList.get(i).getStartDate() != null) {
@@ -264,7 +267,8 @@ public class Synchronization {
 									CalendarEventEntry insertedEntry = service
 											.insert(feedURL, replace);
 									entries.set(j, insertedEntry);
-									pendingList.get(i).setIndexId(insertedEntry.getId());
+									pendingList.get(i).setIndexId(
+											insertedEntry.getId());
 								}
 							} else {
 								entries.get(j).getTimes().clear();
@@ -283,17 +287,45 @@ public class Synchronization {
 											+ ":" + startDate + "\r\n"
 											+ "DTEND;TZID="
 											+ TimeZone.getDefault().getID()
-											+ ":" + endDate + "\r\n"
-											+ "RRULE:FREQ="
-											+ freq.toUpperCase();
+											+ ":" + endDate + "\r\n";
+
+									if (freq.contains("day")) {
+										recurData = recurData + "RRULE:FREQ="
+												+ "DAILY";
+									} else if (freq.contains("week")) {
+										recurData = recurData + "RRULE:FREQ="
+												+ "WEEKLY";
+									} else if (freq.contains("month")) {
+										recurData = recurData + "RRULE:FREQ="
+												+ "MONTHLY";
+									} else if (freq.contains("year")) {
+										recurData = recurData + "RRULE:FREQ="
+												+ "MONTHLY";
+									}
+									int interval = pendingList.get(i).getTag()
+											.getInterval();
+									if (interval > 0) {
+										recurData = recurData + ";INTERVAL="
+												+ interval;
+									}
+
+									int count = pendingList.get(i)
+											.getNumOccurrences();
+									if (count > 0) {
+										recurData = recurData + ";COUNT="
+												+ count;
+									}
+									recurData += "\r\n";
 									Recurrence rec = new Recurrence();
 									System.out.println("test");
 									rec.setValue(recurData);
 									entries.get(j).setRecurrence(rec);
 								}
+								if (pendingList.get(i).getIsImportant() == true) {
+									setReminder(entries.get(j));
+								}
 								toBeUpdatedOnGCal.add(entries.get(j));
 							}
-							
 						} else {
 							pendingList.get(i).setWorkInfo(
 									entries.get(j).getTitle().getPlainText());
@@ -311,58 +343,235 @@ public class Synchronization {
 										new Tag(pendingList.get(i).getTag()
 												.getTag(), "null"));
 							} catch (IndexOutOfBoundsException e) {
-								String recurrenceData = entries.get(j)
+								String recurData = entries.get(j)
 										.getRecurrence().getValue();
-								System.out.println(recurrenceData);
-								int index1 = recurrenceData.indexOf(":");
-								String startDateString = recurrenceData
-										.substring(index1 + 1, index1 + 16);
-								int index2 = recurrenceData.indexOf(":",
-										index1 + 1);
-								String endDateString = recurrenceData
-										.substring(index2 + 1, index2 + 16);
-								CustomDate startDate = CustomDate
-										.convertFromRecurringDateString(startDateString);
-								CustomDate endDate = CustomDate
-										.convertFromRecurringDateString(endDateString);
-								if (CustomDate.compare(startDate,
-										new CustomDate()) == 0) {
-									pendingList.get(i).setStartDate(null);
-									pendingList.get(i).setEndDate(null);
-									pendingList.get(i).setTag(
-											new Tag(pendingList.get(i).getTag()
-													.getTag(), "null"));
-								} else {
-									pendingList.get(i).setStartDate(startDate);
-									pendingList.get(i).setEndDate(endDate);
+								if (recurData.contains("VALUE=DATE:")) {
+									System.out.println("length: "
+											+ recurData.length());
+									int startDateIndex = recurData.indexOf(":");
+									System.out.println("start index: "
+											+ startDateIndex);
+									String startDateString = recurData
+											.substring(startDateIndex + 1,
+													startDateIndex + 9);
+									System.out.println("start: "
+											+ startDateString);
+									CustomDate cd1 = new CustomDate(
+											startDateString.substring(6, 8)
+													+ "/"
+													+ startDateString
+															.substring(4, 6)
+													+ "/"
+													+ startDateString
+															.substring(0, 4));
 
-									int freqStartIndex = recurrenceData
+									int endDateIndex = recurData.indexOf(":",
+											startDateIndex + 1);
+									String endDateString = recurData.substring(
+											endDateIndex + 1, endDateIndex + 9);
+									System.out.println("end: " + endDateString);
+									CustomDate cd2 = new CustomDate(
+											endDateString.substring(6, 8)
+													+ "/"
+													+ endDateString.substring(
+															4, 6)
+													+ "/"
+													+ endDateString.substring(
+															0, 4));
+
+									pendingList.get(i).setStartDate(cd1);
+									pendingList.get(i).setEndDate(cd2);
+
+									int freqStartIndex = recurData
 											.indexOf("FREQ=");
-									System.out.println(freqStartIndex);
 									int freqEndIndex;
-									if (recurrenceData.contains("BYDAY")
-											|| recurrenceData
-													.contains("BYMONTHDAY")) {
-										freqEndIndex = recurrenceData.indexOf(
-												";", freqStartIndex);
-									} else {
-										freqEndIndex = recurrenceData.indexOf(
-												"\n", freqStartIndex);
-										if (freqEndIndex == -1)
-											freqEndIndex = recurrenceData
-													.length();
-									}
 
-									System.out.println(freqEndIndex);
-									String freq = recurrenceData.substring(
+									if (recurData.contains("BYDAY")
+											|| recurData.contains("BYMONTHDAY")
+											|| recurData.contains("COUNT")
+											|| recurData.contains("INTERVAL")) {
+										freqEndIndex = recurData.indexOf(";",
+												freqStartIndex);
+									} else {
+										freqEndIndex = recurData.indexOf("\n",
+												freqStartIndex);
+										if (freqEndIndex == -1)
+											freqEndIndex = recurData.length();
+									}
+									String freq = recurData.substring(
 											freqStartIndex + 5, freqEndIndex);
+									if (recurData.contains("INTERVAL=")) {
+										int startIndex = recurData
+												.indexOf("INTERVAL=") + 9;
+										int endIndex = recurData.indexOf(";",
+												startIndex);
+										if (endIndex < 0) {
+											endIndex = recurData.indexOf("\n",
+													startIndex);
+										}
+										int interval = Integer
+												.parseInt(recurData.substring(
+														startIndex, endIndex));
+										String suffix = "";
+										if (freq.equalsIgnoreCase("daily")) {
+											suffix = "days";
+										} else if (freq
+												.equalsIgnoreCase("weekly")) {
+											suffix = "weeks";
+										} else if (freq
+												.equalsIgnoreCase("monthly")) {
+											suffix = "months";
+										} else {
+											suffix = "years";
+										}
+										freq = "every" + interval + suffix;
+									}
+									System.out.println("freq: " + freq);
 									pendingList.get(i).setTag(
 											new Tag(pendingList.get(i).getTag()
 													.getTag(), freq
 													.toLowerCase()));
 
+									if (recurData.contains("COUNT=")) {
+										int startIndex = recurData
+												.indexOf("COUNT=") + 6;
+										int endIndex = recurData.indexOf(";",
+												startIndex);
+										if (endIndex < 0) {
+											endIndex = recurData.indexOf("\n",
+													startIndex);
+										}
+										int count = Integer
+												.parseInt(recurData.substring(
+														startIndex, endIndex));
+										pendingList.get(i).setNumOccurrences(
+												count);
+									} else if (freq.equals("DAILY")) {
+										pendingList.get(i).setStartDate(null);
+										pendingList.get(i).setEndDate(null);
+										pendingList.get(i).setTag(
+												new Tag(pendingList.get(i)
+														.getTag().getTag(),
+														"null"));
+									}
+
+								} else {// timed recurring event
+									int startDateIndex = recurData.indexOf(":");
+									System.out.println("start index: "
+											+ startDateIndex);
+									String startDateString = recurData
+											.substring(startDateIndex + 1,
+													startDateIndex + 16);
+									System.out.println("start: "
+											+ startDateString);
+									CustomDate cd1 = new CustomDate(
+											startDateString.substring(6, 8)
+													+ "/"
+													+ startDateString
+															.substring(4, 6)
+													+ "/"
+													+ startDateString
+															.substring(0, 4)
+													+ " "
+													+ startDateString
+															.substring(9, 11)
+													+ ":"
+													+ startDateString
+															.substring(11, 13));
+
+									int endDateIndex = recurData.indexOf(":",
+											startDateIndex + 1);
+									String endDateString = recurData
+											.substring(endDateIndex + 1,
+													endDateIndex + 16);
+									System.out.println("end: " + endDateString);
+									CustomDate cd2 = new CustomDate(
+											endDateString.substring(6, 8)
+													+ "/"
+													+ endDateString.substring(
+															4, 6)
+													+ "/"
+													+ endDateString.substring(
+															0, 4)
+													+ " "
+													+ endDateString.substring(
+															9, 11)
+													+ ":"
+													+ endDateString.substring(
+															11, 13));
+
+									pendingList.get(i).setStartDate(cd1);
+									pendingList.get(i).setEndDate(cd2);
+
+									int freqStartIndex = recurData
+											.indexOf("FREQ=");
+									int freqEndIndex;
+									if (recurData.contains("BYDAY")
+											|| recurData.contains("BYMONTHDAY")
+											|| recurData.contains("COUNT")
+											|| recurData.contains("INTERVAL")) {
+										freqEndIndex = recurData.indexOf(";",
+												freqStartIndex);
+									} else {
+										freqEndIndex = recurData.indexOf("\n",
+												freqStartIndex);
+										if (freqEndIndex == -1)
+											freqEndIndex = recurData.length();
+									}
+									String freq = recurData.substring(
+											freqStartIndex + 5, freqEndIndex);
+									if (recurData.contains("INTERVAL=")) {
+										int startIndex = recurData
+												.indexOf("INTERVAL=") + 9;
+										int endIndex = recurData.indexOf(";",
+												startIndex);
+										if (endIndex < 0) {
+											endIndex = recurData.indexOf("\n",
+													startIndex);
+										}
+										int interval = Integer
+												.parseInt(recurData.substring(
+														startIndex, endIndex));
+										String suffix = "";
+										if (freq.equalsIgnoreCase("daily")) {
+											suffix = "days";
+										} else if (freq
+												.equalsIgnoreCase("weekly")) {
+											suffix = "weeks";
+										} else if (freq
+												.equalsIgnoreCase("monthly")) {
+											suffix = "months";
+										} else {
+											suffix = "years";
+										}
+										freq = "every" + interval + suffix;
+									}
+									System.out.println("freq: " + freq);
+
+									pendingList.get(i).setTag(
+											new Tag(pendingList.get(i).getTag()
+													.getTag(), freq
+													.toLowerCase()));
+									if (recurData.contains("COUNT=")) {
+										int startIndex = recurData
+												.indexOf("COUNT=") + 6;
+										int endIndex = recurData.indexOf(";",
+												startIndex);
+										if (endIndex < 0) {
+											endIndex = recurData.indexOf("\n",
+													startIndex);
+										}
+										int count = Integer
+												.parseInt(recurData.substring(
+														startIndex, endIndex));
+										pendingList.get(i).setNumOccurrences(
+												count);
+									}
 								}
+
 							}
+							if (!entries.get(j).getReminder().isEmpty())
+								pendingList.get(i).setIsImportant(true);
 							pendingList.get(i).updateLatestModifiedDate();
 						}
 						break;
@@ -478,12 +687,14 @@ public class Synchronization {
 
 						t.setStartDate(cd1);
 						t.setEndDate(cd2);
-						
+
 						int freqStartIndex = recurData.indexOf("FREQ=");
 						int freqEndIndex;
-						
+
 						if (recurData.contains("BYDAY")
-								|| recurData.contains("BYMONTHDAY") || recurData.contains("COUNT") || recurData.contains("INTERVAL")) {
+								|| recurData.contains("BYMONTHDAY")
+								|| recurData.contains("COUNT")
+								|| recurData.contains("INTERVAL")) {
 							freqEndIndex = recurData.indexOf(";",
 									freqStartIndex);
 						} else {
@@ -494,19 +705,20 @@ public class Synchronization {
 						}
 						String freq = recurData.substring(freqStartIndex + 5,
 								freqEndIndex);
-						if(recurData.contains("INTERVAL=")){
-							int startIndex = recurData.indexOf("INTERVAL=")+9;
+						if (recurData.contains("INTERVAL=")) {
+							int startIndex = recurData.indexOf("INTERVAL=") + 9;
 							int endIndex = recurData.indexOf(";", startIndex);
-							if(endIndex < 0){
+							if (endIndex < 0) {
 								endIndex = recurData.indexOf("\n", startIndex);
 							}
-							int interval = Integer.parseInt(recurData.substring(startIndex, endIndex));
+							int interval = Integer.parseInt(recurData
+									.substring(startIndex, endIndex));
 							String suffix = "";
-							if(freq.equalsIgnoreCase("daily")){
+							if (freq.equalsIgnoreCase("daily")) {
 								suffix = "days";
-							} else if(freq.equalsIgnoreCase("weekly")){
+							} else if (freq.equalsIgnoreCase("weekly")) {
 								suffix = "weeks";
-							} else if(freq.equalsIgnoreCase("monthly")){
+							} else if (freq.equalsIgnoreCase("monthly")) {
 								suffix = "months";
 							} else {
 								suffix = "years";
@@ -515,22 +727,22 @@ public class Synchronization {
 						}
 						System.out.println("freq: " + freq);
 						t.setTag(new Tag(Parser.HYPHEN, freq.toLowerCase()));
-						if(freq.equals("DAILY")){
+
+						if (recurData.contains("COUNT=")) {
+							int startIndex = recurData.indexOf("COUNT=") + 6;
+							int endIndex = recurData.indexOf(";", startIndex);
+							if (endIndex < 0) {
+								endIndex = recurData.indexOf("\n", startIndex);
+							}
+							int count = Integer.parseInt(recurData.substring(
+									startIndex, endIndex));
+							t.setNumOccurrences(count);
+						} else if (freq.equals("DAILY")) {
 							t.setStartDate(null);
 							t.setEndDate(null);
 							t.setTag(new Tag(Parser.HYPHEN, "null"));
 						}
-						if(recurData.contains("COUNT=")){
-							int startIndex = recurData.indexOf("COUNT=")+6;
-							int endIndex = recurData.indexOf(";", startIndex);								
-							if(endIndex < 0) {
-								endIndex = recurData.indexOf("\n", startIndex);
-							}
-							int count = Integer.parseInt(recurData.substring(startIndex, endIndex));
-							t.setNumOccurrences(count);
-						}
-						
-						
+
 					} else {// timed recurring event
 						int startDateIndex = recurData.indexOf(":");
 						System.out.println("start index: " + startDateIndex);
@@ -563,7 +775,9 @@ public class Synchronization {
 						int freqStartIndex = recurData.indexOf("FREQ=");
 						int freqEndIndex;
 						if (recurData.contains("BYDAY")
-								|| recurData.contains("BYMONTHDAY") || recurData.contains("COUNT") || recurData.contains("INTERVAL")) {
+								|| recurData.contains("BYMONTHDAY")
+								|| recurData.contains("COUNT")
+								|| recurData.contains("INTERVAL")) {
 							freqEndIndex = recurData.indexOf(";",
 									freqStartIndex);
 						} else {
@@ -574,19 +788,20 @@ public class Synchronization {
 						}
 						String freq = recurData.substring(freqStartIndex + 5,
 								freqEndIndex);
-						if(recurData.contains("INTERVAL=")){
-							int startIndex = recurData.indexOf("INTERVAL=")+9;
+						if (recurData.contains("INTERVAL=")) {
+							int startIndex = recurData.indexOf("INTERVAL=") + 9;
 							int endIndex = recurData.indexOf(";", startIndex);
-							if(endIndex < 0){
-								endIndex = recurData.indexOf("\n", startIndex);								
+							if (endIndex < 0) {
+								endIndex = recurData.indexOf("\n", startIndex);
 							}
-							int interval = Integer.parseInt(recurData.substring(startIndex, endIndex));
+							int interval = Integer.parseInt(recurData
+									.substring(startIndex, endIndex));
 							String suffix = "";
-							if(freq.equalsIgnoreCase("daily")){
+							if (freq.equalsIgnoreCase("daily")) {
 								suffix = "days";
-							} else if(freq.equalsIgnoreCase("weekly")){
+							} else if (freq.equalsIgnoreCase("weekly")) {
 								suffix = "weeks";
-							} else if(freq.equalsIgnoreCase("monthly")){
+							} else if (freq.equalsIgnoreCase("monthly")) {
 								suffix = "months";
 							} else {
 								suffix = "years";
@@ -596,13 +811,14 @@ public class Synchronization {
 						System.out.println("freq: " + freq);
 
 						t.setTag(new Tag(Parser.HYPHEN, freq.toLowerCase()));
-						if(recurData.contains("COUNT=")){
-							int startIndex = recurData.indexOf("COUNT=")+6;
-							int endIndex = recurData.indexOf(";", startIndex);								
-							if(endIndex < 0) {
+						if (recurData.contains("COUNT=")) {
+							int startIndex = recurData.indexOf("COUNT=") + 6;
+							int endIndex = recurData.indexOf(";", startIndex);
+							if (endIndex < 0) {
 								endIndex = recurData.indexOf("\n", startIndex);
 							}
-							int count = Integer.parseInt(recurData.substring(startIndex, endIndex));
+							int count = Integer.parseInt(recurData.substring(
+									startIndex, endIndex));
 							t.setNumOccurrences(count);
 						}
 					}
@@ -610,6 +826,8 @@ public class Synchronization {
 				}
 				t.setIndexId(e.getId());
 				t.setStatus(Task.Status.UNCHANGED);
+				if (!e.getReminder().isEmpty())
+					t.setIsImportant(true);
 				pendingList.add(t);
 				System.out.println("done");
 			}
@@ -680,9 +898,9 @@ public class Synchronization {
 	 *             Error communicating with the server.
 	 */
 	CalendarEventEntry createEvent(CalendarService service, String title,
-			CustomDate startDate, CustomDate endDate, String recurData, boolean isImport,
-			boolean isQuickAdd, URL feedUrl) throws ServiceException,
-			IOException {
+			CustomDate startDate, CustomDate endDate, String recurData,
+			boolean isImport, boolean isQuickAdd, URL feedUrl)
+			throws ServiceException, IOException {
 		CalendarEventEntry myEntry = new CalendarEventEntry();
 
 		myEntry.setTitle(new PlainTextConstruct(title));
@@ -700,11 +918,11 @@ public class Synchronization {
 			recur.setValue(recurData);
 			myEntry.setRecurrence(recur);
 		}
-		
-		if(isImport){
+
+		if (isImport) {
 			setReminder(myEntry);
 		}
-		
+
 		// Send the request and receive the response:
 		return service.insert(feedUrl, myEntry);
 	}
@@ -725,10 +943,10 @@ public class Synchronization {
 	 *             Error communicating with the server.
 	 */
 	CalendarEventEntry createSingleEvent(CalendarService service,
-			String eventContent, CustomDate startDate, CustomDate endDate, boolean isImport,
-			URL feedUrl) throws ServiceException, IOException {
-		return createEvent(service, eventContent, startDate, endDate, null, isImport,
-				false, feedUrl);
+			String eventContent, CustomDate startDate, CustomDate endDate,
+			boolean isImport, URL feedUrl) throws ServiceException, IOException {
+		return createEvent(service, eventContent, startDate, endDate, null,
+				isImport, false, feedUrl);
 	}
 
 	/**
@@ -748,24 +966,26 @@ public class Synchronization {
 	 */
 	private CalendarEventEntry createRecurringEvent(CalendarService service,
 			String eventContent, String startDate, String endDate, String freq,
-			String until, int count, int interval, boolean isImport, URL feedUrl) throws ServiceException, IOException {
+			String until, int count, int interval, boolean isImport, URL feedUrl)
+			throws ServiceException, IOException {
 
 		String recurData = "DTSTART;TZID=" + TimeZone.getDefault().getID()
 				+ ":" + startDate + "\r\n" + "DTEND;TZID="
 				+ TimeZone.getDefault().getID() + ":" + endDate + "\r\n";
-		if(interval > 0){
-			if(freq.contains("days")){
-				recurData = recurData + "RRULE:FREQ=" + "DAILY";				
-			} else if(freq.contains("weeks")){
-				recurData = recurData + "RRULE:FREQ=" + "WEEKLY";
-			} else {				
-				recurData = recurData + "RRULE:FREQ=" + "YEARLY";								
-			}
-			recurData = recurData + ";INTERVAL=" + interval;
-		} else {
-			recurData = recurData + "RRULE:FREQ=" + freq.toUpperCase();
+
+		if (freq.contains("day") || freq.contains("daily")) {
+			recurData = recurData + "RRULE:FREQ=" + "DAILY";
+		} else if (freq.contains("week")) {
+			recurData = recurData + "RRULE:FREQ=" + "WEEKLY";
+		} else if (freq.contains("month")) {
+			recurData = recurData + "RRULE:FREQ=" + "MONTHLY";
+		} else if (freq.contains("year") || freq.contains("annually")) {
+			recurData = recurData + "RRULE:FREQ=" + "YEARLY";
 		}
-		if(count > 0){
+		if (interval > 0) {
+			recurData = recurData + ";INTERVAL=" + interval;
+		}
+		if (count > 0) {
 			recurData = recurData + ";COUNT=" + count;
 		}
 		if (until != null) {
@@ -774,8 +994,8 @@ public class Synchronization {
 		recurData += "\r\n";
 
 		System.out.println(recurData);
-		return createEvent(service, eventContent, null, null, recurData, isImport, false,
-				feedUrl);
+		return createEvent(service, eventContent, null, null, recurData,
+				isImport, false, feedUrl);
 	}
 
 	/**
@@ -876,17 +1096,17 @@ public class Synchronization {
 					.println("Successfully updated all events via batch request.");
 		}
 	}
-	
-	private void setReminder(CalendarEventEntry event){
+
+	private void setReminder(CalendarEventEntry event) {
 		Reminder r = new Reminder();
 		Method m = Method.ALERT;
-		
+
 		r.setMinutes(REMINDER_MINUTES);
 		r.setMethod(m);
 		event.getReminder().add(r);
 	}
-	
-	private String isCalendarExist(CalendarService service, URL feedUrl){
+
+	private String isCalendarExist(CalendarService service, URL feedUrl) {
 		String calendarId = null;
 		CalendarFeed resultFeed = null;
 		List<CalendarEntry> entries = null;
@@ -900,9 +1120,10 @@ public class Synchronization {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		if(entries != null){
-			for(int i=0;i<entries.size();i++){
-				if(entries.get(i).getTitle().getPlainText().equals(CALENDAR_TITLE)){
+		if (entries != null) {
+			for (int i = 0; i < entries.size(); i++) {
+				if (entries.get(i).getTitle().getPlainText()
+						.equals(CALENDAR_TITLE)) {
 					calendarId = trimId(entries.get(i).getId());
 					break;
 				}

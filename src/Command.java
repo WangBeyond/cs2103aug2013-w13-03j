@@ -89,6 +89,7 @@ public abstract class Command {
 		if (isRepetitive) {
 			long expectedDifference = CustomDate
 					.getUpdateDifference(repeatingType);
+			System.out.println(expectedDifference);
 			long actualDifference = endDate.getTimeInMillis()
 					- startDate.getTimeInMillis();
 			if (actualDifference > expectedDifference) {
