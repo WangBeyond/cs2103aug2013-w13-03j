@@ -1,3 +1,4 @@
+import java.awt.TrayIcon.MessageType;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.util.Collections;
@@ -666,15 +667,29 @@ public class Control extends Application {
 		t.schedule(new TimerTask() {
 			@Override
 			public void run() {
-				System.out.println("eeee");
 				CustomDate.updateCurrentDate();
 				updateList(modelHandler.getPendingList());
 				updateList(modelHandler.getCompleteList());
 				updateList(modelHandler.getTrashList());
+				displayMessage();
 			}
 		}, 0, MINUTE_IN_MILLIS);
 	}
 
+	private void displayMessage(){
+		ObservableList<Task> list = modelHandler.getPendingList();
+		for(int i = 0; i <  list.size(); i++){
+			if(list.get(i).getIsImportant() == true){
+				if(list.get(i).getStartDate().getRemainingTime().equals("0h 30m")){
+					System.out.println("test");
+					view.trayIcon.displayMessage("Reminder", "A task will begin after the next 30 minutes", MessageType.INFO);
+				}else if(list.get(i).getEndDate().getRemainingTime().equals("0h 30m")){
+					view.trayIcon.displayMessage("Reminder", "A task will be due after the next 30 minutes", MessageType.INFO);
+				}
+			}
+		}
+	}
+	
 	private static void updateList(ObservableList<Task> list) {
 		for (int i = 0; i < list.size(); i++) {
 			list.get(i).updateDateString();
