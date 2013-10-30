@@ -419,12 +419,14 @@ class Tag {
 		int startIndex = repetition.indexOf("every");
 		if(startIndex >= 0){
 			int endIndex;
-			if(repetition.contains("days")){
-				endIndex = repetition.indexOf("days");
-			} else if(repetition.contains("weeks")){
-				endIndex = repetition.indexOf("weeks");				
-			} else {				
-				endIndex = repetition.indexOf("years");				
+			if(repetition.contains("day")){
+				endIndex = repetition.indexOf("day");
+			} else if(repetition.contains("week")){
+				endIndex = repetition.indexOf("week");				
+			} else if(repetition.contains("month")){
+				endIndex = repetition.indexOf("month");
+			} else{
+				endIndex = repetition.indexOf("year");				
 			}
 			int interval = Integer.parseInt(repetition.substring(startIndex+5, endIndex));
 			return interval;
