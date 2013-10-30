@@ -1,5 +1,5 @@
 .root{
-	-fx-background-color: rgb(240,240,240);
+	-fx-background-color: rgb(80,80,80);
 }
 
 /** Tab Pane **/
@@ -58,7 +58,7 @@
 
 /************************************* Text Field *****************************************************/
 .text-field {
-    -fx-background-color: rgb(247.0,247.0,247.0), black, -fx-control-inner-background;
+    -fx-background-color: rgb(100.0,100.0,100.0), black, -fx-control-inner-background;
     -fx-background-insets: -1.0, 1.0, 1.0;
     -fx-background-radius: 0.0, 0.0, 0.0;
     -fx-padding: 4.5 5.0 4.5 5.0;
@@ -69,7 +69,7 @@
 }
  
 .text-field:focused {
-    -fx-background-color: rgb(247.0, 247.0, 247.0) , white, white;
+    -fx-background-color: rgb(100.0, 100.0, 100.0) , white, white;
     -fx-background-insets: -1.0, 1.0, 1.0;
     -fx-background-radius: 0.0, 0.0, 0.0;
     -fx-prompt-text-fill: transparent;
@@ -100,7 +100,7 @@
 /* Table View */
 .table-view {
 	-fx-table-cell-border-color: transparent;
-    -fx-background-color: rgb(150,150,150);
+    -fx-background-color: rgb(50,50,50);
     -fx-background-insets: 0.0,0.0;
     -fx-border-radius: 2.0 2.0 2.0;
 
@@ -117,15 +117,15 @@
 
 .table-row-cell {
     -fx-skin: "com.sun.javafx.scene.control.skin.TableRowSkin";
-    -fx-background-color: rgb(150,150, 150);
+    -fx-background-color: rgb(50,50,50);
     -fx-background-insets: 0.0, 0.0 0.0 1.0 0.0;
-    -fx-border-color: rgb(150,150,150) transparent rgb(150,150,150) transparent;
+    -fx-border-color: rgb(50,50,50) transparent rgb(50,50,50) transparent;
     -fx-padding: 0.0em; /* 0 */
     -fx-text-fill: white;
 }
  
 .table-row-cell:odd {
-  	-fx-background-color: rgb(150,150, 150);
+  	-fx-background-color: rgb(50,50,50);
    -fx-background-insets: 0.0, 0.0 0.0 1.0 0.0;
 }
 .table-cell {
@@ -142,7 +142,7 @@
 /* This is the area behind the column headers. An ideal place to specify background
    and border colors for the whole area (not individual column-header's). */
 .table-view .column-header-background {
-    -fx-background-color: rgb(150,150,150);
+    -fx-background-color: rgb(50,50,50);
     -fx-padding: 0.0;
 }
 
@@ -202,15 +202,15 @@
 }
 
 .unimportant-last{
-	-fx-border-color: rgb(150,150,150) transparent rgb( 255, 0, 0) transparent;
+	-fx-border-color: rgb(50,50,50) transparent rgb( 255, 0, 0) transparent;
 	
-	-fx-background-color: rgb(150,150,150);
+	-fx-background-color: rgb(50,50,50);
 }
 
 .unimportant-odd-last{
-	-fx-border-color: rgb(140,140,140) transparent rgb( 255, 0, 0) transparent;
+	-fx-border-color: rgb(40,40,40) transparent rgb( 255, 0, 0) transparent;
 	
-	-fx-background-color: rgb(140,140,140);
+	-fx-background-color: rgb(40,40,40);
 }
 
 .last-overdue{
@@ -218,14 +218,14 @@
 }
 
 .unimportant{
-    -fx-border-color: rgb(150,150,150) transparent rgb(150,150,150) transparent;
+    -fx-border-color: rgb(50,50,50) transparent rgb(50,50,50) transparent;
 	
-	-fx-background-color: rgb(150,150,150);
+	-fx-background-color: rgb(50,50,50);
 }
 
 .unimportant-odd{
-    -fx-border-color: rgb(140,140,140) transparent rgb(140,140,140) transparent;
-	-fx-background-color: rgb(140,140,140);
+    -fx-border-color: rgb(40,40,40) transparent rgb(40,40,40) transparent;
+	-fx-background-color: rgb(40,40,40);
 	
 }
 
