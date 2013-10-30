@@ -543,7 +543,7 @@ public class View implements HotkeyListener {
 		} else {
 			scene.getStylesheets().addAll(
 					getClass().getResource("customize2.css").toExternalForm());
-			txt.setBackground(new java.awt.Color(135, 135, 135));
+			txt.setBackground(new java.awt.Color(50, 50, 50));
 			caretListener = new ChangeListener<Boolean>() {
 				public void changed(ObservableValue<? extends Boolean> ov,
 						Boolean oldValue, Boolean newValue) {
@@ -555,7 +555,7 @@ public class View implements HotkeyListener {
 			};
 			txt.setStyledDocument(new CustomStyledDocumentForNightMode());
 			title.setImage(new Image(getClass().getResourceAsStream("ido_new_night.png")));
-			defaultColor = Color.rgb(150, 150, 150);
+			defaultColor = Color.rgb(250, 250, 250);
 			commandColor = Color.rgb(89, 213, 100);
 			stage.focusedProperty().addListener(caretListener);
 		}
