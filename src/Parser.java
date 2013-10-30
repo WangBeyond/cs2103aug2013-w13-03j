@@ -24,7 +24,7 @@ public class Parser {
 			"yearly", "annually", "every monday", "every tuesday",
 			"every wednesday", "every thursday", "every friday",
 			"every saturday", "every sunday", "every day", "every month",
-			"every year", "everyday", "every week", "every\\s+\\d+\\s+(days?|weeks?|months?|years?)" };
+			"every year", "every week", "every\\s+\\d+\\s+(days?|weeks?|months?|years?)" };
 	
 	private static String[] occurenceKeys = { "time", "times" };
 	
