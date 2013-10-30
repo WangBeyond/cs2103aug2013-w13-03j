@@ -285,6 +285,7 @@ public class View implements HotkeyListener {
 				});
 			}
 		};
+		map.put(scrollDownKey, scrollDownAction);
 	}
 
 	private void setupShortcuts() {
