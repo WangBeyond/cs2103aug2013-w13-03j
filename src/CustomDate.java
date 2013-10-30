@@ -235,7 +235,7 @@ public class CustomDate {
 		return targetDate.get(Calendar.YEAR) == currentDate.get(Calendar.YEAR);
 	}
 
-	private String getRemainingTime() {
+	public String getRemainingTime() {
 		int remainingTime = (int) (targetDate.getTimeInMillis() - currentDate.getTimeInMillis()) / MINUTE_IN_MILLIS;
 		int remainingHours = remainingTime / HOUR_IN_MINUTES;
 		int remainingMinutes = remainingTime % HOUR_IN_MINUTES;
