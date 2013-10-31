@@ -4,37 +4,39 @@ import java.io.IOException;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.lang.String;
+import java.security.SecureRandom;
 import java.io.File;
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
+
+import java.security.SecureRandom;
+import java.security.Security;
+
 public class Setting extends Store {
-	private final static String TRUE = "true";
-
-	private String googleAccount;
-	private String password;
-	// 12-hour or 24-hour format
-	private Boolean isTwelveHour;
-	// Whether date display include year
-	private Boolean isYearDisplayed;
-	private Boolean isPasswordRemembered;
-	// Whether task sorted chronologically first or according to importance
-	// first
-	private Boolean isChronological;
-	private int fontSize;
-
+	private static String completeKey = "The quick brown fox jumped over the lazy brown dog The quick brown fox jumped over the lazy brown dog";
 	private BufferedReader in;
 	private BufferedWriter out;
 
 	private String fileName;
 
-	public static void main(String args[]) {
-
-		Setting settingStore = new Setting("setting.txt");
-		// Just set an arbitrary account
-		settingStore.setAccount("yy@gmail.com", "12345");
+	/*public static void main(String args[]) {
 		try {
 			System.out.println(System.getProperty("user.home"));
+	        Security.insertProviderAt(new BouncyCastleProvider(), 1);
+
+	        String passphrase = "The quick brown fox jumped over the lazy brown dog";
+	        String plaintext = "hello world";
+	        byte [] ciphertext = encrypt(passphrase, plaintext);
+	        String recoveredPlaintext = decrypt(passphrase, ciphertext);
+
+	        System.out.println(recoveredPlaintext);
 			// settingStore.setFontSize(20);
-			 settingStore.storeToFile();
 			// settingStore.encryptFile();
 			// System.out.println(settingStore.getFontSize());
 			// settingStore.decryptFile();
@@ -44,24 +46,175 @@ public class Setting extends Store {
 			System.out.println(e);
 		}
 	}
+	*/
+	String dir;
+	public Setting(String fileName, Model model) {
 
-	public void setAccount(String accountInput, String passwordInput) {
-		googleAccount = accountInput;
-		password = passwordInput;
-	}
-
-	public Setting(String fileNameInput) {
 		createDir();
-		fileName = findUserDocDir()+FOLDERNAME+"\\"+fileNameInput;
-		//fileName = findUserDocDir()+ fileNameInput;
-		googleAccount = "";
-		password = "";
-		isTwelveHour = false;
-		isYearDisplayed = false;
-		isPasswordRemembered = false;
-		isChronological = false;
-		fontSize = 14;
+		dir = findUserDocDir() + FOLDERNAME + "/" + fileName;
+		xmlFile = new File(dir);
+		checkIfFileExists(xmlFile);
+		this.model = model;
+        Security.insertProviderAt(new BouncyCastleProvider(), 1);
+
 	}
+	
+	public void storeAccount() {
+		try {
+			Element root = new Element("root");
+			Document doc = new Document(root);
+			Element account = new Element("account");
+			doc.getRootElement().getChildren().add(account);
+			String encryptedPassword;
+			try{
+				encryptedPassword = encryptString(model.getPassword());
+				System.out.println("store: "+model.getPassword()+"->"+encryptedPassword);
+			}catch(Exception e) {
+				System.out.println("fail to encrypt password");
+				System.out.println("store: "+e.getMessage());
+				encryptedPassword = model.getPassword();
+			}
+			account.addContent(new Element("username").setText(model.getUsername()));
+			account.addContent(new Element("password").setText(encryptedPassword));
+			account.addContent(new Element("display_remaining").setText(model.getDisplayRemaining()==true? TRUE : FALSE));
+			account.addContent(new Element("themeMode").setText(model.getThemeMode()));
+			XMLOutputter xmlOutput = new XMLOutputter();
+			xmlOutput.setFormat(Format.getPrettyFormat());
+			xmlOutput.output(doc, new FileWriter(dir));
+			System.out.println("Setting saved");
+		} catch (IOException io) {
+			System.out.println(io.getMessage());
+		}
+	}
+	
+	public void updateAccount() {
+		 
+		  try {
+	 
+			SAXBuilder builder = new SAXBuilder();
+			File xmlFile = new File(dir);
+	 
+			Document doc = (Document) builder.build(xmlFile);
+			Element rootNode = doc.getRootElement();
+			Element account = rootNode.getChild("account");
+			if (model.getUsername() != null) {
+				account.getChild("username").setText(model.getUsername());				
+			}
+			String encryptedPassword;
+			try{
+				encryptedPassword = encryptString( model.getPassword());
+				System.out.println("update: "+model.getPassword()+"->"+encryptedPassword);
+			}catch(Exception e) {
+				System.out.println("fail to encrypt password");
+				System.out.println("update: "+e.getMessage());
+				encryptedPassword = model.getPassword();
+			}
+			if (model.getPassword() != null) {
+				account.getChild("password").setText(encryptedPassword);			
+			}
+			account.getChild("display_remaining").setText(model.getDisplayRemaining()==true? TRUE : FALSE);
+			if (model.getThemeMode()!=null) {
+				account.getChild("themeMode").setText(model.getThemeMode());	
+			}
+			XMLOutputter xmlOutput = new XMLOutputter();
+			xmlOutput.setFormat(Format.getPrettyFormat());
+			xmlOutput.output(doc, new FileWriter(dir));
+	 
+			// xmlOutput.output(doc, System.out);
+	 
+			System.out.println("File updated!");
+		  } catch (IOException io) {
+			io.printStackTrace();
+		  } catch (JDOMException e) {
+			e.printStackTrace();
+		  }
+	}
+	
+	public void retrieveAccount() {
+		 
+		SAXBuilder builder = new SAXBuilder();
+		  try {
+			Document doc = (Document) builder.build(xmlFile);
+			Element rootNode = doc.getRootElement();
+			Element account = rootNode.getChild("account");
+			Element username = account.getChild("username");
+			Element password = account.getChild("password");
+			Element displayRemaining  = account.getChild("display_remaining");
+			Element themeMode = account.getChild("themeMode");
+			
+			if (username == null)
+				System.out.println("no account info");
+			else {
+				String decryptedPassword = password.getText();
+				if(password.getText() != null) {
+					try{
+						decryptedPassword = decryptString(password.getText());
+						System.out.println("retrieve: "+password.getText()+"->"+decryptedPassword);
+					}catch(Exception e) {
+						System.out.println("fail to decrypt password");
+						decryptedPassword = password.getText();
+					}
+				}
+				model.setUsername(username.getText());
+				model.setPassword(decryptedPassword);
+				model.setDisplayRemaining(displayRemaining.getText()==TRUE? true : false);
+				model.setThemeMode(themeMode.getText());
+			}			
+		  } catch (IOException io) {
+			System.out.println(io.getMessage());
+		  } catch (JDOMException jdomex) {
+			System.out.println(jdomex.getMessage());
+		  }
+	}
+	
+	/*
+	public void storeCalendarID () {
+		  try {
+				 
+			SAXBuilder builder = new SAXBuilder();
+			File xmlFile = new File(dir);
+	 
+			Document doc = (Document) builder.build(xmlFile);
+			Element rootNode = doc.getRootElement();
+			Element account = rootNode.getChild("account");
+			account.addContent(new Element("CalendarID").setText(model.getCalendarID()));
+			XMLOutputter xmlOutput = new XMLOutputter();
+			xmlOutput.setFormat(Format.getPrettyFormat());
+			xmlOutput.output(doc, new FileWriter(dir));
+	 
+			// xmlOutput.output(doc, System.out);
+	 
+			System.out.println("calID saved!");
+		  } catch (IOException io) {
+			io.printStackTrace();
+		  } catch (JDOMException e) {
+			e.printStackTrace();
+		  }
+	}
+	
+
+	
+	public void retrieveCalID() {
+		 
+		SAXBuilder builder = new SAXBuilder();
+		String calendarID = null;
+		  try {
+			Document doc = (Document) builder.build(xmlFile);
+			Element rootNode = doc.getRootElement();
+			Element account = rootNode.getChild("account");
+			Element calID = account.getChild("CalendarID");
+
+			if (calID != null)
+				model.setCalendarID(calID.getText());
+		
+		  } catch (IOException io) {
+			System.out.println(io.getMessage());
+		  } catch (JDOMException jdomex) {
+			System.out.println(jdomex.getMessage());
+		  }
+	}
+*/	
+
 
 	protected void createDir() {
 		File theDir = new File(findUserDocDir()+FOLDERNAME);
@@ -79,63 +232,13 @@ public class Setting extends Store {
 		return System.getProperty("user.home") + "\\Documents\\" ;
 	}
 
-	public void loadFromFile() throws IOException {
-		in = new BufferedReader(new FileReader(fileName));
-		googleAccount = in.readLine();
-		password = in.readLine();
-		isTwelveHour = in.readLine().equals(TRUE) ? true : false;
-		isYearDisplayed = in.readLine().equals(TRUE) ? true : false;
-		isPasswordRemembered = in.readLine().equals(TRUE) ? true : false;
-		isChronological = in.readLine().equals(TRUE) ? true : false;
-		fontSize = Integer.valueOf(in.readLine());
-		in.close();
-		new File(fileName).delete();
-	}
-
-	public void storeToFile() throws IOException {
-		out = new BufferedWriter(new FileWriter(fileName, false));
-		out.write(googleAccount + "\r\n");
-		out.write(password + "\r\n");
-		out.write(isTwelveHour.toString() + "\r\n");
-		out.write(isYearDisplayed.toString() + "\r\n");
-		out.write(isPasswordRemembered.toString() + "\r\n");
-		out.write(isChronological.toString() + "\r\n");
-		out.write(fontSize + "\r\n");
-		out.flush();
-		out.close();
-	}
-
-	public void encryptFile() throws Exception {
-		new FileEncryptor("DES/ECB/PKCS5Padding", fileName).encrypt();
-		new File(fileName).delete();
+	public String encryptString(String plainText) throws Exception {
+		return new Encryptor("DES/ECB/PKCS5Padding").encrypt(plainText);
 
 	}
 
-	public void decryptFile() throws Exception {
-		new FileEncryptor("DES/ECB/PKCS5Padding", fileName).decrypt();
+	public String decryptString(String cipherString) throws Exception {
+		return new Encryptor("DES/ECB/PKCS5Padding").decrypt(cipherString);
 	}
 
-	public void setTwelveHour(boolean isCheck) {
-		isTwelveHour = isCheck;
-	}
-
-	public void setYearDisplayed(boolean isDisplayed) {
-		isYearDisplayed = isDisplayed;
-	}
-
-	public void setPasswordRemember(boolean isRemembered) {
-		isPasswordRemembered = isRemembered;
-	}
-
-	public void setChronological(boolean isChro) {
-		isChronological = isChro;
-	}
-
-	public void setFontSize(int fontSizeInput) {
-		fontSize = fontSizeInput;
-	}
-
-	public int getFontSize() {
-		return fontSize;
-	}
 }

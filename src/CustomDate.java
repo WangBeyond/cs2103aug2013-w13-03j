@@ -300,7 +300,6 @@ public class CustomDate {
 
 	/******** Get the difference between periods according to the type of repetition ***********/
 	public static long getUpdateDifference(String repetition) {
-		System.out.println(repetition);
 		if (isDailyRoutine(repetition)>0) {
 			return DAY_IN_MILLIS * isDailyRoutine(repetition);
 		} else if (isWeeklyRoutine(repetition)>0) {
@@ -319,7 +318,7 @@ public class CustomDate {
 		if(repetition.equals("daily") || repetition.equals("every day"))
 			return 1;
 		else if(repetition.matches(regex)) {
-			System.out.println("regex "+repetition.replaceAll(regex, "$2"));
+			//System.out.println("regex "+repetition.replaceAll(regex, "$2"));
 			int dayNum = Integer.valueOf(repetition.replaceAll(regex, "$2"));
 			return dayNum;
 		} else return 0;

@@ -145,7 +145,7 @@ public class View implements HotkeyListener {
 	TrayIcon trayIcon;
 
 	Model model;
-	SyncStore syncStore;
+	Setting settingStore;
 
 	/**
 	 * This is the constructor for class View. It will create the content in the
@@ -156,10 +156,10 @@ public class View implements HotkeyListener {
 	 * @param primaryStage
 	 *            main stage of the GUI
 	 */
-	public View(final Model model, final Stage primaryStage, SyncStore syncStore) {
+	public View(final Model model, final Stage primaryStage, Setting settingStore) {
 		stage = primaryStage;
 		this.model = model;
-		this.syncStore = syncStore;
+		this.settingStore = settingStore;
 
 		setupHelpPage();
 		setupSettingsPage();
@@ -216,7 +216,7 @@ public class View implements HotkeyListener {
 	}
 
 	private void setupSettingsPage() {
-		settingsPage = Settings.getInstanceSettings(model);
+		settingsPage = Settings.getInstanceSettings(model,settingStore);
 	}
 
 	public void showSettingsPage() {

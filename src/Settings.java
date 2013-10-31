@@ -35,6 +35,7 @@ public class Settings {
 	
 	private static Settings oneSettingsPage;
 	private Model model;
+	private Setting settingStore;
 	
 	private Stage settingsStage;
 	private Scene settingsScene;
@@ -51,8 +52,9 @@ public class Settings {
 	private RadioButton remaining;
 	private RadioButton exact;
 	
-	private Settings(Model model){
+	private Settings(Model model, Setting settingStore){
 		this.model = model;
+		this.settingStore = settingStore;
 		setupStage();
 		setupContent();
 		setupButtons();
@@ -61,9 +63,9 @@ public class Settings {
 		setupDraggable();
 	}
 	
-	public static Settings getInstanceSettings(Model model){
+	public static Settings getInstanceSettings(Model model, Setting settingStore){
 		if (oneSettingsPage == null){
-			oneSettingsPage = new Settings(model);
+			oneSettingsPage = new Settings(model, settingStore);
 		}		
 		return oneSettingsPage;
 	}
@@ -183,7 +185,7 @@ public class Settings {
 		String pw = pwBox.getText();
 		String pwRetype = pwRetypeBox.getText();
 		
-		if(dayMode.isSelected())
+		if(dayMode.isSelected()) 
 			model.setThemeMode(Model.DAY_MODE);
 		else
 			model.setThemeMode(Model.NIGHT_MODE);
@@ -203,7 +205,7 @@ public class Settings {
 				pwRetypeBox.setPromptText("Passwords do not match!");
 			}
 		}
-	
+	    settingStore.updateAccount();
 		return STORE_FAIL;
 	}
 	
