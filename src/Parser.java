@@ -272,7 +272,6 @@ public class Parser {
 		try {
 			return parseCommandWithIndex(content);
 		} catch (Exception e) {
-			System.out.println(TwoWayCommand.listedIndexType);
 			ObservableList<Task> modifiedList;
 			int tabIndex = view.tabPane.getSelectionModel().getSelectedIndex();
 			if (tabIndex == Command.PENDING_TAB) {

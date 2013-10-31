@@ -60,7 +60,7 @@ public class Control extends Application {
 	public History commandHistory = new History();
 	public View view;
 	private Store dataFile;
-	private SyncStore syncStore;
+	private Setting settingStore;
 	public Synchronization sync = new Synchronization(modelHandler);
 
 	static boolean isRealTimeSearch = false;
@@ -82,21 +82,20 @@ public class Control extends Application {
 		try {
 			dataFile = new DataStorage("dataStorage.txt", modelHandler);
 			dataFile.loadFromFile();
-			syncStore = new SyncStore("sync.xml", modelHandler);
-			syncStore.retrieveAccount();
-			syncStore.retrieveCalID();
+			settingStore = new Setting("setting.xml", modelHandler);
+			settingStore.retrieveAccount();
 		} catch (IOException e) {
 			System.out.println("Cannot read the given file");
 		}
 	}
 
 	private void loadGUI(Stage primaryStage) {
-		view = new View(modelHandler, primaryStage, syncStore);
+		view = new View(modelHandler, primaryStage, settingStore);
 		handleEventForCommandLine();
 		updateOverdueLine(modelHandler.getPendingList());
 		updateOverdueLine(modelHandler.getCompleteList());
 		updateOverdueLine(modelHandler.getTrashList());
-		syncStore.storeAccount();
+		settingStore.storeAccount();
 	}
 
 	private void handleEventForCommandLine() {
@@ -595,7 +594,7 @@ public class Control extends Application {
 		Command s = new SettingsCommand(modelHandler, view, parsedUserCommand);
 		String feedback = s.execute();
 		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_SETTINGS)) {
-			syncStore.storeAccount();
+			settingStore.storeAccount();
 			view.customizeGUI();
 			CustomDate.setDisplayRemaining(modelHandler.doDisplayRemaining());
 			CustomDate.updateCurrentDate();
@@ -621,7 +620,6 @@ public class Control extends Application {
 		String feedback = s.execute();
 		if (feedback.equals(Command.MESSAGE_SYNC_SUCCESSFUL)) {
 			dataFile.storeToFile();
-			syncStore.storeCalendarID();
 			view.setTab(0);
 			executeShowCommand();
 		} /*
