@@ -79,7 +79,11 @@ public class Synchronization {
 	public void setSyncStore(Setting s) {
 		syncStore = s;
 	}
-
+	/*
+	public void run() {
+		execute();
+	}
+	*/
 	public String execute() {
 
 		try {

@@ -404,7 +404,6 @@ class Tag {
 	}
 
 	public void setRepetition(String repetition) {
-		System.out.println(repetition);
 		String regex = "(every\\s*)(day|week|month|year)(\\s?)";
 		if(repetition.matches(regex)) {
 			repetition = repetition.replaceAll(regex,"$2");
