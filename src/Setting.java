@@ -4,10 +4,9 @@ import java.io.IOException;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.lang.String;
-import java.security.SecureRandom;
 import java.io.File;
 
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
+//import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
@@ -15,7 +14,6 @@ import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 
-import java.security.SecureRandom;
 import java.security.Security;
 
 public class Setting extends Store {
@@ -55,8 +53,7 @@ public class Setting extends Store {
 		xmlFile = new File(dir);
 		checkIfFileExists(xmlFile);
 		this.model = model;
-        Security.insertProviderAt(new BouncyCastleProvider(), 1);
-
+        //Security.insertProviderAt(new BouncyCastleProvider(), 1);
 	}
 	
 	public void storeAccount() {
