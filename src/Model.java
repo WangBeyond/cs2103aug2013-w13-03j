@@ -157,6 +157,10 @@ public class Model {
 		this.themeMode = themeMode;
 	}
 	
+	
+	public boolean getDisplayRemaining() {
+		return displayRemaining;
+	}
 	public void setDisplayRemaining(boolean displayRemaining){
 		this.displayRemaining = displayRemaining;
 	}
