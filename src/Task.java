@@ -404,6 +404,15 @@ class Tag {
 	}
 
 	public void setRepetition(String repetition) {
+		System.out.println(repetition);
+		String regex = "(every\\s*)(day|week|month|year)(\\s?)";
+		if(repetition.matches(regex)) {
+			repetition = repetition.replaceAll(regex,"$2");
+			if(repetition.equals("day"))
+				this.repetition = "daily"; 
+			else	
+				this.repetition = repetition+"ly";
+		}
 		this.repetition = repetition;
 	}
 

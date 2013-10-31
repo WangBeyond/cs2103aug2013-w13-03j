@@ -6,6 +6,7 @@ import java.util.ArrayList;
 
 
 
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -353,7 +354,16 @@ class AddCommand extends TwoWayCommand {
 
 		} else 
 			task.setNumOccurrences(0);
-		if(processedRepeatingType.matches("every\\s+\\d+\\s+(hours?|days?|weeks?|months?|years?)")) {
+		String regex = "(every\\s*1?\\s*)(day|week|month|year)(\\s?)";
+		if(processedRepeatingType.matches(regex)) {
+			if(processedRepeatingType.matches(regex)) {
+				processedRepeatingType = processedRepeatingType.replaceAll(regex,"$2");
+				if(processedRepeatingType.equals("day"))
+					processedRepeatingType = "daily"; 
+				else	
+					processedRepeatingType = processedRepeatingType+"ly";
+			}
+		} else if(processedRepeatingType.matches("every\\s*\\d+\\s*(days?|weeks?|months?|years?)")) {
 			processedRepeatingType = processedRepeatingType.replaceAll("\\s+", "");
 		}
 	}

@@ -113,10 +113,9 @@ public class Control extends Application {
 					realTimeSearch(command);
 				else if (Parser.determineCommandType(command) == Parser.COMMAND_TYPES.REMOVE) {
 					String content = removeCommandTypeString(command);
-					try {
-						Integer.parseInt(Parser.getFirstWord(content));
-					} catch (NumberFormatException ex) {
-						realTimeSearch("search" + content);
+					if(!content.matches("\\s*")) {
+						if(!content.matches("\\s*\\d+.*"))
+							realTimeSearch("search" + content);
 					}
 				}
 				if (isRealTimeSearch && !command.contains("search")
@@ -134,10 +133,9 @@ public class Control extends Application {
 					realTimeSearch(command);
 				else if (Parser.determineCommandType(command) == Parser.COMMAND_TYPES.REMOVE) {
 					String content = removeCommandTypeString(command);
-					try {
-						Integer.parseInt(Parser.getFirstWord(content));
-					} catch (NumberFormatException ex) {
-						realTimeSearch("search" + content);
+					if(!content.matches("\\s*")) {
+						if(!content.matches("\\s*\\d+.*"))
+							realTimeSearch("search" + content);
 					}
 				}
 				if (isRealTimeSearch && !command.contains("search")
@@ -155,10 +153,9 @@ public class Control extends Application {
 					realTimeSearch(command);
 				else if (Parser.determineCommandType(command) == Parser.COMMAND_TYPES.REMOVE) {
 					String content = removeCommandTypeString(command);
-					try {
-						Integer.parseInt(Parser.getFirstWord(content));
-					} catch (NumberFormatException ex) {
-						realTimeSearch("search" + content);
+					if(!content.matches("\\s*")) {
+						if(!content.matches("\\s*\\d+.*"))
+							realTimeSearch("search" + content);
 					}
 				}
 				if (isRealTimeSearch && !command.contains("search")
