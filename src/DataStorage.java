@@ -94,7 +94,6 @@ public class DataStorage extends Store {
 			newTask.getLatestModifiedDate().setSecond(Integer.parseInt(second));
 			newTask.setCurrentOccurrence(Integer.parseInt(targetElement.getChildText("currentOccurrence")));
 			newTask.setNumOccurrences(Integer.parseInt(targetElement.getChildText("numOccurrences")));
-			System.out.println("status: "+targetElement.getChildText("status"));
 			String statusString = targetElement.getChildText("status");
 			if (statusString.equals("new"))
 				newTask.setStatus(Task.Status.NEWLY_ADDED);
