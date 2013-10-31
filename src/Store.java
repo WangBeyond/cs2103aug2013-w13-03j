@@ -9,7 +9,6 @@ public abstract class Store {
 	protected final static boolean UNDONE_READING = false;
 	public final static String FOLDERNAME = "iDo Files";
 	protected Model model;
-	protected File textFile;
 	protected File xmlFile;
 	
 	public void loadFromFile() throws IOException {

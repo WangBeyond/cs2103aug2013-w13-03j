@@ -80,7 +80,7 @@ public class Control extends Application {
 
 	public void loadData() {
 		try {
-			dataFile = new DataStorage("dataStorage.txt", modelHandler);
+			dataFile = new DataStorage("dataStorage.xml", modelHandler);
 			dataFile.loadFromFile();
 			settingStore = new Setting("setting.xml", modelHandler);
 			settingStore.retrieveAccount();
