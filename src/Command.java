@@ -172,6 +172,7 @@ abstract class TwoWayCommand extends Command {
 	 */
 	public int convertIndex(int prevIndex) {
 		if (listedIndexType == SEARCHED) {
+			System.out.println("lele");
 			return getIndexAfterSearch(prevIndex);
 		} else {
 			return getIndexBeforeSearch(prevIndex);
@@ -189,12 +190,13 @@ abstract class TwoWayCommand extends Command {
 
 	private int getIndexAfterSearch(int prevIndex) {
 		ObservableList<Task> searchList;
-		TwoWayCommand.setIndexType(TwoWayCommand.SEARCHED);
 		searchList = getSearchList(tabIndex);
 		boolean isOutOfBounds = prevIndex < 0 || prevIndex >= searchList.size();
 		if (isOutOfBounds) {
 			return INVALID;
 		}
+		
+		System.out.println(searchList.get(prevIndex).getIndexInList());
 		return searchList.get(prevIndex).getIndexInList();
 	}
 	
@@ -994,7 +996,6 @@ class SearchCommand extends Command {
 			for (int i = index1; i < list1.size(); i++)
 				mergedList.add(list1.get(i));
 		}
-		Control.sortList(mergedList);
 		return mergedList;
 	}
 
