@@ -14,10 +14,7 @@ import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 
-import java.security.Security;
-
 public class Setting extends Store {
-	private static String completeKey = "The quick brown fox jumped over the lazy brown dog The quick brown fox jumped over the lazy brown dog";
 	private BufferedReader in;
 	private BufferedWriter out;
 
