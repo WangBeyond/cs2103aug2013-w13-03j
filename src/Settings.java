@@ -51,6 +51,7 @@ public class Settings {
 	private RadioButton nightMode;
 	private RadioButton remaining;
 	private RadioButton exact;
+	private ImageView bgImage;
 	
 	private Settings(Model model, Setting settingStore){
 		this.model = model;
@@ -71,6 +72,17 @@ public class Settings {
 	}
 	
 	public void showSettingsPage(){
+		settingsScene.getStylesheets().clear();
+		if(model.getThemeMode().equals(Model.DAY_MODE)){
+			settingsScene.getStylesheets().addAll(
+					getClass().getResource("customize.css").toExternalForm());
+			bgImage.setImage(new Image(getClass().getResourceAsStream("settings.png")));
+	
+		} else{
+			settingsScene.getStylesheets().addAll(
+					getClass().getResource("customize2.css").toExternalForm());
+			bgImage.setImage(new Image(getClass().getResourceAsStream("settings_night.png")));
+		}
 		settingsStage.showAndWait();
 	}
 	
@@ -161,9 +173,7 @@ public class Settings {
 	}
 	
 	private ImageView setupBackground(){
-		Image bg = new Image(getClass().getResourceAsStream("settings.png"));
-		ImageView bgImage = new ImageView();
-		bgImage.setImage(bg);
+		bgImage = new ImageView();
 		bgImage.setFitWidth(600);
 		bgImage.setPreserveRatio(true);
 		bgImage.setSmooth(true);

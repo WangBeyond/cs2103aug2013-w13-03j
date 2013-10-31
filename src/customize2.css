@@ -1,5 +1,5 @@
 .root{
-	-fx-background-color: rgb(80,80,80);
+	-fx-background-color: rgb(80.0,80.0,80.0);
 }
 
 /** Tab Pane **/
@@ -9,7 +9,7 @@
 
 .tab-pane:top *.tab-header-area {
     -fx-padding: 40.0 0.0 0.0 0.0;
-    -fx-translate-x: 403; 
+    -fx-translate-x: 403.0; 
     -fx-font-weight: bold; 
 } 
 
@@ -25,23 +25,23 @@
 }
 
 .tab {
-	-fx-background-color: rgb(19, 196, 90);
+	-fx-background-color: rgb(19.0, 196.0, 90.0);
     -fx-background-insets: -10.0, 0.0, 0.0;
     -fx-background-radius: 0.0 0.0 0.0 0.0, 0.0 0.0 0.0 0.0, 0.0 0.0 0.0 0.0;
     -fx-padding: 0.0 0.0 0.0 0.0;
     -fx-text-fill: white;
 }
 .tab:hover {
-    	-fx-background-color: rgb(18, 226, 122);
+    	-fx-background-color: rgb(18.0, 226.0, 122.0);
 
 }
 
 .tab:selected:hover{
-	-fx-background-color: rgb(130, 130, 130);
+	-fx-background-color: rgb(50.0, 50.0, 50.0);
 }
 
 .tab:selected {
-    -fx-background-color: rgb(130, 130, 130);
+    -fx-background-color: rgb(50.0, 50.0, 50.0);
     -fx-background-insets: -10.0, 0.0, 0.0 ;
     -fx-background-radius: 0.0 0.0 0.0 0.0, 0.0 0.0 0.0 0.0, 0.0 0.0 0.0 0.0;
     -fx-padding: 0.0 0.0 0.0 0.0;
@@ -52,7 +52,7 @@
     -fx-tab-max-width: 90.0; 
     -fx-tab-min-height: 35.0;
     -fx-tab-max-height: 35.0;
-    -fx-translate-y: -10;
+    -fx-translate-y: -10.0;
 }
 
 
@@ -76,21 +76,29 @@
 }
 
 .password-field {
+	-fx-background-color: rgb(50.0,50.0,50.0);
+	-fx-text-fill: white;
 	-fx-border-color: greenyellow;
 	-fx-border-width: 1.0px; 
 }
 
 .password-field:focused {
+	-fx-background-color: rgb(50.0,50.0,50.0);
+	-fx-text-fill: white;
 	-fx-border-color: greenyellow; 
 	-fx-border-width: 2.0px;
 }
 
 #input{
+	-fx-background-color: rgb(50.0,50.0,50.0);
+	-fx-text-fill: white;
 	-fx-border-color: greenyellow;
 	-fx-border-width: 1.0px;    
 }
 
 #input:focused{
+	-fx-background-color: rgb(50.0,50.0,50.0);
+	-fx-text-fill: white;
 	-fx-border-color: greenyellow; 
 	-fx-border-width: 2.0px;  
 }
@@ -100,7 +108,7 @@
 /* Table View */
 .table-view {
 	-fx-table-cell-border-color: transparent;
-    -fx-background-color: rgb(50,50,50);
+    -fx-background-color: rgb(50.0,50.0,50.0);
     -fx-background-insets: 0.0,0.0;
     -fx-border-radius: 2.0 2.0 2.0;
 
@@ -117,15 +125,15 @@
 
 .table-row-cell {
     -fx-skin: "com.sun.javafx.scene.control.skin.TableRowSkin";
-    -fx-background-color: rgb(50,50,50);
+    -fx-background-color: rgb(50.0,50.0,50.0);
     -fx-background-insets: 0.0, 0.0 0.0 1.0 0.0;
-    -fx-border-color: rgb(50,50,50) transparent rgb(50,50,50) transparent;
+    -fx-border-color: rgb(50.0,50.0,50.0) transparent rgb(50.0,50.0,50.0) transparent;
     -fx-padding: 0.0em; /* 0 */
     -fx-text-fill: white;
 }
  
 .table-row-cell:odd {
-  	-fx-background-color: rgb(50,50,50);
+  	-fx-background-color: rgb(50.0,50.0,50.0);
    -fx-background-insets: 0.0, 0.0 0.0 1.0 0.0;
 }
 .table-cell {
@@ -142,7 +150,7 @@
 /* This is the area behind the column headers. An ideal place to specify background
    and border colors for the whole area (not individual column-header's). */
 .table-view .column-header-background {
-    -fx-background-color: rgb(50,50,50);
+    -fx-background-color: rgb(50.0,50.0,50.0);
     -fx-padding: 0.0;
 }
 
@@ -150,13 +158,13 @@
    TableColumn, and a 'filler' area that extends from the right-most column
    to the edge of the tableview, or up to the 'column control' button. */
 .table-view .column-header, .table-view .filler {
-	-fx-translate-x: -8px;	
+	-fx-translate-x: -8.0px;	
     /* TODO: for some reason, this doesn't scale. */
     -fx-font-size: 1.083333em; /* 13pt - 1 more than the default font */
     -fx-font-weight: bold;
     -fx-size: 25.0;
     -fx-border-style: hidden hidden solid hidden ;
-    -fx-border-color: rgb(190,190,190);
+    -fx-border-color: rgb(190.0,190.0,190.0);
     -fx-border-insets: 0.0 0.0 0.0 0.0, 0.0 0.0 0.0 0.0;
     -fx-border-width: 0.083333em, 0.083333em;
 }
@@ -164,24 +172,24 @@
 .table-view *.scroll-bar:horizontal *.increment-button,
 .table-view *.scroll-bar:horizontal *.decrement-button {
     -fx-background-color: null;
-    -fx-background-radius: 0;
-    -fx-background-insets: 0;
-    -fx-padding: 0;
+    -fx-background-radius: 0.0;
+    -fx-background-insets: 0.0;
+    -fx-padding: 0.0;
 }
 
 .table-view *.scroll-bar:horizontal *.increment-arrow, 
 .table-view *.scroll-bar:horizontal *.decrement-arrow {
     -fx-background-color: null;
-    -fx-background-radius: 0;
-    -fx-background-insets: 0;
-    -fx-padding: 0;
+    -fx-background-radius: 0.0;
+    -fx-background-insets: 0.0;
+    -fx-padding: 0.0;
     -fx-shape: null;
 }
 
  
 .text{
 	-fx-font-size: 15.0;
-	-fx-fill: rgb(255,255,255) ;
+	-fx-fill: rgb(255.0,255.0,255.0) ;
 	-fx-font-smoothing-type: lcd;
 }
 
@@ -191,41 +199,41 @@
 }
 
 .important{
-    -fx-border-color: rgb(18, 226, 122) transparent rgb(18, 226, 122) transparent;
-	-fx-background-color:  rgb(18, 226, 122);
+    -fx-border-color: rgb(18.0,162.0,83.0) transparent rgb(18.0,162.0,83.0) transparent;
+	-fx-background-color:  rgb(18.0,162.0,83.0);
 	
 }
 
 .important-last{
-	-fx-border-color: rgb(18, 226, 122) transparent rgb( 255, 0, 0) transparent;
-	-fx-background-color:  rgb(18, 226, 122);
+	-fx-border-color: rgb(18.0,162.0,83.0) transparent rgb( 255.0, 0.0, 0.0) transparent;
+	-fx-background-color:  rgb(18.0,162.0,83.0);
 }
 
 .unimportant-last{
-	-fx-border-color: rgb(50,50,50) transparent rgb( 255, 0, 0) transparent;
+	-fx-border-color: rgb(50.0,50.0,50.0) transparent rgb( 255.0, 0.0, 0.0) transparent;
 	
-	-fx-background-color: rgb(50,50,50);
+	-fx-background-color: rgb(50.0,50.0,50.0);
 }
 
 .unimportant-odd-last{
-	-fx-border-color: rgb(40,40,40) transparent rgb( 255, 0, 0) transparent;
+	-fx-border-color: rgb(40.0,40.0,40.0) transparent rgb( 255.0, 0.0, 0.0) transparent;
 	
-	-fx-background-color: rgb(40,40,40);
+	-fx-background-color: rgb(40.0,40.0,40.0);
 }
 
 .last-overdue{
-	-fx-border-color: transparent transparent rgb( 255, 67, 67) transparent;
+	-fx-border-color: transparent transparent rgb( 255.0, 67.0, 67.0) transparent;
 }
 
 .unimportant{
-    -fx-border-color: rgb(50,50,50) transparent rgb(50,50,50) transparent;
+    -fx-border-color: rgb(50.0,50.0,50.0) transparent rgb(50.0,50.0,50.0) transparent;
 	
-	-fx-background-color: rgb(50,50,50);
+	-fx-background-color: rgb(50.0,50.0,50.0);
 }
 
 .unimportant-odd{
-    -fx-border-color: rgb(40,40,40) transparent rgb(40,40,40) transparent;
-	-fx-background-color: rgb(40,40,40);
+    -fx-border-color: rgb(40.0,40.0,40.0) transparent rgb(40.0,40.0,40.0) transparent;
+	-fx-background-color: rgb(40.0,40.0,40.0);
 	
 }
 
@@ -235,8 +243,8 @@
 .button {
     -fx-skin: "com.sun.javafx.scene.control.skin.ButtonSkin";
     -fx-background-color: transparent;
-    -fx-background-insets: 0 0 0 0, 0, 0,0;
-    -fx-background-radius: 0, 0, 0, 0;
+    -fx-background-insets: 0.0 0.0 0.0 0.0, 0.0, 0.0,0.0;
+    -fx-background-radius: 0.0, 0.0, 0.0, 0.0;
     -fx-text-fill: -fx-text-base-color;
     -fx-alignment: CENTER;
     -fx-content-display: graphic-only;
@@ -244,7 +252,7 @@
 
 .button:focused {
     -fx-background-color: transparent ;
-    -fx-background-radius:  0, 0, 0, 0;
+    -fx-background-radius:  0.0, 0.0, 0.0, 0.0;
 }
 
 .button:hover {
@@ -265,54 +273,54 @@
 
 #close{
 	-fx-background-repeat: no-repeat;
-	-fx-background-size: 20 20; 
+	-fx-background-size: 20.0 20.0; 
 	-fx-background-image: url("close_night.png") ;
 }
 
 #close:hover{
 	-fx-background-repeat: no-repeat;
-	-fx-background-size: 20 20; 
+	-fx-background-size: 20.0 20.0; 
 	-fx-background-image: url("closeHover_night.png");
 }
 
 #minimize{
 	-fx-background-repeat: no-repeat;
-	-fx-background-size: 20 20; 
+	-fx-background-size: 20.0 20.0; 
 	-fx-background-image: url("minimise_night.png") ;
 }
 
 #minimize:hover{
 	-fx-background-repeat: no-repeat;
-	-fx-background-size: 20 20; 
+	-fx-background-size: 20.0 20.0; 
 	-fx-background-image: url("minimiseHover_night.png");
 }
 
 #smaller{
 	-fx-background-repeat:no-repeat ;
-	-fx-background-size: 30 30;
+	-fx-background-size: 30.0 30.0;
 	-fx-background-image: url("makeSmaller_night.png");
 }
 
 #smaller:hover{
 	-fx-background-repeat:no-repeat ;
-	-fx-background-size: 30 30;
+	-fx-background-size: 30.0 30.0;
 	-fx-background-image: url("makeSmallerHover_night.png");
 }
 
 #larger{
 	-fx-background-repeat:no-repeat ;
-	-fx-background-size: 30 30;
+	-fx-background-size: 30.0 30.0;
 	-fx-background-image: url("makeLarger_night.png");
 	
 }
 
 #overdue {
-	-fx-text-fill: rgb( 255, 0, 0);
+	-fx-text-fill: rgb( 255.0, 0.0, 0.0);
 }
 
 #larger:hover{
 	-fx-background-repeat:no-repeat ;
-	-fx-background-size: 30 30;
+	-fx-background-size: 30.0 30.0;
 	-fx-background-image: url("makeLargerHover_night.png");
 }
 
@@ -320,60 +328,60 @@
 
 #close_help{
 	-fx-background-repeat: no-repeat;
-	-fx-background-size: 25 25; 
+	-fx-background-size: 25.0 25.0; 
 	-fx-background-image: url("close.png") ;
 }
 
 #close_help:hover{
 	-fx-background-repeat: no-repeat;
-	-fx-background-size: 25 25; 
+	-fx-background-size: 25.0 25.0; 
 	-fx-background-image: url("closeHover.png") ;
 }
 
 #next{
 	-fx-background-repeat: no-repeat;
-	-fx-background-size: 30 30; 
+	-fx-background-size: 30.0 30.0; 
 	-fx-background-image: url("next.png") ;
 }
 
 #next:hover{
 	-fx-background-repeat: no-repeat;
-	-fx-background-size: 30 30; 
+	-fx-background-size: 30.0 30.0; 
 	-fx-background-image: url("nextHover.png") ;
 }
 
 #back{
 	-fx-background-repeat: no-repeat;
-	-fx-background-size: 30 30; 
+	-fx-background-size: 30.0 30.0; 
 	-fx-background-image: url("back.png") ;
 }
 
 #back:hover{
 	-fx-background-repeat: no-repeat;
-	-fx-background-size: 30 30; 
+	-fx-background-size: 30.0 30.0; 
 	-fx-background-image: url("backHover.png") ;
 }
 
 #save{
 	-fx-background-repeat: no-repeat;
-	-fx-background-size: 90 42; 
+	-fx-background-size: 90.0 42.0; 
 	-fx-background-image: url("save.png") ;
 }
 
 #save:hover{
 	-fx-background-repeat: no-repeat;
-	-fx-background-size: 90 42; 
+	-fx-background-size: 90.0 42.0; 
 	-fx-background-image: url("saveHover.png") ;
 }
 
 #esc{
 	-fx-background-repeat: no-repeat;
-	-fx-background-size: 42 42; 
+	-fx-background-size: 42.0 42.0; 
 	-fx-background-image: url("esc.png") ;
 }
 
 #esc:hover{
 	-fx-background-repeat: no-repeat;
-	-fx-background-size: 42 42; 
+	-fx-background-size: 42.0 42.0; 
 	-fx-background-image: url("escHover.png") ;
 }
