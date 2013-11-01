@@ -137,10 +137,20 @@ public class Settings {
 			    FXCollections.observableArrayList(
 			        "Default day mode",
 			        "Default night mode",
-			        "Gamebookers"
+			        "Gamebookers",
+			        "Bright"
 			    );
 		
 		colourSchemes = new ComboBox<String>(colourOptions);
+		if (model.getColourScheme() != null){
+			colourSchemes.setValue(model.getColourScheme());
+		} else {
+			if (model.getThemeMode().equals("Night mode")){
+				colourSchemes.setValue("Default night mode");
+			} else {
+				colourSchemes.setValue("Default day mode");
+			}
+		}
 		grid.add(colourSchemes, 1, 7);
 	}
 	
@@ -164,10 +174,11 @@ public class Settings {
 		ToggleGroup toggleGroup = new ToggleGroup();
 		dayMode = RadioButtonBuilder.create().text("Day mode").toggleGroup(toggleGroup).selected(true).build();
 		nightMode = RadioButtonBuilder.create().text("Night mode").toggleGroup(toggleGroup).build();
-		if(model.getThemeMode().equals(Model.DAY_MODE))
+		if(model.getThemeMode().equals(Model.DAY_MODE)){
 			dayMode.setSelected(true);
-		else
+		} else{
 			nightMode.setSelected(true);
+		}
 		grid.add(dayMode, 1, 5);
 		grid.add(nightMode, 2, 5);
 	}
@@ -239,11 +250,9 @@ public class Settings {
 		
 		if(dayMode.isSelected()){
 			model.setThemeMode(Model.DAY_MODE);
-			model.setColourScheme("Default day mode");
 			successfulChange = STORE_SUCCESSFUL;
 		} else {
 			model.setThemeMode(Model.NIGHT_MODE);
-			model.setColourScheme("Default night mode");
 			successfulChange = STORE_SUCCESSFUL;
 		}
 		

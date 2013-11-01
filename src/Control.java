@@ -600,7 +600,7 @@ public class Control extends Application {
 			settingStore.storeAccount();
 			if(!oldTheme.equals(modelHandler.getThemeMode()))
 					view.customizeGUI();
-			view.getColourScheme(modelHandler.getColourScheme());
+			view.setColourScheme(modelHandler.getColourScheme());
 			CustomDate.setDisplayRemaining(modelHandler.doDisplayRemaining());
 			CustomDate.updateCurrentDate();
 			handleListener();
