@@ -213,11 +213,12 @@ public class Parser {
 		String tag = NULL;
 		String isImpt = FALSE;
 		String repeatingType = NULL;
-
+		
 		String[] result = getRepeatingType(commandString);
 		commandString = result[0];
 		repeatingType = result[1];
-
+		System.out.println(commandString);
+		System.out.println(repeatingType);		
 		if (hasMultipleTags(commandString)) {// if contains multiple hash tags
 			throw new IllegalArgumentException(
 					"Invalid Command: multiple hash tags(#).");
@@ -629,7 +630,7 @@ public class Parser {
 	private static String[] getRepeatingType(String commandString) {
 		String repeatingKey = Parser.NULL;
 		for (int i = 0; i < repeatingKeys.length; i++) {
-			String regex = "\\s+"+repeatingKeys[i]+"(\\s+\\d+\\s+times?)?";
+			String regex = "(\\s+)?"+repeatingKeys[i]+"(\\s+\\d+\\s+times?)?";
 		    Pattern pattern = Pattern.compile(regex);
 		    Matcher matcher = pattern.matcher(commandString);
 			while (matcher.find()) {

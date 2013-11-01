@@ -289,7 +289,7 @@ public class Synchronization  {
 											+ TimeZone.getDefault().getID()
 											+ ":" + endDate + "\r\n";
 
-									if (freq.contains("day")) {
+									if (freq.contains("day") || freq.contains("daily")) {
 										recurData = recurData + "RRULE:FREQ="
 												+ "DAILY";
 									} else if (freq.contains("week")) {
