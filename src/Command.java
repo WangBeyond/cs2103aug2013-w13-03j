@@ -1,12 +1,9 @@
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.ArrayList;
 
-
-
-
-
-
-
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -221,13 +218,19 @@ abstract class IndexCommand extends TwoWayCommand{
 		if (isPendingTab() && modifiedTask.hasNewlyAddedStatus()) {
 			modifiedTask.setStatus(Task.Status.UNCHANGED);
 		} else if (isPendingTab() && modifiedTask.hasUnchangedStatus()) {
-			modifiedTask.setStatus(Task.Status.DELETED);
+			if(Control.s == null || !Control.s.isRunning() )
+				modifiedTask.setStatus(Task.Status.DELETED);
+			else 
+				modifiedTask.setStatus(Task.Status.DELETED_WHEN_SYNC);
 		}
 	}
 	
 	protected void reverseStatus(Task modifiedTask){
 		if (isPendingTab() && modifiedTask.hasUnchangedStatus()) {
-			modifiedTask.setStatus(Task.Status.NEWLY_ADDED);
+			if(Control.s == null || !Control.s.isRunning() )
+				modifiedTask.setStatus(Task.Status.NEWLY_ADDED);
+			else
+				modifiedTask.setStatus(Task.Status.ADDED_WHEN_SYNC);
 		} else if (isPendingTab() && modifiedTask.hasDeletedStatus()) {
 			modifiedTask.setStatus(Task.Status.UNCHANGED);
 		}
@@ -1404,16 +1407,23 @@ class SettingsCommand extends Command {
  * Class SyncCommand
  * 
  */
-class SyncCommand extends Command {
+class SyncCommand extends Command implements Runnable {
+	
 	String username = null;
 	String password = null;
+	String feedback = null;
+	boolean isRunning = false;
 	
 	Synchronization sync;
-	
-	public SyncCommand(String[] parsedUserCommand, Model model, Synchronization sync) {
+	View view;
+	DataStorage dataFile;
+	Thread t;
+	public SyncCommand(String[] parsedUserCommand, Model model, Synchronization sync, View view, DataStorage dataFile) {
 		super(model);
 		this.sync = sync;
+		this.view = view;
 		int size = parsedUserCommand.length;
+		this.dataFile = dataFile;
 		if(size == 2){
 			username = parsedUserCommand[0];
 			password = parsedUserCommand[1];
@@ -1421,20 +1431,47 @@ class SyncCommand extends Command {
 			username = model.getUsername();
 			password = model.getPassword();
 		}
+	      t = new Thread(this, "Sync Thread");
+	      System.out.println("Child thread: " + t);
+	      t.start(); // Start the thread
 	}
-
+	
+	public void  run(){
+		isRunning = true;
+		view.setSyncBarVisible(true);
+		execute();
+		//view.emptyFeedback(0);
+		//view.setFeedbackStyle(0, feedback, view.getDefaultColor());
+		view.setSyncBarVisible(false);
+		isRunning = false;
+		model.clearSyncInfo();
+		try {
+			dataFile.storeToFile();
+		} catch (IOException io) {
+			System.out.println(io.getMessage());
+		}
+	}
+	
 	@Override
 	public String execute() {
 		try{
 			sync.setUsernameAndPassword(username, password);
-			String feedback = sync.execute();
+			feedback = sync.execute();
 			Control.sortList(model.getPendingList());
 			return feedback;
 		} catch(Exception e){
 			e.printStackTrace();
-			return "haha";
+			feedback = "haha";
+			return feedback;
 		}
+	}
 	
+	public String getFeedback() {
+		return feedback;
+	}
+	
+	public boolean isRunning() {
+		return isRunning;
 	}
 }
 

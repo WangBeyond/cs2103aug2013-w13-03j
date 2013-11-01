@@ -25,7 +25,6 @@ public class Encryptor {
 			// Encode the string into bytes using utf-8
 			byte[] utf8 = str.getBytes("UTF8");
 
-			// Encrypt
 			byte[] enc = ecipher.doFinal(utf8);
 
 			// Encode bytes to base64 to get a string

@@ -14,7 +14,8 @@ public class Model {
 	private ObservableList<Task> searchPending;
 	private ObservableList<Task> searchComplete;
 	private ObservableList<Task> searchTrash;
-
+	private ObservableList<String> removedIdDuringSync;
+	
 	// Constructor
 	public Model() {
 		pending = FXCollections.observableArrayList();
@@ -23,6 +24,7 @@ public class Model {
 		searchPending = FXCollections.observableArrayList();
 		searchComplete = FXCollections.observableArrayList();
 		searchTrash = FXCollections.observableArrayList();
+		removedIdDuringSync = FXCollections.observableArrayList();
 		displayRemaining = true;
 		themeMode = DAY_MODE;
 	}
@@ -64,6 +66,27 @@ public class Model {
 	public ObservableList<Task> getSearchTrashList() {
 		return searchTrash;
 	}
+	
+	/********************************Retrieve from or operate on the index of deleted-during-sync tasks ******************/
+	public ObservableList<String> getRemovedIdDuringSync() {
+		return removedIdDuringSync;
+	}
+	
+	public void clearSyncInfo() {
+		removedIdDuringSync.clear();
+		for(Task addedTask : pending) {
+			if(addedTask.getStatus() == Task.Status.ADDED_WHEN_SYNC)
+				addedTask.setStatus(Task.Status.NEWLY_ADDED);
+		}
+		for(Task deletedTask : complete) {
+			if (deletedTask.getStatus() == Task.Status.DELETED_WHEN_SYNC)
+			deletedTask.setStatus(Task.Status.DELETED);
+		}
+		for(Task deletedTask : trash) {
+			if (deletedTask.getStatus() == Task.Status.DELETED_WHEN_SYNC)
+			deletedTask.setStatus(Task.Status.DELETED);
+		}
+	}
 
 	/********************************** Get the index from given index ******************************/
 	public int getIndexFromPending(Task task) {
@@ -77,7 +100,8 @@ public class Model {
 	public int getIndexFromTrash(Task task) {
 		return trash.indexOf(task);
 	}
-
+	
+	
 	/****************************** Add a task to the list *******************************/
 	public void addTaskToPending(Task newPendingTask) {
 		pending.add(newPendingTask);
@@ -104,6 +128,8 @@ public class Model {
 
 	private void removeTaskFromPending(int index) {
 		Task t = pending.remove(index);
+		if(t.getStatus() != Task.Status.ADDED_WHEN_SYNC)
+			removedIdDuringSync.add(t.getIndexId());
 		trash.add(t);
 	}
 

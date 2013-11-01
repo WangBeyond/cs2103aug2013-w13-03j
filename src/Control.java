@@ -59,10 +59,14 @@ public class Control extends Application {
 	public Model modelHandler = new Model();
 	public History commandHistory = new History();
 	public View view;
-	private Store dataFile;
+	private DataStorage dataFile;
 	private Setting settingStore;
 	public Synchronization sync = new Synchronization(modelHandler);
-
+	static public SyncCommand s;
+	
+	static public boolean syncMode = false;
+	static final boolean AUTOSYNC = true;
+	static final boolean MANUALSYNC = false;
 	static boolean isRealTimeSearch = false;
 	static final boolean SEARCHED = true;
 	static final boolean SHOWN = false;
@@ -272,6 +276,7 @@ public class Control extends Application {
 					public void run() {
 						isRealTimeSearch = false;
 						String feedback = executeCommand(view.txt.getText());
+						System.out.println("feedback: "+feedback);
 						updateFeedback(feedback);
 					}
 				});
@@ -612,14 +617,21 @@ public class Control extends Application {
 
 	private String executeSyncCommand(String[] parsedUserCommand)
 			throws IOException {
-
-		Command s = new SyncCommand(parsedUserCommand, modelHandler, sync);
-		String feedback = s.execute();
-		if (feedback.equals(Command.MESSAGE_SYNC_SUCCESSFUL)) {
+		//Check whether there is already a sync thread
+		if(s==null || !s.isRunning())
+			s = new SyncCommand(parsedUserCommand, modelHandler, sync, view, dataFile);
+		
+		//String feedback = s.execute();
+		String feedback = s.getFeedback();
+		if(feedback == null)
+			feedback = "syncing";
+		view.txt.setText("");
+		view.txt.setCaretPosition(0);
+		/*if (feedback.equals(Command.MESSAGE_SYNC_SUCCESSFUL)) {
 			dataFile.storeToFile();
 			view.setTab(0);
 			executeShowCommand();
-		} /*
+		} *//*
 		 * else if
 		 * (feedback.equals(Command.MESSAGE_SYNC_INVALID_USERNAME_PASSWORD)){
 		 * view.showSettingsPage(); }

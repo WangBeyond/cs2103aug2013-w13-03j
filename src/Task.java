@@ -11,7 +11,7 @@ public class Task implements Comparable<Task> {
 
 	// Enumeration Class representing status of a task
 	public static enum Status {
-		UNCHANGED, NEWLY_ADDED, DELETED
+		UNCHANGED, NEWLY_ADDED, DELETED, ADDED_WHEN_SYNC, DELETED_WHEN_SYNC
 	}
 
 	// Property indicating a task is the last overdue task
@@ -53,7 +53,10 @@ public class Task implements Comparable<Task> {
 		setTag(new Tag("-", "null"));
 		indexId = "";
 		indexInList = 0;
-		setStatus(Status.NEWLY_ADDED);
+		if(Control.s!=null && Control.s.isRunning())
+			setStatus(Status.ADDED_WHEN_SYNC);
+		else
+			setStatus(Status.NEWLY_ADDED);
 		updateLatestModifiedDate();
 		initOccurrence(1);
 	}
@@ -282,7 +285,7 @@ public class Task implements Comparable<Task> {
 	}
 
 	public boolean hasNewlyAddedStatus() {
-		return status == Status.NEWLY_ADDED;
+		return status == Status.NEWLY_ADDED || status == Status.ADDED_WHEN_SYNC;
 	}
 
 	public boolean hasDeletedStatus() {

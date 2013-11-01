@@ -111,6 +111,7 @@ public class View implements HotkeyListener {
 	public TableView<Task> taskCompleteList;
 	public TableView<Task> taskTrashList;
 	private ImageView title;
+	private ImageView syncBar;
 	public Scene scene;
 	public BorderPane root;
 	public StackPane root2;
@@ -637,13 +638,21 @@ public class View implements HotkeyListener {
 		top.setPadding(new Insets(-15, 15, -30, 44));
 
 		title = createTitle();
-
+		syncBar = createSyncBar();
+		syncBar.setImage(new Image(getClass().getResourceAsStream("sync.gif")));
+		syncBar.setFitWidth(600);
+		syncBar.setFitHeight(15);
+		syncBar.setVisible(false);
 		HBox buttons = createModifyingButtons();
 
-		setupLayout(title, buttons);
+		setupLayout(title, syncBar, buttons);
 
 	}
 
+	public void setSyncBarVisible(boolean isVisible) {
+		syncBar.setVisible(isVisible);
+	}
+	
 	private void setDraggable() {
 		// Get the position of the mouse in the stage
 		root.setOnMousePressed(new EventHandler<MouseEvent>() {
@@ -666,11 +675,13 @@ public class View implements HotkeyListener {
 			}
 		});
 	}
-
-	private void setupLayout(ImageView title, HBox buttons) {
-		top.getChildren().addAll(title, buttons);
+	
+	private void setupLayout(ImageView title, ImageView syncBar, HBox buttons) {
+		top.getChildren().addAll(title, syncBar, buttons);
 		AnchorPane.setLeftAnchor(title, 10.0);
+		AnchorPane.setLeftAnchor(syncBar, 10.0);
 		AnchorPane.setTopAnchor(buttons, 25.0);
+		AnchorPane.setTopAnchor(syncBar, 80.0);
 		AnchorPane.setTopAnchor(title, 30.0);
 		AnchorPane.setRightAnchor(buttons, 5.0);
 	}
@@ -682,6 +693,15 @@ public class View implements HotkeyListener {
 		title.setSmooth(true);
 		title.setCache(true);
 		return title;
+	}
+	
+	private ImageView createSyncBar() {
+		ImageView syncBar = new ImageView();
+		syncBar.setFitWidth(80);
+		syncBar.setPreserveRatio(true);
+		syncBar.setSmooth(true);
+		syncBar.setCache(true);
+		return syncBar;
 	}
 
 	private HBox createModifyingButtons() {
