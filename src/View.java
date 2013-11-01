@@ -539,7 +539,8 @@ public class View implements HotkeyListener {
 			title.setImage(new Image(getClass().getResourceAsStream("ido_new.png")));
 			txt.setStyledDocument(new CustomStyledDocumentForDayMode());
 			defaultColor = Color.WHITE;
-			
+			model.setColourScheme("Default day mode");
+			getColourScheme(model.getColourScheme());
 			stage.focusedProperty().addListener(caretListener);
 		} else {
 			scene.getStylesheets().addAll(
@@ -557,6 +558,8 @@ public class View implements HotkeyListener {
 			txt.setStyledDocument(new CustomStyledDocumentForNightMode());
 			title.setImage(new Image(getClass().getResourceAsStream("ido_new_night.png")));
 			defaultColor = Color.rgb(250, 250, 250);
+			model.setColourScheme("Default night mode");
+			getColourScheme(model.getColourScheme());
 			stage.focusedProperty().addListener(caretListener);
 		}
 	}
@@ -1367,7 +1370,6 @@ public class View implements HotkeyListener {
 	 * @param feedback
 	 */
 	void setFeedback(String feedback) {
-		getColourScheme(model.getColourScheme());
 		emptyFeedback(0);
 		if (feedback.equals(Control.MESSAGE_INVALID_COMMAND_TYPE)
 				|| feedback.equals(Control.MESSAGE_REQUEST_COMMAND)
@@ -1473,7 +1475,9 @@ public class View implements HotkeyListener {
 		return availCommands;
 	}
 	
-	private void getColourScheme(String colourOption){
+	public void getColourScheme(String colourOption){
+		colourScheme = ColourPalette.defaultScheme;
+		colourSchemeCommandLine = ColourPalette.defaultDaySchemeSwing;
 		if (colourOption.equals("Default day mode")){
 			colourScheme = ColourPalette.defaultScheme;
 			colourSchemeCommandLine = ColourPalette.defaultDaySchemeSwing;

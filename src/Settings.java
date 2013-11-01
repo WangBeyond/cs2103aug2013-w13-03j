@@ -131,7 +131,7 @@ public class Settings {
 	
 	private void setupColourScheme(){
 		Label colourScheme = new Label("Colour scheme:");
-		grid.add(colourScheme, 0, 6);
+		grid.add(colourScheme, 0, 7);
 		
 		ObservableList<String> colourOptions = 
 			    FXCollections.observableArrayList(
@@ -141,7 +141,7 @@ public class Settings {
 			    );
 		
 		colourSchemes = new ComboBox<String>(colourOptions);
-		grid.add(colourSchemes, 1, 6);
+		grid.add(colourSchemes, 1, 7);
 	}
 	
 	private void setupTimeFormat(){
