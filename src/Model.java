@@ -170,6 +170,7 @@ public class Model {
 	private String calendarID;
 	private boolean displayRemaining;
 	private String themeMode;
+	private String colourScheme;
 	
 	public boolean doDisplayRemaining(){
 		return displayRemaining;
@@ -177,6 +178,10 @@ public class Model {
 	
 	public String getThemeMode(){
 		return themeMode;
+	}
+	
+	public String getColourScheme(){
+		return colourScheme;
 	}
 	
 	public void setThemeMode(String themeMode){
@@ -191,6 +196,10 @@ public class Model {
 		this.displayRemaining = displayRemaining;
 	}
 	
+	public void setColourScheme(String colourScheme){
+		this.colourScheme = colourScheme;
+		System.out.println("Colour scheme = " + colourScheme);
+	}
 	
 	public String getUsername(){
 		return username;

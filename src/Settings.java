@@ -1,3 +1,5 @@
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -8,6 +10,7 @@ import javafx.geometry.Rectangle2D;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.RadioButton;
@@ -56,6 +59,7 @@ public class Settings {
 	private RadioButton manualSync;
 	private RadioButton remaining;
 	private RadioButton exact;
+	private ComboBox<String> colourSchemes;
 	private ImageView bgImage;
 	
 	private Settings(Model model, Setting settingStore){
@@ -100,6 +104,7 @@ public class Settings {
 		setupTextfields();
 		setupTimeFormat();
 		setupThemeMode();
+		setupColourScheme();
 		setupSyncMode();
 	}
 	
@@ -122,6 +127,21 @@ public class Settings {
 		pwRetypeBox = new PasswordField();
 		pwRetypeBox.setText(model.getPassword());
 		grid.add(pwRetypeBox, 1, 3);
+	}
+	
+	private void setupColourScheme(){
+		Label colourScheme = new Label("Colour scheme:");
+		grid.add(colourScheme, 0, 6);
+		
+		ObservableList<String> colourOptions = 
+			    FXCollections.observableArrayList(
+			        "Default day mode",
+			        "Default night mode",
+			        "Gamebookers"
+			    );
+		
+		colourSchemes = new ComboBox<String>(colourOptions);
+		grid.add(colourSchemes, 1, 6);
 	}
 	
 	private void setupTimeFormat(){
@@ -211,19 +231,35 @@ public class Settings {
 	}
 	
 	private boolean storeSettingChanges(){
+		boolean successfulChange = STORE_FAIL;
+		
 		String account = googleAccountTextfield.getText();
 		String pw = pwBox.getText();
 		String pwRetype = pwRetypeBox.getText();
 		
-		if(dayMode.isSelected()) 
+		if(dayMode.isSelected()){
 			model.setThemeMode(Model.DAY_MODE);
-		else
+			model.setColourScheme("Default day mode");
+			successfulChange = STORE_SUCCESSFUL;
+		} else {
 			model.setThemeMode(Model.NIGHT_MODE);
+			model.setColourScheme("Default night mode");
+			successfulChange = STORE_SUCCESSFUL;
+		}
 		
-		if(remaining.isSelected())
+		if(colourSchemes.getValue() != null){
+			String schemeChosen = colourSchemes.getValue().toString();
+			model.setColourScheme(schemeChosen);
+			successfulChange = STORE_SUCCESSFUL;
+		}
+		
+		if(remaining.isSelected()) {
 			model.setDisplayRemaining(true);
-		else
+			successfulChange = STORE_SUCCESSFUL;
+		} else {
 			model.setDisplayRemaining(false);
+			successfulChange = STORE_SUCCESSFUL;
+		}
 		
 		if(autoSync.isSelected()) {
 			Control.syncMode = Control.AUTOSYNC;
@@ -235,14 +271,15 @@ public class Settings {
 			if (pw != null && pwRetype != null && pw.equals(pwRetype)) {
 				model.setUsername(account);
 				model.setPassword(pw);
-				return STORE_SUCCESSFUL;
+				successfulChange = STORE_SUCCESSFUL;
 			} else {
 				pwRetypeBox.clear();
 				pwRetypeBox.setPromptText("Passwords do not match!");
+				successfulChange = STORE_FAIL;
 			}
 		}
 	    settingStore.updateAccount();
-		return STORE_FAIL;
+		return successfulChange;
 	}
 	
 	private Button setupSaveButton(){
@@ -257,7 +294,6 @@ public class Settings {
 				} 
 			}
 		});
-		
 		return saveButton;
 	}
 	
