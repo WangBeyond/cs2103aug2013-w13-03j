@@ -7,19 +7,28 @@ import javafx.scene.paint.Color;
 public class ColourPalette {
 	
 	/********************************* Colours for javafx **************************************/
+	public static final Color fxWHITE = Color.WHITE;
+	public static final Color fxNEAR_WHITE = Color.rgb(250, 250, 250);
+	
 	public static final Color[] defaultScheme = {Color.rgb(130, 255, 121), 
-		Color.WHITE, Color.rgb(18, 235, 166), Color.rgb(92, 190, 247), 
+		fxWHITE, Color.rgb(18, 235, 166), Color.rgb(92, 190, 247), 
 			Color.RED, Color.ORANGE, Color.ORCHID};
 	public static final Color[] defaultNightScheme = {Color.rgb(89, 213, 100), 
-		Color.WHITE, Color.rgb(18, 235, 166), Color.rgb(92, 190, 247), 
+		fxWHITE, Color.rgb(18, 235, 166), Color.rgb(92, 190, 247), 
 			Color.RED, Color.ORANGE, Color.ORCHID};
 	public static final Color[] gamebookersScheme = {Color.rgb(255, 153, 0), 
 		Color.WHITE, Color.rgb(233, 233, 233), Color.rgb(188, 188, 188), 
 			Color.rgb(50, 153, 187),Color.rgb(0, 153, 153), 
 				Color.rgb(253, 212, 86)};
+	public static final Color[] brightScheme = {Color.rgb(255, 0, 61), fxWHITE, 
+		Color.rgb(247, 196, 31), Color.rgb(224, 224, 90), Color.rgb(204, 243, 144), 
+			Color.rgb(152, 242, 140), Color.rgb(252, 147, 10)};
 	
 	/******************************* Colours for javaswing ************************************/
 	public static final StyleContext cont = StyleContext.getDefaultStyleContext();
+	
+	public static final java.awt.Color WHITE = java.awt.Color.white;
+	public static final java.awt.Color BLACK = java.awt.Color.black;
 	
 	public static final AttributeSet attrRed = cont.addAttribute(cont.getEmptySet(),
 			StyleConstants.Foreground, new java.awt.Color(255, 41, 41));
@@ -53,7 +62,7 @@ public class ColourPalette {
 			StyleConstants.Foreground, new java.awt.Color(108, 248, 134));
 	public static final AttributeSet attrCyanNight = cont.addAttribute(cont.getEmptySet(),
 			StyleConstants.Foreground, new java.awt.Color(63, 248, 189));
-	public static final AttributeSet attrGrayNight = cont.addAttribute(cont.getEmptySet(),
+	public static final AttributeSet grayNight = cont.addAttribute(cont.getEmptySet(),
 			StyleConstants.Foreground, new java.awt.Color(220, 220, 220));
 	public static final AttributeSet attrMagentaNight = cont.addAttribute(cont.getEmptySet(),
 			StyleConstants.Foreground, new java.awt.Color(238, 152, 233));
@@ -73,15 +82,31 @@ public class ColourPalette {
 			StyleConstants.Foreground, new java.awt.Color(122, 32, 119));
 	public static final AttributeSet blackGB = cont.addAttribute(cont.getEmptySet(),
 			StyleConstants.Foreground, new java.awt.Color(9, 9, 9));
+	public static final AttributeSet redBright = cont.addAttribute(cont.getEmptySet(),
+			StyleConstants.Foreground, new java.awt.Color(255, 0, 61));
+	public static final AttributeSet orangeBright = cont.addAttribute(cont.getEmptySet(),
+			StyleConstants.Foreground, new java.awt.Color(252, 147, 10));
+	public static final AttributeSet yellowBright = cont.addAttribute(cont.getEmptySet(),
+			StyleConstants.Foreground, new java.awt.Color(247, 196, 31));
+	public static final AttributeSet paleYellowBright = cont.addAttribute(cont.getEmptySet(),
+			StyleConstants.Foreground, new java.awt.Color(224, 224, 90));
+	public static final AttributeSet paleGreenBright = cont.addAttribute(cont.getEmptySet(),
+			StyleConstants.Foreground, new java.awt.Color(204, 243, 144));
+	public static final AttributeSet greenBright = cont.addAttribute(cont.getEmptySet(),
+			StyleConstants.Foreground, new java.awt.Color(152, 242, 140));
+	public static final AttributeSet blueBright = cont.addAttribute(cont.getEmptySet(),
+			StyleConstants.Foreground, new java.awt.Color(196, 216, 248));
+	public static final AttributeSet pinkBright = cont.addAttribute(cont.getEmptySet(),
+			StyleConstants.Foreground, new java.awt.Color(254, 203, 200));
 	
 	public static final AttributeSet[] defaultDaySchemeSwing = {attrGray, attrGreen, attrDarkCyan, 
 		attrOrange, attrCyan, attrBlue, attrRed, attrDarkBlue, attrMagenta};
-
-	public static final AttributeSet[] defaultNightSchemeSwing = {attrGrayNight, attrGreenNight, 
+	public static final AttributeSet[] defaultNightSchemeSwing = {grayNight, attrGreenNight, 
 		attrWhiteNight, attrOrangeNight, attrCyanNight, attrBlueNight, attrRedNight, attrDarkBlueNight,
 		attrMagentaNight};
-	
 	public static final AttributeSet[] gamebookersSchemeSwing = {attrGray, orangeGB, blackGB,
-		tealGB, paleGrayGB, grayGB, blueGB, purpleGB, yellowGB};
+		tealGB, paleGrayGB, grayGB, blueGB, purpleGB, yellowGB};	
+	public static final AttributeSet[] brightSchemeSwing = {grayNight, redBright, pinkBright,
+		greenBright, yellowBright, paleYellowBright, paleGreenBright, blueBright, orangeBright};
 	
 }

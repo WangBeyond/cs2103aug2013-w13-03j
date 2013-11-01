@@ -199,7 +199,6 @@ public class Model {
 	
 	public void setColourScheme(String colourScheme){
 		this.colourScheme = colourScheme;
-		System.out.println("Colour scheme = " + colourScheme);
 	}
 	
 	public String getUsername(){

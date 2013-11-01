@@ -526,21 +526,24 @@ public class View implements HotkeyListener {
 		if (model.getThemeMode().equals(Model.DAY_MODE)) {
 			scene.getStylesheets().addAll(
 					getClass().getResource("customize.css").toExternalForm());
-			txt.setBackground(java.awt.Color.white);
+			txt.setBackground(ColourPalette.WHITE);
 			caretListener = new ChangeListener<Boolean>() {
 				public void changed(ObservableValue<? extends Boolean> ov,
 						Boolean oldValue, Boolean newValue) {
-					if (newValue.booleanValue() == false)
-						txt.setCaretColor(java.awt.Color.black);
-					else
+					if (newValue.booleanValue() == false){
+						txt.setCaretColor(ColourPalette.BLACK);
+					} else{
 						txt.setCaretColor(new java.awt.Color(0,0,0,0));
+					}
 				}
 			};
 			title.setImage(new Image(getClass().getResourceAsStream("ido_new.png")));
 			txt.setStyledDocument(new CustomStyledDocumentForDayMode());
-			defaultColor = Color.WHITE;
-			model.setColourScheme("Default day mode");
-			getColourScheme(model.getColourScheme());
+			defaultColor = ColourPalette.fxWHITE;
+			if (model.getColourScheme() == null){
+				model.setColourScheme("Default day mode");
+			}
+			setColourScheme(model.getColourScheme());
 			stage.focusedProperty().addListener(caretListener);
 		} else {
 			scene.getStylesheets().addAll(
@@ -549,17 +552,20 @@ public class View implements HotkeyListener {
 			caretListener = new ChangeListener<Boolean>() {
 				public void changed(ObservableValue<? extends Boolean> ov,
 						Boolean oldValue, Boolean newValue) {
-					if (newValue.booleanValue() == false)
-						txt.setCaretColor(java.awt.Color.white);
-					else
+					if (newValue.booleanValue() == false){
+						txt.setCaretColor(ColourPalette.WHITE);
+					} else{
 						txt.setCaretColor(new java.awt.Color(0,0,0,0));
+					}
 				}
 			};
 			txt.setStyledDocument(new CustomStyledDocumentForNightMode());
 			title.setImage(new Image(getClass().getResourceAsStream("ido_new_night.png")));
-			defaultColor = Color.rgb(250, 250, 250);
-			model.setColourScheme("Default night mode");
-			getColourScheme(model.getColourScheme());
+			defaultColor = ColourPalette.fxNEAR_WHITE;
+			if (model.getColourScheme() == null){
+				model.setColourScheme("Default night mode");
+			}
+			setColourScheme(model.getColourScheme());
 			stage.focusedProperty().addListener(caretListener);
 		}
 	}
@@ -1475,7 +1481,7 @@ public class View implements HotkeyListener {
 		return availCommands;
 	}
 	
-	public void getColourScheme(String colourOption){
+	public void setColourScheme(String colourOption){
 		colourScheme = ColourPalette.defaultScheme;
 		colourSchemeCommandLine = ColourPalette.defaultDaySchemeSwing;
 		if (colourOption.equals("Default day mode")){
@@ -1487,6 +1493,9 @@ public class View implements HotkeyListener {
 		} else if (colourOption.equals("Gamebookers")){
 			colourScheme = ColourPalette.gamebookersScheme;
 			colourSchemeCommandLine = ColourPalette.gamebookersSchemeSwing;
+		} else if (colourOption.equals("Bright")){
+			colourScheme = ColourPalette.brightScheme;
+			colourSchemeCommandLine = ColourPalette.brightSchemeSwing;
 		}
 	}
 
