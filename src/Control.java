@@ -63,7 +63,7 @@ public class Control extends Application {
 	private Setting settingStore;
 	public Synchronization sync = new Synchronization(modelHandler);
 	static public SyncCommand s;
-	
+
 	static public boolean syncMode = false;
 	static final boolean AUTOSYNC = true;
 	static final boolean MANUALSYNC = false;
@@ -117,8 +117,8 @@ public class Control extends Application {
 					realTimeSearch(command);
 				else if (Parser.determineCommandType(command) == Parser.COMMAND_TYPES.REMOVE) {
 					String content = removeCommandTypeString(command);
-					if(!content.matches("\\s*")) {
-						if(!content.matches("\\s*\\d+.*"))
+					if (!content.matches("\\s*")) {
+						if (!content.matches("\\s*\\d+.*"))
 							realTimeSearch("search" + content);
 					}
 				}
@@ -137,8 +137,8 @@ public class Control extends Application {
 					realTimeSearch(command);
 				else if (Parser.determineCommandType(command) == Parser.COMMAND_TYPES.REMOVE) {
 					String content = removeCommandTypeString(command);
-					if(!content.matches("\\s*")) {
-						if(!content.matches("\\s*\\d+.*"))
+					if (!content.matches("\\s*")) {
+						if (!content.matches("\\s*\\d+.*"))
 							realTimeSearch("search" + content);
 					}
 				}
@@ -157,8 +157,8 @@ public class Control extends Application {
 					realTimeSearch(command);
 				else if (Parser.determineCommandType(command) == Parser.COMMAND_TYPES.REMOVE) {
 					String content = removeCommandTypeString(command);
-					if(!content.matches("\\s*")) {
-						if(!content.matches("\\s*\\d+.*"))
+					if (!content.matches("\\s*")) {
+						if (!content.matches("\\s*\\d+.*"))
 							realTimeSearch("search" + content);
 					}
 				}
@@ -276,7 +276,7 @@ public class Control extends Application {
 					public void run() {
 						isRealTimeSearch = false;
 						String feedback = executeCommand(view.txt.getText());
-						System.out.println("feedback: "+feedback);
+						System.out.println("feedback: " + feedback);
 						updateFeedback(feedback);
 					}
 				});
@@ -593,11 +593,14 @@ public class Control extends Application {
 	}
 
 	private String executeSettingsCommand(String[] parsedUserCommand) {
+		String oldTheme = modelHandler.getThemeMode();
 		Command s = new SettingsCommand(modelHandler, view, parsedUserCommand);
 		String feedback = s.execute();
 		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_SETTINGS)) {
 			settingStore.storeAccount();
-			view.customizeGUI();
+			if(!oldTheme.equals(modelHandler.getThemeMode()))
+					view.customizeGUI();
+			view.getColourScheme(modelHandler.getColourScheme());
 			CustomDate.setDisplayRemaining(modelHandler.doDisplayRemaining());
 			CustomDate.updateCurrentDate();
 			handleListener();
@@ -617,25 +620,25 @@ public class Control extends Application {
 
 	private String executeSyncCommand(String[] parsedUserCommand)
 			throws IOException {
-		//Check whether there is already a sync thread
-		if(s==null || !s.isRunning())
-			s = new SyncCommand(parsedUserCommand, modelHandler, sync, view, dataFile);
-		
-		//String feedback = s.execute();
+		// Check whether there is already a sync thread
+		if (s == null || !s.isRunning())
+			s = new SyncCommand(parsedUserCommand, modelHandler, sync, view,
+					dataFile);
+
+		// String feedback = s.execute();
 		String feedback = s.getFeedback();
-		if(feedback == null)
+		if (feedback == null)
 			feedback = "syncing";
 		view.txt.setText("");
 		view.txt.setCaretPosition(0);
-		/*if (feedback.equals(Command.MESSAGE_SYNC_SUCCESSFUL)) {
-			dataFile.storeToFile();
-			view.setTab(0);
-			executeShowCommand();
-		} *//*
-		 * else if
-		 * (feedback.equals(Command.MESSAGE_SYNC_INVALID_USERNAME_PASSWORD)){
-		 * view.showSettingsPage(); }
-		 */
+		/*
+		 * if (feedback.equals(Command.MESSAGE_SYNC_SUCCESSFUL)) {
+		 * dataFile.storeToFile(); view.setTab(0); executeShowCommand(); }
+		 *//*
+			 * else if
+			 * (feedback.equals(Command.MESSAGE_SYNC_INVALID_USERNAME_PASSWORD
+			 * )){ view.showSettingsPage(); }
+			 */
 		return feedback;
 	}
 
@@ -683,20 +686,26 @@ public class Control extends Application {
 		}, 0, MINUTE_IN_MILLIS);
 	}
 
-	private void displayMessage(){
+	private void displayMessage() {
 		ObservableList<Task> list = modelHandler.getPendingList();
-		for(int i = 0; i <  list.size(); i++){
-			if(list.get(i).getIsImportant() == true){
-				if(list.get(i).getStartDate().getRemainingTime().equals("0h 30m")){
+		for (int i = 0; i < list.size(); i++) {
+			if (list.get(i).getIsImportant() == true) {
+				if (list.get(i).getStartDate().getRemainingTime()
+						.equals("0h 30m")) {
 					System.out.println("test");
-					view.trayIcon.displayMessage("Reminder", "A task will begin after the next 30 minutes", MessageType.INFO);
-				}else if(list.get(i).getEndDate().getRemainingTime().equals("0h 30m")){
-					view.trayIcon.displayMessage("Reminder", "A task will be due after the next 30 minutes", MessageType.INFO);
+					view.trayIcon.displayMessage("Reminder",
+							"A task will begin after the next 30 minutes",
+							MessageType.INFO);
+				} else if (list.get(i).getEndDate().getRemainingTime()
+						.equals("0h 30m")) {
+					view.trayIcon.displayMessage("Reminder",
+							"A task will be due after the next 30 minutes",
+							MessageType.INFO);
 				}
 			}
 		}
 	}
-	
+
 	private static void updateList(ObservableList<Task> list) {
 		for (int i = 0; i < list.size(); i++) {
 			list.get(i).updateDateString();

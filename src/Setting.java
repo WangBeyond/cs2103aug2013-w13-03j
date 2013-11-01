@@ -113,7 +113,7 @@ public class Setting extends Store {
 			if (model.getColourScheme() != null){
 				account.getChild("colourScheme").setText(model.getColourScheme());
 			} else {
-				account.getChild("Default day mode").setText(model.getColourScheme());
+				account.getChild("colourScheme").setText("Default day mode");
 			}
 			XMLOutputter xmlOutput = new XMLOutputter();
 			xmlOutput.setFormat(Format.getPrettyFormat());

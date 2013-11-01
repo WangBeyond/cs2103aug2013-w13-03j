@@ -216,9 +216,7 @@ public class Parser {
 		
 		String[] result = getRepeatingType(commandString);
 		commandString = result[0];
-		repeatingType = result[1];
-		System.out.println(commandString);
-		System.out.println(repeatingType);		
+		repeatingType = result[1];	
 		if (hasMultipleTags(commandString)) {// if contains multiple hash tags
 			throw new IllegalArgumentException(
 					"Invalid Command: multiple hash tags(#).");

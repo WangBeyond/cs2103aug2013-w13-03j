@@ -27,6 +27,7 @@ public class Model {
 		removedIdDuringSync = FXCollections.observableArrayList();
 		displayRemaining = true;
 		themeMode = DAY_MODE;
+		colourScheme = "Default day mode";
 	}
 
 	/************************** Get a task from given index ************************************/
