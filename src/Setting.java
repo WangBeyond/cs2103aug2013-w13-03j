@@ -72,6 +72,7 @@ public class Setting extends Store {
 			account.addContent(new Element("password").setText(encryptedPassword));
 			account.addContent(new Element("display_remaining").setText(model.getDisplayRemaining()==true? TRUE : FALSE));
 			account.addContent(new Element("themeMode").setText(model.getThemeMode()));
+			account.addContent(new Element("colourScheme").setText(model.getColourScheme()));
 			XMLOutputter xmlOutput = new XMLOutputter();
 			xmlOutput.setFormat(Format.getPrettyFormat());
 			xmlOutput.output(doc, new FileWriter(dir));
@@ -83,8 +84,7 @@ public class Setting extends Store {
 	
 	public void updateAccount() {
 		 
-		  try {
-	 
+		  try {	 
 			SAXBuilder builder = new SAXBuilder();
 			File xmlFile = new File(dir);
 	 
@@ -109,6 +109,11 @@ public class Setting extends Store {
 			account.getChild("display_remaining").setText(model.getDisplayRemaining()==true? TRUE : FALSE);
 			if (model.getThemeMode()!=null) {
 				account.getChild("themeMode").setText(model.getThemeMode());	
+			}
+			if (model.getColourScheme() != null){
+				account.getChild("colourScheme").setText(model.getColourScheme());
+			} else {
+				account.getChild("Default day mode").setText(model.getColourScheme());
 			}
 			XMLOutputter xmlOutput = new XMLOutputter();
 			xmlOutput.setFormat(Format.getPrettyFormat());
@@ -135,6 +140,7 @@ public class Setting extends Store {
 			Element password = account.getChild("password");
 			Element displayRemaining  = account.getChild("display_remaining");
 			Element themeMode = account.getChild("themeMode");
+			Element colourScheme = account.getChild("colourScheme");
 			
 			if (username == null)
 				System.out.println("no account info");
@@ -153,6 +159,7 @@ public class Setting extends Store {
 				model.setPassword(decryptedPassword);
 				model.setDisplayRemaining(displayRemaining.getText()==TRUE? true : false);
 				model.setThemeMode(themeMode.getText());
+				model.setColourScheme(colourScheme.getText());
 			}			
 		  } catch (IOException io) {
 			System.out.println(io.getMessage());
