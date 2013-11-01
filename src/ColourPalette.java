@@ -16,11 +16,11 @@ public class ColourPalette {
 	public static final Color[] defaultNightScheme = {Color.rgb(89, 213, 100), 
 		fxWHITE, Color.rgb(18, 235, 166), Color.rgb(92, 190, 247), 
 			Color.RED, Color.ORANGE, Color.ORCHID};
-	public static final Color[] gamebookersScheme = {Color.rgb(255, 153, 0), 
-		Color.WHITE, Color.rgb(233, 233, 233), Color.rgb(188, 188, 188), 
-			Color.rgb(50, 153, 187),Color.rgb(0, 153, 153), 
-				Color.rgb(253, 212, 86)};
-	public static final Color[] brightScheme = {Color.rgb(255, 0, 61), fxWHITE, 
+	public static final Color[] goldfishScheme = {Color.rgb(250, 105, 0), 
+		Color.WHITE, Color.rgb(224, 228, 204), Color.rgb(167, 219, 216), 
+			Color.rgb(105, 210, 231),Color.rgb(105, 169, 231), 
+				Color.rgb(243, 134, 48)};
+	public static final Color[] brightScheme = {Color.rgb(250, 105, 0), fxWHITE, 
 		Color.rgb(247, 196, 31), Color.rgb(224, 224, 90), Color.rgb(204, 243, 144), 
 			Color.rgb(152, 242, 140), Color.rgb(252, 147, 10)};
 	
@@ -66,22 +66,22 @@ public class ColourPalette {
 			StyleConstants.Foreground, new java.awt.Color(220, 220, 220));
 	public static final AttributeSet attrMagentaNight = cont.addAttribute(cont.getEmptySet(),
 			StyleConstants.Foreground, new java.awt.Color(238, 152, 233));
-	public static final AttributeSet orangeGB = cont.addAttribute(cont.getEmptySet(),
-			StyleConstants.Foreground, new java.awt.Color(255, 153, 0));
-	public static final AttributeSet yellowGB = cont.addAttribute(cont.getEmptySet(),
-			StyleConstants.Foreground, new java.awt.Color(255, 204, 51));
-	public static final AttributeSet blueGB = cont.addAttribute(cont.getEmptySet(),
-			StyleConstants.Foreground, new java.awt.Color(50, 153, 187));
-	public static final AttributeSet paleGrayGB = cont.addAttribute(cont.getEmptySet(),
-			StyleConstants.Foreground, new java.awt.Color(97, 97, 97));
-	public static final AttributeSet grayGB = cont.addAttribute(cont.getEmptySet(),
-			StyleConstants.Foreground, new java.awt.Color(58, 58, 58));
-	public static final AttributeSet tealGB = cont.addAttribute(cont.getEmptySet(),
-			StyleConstants.Foreground, new java.awt.Color(0, 153, 153));
-	public static final AttributeSet purpleGB = cont.addAttribute(cont.getEmptySet(),
-			StyleConstants.Foreground, new java.awt.Color(122, 32, 119));
-	public static final AttributeSet blackGB = cont.addAttribute(cont.getEmptySet(),
-			StyleConstants.Foreground, new java.awt.Color(9, 9, 9));
+	public static final AttributeSet orangeGF = cont.addAttribute(cont.getEmptySet(),
+			StyleConstants.Foreground, new java.awt.Color(250, 105, 0));
+	public static final AttributeSet lightOrangeGF = cont.addAttribute(cont.getEmptySet(),
+			StyleConstants.Foreground, new java.awt.Color(243, 134, 48));
+	public static final AttributeSet beachGF = cont.addAttribute(cont.getEmptySet(),
+			StyleConstants.Foreground, new java.awt.Color(194, 202, 154));
+	public static final AttributeSet paleBlueGF = cont.addAttribute(cont.getEmptySet(),
+			StyleConstants.Foreground, new java.awt.Color(167, 219, 216));
+	public static final AttributeSet darkBlueGF = cont.addAttribute(cont.getEmptySet(),
+			StyleConstants.Foreground, new java.awt.Color(105, 169, 231));
+	public static final AttributeSet blueGF = cont.addAttribute(cont.getEmptySet(),
+			StyleConstants.Foreground, new java.awt.Color(105,210,231));
+	public static final AttributeSet purpleGF = cont.addAttribute(cont.getEmptySet(),
+			StyleConstants.Foreground, new java.awt.Color(105, 106, 231));
+	public static final AttributeSet greyGF = cont.addAttribute(cont.getEmptySet(),
+			StyleConstants.Foreground, new java.awt.Color(143, 143, 143));
 	public static final AttributeSet redBright = cont.addAttribute(cont.getEmptySet(),
 			StyleConstants.Foreground, new java.awt.Color(255, 0, 61));
 	public static final AttributeSet orangeBright = cont.addAttribute(cont.getEmptySet(),
@@ -104,8 +104,8 @@ public class ColourPalette {
 	public static final AttributeSet[] defaultNightSchemeSwing = {grayNight, attrGreenNight, 
 		attrWhiteNight, attrOrangeNight, attrCyanNight, attrBlueNight, attrRedNight, attrDarkBlueNight,
 		attrMagentaNight};
-	public static final AttributeSet[] gamebookersSchemeSwing = {attrGray, orangeGB, blackGB,
-		tealGB, paleGrayGB, grayGB, blueGB, purpleGB, yellowGB};	
+	public static final AttributeSet[] goldfishSchemeSwing = {attrGray, orangeGF, greyGF,
+		darkBlueGF, beachGF, paleBlueGF, blueGF, purpleGF, lightOrangeGF};	
 	public static final AttributeSet[] brightSchemeSwing = {grayNight, redBright, pinkBright,
 		greenBright, yellowBright, paleYellowBright, paleGreenBright, blueBright, orangeBright};
 	

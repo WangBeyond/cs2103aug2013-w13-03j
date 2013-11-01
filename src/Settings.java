@@ -34,8 +34,8 @@ import javafx.stage.StageStyle;
 // Pop up settings dialog.
 public class Settings {
 
-	static final boolean STORE_SUCCESSFUL = true;
-	static final boolean STORE_FAIL = false;
+	private static final boolean STORE_SUCCESSFUL = true;
+	private static final boolean STORE_FAIL = false;
 	private final KeyCombination esc = new KeyCodeCombination(KeyCode.ESCAPE);
 	private final KeyCombination saveSettings = new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN);
 	
@@ -137,7 +137,7 @@ public class Settings {
 			    FXCollections.observableArrayList(
 			        "Default day mode",
 			        "Default night mode",
-			        "Gamebookers",
+			        "Goldfish",
 			        "Bright"
 			    );
 		
@@ -341,7 +341,6 @@ public class Settings {
 				dragAnchorY = me.getScreenY() - settingsStage.getY();
 			}
 		});
-
 		root.setOnMouseDragged(new EventHandler<MouseEvent>() {
 			@Override
 			public void handle(MouseEvent me) {
