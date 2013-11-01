@@ -51,6 +51,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabBuilder;
@@ -92,7 +93,16 @@ public class View implements HotkeyListener {
 			KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN);
 	final KeyCombination changeTab = new KeyCodeCombination(KeyCode.TAB,
 			KeyCombination.CONTROL_DOWN);
-
+	public static final int TYPING = -2;
+	public static final int COMMAND = -1;
+	public static final int WORK_INFO = 0;
+	public static final int TAG = 1;
+	public static final int START_TIME = 2;
+	public static final int END_TIME = 3;
+	public static final int IMPORTANT = 4;
+	public static final int RECURRING = 5;
+	public static final int INDEX = 6;
+	
 	public Help helpPage;
 	public Settings settingsPage;
 	public Login loginPage;
@@ -102,10 +112,9 @@ public class View implements HotkeyListener {
 	public Text feedback;
 	// Button to expand or collapse window
 	public Button showOrHide;
-
 	// Tab Pane to contain 3 tables
 	public TabPane tabPane;
-
+	
 	// Table View in 3 tabs
 	public TableView<Task> taskPendingList;
 	public TableView<Task> taskCompleteList;
@@ -1490,9 +1499,9 @@ public class View implements HotkeyListener {
 		} else if (colourOption.equals("Default night mode")){
 			colourScheme = ColourPalette.defaultNightScheme;
 			colourSchemeCommandLine = ColourPalette.defaultNightSchemeSwing;
-		} else if (colourOption.equals("Gamebookers")){
-			colourScheme = ColourPalette.gamebookersScheme;
-			colourSchemeCommandLine = ColourPalette.gamebookersSchemeSwing;
+		} else if (colourOption.equals("Goldfish")){
+			colourScheme = ColourPalette.goldfishScheme;
+			colourSchemeCommandLine = ColourPalette.goldfishSchemeSwing;
 		} else if (colourOption.equals("Bright")){
 			colourScheme = ColourPalette.brightScheme;
 			colourSchemeCommandLine = ColourPalette.brightSchemeSwing;
@@ -1533,39 +1542,39 @@ class CustomStyledDocumentForDayMode extends DefaultStyledDocument {
 		for (int i = 0; i < infoList.size(); i++) {
 			InfoWithIndex info = infoList.get(i);
 			switch (info.getInfoType()) {
-			case -2:
+			case View.TYPING:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[0], false);
 				break;
-			case -1:
+			case View.COMMAND:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[1], false);
 				break;
-			case 0:
+			case View.WORK_INFO:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[2], false);
 				break;
-			case 1:
+			case View.TAG:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[3], false);
 				break;
-			case 2:
+			case View.START_TIME:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[4], false);
 				break;
-			case 3:
+			case View.END_TIME:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[5], false);
 				break;
-			case 4:
+			case View.IMPORTANT:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[6], false);
 				break;
-			case 5:
+			case View.RECURRING:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[7], false);
 				break;
-			case 6:
+			case View.INDEX:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[8], false);
 				break;
@@ -1595,39 +1604,39 @@ class CustomStyledDocumentForNightMode extends DefaultStyledDocument {
 		for (int i = 0; i < infoList.size(); i++) {
 			InfoWithIndex info = infoList.get(i);
 			switch (info.getInfoType()) {
-			case -2:
+			case View.TYPING:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[0], false);
 				break;
-			case -1:
+			case View.COMMAND:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[1], false);
 				break;
-			case 0:
+			case View.WORK_INFO:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[2], false);
 				break;
-			case 1:
+			case View.TAG:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[3], false);
 				break;
-			case 2:
+			case View.START_TIME:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[4], false);
 				break;
-			case 3:
+			case View.END_TIME:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[5], false);
 				break;
-			case 4:
+			case View.IMPORTANT:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[6], false);
 				break;
-			case 5:
+			case View.RECURRING:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[7], false);
 				break;
-			case 6:
+			case View.INDEX:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[8], false);
 				break;
