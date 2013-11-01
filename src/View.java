@@ -123,7 +123,6 @@ public class View implements HotkeyListener {
 	double dragAnchorX;
 	double dragAnchorY;
 	private Color defaultColor;
-	private Color commandColor;
 	public JTextPane txt;
 	public ArrayList<Text> feedbackList = new ArrayList<Text>();
 	static String[] COMMAND_TYPES = { "add", "remove", "delete", "edit",
@@ -131,7 +130,8 @@ public class View implements HotkeyListener {
 			"incomplete", "all", "list", "today", "help", "del", "exit", "rm",
 			"show", "ls", "clr", "done", "undone", "settings", "sync" };
 	public HBox feedbacks;
-	private static Color IDO_GREEN = Color.rgb(130, 255, 121);
+	private static Color[] colourScheme;
+	public static AttributeSet[] colourSchemeCommandLine;
 	private static final String WELCOME_MESSAGE = "Welcome back, %s";
 	// private HBox multiColorCommand;
 	ScrollBar pendingBar;
@@ -531,7 +531,7 @@ public class View implements HotkeyListener {
 				public void changed(ObservableValue<? extends Boolean> ov,
 						Boolean oldValue, Boolean newValue) {
 					if (newValue.booleanValue() == false)
-						txt.setCaretColor( java.awt.Color.black);
+						txt.setCaretColor(java.awt.Color.black);
 					else
 						txt.setCaretColor(new java.awt.Color(0,0,0,0));
 				}
@@ -539,7 +539,6 @@ public class View implements HotkeyListener {
 			title.setImage(new Image(getClass().getResourceAsStream("ido_new.png")));
 			txt.setStyledDocument(new CustomStyledDocumentForDayMode());
 			defaultColor = Color.WHITE;
-			commandColor = IDO_GREEN;
 			
 			stage.focusedProperty().addListener(caretListener);
 		} else {
@@ -558,7 +557,6 @@ public class View implements HotkeyListener {
 			txt.setStyledDocument(new CustomStyledDocumentForNightMode());
 			title.setImage(new Image(getClass().getResourceAsStream("ido_new_night.png")));
 			defaultColor = Color.rgb(250, 250, 250);
-			commandColor = Color.rgb(89, 213, 100);
 			stage.focusedProperty().addListener(caretListener);
 		}
 	}
@@ -1369,6 +1367,7 @@ public class View implements HotkeyListener {
 	 * @param feedback
 	 */
 	void setFeedback(String feedback) {
+		getColourScheme(model.getColourScheme());
 		emptyFeedback(0);
 		if (feedback.equals(Control.MESSAGE_INVALID_COMMAND_TYPE)
 				|| feedback.equals(Control.MESSAGE_REQUEST_COMMAND)
@@ -1379,74 +1378,74 @@ public class View implements HotkeyListener {
 				|| feedback.equals(Control.MESSAGE_SHOW_ALL_TIP)
 				|| feedback.equals(Control.MESSAGE_UNDO_TIP)
 				|| feedback.equals(Control.MESSAGE_REDO_TIP)) {
-			setFeedbackStyle(0, feedback, defaultColor);
+			setFeedbackStyle(0, feedback, colourScheme[1]);
 			emptyFeedback(1);
 		} else {
 			switch (feedback) {
 			case Control.MESSAGE_ADD_TIP:
-				setFeedbackStyle(0, "add", commandColor);
-				setFeedbackStyle(1, "<workflow>", defaultColor);
-				setFeedbackStyle(2, "<start time>", Color.rgb(18, 235, 166));
-				setFeedbackStyle(3, "<end time>", Color.rgb(92, 190, 247));
-				setFeedbackStyle(4, "<importance *>", Color.RED);
-				setFeedbackStyle(5, "<#tag>", Color.ORANGE);
+				setFeedbackStyle(0, "add", colourScheme[0]);
+				setFeedbackStyle(1, "<workflow>", colourScheme[1]);
+				setFeedbackStyle(2, "<start time>", colourScheme[2]);
+				setFeedbackStyle(3, "<end time>", colourScheme[3]);
+				setFeedbackStyle(4, "<importance *>", colourScheme[4]);
+				setFeedbackStyle(5, "<#tag>", colourScheme[5]);
 				emptyFeedback(6);
 				break;
 			case Control.MESSAGE_EDIT_TIP:
-				setFeedbackStyle(0, "edit", commandColor);
-				setFeedbackStyle(1, "<index>", Color.ORCHID);
-				setFeedbackStyle(2, "<workflow>", defaultColor );
-				setFeedbackStyle(3, "<start time>", Color.rgb(18, 235, 166));
-				setFeedbackStyle(4, "<end time>", Color.rgb(92, 190, 247));
-				setFeedbackStyle(5, "<importance *>", Color.RED);
-				setFeedbackStyle(6, "<#tag>", Color.ORANGE);
+				setFeedbackStyle(0, "edit", colourScheme[0]);
+				setFeedbackStyle(1, "<index>", colourScheme[6]);
+				setFeedbackStyle(2, "<workflow>", colourScheme[1]);
+				setFeedbackStyle(3, "<start time>", colourScheme[2]);
+				setFeedbackStyle(4, "<end time>", colourScheme[3]);
+				setFeedbackStyle(5, "<importance *>", colourScheme[4]);
+				setFeedbackStyle(6, "<#tag>", colourScheme[5]);
 				emptyFeedback(7);
 				break;
 			case Control.MESSAGE_REMOVE_INDEX_TIP:
-				setFeedbackStyle(0, "remove", commandColor);
-				setFeedbackStyle(1, "<index>", Color.ORCHID);
+				setFeedbackStyle(0, "remove", colourScheme[0]);
+				setFeedbackStyle(1, "<index>", colourScheme[6]);
 				emptyFeedback(2);
 				break;
 			case Control.MESSAGE_REMOVE_INFO_TIP:
-				setFeedbackStyle(0, "remove", commandColor);
-				setFeedbackStyle(1, "<workflow>", defaultColor);
-				setFeedbackStyle(2, "<start time>", Color.rgb(18, 235, 166));
-				setFeedbackStyle(3, "<end time>", Color.rgb(92, 190, 247));
-				setFeedbackStyle(4, "<importance *>", Color.RED);
-				setFeedbackStyle(5, "<#tag>", Color.ORANGE);
+				setFeedbackStyle(0, "remove", colourScheme[0]);
+				setFeedbackStyle(1, "<workflow>", colourScheme[1]);
+				setFeedbackStyle(2, "<start time>", colourScheme[2]);
+				setFeedbackStyle(3, "<end time>", colourScheme[3]);
+				setFeedbackStyle(4, "<importance *>", colourScheme[4]);
+				setFeedbackStyle(5, "<#tag>", colourScheme[5]);
 				emptyFeedback(6);
 				break;
 			case Control.MESSAGE_SEARCH_TIP:
-				setFeedbackStyle(0, "search", commandColor);
-				setFeedbackStyle(1, "<workflow>", defaultColor);
-				setFeedbackStyle(2, "<start time>", Color.rgb(18, 235, 166));
-				setFeedbackStyle(3, "<end time>", Color.rgb(92, 190, 247));
-				setFeedbackStyle(4, "<importance *>", Color.RED);
-				setFeedbackStyle(5, "<#tag>", Color.ORANGE);
+				setFeedbackStyle(0, "search", colourScheme[0]);
+				setFeedbackStyle(1, "<workflow>", colourScheme[1]);
+				setFeedbackStyle(2, "<start time>", colourScheme[2]);
+				setFeedbackStyle(3, "<end time>", colourScheme[3]);
+				setFeedbackStyle(4, "<importance *>", colourScheme[4]);
+				setFeedbackStyle(5, "<#tag>", colourScheme[5]);
 				emptyFeedback(6);
 				break;
 			case Control.MESSAGE_MARK_TIP:
-				setFeedbackStyle(0, "<mark>", commandColor);
+				setFeedbackStyle(0, "<mark>", colourScheme[0]);
 				setFeedbackStyle(1, "<index1> <index2> <index3> ...",
-						Color.ORCHID);
+						colourScheme[6]);
 				emptyFeedback(2);
 				break;
 			case Control.MESSAGE_UNMARK_TIP:
-				setFeedbackStyle(0, "<unmark>", commandColor);
+				setFeedbackStyle(0, "<unmark>", colourScheme[0]);
 				setFeedbackStyle(1, "<index1> <index2> <index3> ...",
-						Color.ORCHID);
+						colourScheme[6]);
 				emptyFeedback(2);
 				break;
 			case Control.MESSAGE_COMPLETE_TIP:
-				setFeedbackStyle(0, "<complete/done>", commandColor);
+				setFeedbackStyle(0, "<complete/done>", colourScheme[0]);
 				setFeedbackStyle(1, "<index1> <index2> <index3> ...",
-						Color.ORCHID);
+						colourScheme[6]);
 				emptyFeedback(2);
 				break;
 			case Control.MESSAGE_INCOMPLETE_TIP:
-				setFeedbackStyle(0, "<incomplete/undone>", commandColor);
+				setFeedbackStyle(0, "<incomplete/undone>", colourScheme[0]);
 				setFeedbackStyle(1, "<index1> <index2> <index3> ...",
-						Color.ORCHID);
+						colourScheme[6]);
 				emptyFeedback(2);
 				break;
 			default:
@@ -1454,11 +1453,11 @@ public class View implements HotkeyListener {
 				ArrayList<String> availCommands = getAvailCommandNum(feedback
 						.trim());
 				for (int i = 0; i < availCommands.size(); i++) {
-					setFeedbackStyle(i + 1, availCommands.get(i), commandColor);
+					setFeedbackStyle(i + 1, availCommands.get(i), colourScheme[0]);
 				}
 				setFeedbackStyle(0,
 						availCommands.size() > 0 ? "Available commands: "
-								: Control.MESSAGE_REQUEST_COMMAND, defaultColor);
+								: Control.MESSAGE_REQUEST_COMMAND, colourScheme[1]);
 				break;
 			}
 		}
@@ -1473,8 +1472,21 @@ public class View implements HotkeyListener {
 		}
 		return availCommands;
 	}
+	
+	private void getColourScheme(String colourOption){
+		if (colourOption.equals("Default day mode")){
+			colourScheme = ColourPalette.defaultScheme;
+			colourSchemeCommandLine = ColourPalette.defaultDaySchemeSwing;
+		} else if (colourOption.equals("Default night mode")){
+			colourScheme = ColourPalette.defaultNightScheme;
+			colourSchemeCommandLine = ColourPalette.defaultNightSchemeSwing;
+		} else if (colourOption.equals("Gamebookers")){
+			colourScheme = ColourPalette.gamebookersScheme;
+			colourSchemeCommandLine = ColourPalette.gamebookersSchemeSwing;
+		}
+	}
 
-	void setFeedbackStyle(int index, String text, Color color) {
+	public void setFeedbackStyle(int index, String text, Color color) {
 		feedbackList.get(index).setText(text);
 		feedbackList.get(index).setFill(color);
 	}
@@ -1490,31 +1502,10 @@ public class View implements HotkeyListener {
 }
 
 class CustomStyledDocumentForDayMode extends DefaultStyledDocument {
-	final StyleContext cont = StyleContext.getDefaultStyleContext();
-
-	final AttributeSet attrRed = cont.addAttribute(cont.getEmptySet(),
-			StyleConstants.Foreground, new java.awt.Color(255, 41, 41));
-	final AttributeSet attrBlue = cont.addAttribute(cont.getEmptySet(),
-			StyleConstants.Foreground, new java.awt.Color(84, 173, 225));
-	final AttributeSet attrDarkCyan = cont.addAttribute(cont.getEmptySet(),
-			StyleConstants.Foreground, new java.awt.Color(44, 62, 80));
-	final AttributeSet attrDarkBlue = cont.addAttribute(cont.getEmptySet(),
-			StyleConstants.Foreground, new java.awt.Color(5, 82, 199));
-	final AttributeSet attrOrange = cont.addAttribute(cont.getEmptySet(),
-			StyleConstants.Foreground, new java.awt.Color(255, 165, 0));
-	final AttributeSet attrGreen = cont.addAttribute(cont.getEmptySet(),
-			StyleConstants.Foreground, new java.awt.Color(39, 174, 96));
-	final AttributeSet attrCyan = cont.addAttribute(cont.getEmptySet(),
-			StyleConstants.Foreground, new java.awt.Color(16, 217, 153));
-	final AttributeSet attrGray = cont.addAttribute(cont.getEmptySet(),
-			StyleConstants.Foreground, new java.awt.Color(189, 195, 199));
-	final AttributeSet attrMagenta = cont.addAttribute(cont.getEmptySet(),
-			StyleConstants.Foreground, new java.awt.Color(155, 89, 182));
 
 	public void insertString(int offset, String str, AttributeSet a)
 			throws BadLocationException {
 		super.insertString(offset, str, a);
-
 		setColor();
 	}
 	
@@ -1531,39 +1522,39 @@ class CustomStyledDocumentForDayMode extends DefaultStyledDocument {
 			switch (info.getInfoType()) {
 			case -2:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
-						.length(), attrGray, false);
+						.length(), View.colourSchemeCommandLine[0], false);
 				break;
 			case -1:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
-						.length(), attrGreen, false);
+						.length(), View.colourSchemeCommandLine[1], false);
 				break;
 			case 0:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
-						.length(), attrDarkCyan, false);
+						.length(), View.colourSchemeCommandLine[2], false);
 				break;
 			case 1:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
-						.length(), attrOrange, false);
+						.length(), View.colourSchemeCommandLine[3], false);
 				break;
 			case 2:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
-						.length(), attrCyan, false);
+						.length(), View.colourSchemeCommandLine[4], false);
 				break;
 			case 3:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
-						.length(), attrBlue, false);
+						.length(), View.colourSchemeCommandLine[5], false);
 				break;
 			case 4:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
-						.length(), attrRed, false);
+						.length(), View.colourSchemeCommandLine[6], false);
 				break;
 			case 5:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
-						.length(), attrDarkBlue, false);
+						.length(), View.colourSchemeCommandLine[7], false);
 				break;
 			case 6:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
-						.length(), attrMagenta, false);
+						.length(), View.colourSchemeCommandLine[8], false);
 				break;
 			}
 
@@ -1572,26 +1563,6 @@ class CustomStyledDocumentForDayMode extends DefaultStyledDocument {
 };
 
 class CustomStyledDocumentForNightMode extends DefaultStyledDocument {
-	final StyleContext cont = StyleContext.getDefaultStyleContext();
-
-	final AttributeSet attrRed = cont.addAttribute(cont.getEmptySet(),
-			StyleConstants.Foreground, new java.awt.Color(247, 139, 139));
-	final AttributeSet attrBlue = cont.addAttribute(cont.getEmptySet(),
-			StyleConstants.Foreground, new java.awt.Color(110, 242, 243));
-	final AttributeSet attrWhite = cont.addAttribute(cont.getEmptySet(),
-			StyleConstants.Foreground, new java.awt.Color(252, 252, 252));
-	final AttributeSet attrDarkBlue = cont.addAttribute(cont.getEmptySet(),
-			StyleConstants.Foreground, new java.awt.Color(66, 185, 254));
-	final AttributeSet attrOrange = cont.addAttribute(cont.getEmptySet(),
-			StyleConstants.Foreground, new java.awt.Color(254, 186, 63));
-	final AttributeSet attrGreen = cont.addAttribute(cont.getEmptySet(),
-			StyleConstants.Foreground, new java.awt.Color(108, 248, 134));
-	final AttributeSet attrCyan = cont.addAttribute(cont.getEmptySet(),
-			StyleConstants.Foreground, new java.awt.Color(63, 248, 189));
-	final AttributeSet attrGray = cont.addAttribute(cont.getEmptySet(),
-			StyleConstants.Foreground, new java.awt.Color(220, 220, 220));
-	final AttributeSet attrMagenta = cont.addAttribute(cont.getEmptySet(),
-			StyleConstants.Foreground, new java.awt.Color(238, 152, 233));
 
 	public void insertString(int offset, String str, AttributeSet a)
 			throws BadLocationException {
@@ -1613,39 +1584,39 @@ class CustomStyledDocumentForNightMode extends DefaultStyledDocument {
 			switch (info.getInfoType()) {
 			case -2:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
-						.length(), attrGray, false);
+						.length(), View.colourSchemeCommandLine[0], false);
 				break;
 			case -1:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
-						.length(), attrGreen, false);
+						.length(), View.colourSchemeCommandLine[1], false);
 				break;
 			case 0:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
-						.length(), attrWhite, false);
+						.length(), View.colourSchemeCommandLine[2], false);
 				break;
 			case 1:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
-						.length(), attrOrange, false);
+						.length(), View.colourSchemeCommandLine[3], false);
 				break;
 			case 2:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
-						.length(), attrCyan, false);
+						.length(), View.colourSchemeCommandLine[4], false);
 				break;
 			case 3:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
-						.length(), attrBlue, false);
+						.length(), View.colourSchemeCommandLine[5], false);
 				break;
 			case 4:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
-						.length(), attrRed, false);
+						.length(), View.colourSchemeCommandLine[6], false);
 				break;
 			case 5:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
-						.length(), attrDarkBlue, false);
+						.length(), View.colourSchemeCommandLine[7], false);
 				break;
 			case 6:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
-						.length(), attrMagenta, false);
+						.length(), View.colourSchemeCommandLine[8], false);
 				break;
 			}
 
