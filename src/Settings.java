@@ -1,3 +1,6 @@
+import java.util.Timer;
+import java.util.TimerTask;
+
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -49,6 +52,8 @@ public class Settings {
 	private PasswordField pwRetypeBox;
 	private RadioButton dayMode;
 	private RadioButton nightMode;
+	private RadioButton autoSync;
+	private RadioButton manualSync;
 	private RadioButton remaining;
 	private RadioButton exact;
 	private ImageView bgImage;
@@ -95,6 +100,7 @@ public class Settings {
 		setupTextfields();
 		setupTimeFormat();
 		setupThemeMode();
+		setupSyncMode();
 	}
 	
 	private void setupTextfields(){
@@ -144,6 +150,20 @@ public class Settings {
 			nightMode.setSelected(true);
 		grid.add(dayMode, 1, 5);
 		grid.add(nightMode, 2, 5);
+	}
+	
+	private void setupSyncMode(){
+		Label syncMode = new Label("AutoSync: ");
+		grid.add(syncMode, 0, 6);
+		ToggleGroup toggleGroup = new ToggleGroup();
+		autoSync = RadioButtonBuilder.create().text("Auto sync").toggleGroup(toggleGroup).selected(true).build();
+		manualSync = RadioButtonBuilder.create().text("Manual sync").toggleGroup(toggleGroup).build();
+		if(Control.syncMode == Control.AUTOSYNC)
+			autoSync.setSelected(true);
+		else
+			manualSync.setSelected(true);
+		grid.add(autoSync, 1, 6);
+		grid.add(manualSync, 2, 6);
 	}
 	
 	private void setupScene(){
@@ -205,6 +225,12 @@ public class Settings {
 		else
 			model.setDisplayRemaining(false);
 		
+		if(autoSync.isSelected()) {
+			Control.syncMode = Control.AUTOSYNC;
+		}
+		else 
+			Control.syncMode = Control.MANUALSYNC;
+			
 		if(account != null){
 			if (pw != null && pwRetype != null && pw.equals(pwRetype)) {
 				model.setUsername(account);

@@ -16,6 +16,5 @@
 			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="C:/Users/Beyond/Google Drive/Semester3/CS2103T/project/cs2103aug2013-w13-03j/src"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/Beyond/Google Drive/Semester3/CS2103T/project/cs2103aug2013-w13-03j/src/bcprov-jdk15-135.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

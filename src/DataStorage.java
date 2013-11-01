@@ -31,7 +31,7 @@ public class DataStorage extends Store {
 		this.model = model;
 	}
 	
-	public void loadFromFile()  {
+	public void loadFromFile() throws IOException {
 		SAXBuilder builder = new SAXBuilder();
 		try {
 			Document doc = (Document) builder.build(xmlFile);
@@ -43,33 +43,29 @@ public class DataStorage extends Store {
 			addTasksToModel(complete, COMPLETE);
 			addTasksToModel(trash, TRASH);
 		} catch (IOException io) {
-			System.out.println(io.getMessage());
+			throw io;
 		  } catch (JDOMException jdomex) {
 			System.out.println(jdomex.getMessage());
 		  }
 	}
 
 	// write to file
-	public void storeToFile() {
-		try {
-			Element root = new Element("root");
-			Document doc = new Document(root);
-			Element pending = new Element(PENDING);
-			Element complete = new Element(COMPLETE);
-			Element trash = new Element(TRASH);
-			pending = addTasksToXMLFile(PENDING, pending, model.getPendingList());
-			complete = addTasksToXMLFile(COMPLETE, complete, model.getCompleteList());
-			trash = addTasksToXMLFile(TRASH, trash, model.getTrashList());
-			doc.getRootElement().getChildren().add(pending);
-			doc.getRootElement().getChildren().add(complete);
-			doc.getRootElement().getChildren().add(trash);
-			XMLOutputter xmlOutput = new XMLOutputter();
-			xmlOutput.setFormat(Format.getPrettyFormat());
-			xmlOutput.output(doc, new FileWriter(xmlFile));
-			System.out.println("data saved");
-		} catch (IOException io) {
-			System.out.println(io.getMessage());
-		}
+	public void storeToFile() throws IOException {
+		Element root = new Element("root");
+		Document doc = new Document(root);
+		Element pending = new Element(PENDING);
+		Element complete = new Element(COMPLETE);
+		Element trash = new Element(TRASH);
+		pending = addTasksToXMLFile(PENDING, pending, model.getPendingList());
+		complete = addTasksToXMLFile(COMPLETE, complete, model.getCompleteList());
+		trash = addTasksToXMLFile(TRASH, trash, model.getTrashList());
+		doc.getRootElement().getChildren().add(pending);
+		doc.getRootElement().getChildren().add(complete);
+		doc.getRootElement().getChildren().add(trash);
+		XMLOutputter xmlOutput = new XMLOutputter();
+		xmlOutput.setFormat(Format.getPrettyFormat());
+		xmlOutput.output(doc, new FileWriter(xmlFile));
+		System.out.println("data saved");
 	}
 
 	private void addTasksToModel(Element element, String taskType)
@@ -136,8 +132,13 @@ public class DataStorage extends Store {
 				newTask.addContent(new Element("status").setText(("new")));
 			else if(targetTask.getStatus() == Task.Status.UNCHANGED)
 				newTask.addContent(new Element("status").setText(("unchanged")));
-			else
+			else if(targetTask.getStatus() == Task.Status.DELETED)
 				newTask.addContent(new Element("status").setText(("deleted")));
+			else if(targetTask.getStatus() == Task.Status.ADDED_WHEN_SYNC)
+				newTask.addContent(new Element("status").setText(("added_when_sync")));
+			else 
+				newTask.addContent(new Element("status").setText(("deleted_when_sync")));
+				
 		}
 		return element;
 	}

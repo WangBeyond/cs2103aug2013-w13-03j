@@ -28,7 +28,7 @@ import com.google.gdata.data.extensions.When;
 import com.google.gdata.util.AuthenticationException;
 import com.google.gdata.util.ServiceException;
 
-public class Synchronization {
+public class Synchronization  {
 
 	/* messages */
 	private static final String CALENDAR_TITLE = "iDo";
@@ -79,11 +79,7 @@ public class Synchronization {
 	public void setSyncStore(Setting s) {
 		syncStore = s;
 	}
-	/*
-	public void run() {
-		execute();
-	}
-	*/
+
 	public String execute() {
 
 		try {
@@ -627,7 +623,7 @@ public class Synchronization {
 			entryIds.add(entries.get(i).getId());
 		}
 		for (int i = 0; i < pendingList.size(); i++) {
-			if (!entryIds.contains(pendingList.get(i).getIndexId())) {
+			if (!entryIds.contains(pendingList.get(i).getIndexId()) && pendingList.get(i).getStatus() != Task.Status.ADDED_WHEN_SYNC) {
 				Task t = pendingList.remove(i);
 				t.setStatus(Task.Status.UNCHANGED);
 				model.getTrashList().add(t);
@@ -642,6 +638,9 @@ public class Synchronization {
 		for (int i = 0; i < pendingList.size(); i++) {
 			taskIds.add(pendingList.get(i).getIndexId());
 		}
+		System.out.println(taskIds.size());
+		taskIds.addAll(model.getRemovedIdDuringSync());
+		System.out.println(taskIds.size());
 		for (int i = 0; i < entries.size(); i++) {
 			CalendarEventEntry e = entries.get(i);
 			if (!taskIds.contains(e.getId())) {
