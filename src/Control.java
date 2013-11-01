@@ -64,6 +64,9 @@ public class Control extends Application {
 	public Synchronization sync = new Synchronization(modelHandler);
 	static public SyncCommand s;
 	
+	static public boolean syncMode = false;
+	static final boolean AUTOSYNC = true;
+	static final boolean MANUALSYNC = false;
 	static boolean isRealTimeSearch = false;
 	static final boolean SEARCHED = true;
 	static final boolean SHOWN = false;
