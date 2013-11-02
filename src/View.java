@@ -545,7 +545,7 @@ public class View implements HotkeyListener {
 					}
 				}
 			};
-			title.setImage(new Image(getClass().getResourceAsStream("ido_new.png")));
+			title.setImage(new Image(getClass().getResourceAsStream("iDo.png")));
 			txt.setStyledDocument(new CustomStyledDocumentForDayMode());
 			defaultColor = ColourPalette.fxWHITE;
 			if (model.getColourScheme() == null){
@@ -568,7 +568,7 @@ public class View implements HotkeyListener {
 				}
 			};
 			txt.setStyledDocument(new CustomStyledDocumentForNightMode());
-			title.setImage(new Image(getClass().getResourceAsStream("ido_new_night.png")));
+			title.setImage(new Image(getClass().getResourceAsStream("iDoNight.png")));
 			defaultColor = ColourPalette.fxNEAR_WHITE;
 			if (model.getColourScheme() == null){
 				model.setColourScheme("Default night mode");
