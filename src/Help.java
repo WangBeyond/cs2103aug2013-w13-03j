@@ -155,12 +155,12 @@ public class Help{
 	}
 	
 	private Image getFirstHelpImage(){
-		Image firstHelpImage = new Image(getClass().getResourceAsStream("help_1.png"));		
+		Image firstHelpImage = new Image(getClass().getResourceAsStream("helpPage1.png"));		
 		return firstHelpImage;
 	}
 	
 	private Image getSecondHelpImage(){
-		Image secondHelpImage = new Image(getClass().getResourceAsStream("help_2.png"));		
+		Image secondHelpImage = new Image(getClass().getResourceAsStream("helpPage2.png"));		
 		return secondHelpImage;
 	}
 	

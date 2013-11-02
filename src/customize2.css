@@ -364,26 +364,26 @@
 
 #save{
 	-fx-background-repeat: no-repeat;
-	-fx-background-size: 90.0 42.0; 
-	-fx-background-image: url("save.png") ;
+	-fx-background-size: 76.0 42.0; 
+	-fx-background-image: url("saveNight.png") ;
 }
 
 #save:hover{
 	-fx-background-repeat: no-repeat;
-	-fx-background-size: 90.0 42.0; 
-	-fx-background-image: url("saveHover.png") ;
+	-fx-background-size: 76.0 42.0; 
+	-fx-background-image: url("saveNightHover.png") ;
 }
 
 #esc{
 	-fx-background-repeat: no-repeat;
 	-fx-background-size: 42.0 42.0; 
-	-fx-background-image: url("esc.png") ;
+	-fx-background-image: url("escNight.png") ;
 }
 
 #esc:hover{
 	-fx-background-repeat: no-repeat;
 	-fx-background-size: 42.0 42.0; 
-	-fx-background-image: url("escHover.png") ;
+	-fx-background-image: url("escNightHover.png") ;
 }
 
 /********************************************* ComboBox  ***********************************************/
@@ -407,6 +407,10 @@
 	-fx-background-color: transparent;
 	-fx-border-color: greenyellow;
 	-fx-border-width: 2.0px;
+}
+
+.combo-box-popup .list-view .list-cell:filled{
+	-fx-background-color: transparent;
 }
 
 .combo-box-popup .list-view .list-cell:filled:selected{
