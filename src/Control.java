@@ -20,7 +20,6 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 public class Control extends Application {
@@ -627,8 +626,9 @@ public class Control extends Application {
 
 		// String feedback = s.execute();
 		String feedback = s.getFeedback();
-		if (feedback == null)
-			feedback = "syncing";
+		if (feedback == null){
+			feedback = "Syncing...";
+		}
 		view.txt.setText("");
 		view.txt.setCaretPosition(0);
 		/*

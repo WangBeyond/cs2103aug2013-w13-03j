@@ -115,12 +115,13 @@ public class View implements HotkeyListener {
 	// Tab Pane to contain 3 tables
 	public TabPane tabPane;
 	
+	public ProgressIndicator syncProgress;
+	
 	// Table View in 3 tabs
 	public TableView<Task> taskPendingList;
 	public TableView<Task> taskCompleteList;
 	public TableView<Task> taskTrashList;
 	private ImageView title;
-	private ImageView syncBar;
 	public Scene scene;
 	public BorderPane root;
 	public StackPane root2;
@@ -475,8 +476,6 @@ public class View implements HotkeyListener {
 		root = BorderPaneBuilder.create().top(top).center(center)
 				.bottom(bottom).build();
 		root2.getChildren().addAll(textField, root);
-		
-		
 	}
 
 	private void setFont(JTextPane txt) {
@@ -622,7 +621,6 @@ public class View implements HotkeyListener {
 
 	private void createCenterSection() {
 		createTabPane();
-
 		center = HBoxBuilder.create().padding(new Insets(0, 44, 0, 44))
 				.children(tabPane).build();
 	}
@@ -654,19 +652,15 @@ public class View implements HotkeyListener {
 		top.setPadding(new Insets(-15, 15, -30, 44));
 
 		title = createTitle();
-		syncBar = createSyncBar();
-		syncBar.setImage(new Image(getClass().getResourceAsStream("sync.gif")));
-		syncBar.setFitWidth(600);
-		syncBar.setFitHeight(15);
-		syncBar.setVisible(false);
+		syncProgress = new ProgressIndicator();
+		setSyncProgressVisible(false);
 		HBox buttons = createModifyingButtons();
 
-		setupLayout(title, syncBar, buttons);
-
+		setupLayout(title, syncProgress, buttons);
 	}
 
-	public void setSyncBarVisible(boolean isVisible) {
-		syncBar.setVisible(isVisible);
+	public void setSyncProgressVisible(boolean isVisible) {
+		syncProgress.setVisible(isVisible);
 	}
 	
 	private void setDraggable() {
@@ -692,14 +686,17 @@ public class View implements HotkeyListener {
 		});
 	}
 	
-	private void setupLayout(ImageView title, ImageView syncBar, HBox buttons) {
-		top.getChildren().addAll(title, syncBar, buttons);
+	private void setupLayout(ImageView title, ProgressIndicator syncIndicator, HBox buttons) {
+		syncProgress.setMinSize(25, 25);
+		syncProgress.setMaxSize(25, 25);
+		
+		top.getChildren().addAll(title, syncIndicator, buttons);
 		AnchorPane.setLeftAnchor(title, 10.0);
-		AnchorPane.setLeftAnchor(syncBar, 10.0);
-		AnchorPane.setTopAnchor(buttons, 25.0);
-		AnchorPane.setTopAnchor(syncBar, 80.0);
+		AnchorPane.setTopAnchor(buttons, 25.0);	//50.0
 		AnchorPane.setTopAnchor(title, 30.0);
-		AnchorPane.setRightAnchor(buttons, 5.0);
+		AnchorPane.setRightAnchor(buttons, 5.0);	//30.0
+		AnchorPane.setRightAnchor(syncIndicator, 305.0);
+		AnchorPane.setBottomAnchor(syncIndicator, -28.0);
 	}
 
 	private ImageView createTitle() {
@@ -709,15 +706,6 @@ public class View implements HotkeyListener {
 		title.setSmooth(true);
 		title.setCache(true);
 		return title;
-	}
-	
-	private ImageView createSyncBar() {
-		ImageView syncBar = new ImageView();
-		syncBar.setFitWidth(80);
-		syncBar.setPreserveRatio(true);
-		syncBar.setSmooth(true);
-		syncBar.setCache(true);
-		return syncBar;
 	}
 
 	private HBox createModifyingButtons() {

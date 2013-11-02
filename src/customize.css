@@ -405,6 +405,7 @@
 /*
 .radio-button .radio{
 	-fx-background-color: transparent;
+	-fx-shape: "Circle";
 	-fx-border-color: greenyellow;
 	-fx-border-width: 1.0px;
 }
@@ -419,4 +420,9 @@
 	-fx-background-color: transparent;
 	-fx-border-color: greenyellow;
 	-fx-border-width: 2.0px;
-} */
+} 
+*/
+/*************************************ProgressIndicator***************************************/
+.progress-indicator{
+	-fx-progress-color: rgb(132, 225, 132);
+}

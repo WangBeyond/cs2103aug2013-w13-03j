@@ -189,10 +189,11 @@ public class Settings {
 		ToggleGroup toggleGroup = new ToggleGroup();
 		autoSync = RadioButtonBuilder.create().text("Auto sync").toggleGroup(toggleGroup).selected(true).build();
 		manualSync = RadioButtonBuilder.create().text("Manual sync").toggleGroup(toggleGroup).build();
-		if(Control.syncMode == Control.AUTOSYNC)
+		if(Control.syncMode == Control.AUTOSYNC){
 			autoSync.setSelected(true);
-		else
+		} else {
 			manualSync.setSelected(true);
+		}
 		grid.add(autoSync, 1, 6);
 		grid.add(manualSync, 2, 6);
 	}
@@ -272,9 +273,9 @@ public class Settings {
 		
 		if(autoSync.isSelected()) {
 			Control.syncMode = Control.AUTOSYNC;
-		}
-		else 
+		} else { 
 			Control.syncMode = Control.MANUALSYNC;
+		}
 			
 		if(account != null){
 			if (pw != null && pwRetype != null && pw.equals(pwRetype)) {

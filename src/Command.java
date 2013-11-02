@@ -1408,7 +1408,6 @@ class SettingsCommand extends Command {
  * 
  */
 class SyncCommand extends Command implements Runnable {
-	
 	String username = null;
 	String password = null;
 	String feedback = null;
@@ -1438,11 +1437,11 @@ class SyncCommand extends Command implements Runnable {
 	
 	public void  run(){
 		isRunning = true;
-		view.setSyncBarVisible(true);
+		view.setSyncProgressVisible(true);
 		execute();
 		//view.emptyFeedback(0);
 		//view.setFeedbackStyle(0, feedback, view.getDefaultColor());
-		view.setSyncBarVisible(false);
+		view.setSyncProgressVisible(false);
 		isRunning = false;
 		model.clearSyncInfo();
 		try {
@@ -1455,13 +1454,15 @@ class SyncCommand extends Command implements Runnable {
 	@Override
 	public String execute() {
 		try{
+			view.setSyncProgressVisible(true);
 			sync.setUsernameAndPassword(username, password);
 			feedback = sync.execute();
 			Control.sortList(model.getPendingList());
 			return feedback;
 		} catch(Exception e){
+			view.setSyncProgressVisible(false);
 			e.printStackTrace();
-			feedback = "haha";
+			feedback = "haha";	//TODO: change feedback
 			return feedback;
 		}
 	}
