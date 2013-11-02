@@ -90,7 +90,7 @@ public class Settings {
 		} else{
 			settingsScene.getStylesheets().addAll(
 					getClass().getResource("customize2.css").toExternalForm());
-			bgImage.setImage(new Image(getClass().getResourceAsStream("settings_night.png")));
+			bgImage.setImage(new Image(getClass().getResourceAsStream("settingsNight.png")));
 		}
 		settingsStage.showAndWait();
 	}
