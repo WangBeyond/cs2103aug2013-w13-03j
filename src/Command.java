@@ -313,15 +313,13 @@ class AddCommand extends TwoWayCommand {
 			cur.setHour(0);
 			cur.setMinute(0);
 			if(endDate.beforeCurrentTime()){
-				return "End Date before current time";
+				return "Invalid as end time is before current time";
 			} else {
 				task.setStartDate(cur);
 				task.setEndDate(endDate);
 				updateTimeForEndDate(task.getStartDate(), endDate);
 			}
-		} else {
-			
-		}
+		} 
 		if(isRepetitive) {
 			splitRepeatingInfo();
 		}
@@ -449,12 +447,32 @@ class EditCommand extends TwoWayCommand {
 		if (hasWorkInfoKey) {
 			targetTask.setWorkInfo(workInfo);
 		}
-		if (hasStartDate) {
+		if (hasStartDate && hasEndDate) {
 			targetTask.setStartDate(startDate);
-		}
-		if (hasEndDate) {
 			targetTask.setEndDate(endDate);
-		}
+		} else if(hasStartDate){
+			targetTask.setStartDate(startDate);
+			
+			CustomDate cd = new CustomDate();
+			cd.setYear(targetTask.getStartDate().getYear());
+			cd.setMonth(targetTask.getStartDate().getMonth());
+			cd.setDate(targetTask.getStartDate().getDate());
+			cd.setHour(23);
+			cd.setMinute(59);
+			
+			targetTask.setEndDate(cd);
+		} else if(hasEndDate){
+			CustomDate cur = new CustomDate();
+			cur.setHour(0);
+			cur.setMinute(0);
+			if(endDate.beforeCurrentTime()){
+				return "Invalid as end time is before current time";
+			} else {
+				targetTask.setStartDate(cur);
+				targetTask.setEndDate(endDate);
+				updateTimeForEndDate(targetTask.getStartDate(), endDate);
+			}
+		} 
 		setTag();
 		if (isRepetitive) {
 			targetTask.updateDateForRepetitiveTask();

@@ -186,6 +186,28 @@
     -fx-shape: null;
 }
 
+.table-view *.scroll-bar:vertical{
+    -fx-background-color:transparent;
+}
+
+.table-view *.scroll-bar:vertical *.increment-button,
+.table-view *.scroll-bar:vertical *.decrement-button {
+    -fx-background-color:rgb(100,100,100);
+	-fx-border-color: rgb(100,100,100);
+}
+
+.table-view *.scroll-bar:vertical *.track{
+     -fx-background-color: rgb(100, 100, 100);
+	 -fx-border-color: rgb(100, 100, 100);
+	 -fx-background-radius: 0em;
+}
+
+.table-view *.scroll-bar:vertical *.thumb {
+    -fx-background-color:derive(black,90%);
+	-fx-background-insets: 0, 0, 0;
+	-fx-background-radius: 0em;
+
+}
  
 .text{
 	-fx-font-size: 15.0;

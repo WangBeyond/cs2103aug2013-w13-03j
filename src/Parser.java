@@ -25,8 +25,6 @@ public class Parser {
 			"every wednesday", "every thursday", "every friday",
 			"every saturday", "every sunday", "every\\s*\\d*\\s*(days?|weeks?|months?|years?)" };
 	
-	private static String[] occurenceKeys = { "time", "times" };
-	
 	public static final int INDEX_USELESS_INFO = -2;
 	public static final int INDEX_COMMAND_TYPE = -1;
 	public static final int INDEX_WORK_INFO = 0;
