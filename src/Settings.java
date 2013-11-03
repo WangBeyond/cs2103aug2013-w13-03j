@@ -81,6 +81,11 @@ public class Settings {
 	}
 	
 	public void showSettingsPage(){
+
+		googleAccountTextfield.setText(model.getUsername());
+		pwBox.setText(model.getPassword());
+		pwRetypeBox.setText(model.getPassword());
+		
 		settingsScene.getStylesheets().clear();
 		if(model.getThemeMode().equals(Model.DAY_MODE)){
 			settingsScene.getStylesheets().addAll(

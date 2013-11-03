@@ -76,9 +76,9 @@ public class DataStorage extends Store {
 			Element targetElement = taskList.get(i);
 			newTask.setIndexId(targetElement.getChildText("indexID"));
 			newTask.setWorkInfo(targetElement.getChildText("workInfo"));
-			if(!targetElement.getChild("startDate").equals("-"))
+			if(!targetElement.getChildText("startDate").equals("-"))
 				newTask.setStartDate(new CustomDate(targetElement.getChildText("startDate")));
-			if(!targetElement.getChild("endDate").equals("-"))
+			if(!targetElement.getChildText("endDate").equals("-"))
 				newTask.setEndDate(new CustomDate(targetElement.getChildText("endDate")));
 			newTask.setTag(new Tag(targetElement.getChildText("tag"),targetElement.getChildText("repetition")));
 			newTask.setIsImportant(targetElement.getChildText("isImportant").equals(TRUE) ? true : false);

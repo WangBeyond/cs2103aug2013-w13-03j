@@ -102,7 +102,7 @@ public class View implements HotkeyListener {
 	public static final int IMPORTANT = 4;
 	public static final int RECURRING = 5;
 	public static final int INDEX = 6;
-	
+
 	public Help helpPage;
 	public Settings settingsPage;
 	public Login loginPage;
@@ -114,9 +114,9 @@ public class View implements HotkeyListener {
 	public Button showOrHide;
 	// Tab Pane to contain 3 tables
 	public TabPane tabPane;
-	
+
 	public ProgressIndicator syncProgress;
-	
+
 	// Table View in 3 tabs
 	public TableView<Task> taskPendingList;
 	public TableView<Task> taskCompleteList;
@@ -167,7 +167,8 @@ public class View implements HotkeyListener {
 	 * @param primaryStage
 	 *            main stage of the GUI
 	 */
-	public View(final Model model, final Stage primaryStage, Setting settingStore) {
+	public View(final Model model, final Stage primaryStage,
+			Setting settingStore) {
 		stage = primaryStage;
 		this.model = model;
 		this.settingStore = settingStore;
@@ -188,8 +189,8 @@ public class View implements HotkeyListener {
 		setupShortcuts();
 		showInitialMessage();
 	}
-	
-	private void showInitialMessage(){
+
+	private void showInitialMessage() {
 		if (model.getUsername() != null)
 			setFeedbackStyle(
 					0,
@@ -227,70 +228,80 @@ public class View implements HotkeyListener {
 	}
 
 	private void setupSettingsPage() {
-		settingsPage = Settings.getInstanceSettings(model,settingStore);
+		settingsPage = Settings.getInstanceSettings(model, settingStore);
 	}
 
 	public void showSettingsPage() {
 		settingsPage.showSettingsPage();
 	}
 
-	private void setupScrollBar(){
-		for (Node n: taskPendingList.lookupAll(".scroll-bar")) {
-			  if (n instanceof ScrollBar) {
-			    pendingBar = (ScrollBar) n;
-			    if(pendingBar.getOrientation() == Orientation.VERTICAL)
-			    	break;
-			 }
+	private void setupScrollBar() {
+		for (Node n : taskPendingList.lookupAll(".scroll-bar")) {
+			if (n instanceof ScrollBar) {
+				pendingBar = (ScrollBar) n;
+				if (pendingBar.getOrientation() == Orientation.VERTICAL)
+					break;
+			}
 		}
-		
-		for (Node n: taskCompleteList.lookupAll(".scroll-bar")) {
-			  if (n instanceof ScrollBar) {
-			    completeBar = (ScrollBar) n;
-			    if(completeBar.getOrientation() == Orientation.VERTICAL)
-			    	break;
-			 }
+
+		for (Node n : taskCompleteList.lookupAll(".scroll-bar")) {
+			if (n instanceof ScrollBar) {
+				completeBar = (ScrollBar) n;
+				if (completeBar.getOrientation() == Orientation.VERTICAL)
+					break;
+			}
 		}
-		
-		for (Node n: taskTrashList.lookupAll(".scroll-bar")) {
-			  if (n instanceof ScrollBar) {
-			    trashBar = (ScrollBar) n;
-			    if(trashBar.getOrientation() == Orientation.VERTICAL)
-			    	break;
-			 }
+
+		for (Node n : taskTrashList.lookupAll(".scroll-bar")) {
+			if (n instanceof ScrollBar) {
+				trashBar = (ScrollBar) n;
+				if (trashBar.getOrientation() == Orientation.VERTICAL)
+					break;
+			}
 		}
-		
+
 		InputMap map = txt.getInputMap();
-		KeyStroke scrollUpKey = KeyStroke.getKeyStroke(com.sun.glass.events.KeyEvent.VK_UP, 0);
+		KeyStroke scrollUpKey = KeyStroke.getKeyStroke(
+				com.sun.glass.events.KeyEvent.VK_UP, 0);
 		Action scrollUpAction = new AbstractAction() {
 			@Override
 			public void actionPerformed(java.awt.event.ActionEvent e) {
 				Platform.runLater(new Runnable() {
 					@Override
 					public void run() {
-						if(getTabIndex() == 0 && pendingBar.getValue() > pendingBar.getMin())
+						if (getTabIndex() == 0
+								&& pendingBar.getValue() > pendingBar.getMin())
 							pendingBar.setValue(pendingBar.getValue() - 0.05);
-						else if(getTabIndex() == 1 && completeBar.getValue() > completeBar.getMin())
+						else if (getTabIndex() == 1
+								&& completeBar.getValue() > completeBar
+										.getMin())
 							completeBar.setValue(completeBar.getValue() - 0.05);
-						else if(getTabIndex() == 2 && trashBar.getValue() > trashBar.getMin())
+						else if (getTabIndex() == 2
+								&& trashBar.getValue() > trashBar.getMin())
 							trashBar.setValue(trashBar.getValue() - 0.05);
 					}
 				});
 			}
 		};
 		map.put(scrollUpKey, scrollUpAction);
-		
-		KeyStroke scrollDownKey = KeyStroke.getKeyStroke(com.sun.glass.events.KeyEvent.VK_DOWN, 0);
+
+		KeyStroke scrollDownKey = KeyStroke.getKeyStroke(
+				com.sun.glass.events.KeyEvent.VK_DOWN, 0);
 		Action scrollDownAction = new AbstractAction() {
 			@Override
 			public void actionPerformed(java.awt.event.ActionEvent e) {
 				Platform.runLater(new Runnable() {
 					@Override
 					public void run() {
-						if(getTabIndex() == 0 && pendingBar.getValue() < pendingBar.getMax())
+						if (getTabIndex() == 0
+								&& pendingBar.getValue() < pendingBar.getMax())
 							pendingBar.setValue(pendingBar.getValue() + 0.05);
-						else if(getTabIndex() == 1 && completeBar.getValue() < completeBar.getMax())
+						else if (getTabIndex() == 1
+								&& completeBar.getValue() < completeBar
+										.getMax())
 							completeBar.setValue(completeBar.getValue() + 0.05);
-						else if(getTabIndex() == 2 && trashBar.getValue() < trashBar.getMax())
+						else if (getTabIndex() == 2
+								&& trashBar.getValue() < trashBar.getMax())
 							trashBar.setValue(trashBar.getValue() + 0.05);
 					}
 				});
@@ -325,21 +336,27 @@ public class View implements HotkeyListener {
 								+ txt.getText().substring(pos));
 						txt.setCaretPosition(pos - 1);
 					}
-				} else if(e.getCode() == KeyCode.UP){
-					if(getTabIndex() == 0 && pendingBar.getValue() > pendingBar.getMin())
+				} else if (e.getCode() == KeyCode.UP) {
+					if (getTabIndex() == 0
+							&& pendingBar.getValue() > pendingBar.getMin())
 						pendingBar.setValue(pendingBar.getValue() - 0.05);
-					else if(getTabIndex() == 1 && completeBar.getValue() > completeBar.getMin())
+					else if (getTabIndex() == 1
+							&& completeBar.getValue() > completeBar.getMin())
 						completeBar.setValue(completeBar.getValue() - 0.05);
-					else if(getTabIndex() == 2 && trashBar.getValue() > trashBar.getMin())
+					else if (getTabIndex() == 2
+							&& trashBar.getValue() > trashBar.getMin())
 						trashBar.setValue(trashBar.getValue() - 0.05);
-				} else if(e.getCode() == KeyCode.DOWN){
-					if(getTabIndex() == 0 && pendingBar.getValue() < pendingBar.getMax())
+				} else if (e.getCode() == KeyCode.DOWN) {
+					if (getTabIndex() == 0
+							&& pendingBar.getValue() < pendingBar.getMax())
 						pendingBar.setValue(pendingBar.getValue() + 0.05);
-					else if(getTabIndex() == 1 && completeBar.getValue() < completeBar.getMax())
+					else if (getTabIndex() == 1
+							&& completeBar.getValue() < completeBar.getMax())
 						completeBar.setValue(completeBar.getValue() + 0.05);
-					else if(getTabIndex() == 2 && trashBar.getValue() < trashBar.getMax())
+					else if (getTabIndex() == 2
+							&& trashBar.getValue() < trashBar.getMax())
 						trashBar.setValue(trashBar.getValue() + 0.05);
-				}else if (e.getCode() == KeyCode.RIGHT) {
+				} else if (e.getCode() == KeyCode.RIGHT) {
 					textField.temp = 1;
 					textField.setJDialogOnTop();
 					txt.requestFocus();
@@ -525,11 +542,11 @@ public class View implements HotkeyListener {
 		txt.setCaretPosition(txt.getText().length());
 		setupScrollBar();
 	}
-	
+
 	public void customizeGUI() {
 		if (caretListener != null)
 			stage.focusedProperty().removeListener(caretListener);
-	
+
 		scene.getStylesheets().clear();
 		if (model.getThemeMode().equals(Model.DAY_MODE)) {
 			scene.getStylesheets().addAll(
@@ -538,19 +555,20 @@ public class View implements HotkeyListener {
 			caretListener = new ChangeListener<Boolean>() {
 				public void changed(ObservableValue<? extends Boolean> ov,
 						Boolean oldValue, Boolean newValue) {
-					if (newValue.booleanValue() == false){
+					if (newValue.booleanValue() == false) {
 						txt.setCaretColor(ColourPalette.BLACK);
-					} else{
-						txt.setCaretColor(new java.awt.Color(0,0,0,0));
+					} else {
+						txt.setCaretColor(new java.awt.Color(0, 0, 0, 0));
 					}
 				}
 			};
 			title.setImage(new Image(getClass().getResourceAsStream("iDo.png")));
 			txt.setStyledDocument(new CustomStyledDocumentForDayMode());
 			defaultColor = ColourPalette.fxWHITE;
-			if (model.getColourScheme() == null){
-				model.setColourScheme("Default day mode");
-			}
+			
+			if(model.getColourScheme().equals("Default night mode"))
+			model.setColourScheme("Default day mode");
+
 			setColourScheme(model.getColourScheme());
 			stage.focusedProperty().addListener(caretListener);
 		} else {
@@ -560,28 +578,30 @@ public class View implements HotkeyListener {
 			caretListener = new ChangeListener<Boolean>() {
 				public void changed(ObservableValue<? extends Boolean> ov,
 						Boolean oldValue, Boolean newValue) {
-					if (newValue.booleanValue() == false){
+					if (newValue.booleanValue() == false) {
 						txt.setCaretColor(ColourPalette.WHITE);
-					} else{
-						txt.setCaretColor(new java.awt.Color(0,0,0,0));
+					} else {
+						txt.setCaretColor(new java.awt.Color(0, 0, 0, 0));
 					}
 				}
 			};
 			txt.setStyledDocument(new CustomStyledDocumentForNightMode());
-			title.setImage(new Image(getClass().getResourceAsStream("iDoNight.png")));
+			title.setImage(new Image(getClass().getResourceAsStream(
+					"iDoNight.png")));
 			defaultColor = ColourPalette.fxNEAR_WHITE;
-			if (model.getColourScheme() == null){
-				model.setColourScheme("Default night mode");
-			}
+			
+			if(model.getColourScheme().equals("Default day mode"))
+			model.setColourScheme("Default night mode");
+
 			setColourScheme(model.getColourScheme());
 			stage.focusedProperty().addListener(caretListener);
 		}
 	}
-	
-	public Color getDefaultColor(){
+
+	public Color getDefaultColor() {
 		return defaultColor;
 	}
-	
+
 	private void createBottomSection() {
 		bottom = new VBox();
 		bottom.setSpacing(5);
@@ -599,7 +619,7 @@ public class View implements HotkeyListener {
 			feedbackList.add(feedbackPiece);
 			feedbacks.getChildren().add(feedbackList.get(i));
 		}
-		
+
 		bottom.getChildren().addAll(upperPart, feedbacks);
 	}
 
@@ -662,7 +682,7 @@ public class View implements HotkeyListener {
 	public void setSyncProgressVisible(boolean isVisible) {
 		syncProgress.setVisible(isVisible);
 	}
-	
+
 	private void setDraggable() {
 		// Get the position of the mouse in the stage
 		root.setOnMousePressed(new EventHandler<MouseEvent>() {
@@ -685,16 +705,17 @@ public class View implements HotkeyListener {
 			}
 		});
 	}
-	
-	private void setupLayout(ImageView title, ProgressIndicator syncIndicator, HBox buttons) {
+
+	private void setupLayout(ImageView title, ProgressIndicator syncIndicator,
+			HBox buttons) {
 		syncProgress.setMinSize(25, 25);
 		syncProgress.setMaxSize(25, 25);
-		
+
 		top.getChildren().addAll(title, syncIndicator, buttons);
 		AnchorPane.setLeftAnchor(title, 10.0);
-		AnchorPane.setTopAnchor(buttons, 25.0);	//50.0
+		AnchorPane.setTopAnchor(buttons, 25.0); // 50.0
 		AnchorPane.setTopAnchor(title, 30.0);
-		AnchorPane.setRightAnchor(buttons, 5.0);	//30.0
+		AnchorPane.setRightAnchor(buttons, 5.0); // 30.0
 		AnchorPane.setRightAnchor(syncIndicator, 305.0);
 		AnchorPane.setBottomAnchor(syncIndicator, -28.0);
 	}
@@ -761,7 +782,8 @@ public class View implements HotkeyListener {
 		final TableColumn<Task, String> endDateColumn = createEndDateColumn();
 		final TableColumn<Task, RowStatus> rowStatusColumn = createRowStatusColumn();
 
-		final ObservableList<TableColumn<Task, ?>> columns = taskList.getColumns();
+		final ObservableList<TableColumn<Task, ?>> columns = taskList
+				.getColumns();
 		columns.add(indexColumn);
 		columns.add(occurrenceColumn);
 		columns.add(taskInfoColumn);
@@ -770,27 +792,27 @@ public class View implements HotkeyListener {
 		columns.add(tagColumn);
 		columns.add(rowStatusColumn);
 		columns.addListener(new ListChangeListener<TableColumn<Task, ?>>() {
-	        @Override
-	        public void onChanged(Change<? extends TableColumn<Task, ?> > change) {
-	          change.next();
-	          if(change.wasReplaced()) {
-	              columns.clear();
-	            columns.add(indexColumn);
-	      		columns.add(occurrenceColumn);
-	      		columns.add(taskInfoColumn);
-	      		columns.add(startDateColumn);
-	      		columns.add(endDateColumn);
-	      		columns.add(tagColumn);
-	      		columns.add(rowStatusColumn);
-	          }
-	        }
-	    });
+			@Override
+			public void onChanged(Change<? extends TableColumn<Task, ?>> change) {
+				change.next();
+				if (change.wasReplaced()) {
+					columns.clear();
+					columns.add(indexColumn);
+					columns.add(occurrenceColumn);
+					columns.add(taskInfoColumn);
+					columns.add(startDateColumn);
+					columns.add(endDateColumn);
+					columns.add(tagColumn);
+					columns.add(rowStatusColumn);
+				}
+			}
+		});
 	}
 
 	private TableColumn<Task, RowStatus> createRowStatusColumn() {
 		TableColumn<Task, RowStatus> tempColumn = TableColumnBuilder
-				.<Task, RowStatus> create().resizable(false).visible(true).text("").prefWidth(1)
-				.build();
+				.<Task, RowStatus> create().resizable(false).visible(true)
+				.text("").prefWidth(1).build();
 		setupRowStatusProperty(tempColumn);
 		setupRowStatusUpdateFormat(tempColumn);
 		return tempColumn;
@@ -872,8 +894,9 @@ public class View implements HotkeyListener {
 
 	private TableColumn<Task, String> createIndexColumn() {
 		TableColumn<Task, String> tempColumn = TableColumnBuilder
-				.<Task, String> create().resizable(false).visible(true).text("").prefWidth(28)
-				.sortable(false).resizable(false).build();
+				.<Task, String> create().resizable(false).visible(true)
+				.text("").prefWidth(28).sortable(false).resizable(false)
+				.build();
 		setupEndDateProperty(tempColumn);
 		setupIndexUpdateFormat(tempColumn);
 		return tempColumn;
@@ -902,8 +925,9 @@ public class View implements HotkeyListener {
 
 	private TableColumn<Task, String> createOccurrenceColumn() {
 		TableColumn<Task, String> tempColumn = TableColumnBuilder
-				.<Task, String> create().resizable(false).visible(true).text("").prefWidth(28)
-				.sortable(false).resizable(false).build();
+				.<Task, String> create().resizable(false).visible(true)
+				.text("").prefWidth(28).sortable(false).resizable(false)
+				.build();
 		setupOccurrenceProperty(tempColumn);
 		setupOccurrenceUpdateFormat(tempColumn);
 		return tempColumn;
@@ -945,8 +969,8 @@ public class View implements HotkeyListener {
 
 	private TableColumn<Task, String> createEndDateColumn() {
 		TableColumn<Task, String> tempColumn = TableColumnBuilder
-				.<Task, String> create().resizable(false).text("End").sortable(false)
-				.resizable(false).prefWidth(110).build();
+				.<Task, String> create().resizable(false).text("End")
+				.sortable(false).resizable(false).prefWidth(110).build();
 
 		setupEndDateProperty(tempColumn);
 		setupEndDateUpdateFormat(tempColumn);
@@ -988,8 +1012,8 @@ public class View implements HotkeyListener {
 
 	private TableColumn<Task, String> createStartDateColumn() {
 		TableColumn<Task, String> tempColumn = TableColumnBuilder
-				.<Task, String> create().resizable(false).text("Start").prefWidth(110)
-				.resizable(false).sortable(false).build();
+				.<Task, String> create().resizable(false).text("Start")
+				.prefWidth(110).resizable(false).sortable(false).build();
 
 		setupStartDateProperty(tempColumn);
 		setupStartDateUpdateFormat(tempColumn);
@@ -1023,8 +1047,8 @@ public class View implements HotkeyListener {
 
 	private TableColumn<Task, Tag> createTagColumn() {
 		TableColumn<Task, Tag> tempColumn = TableColumnBuilder
-				.<Task, Tag> create().resizable(false).text("Tag").sortable(false)
-				.resizable(false).prefWidth(110).build();
+				.<Task, Tag> create().resizable(false).text("Tag")
+				.sortable(false).resizable(false).prefWidth(110).build();
 
 		setupTagProperty(tempColumn);
 		setupTagUpdateFormat(tempColumn);
@@ -1085,8 +1109,8 @@ public class View implements HotkeyListener {
 
 	private TableColumn<Task, String> createTaskInfoColumn() {
 		TableColumn<Task, String> tempColumn = TableColumnBuilder
-				.<Task, String> create().resizable(false).text("Task").sortable(false)
-				.prefWidth(300).build();
+				.<Task, String> create().resizable(false).text("Task")
+				.sortable(false).prefWidth(300).build();
 
 		setupTaskInfoProperty(tempColumn);
 		setupTaskInfoUpdateFormat(tempColumn);
@@ -1458,11 +1482,13 @@ public class View implements HotkeyListener {
 				ArrayList<String> availCommands = getAvailCommandNum(feedback
 						.trim());
 				for (int i = 0; i < availCommands.size(); i++) {
-					setFeedbackStyle(i + 1, availCommands.get(i), colourScheme[0]);
+					setFeedbackStyle(i + 1, availCommands.get(i),
+							colourScheme[0]);
 				}
 				setFeedbackStyle(0,
 						availCommands.size() > 0 ? "Available commands: "
-								: Control.MESSAGE_REQUEST_COMMAND, colourScheme[1]);
+								: Control.MESSAGE_REQUEST_COMMAND,
+						colourScheme[1]);
 				break;
 			}
 		}
@@ -1477,20 +1503,20 @@ public class View implements HotkeyListener {
 		}
 		return availCommands;
 	}
-	
-	public void setColourScheme(String colourOption){
+
+	public void setColourScheme(String colourOption) {
 		colourScheme = ColourPalette.defaultScheme;
 		colourSchemeCommandLine = ColourPalette.defaultDaySchemeSwing;
-		if (colourOption.equals("Default day mode")){
+		if (colourOption.equals("Default day mode")) {
 			colourScheme = ColourPalette.defaultScheme;
 			colourSchemeCommandLine = ColourPalette.defaultDaySchemeSwing;
-		} else if (colourOption.equals("Default night mode")){
+		} else if (colourOption.equals("Default night mode")) {
 			colourScheme = ColourPalette.defaultNightScheme;
 			colourSchemeCommandLine = ColourPalette.defaultNightSchemeSwing;
-		} else if (colourOption.equals("Goldfish")){
+		} else if (colourOption.equals("Goldfish")) {
 			colourScheme = ColourPalette.goldfishScheme;
 			colourSchemeCommandLine = ColourPalette.goldfishSchemeSwing;
-		} else if (colourOption.equals("Bright")){
+		} else if (colourOption.equals("Bright")) {
 			colourScheme = ColourPalette.brightScheme;
 			colourSchemeCommandLine = ColourPalette.brightSchemeSwing;
 		}
@@ -1518,13 +1544,13 @@ class CustomStyledDocumentForDayMode extends DefaultStyledDocument {
 		super.insertString(offset, str, a);
 		setColor();
 	}
-	
+
 	public void remove(int offs, int len) throws BadLocationException {
 		super.remove(offs, len);
 		setColor();
 	}
-	
-	private void setColor() throws BadLocationException{
+
+	private void setColor() throws BadLocationException {
 		String text = getText(0, getLength());
 		ArrayList<InfoWithIndex> infoList = Parser.parseForView(text);
 		for (int i = 0; i < infoList.size(); i++) {
@@ -1580,13 +1606,13 @@ class CustomStyledDocumentForNightMode extends DefaultStyledDocument {
 
 		setColor();
 	}
-	
+
 	public void remove(int offs, int len) throws BadLocationException {
 		super.remove(offs, len);
 		setColor();
 	}
-	
-	private void setColor() throws BadLocationException{
+
+	private void setColor() throws BadLocationException {
 		String text = getText(0, getLength());
 		ArrayList<InfoWithIndex> infoList = Parser.parseForView(text);
 		for (int i = 0; i < infoList.size(); i++) {
