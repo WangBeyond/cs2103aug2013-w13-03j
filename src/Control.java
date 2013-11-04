@@ -1,5 +1,6 @@
 import java.awt.TrayIcon.MessageType;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Timer;
@@ -87,6 +88,7 @@ public class Control extends Application {
 			dataFile.loadFromFile();
 			settingStore = new Setting("setting.xml", modelHandler);
 			settingStore.retrieveAccount();
+			CustomDate.setDisplayRemaining(modelHandler.doDisplayRemaining());
 		} catch (IOException e) {
 			System.out.println("Cannot read the given file");
 		}
@@ -94,11 +96,13 @@ public class Control extends Application {
 
 	private void loadGUI(Stage primaryStage) {
 		view = new View(modelHandler, primaryStage, settingStore);
+		addListenerForPreferences();
 		handleEventForCommandLine();
 		updateOverdueLine(modelHandler.getPendingList());
 		updateOverdueLine(modelHandler.getCompleteList());
 		updateOverdueLine(modelHandler.getTrashList());
 		settingStore.storeAccount();
+		
 	}
 
 	private void handleEventForCommandLine() {
@@ -275,7 +279,6 @@ public class Control extends Application {
 					public void run() {
 						isRealTimeSearch = false;
 						String feedback = executeCommand(view.txt.getText());
-						System.out.println("feedback: " + feedback);
 						updateFeedback(feedback);
 					}
 				});
@@ -342,7 +345,28 @@ public class Control extends Application {
 				com.sun.glass.events.KeyEvent.VK_F1, 0);
 		map.put(helpKey, helpAction);
 	}
-
+	
+	private void addListenerForPreferences(){
+		view.getSettingsItem().addActionListener(createPreferencesListener());
+	}
+	
+	private ActionListener createPreferencesListener() {
+		return new ActionListener() {
+			@Override
+			public void actionPerformed(java.awt.event.ActionEvent e) {
+				Platform.runLater(new Runnable() {
+					@Override
+					public void run() {
+						isRealTimeSearch = false;
+						view.stage.toBack();
+						String feedback = executeCommand("settings");
+						updateFeedback(feedback);
+					}
+				});
+			}
+		};
+	}
+	
 	private String removeCommandTypeString(String command) {
 		String commandTypeStr = Parser.getFirstWord(command);
 		return command.substring(commandTypeStr.length());
@@ -627,7 +651,7 @@ public class Control extends Application {
 		// String feedback = s.execute();
 		String feedback = s.getFeedback();
 		if (feedback == null){
-			feedback = "Syncing...";
+			feedback = MESSAGE_REQUEST_COMMAND;
 		}
 		view.txt.setText("");
 		view.txt.setCaretPosition(0);

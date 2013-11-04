@@ -116,7 +116,7 @@ public class View implements HotkeyListener {
 	public TabPane tabPane;
 
 	public ProgressIndicator syncProgress;
-
+	PopupMenu popupMenu;
 	// Table View in 3 tabs
 	public TableView<Task> taskPendingList;
 	public TableView<Task> taskCompleteList;
@@ -189,7 +189,11 @@ public class View implements HotkeyListener {
 		setupShortcuts();
 		showInitialMessage();
 	}
-
+	
+	public void toFrontSettingsStage(){
+		settingsPage.getSettingsStage().toFront();
+	}
+	
 	private void showInitialMessage() {
 		if (model.getUsername() != null)
 			setFeedbackStyle(
@@ -674,13 +678,21 @@ public class View implements HotkeyListener {
 		title = createTitle();
 		syncProgress = new ProgressIndicator();
 		setSyncProgressVisible(false);
+		
 		HBox buttons = createModifyingButtons();
 
 		setupLayout(title, syncProgress, buttons);
 	}
 
-	public void setSyncProgressVisible(boolean isVisible) {
-		syncProgress.setVisible(isVisible);
+	public void setSyncProgressVisible(final boolean isVisible) {
+		Platform.runLater(new Runnable() {
+			
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				syncProgress.setVisible(isVisible);
+			}
+		});	
 	}
 
 	private void setDraggable() {
@@ -1228,7 +1240,7 @@ public class View implements HotkeyListener {
 			SystemTray tray = SystemTray.getSystemTray();
 			java.awt.Image iconImage = getIconImage();
 
-			PopupMenu popupMenu = createPopupMenu();
+			popupMenu = createPopupMenu();
 
 			createTrayIcon(iconImage, popupMenu);
 
@@ -1256,7 +1268,7 @@ public class View implements HotkeyListener {
 		popup.addSeparator();
 
 		MenuItem settingsItem = new MenuItem("Preferences");
-		settingsItem.addActionListener(createPreferencesListener());
+		
 		popup.add(settingsItem);
 
 		MenuItem closeItem = new MenuItem("Exit");
@@ -1264,6 +1276,10 @@ public class View implements HotkeyListener {
 		popup.add(closeItem);
 
 		return popup;
+	}
+	
+	public MenuItem getSettingsItem(){
+		return popupMenu.getItem(2);
 	}
 
 	private ActionListener createShowListener() {
@@ -1281,19 +1297,7 @@ public class View implements HotkeyListener {
 		};
 	}
 
-	private ActionListener createPreferencesListener() {
-		return new ActionListener() {
-			@Override
-			public void actionPerformed(java.awt.event.ActionEvent e) {
-				Platform.runLater(new Runnable() {
-					@Override
-					public void run() {
-						showSettingsPage();
-					}
-				});
-			}
-		};
-	}
+	
 
 	private ActionListener createExitListener() {
 		return new ActionListener() {
