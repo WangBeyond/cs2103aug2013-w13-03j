@@ -167,6 +167,7 @@ public class Synchronization  {
 	void syncNewTasksToGCal(CalendarService service, Model model, URL feedUrl)
 			throws ServiceException, IOException {
 		ObservableList<Task> pendingList = model.getPendingList();
+		List<CalendarEventEntry> eventsToAdd = new ArrayList<CalendarEventEntry>();
 		for (int i = 0; i < pendingList.size(); i++) {
 			Task task = pendingList.get(i);
 			if (task.getStatus() == Task.Status.NEWLY_ADDED) {
@@ -201,12 +202,13 @@ public class Synchronization  {
 					} else {
 						throw new Error("date format error");
 					}
-
 				}
+				eventsToAdd.add(e);
 				task.setIndexId(e.getId());
 				task.setStatus(Task.Status.UNCHANGED);
 			}
 		}
+		addEvents(service, eventsToAdd, feedUrl);
 	}
 
 	private void updateUnchangedTasks(CalendarService service, Model model,
@@ -927,7 +929,7 @@ public class Synchronization  {
 		}
 
 		// Send the request and receive the response:
-		return service.insert(feedUrl, myEntry);
+		return myEntry;
 	}
 
 	/**
@@ -1133,5 +1135,43 @@ public class Synchronization  {
 			}
 		}
 		return calendarId;
+	}
+	
+	private void addEvents(CalendarService service, List<CalendarEventEntry> eventsToAdd, URL feedUrl) throws IOException, ServiceException{
+		// Add each item in eventsToDelete to the batch request.
+		CalendarEventFeed batchRequest = new CalendarEventFeed();
+		for (int i = 0; i < eventsToAdd.size(); i++) {
+			CalendarEventEntry toAdd = eventsToAdd.get(i);
+			// Modify the entry toDelete with batch ID and operation type.
+			BatchUtils.setBatchId(toAdd, String.valueOf(i));
+			BatchUtils.setBatchOperationType(toAdd,
+					BatchOperationType.INSERT);
+			batchRequest.getEntries().add(toAdd);
+		}
+
+		// Get the URL to make batch requests to
+		CalendarEventFeed feed = service.getFeed(feedUrl,
+				CalendarEventFeed.class);
+		Link batchLink = feed.getLink(Link.Rel.FEED_BATCH, Link.Type.ATOM);
+		URL batchUrl = new URL(batchLink.getHref());
+
+		// Submit the batch request
+		CalendarEventFeed batchResponse = service.batch(batchUrl, batchRequest);
+
+		// Ensure that all the operations were successful.
+		boolean isSuccess = true;
+		for (CalendarEventEntry entry : batchResponse.getEntries()) {
+			String batchId = BatchUtils.getBatchId(entry);
+			if (!BatchUtils.isSuccess(entry)) {
+				isSuccess = false;
+				BatchStatus status = BatchUtils.getBatchStatus(entry);
+				System.out.println("\n" + batchId + " failed ("
+						+ status.getReason() + ") " + status.getContent());
+			}
+		}
+		if (isSuccess) {
+			System.out
+					.println("Successfully updated all events via batch request.");
+		}
 	}
 }
