@@ -7,6 +7,7 @@ public class Model {
 	final static int TRASH_LIST = 2;
 	final static String DAY_MODE = "day";
 	final static String NIGHT_MODE = "night";
+
 	
 	private ObservableList<Task> pending;
 	private ObservableList<Task> complete;
@@ -172,6 +173,7 @@ public class Model {
 	private boolean displayRemaining;
 	private String themeMode;
 	private String colourScheme;
+	private boolean isAutoSync;
 	
 	public boolean doDisplayRemaining(){
 		return displayRemaining;
@@ -195,6 +197,14 @@ public class Model {
 	}
 	public void setDisplayRemaining(boolean displayRemaining){
 		this.displayRemaining = displayRemaining;
+	}
+	
+	public void setAutoSync(boolean isAutoSync) {
+		this.isAutoSync = isAutoSync;
+	}
+	
+	public boolean getAutoSync() {
+		return isAutoSync;
 	}
 	
 	public void setColourScheme(String colourScheme){

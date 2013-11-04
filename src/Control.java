@@ -64,12 +64,12 @@ public class Control extends Application {
 	public Synchronization sync = new Synchronization(modelHandler);
 	static public SyncCommand s;
 
-	static public boolean syncMode = false;
-	static final boolean AUTOSYNC = true;
-	static final boolean MANUALSYNC = false;
 	static boolean isRealTimeSearch = false;
 	static final boolean SEARCHED = true;
 	static final boolean SHOWN = false;
+	private Timer syncTimer;
+	//period for auto sync (in minute)
+	private int syncPeriod = 1;
 
 	public static void main(String[] args) {
 		Application.launch(args);
@@ -89,6 +89,8 @@ public class Control extends Application {
 			settingStore = new Setting("setting.xml", modelHandler);
 			settingStore.retrieveAccount();
 			CustomDate.setDisplayRemaining(modelHandler.doDisplayRemaining());
+			if(modelHandler.getAutoSync())
+				autoSync();
 		} catch (IOException e) {
 			System.out.println("Cannot read the given file");
 		}
@@ -114,46 +116,20 @@ public class Control extends Application {
 		view.txt.getDocument().addDocumentListener(new DocumentListener() {
 			@Override
 			public void removeUpdate(DocumentEvent e) {
-				String command = view.txt.getText();
-				realTimeFeedback(command);
-				if (Parser.determineCommandType(command) == Parser.COMMAND_TYPES.SEARCH)
-					realTimeSearch(command);
-				else if (Parser.determineCommandType(command) == Parser.COMMAND_TYPES.REMOVE) {
-					String content = removeCommandTypeString(command);
-					if (!content.matches("\\s*")) {
-						if (!content.matches("\\s*\\d+.*"))
-							realTimeSearch("search" + content);
-					}
-				}
-				if (isRealTimeSearch && !command.contains("search")
-						&& !command.contains("remove")) {
-					isRealTimeSearch = false;
-					executeShowCommand();
-				}
+				realTimeUpdate();
 			}
 
 			@Override
 			public void insertUpdate(DocumentEvent e) {
-				String command = view.txt.getText();
-				realTimeFeedback(command);
-				if (Parser.determineCommandType(command) == Parser.COMMAND_TYPES.SEARCH)
-					realTimeSearch(command);
-				else if (Parser.determineCommandType(command) == Parser.COMMAND_TYPES.REMOVE) {
-					String content = removeCommandTypeString(command);
-					if (!content.matches("\\s*")) {
-						if (!content.matches("\\s*\\d+.*"))
-							realTimeSearch("search" + content);
-					}
-				}
-				if (isRealTimeSearch && !command.contains("search")
-						&& !command.contains("remove")) {
-					isRealTimeSearch = false;
-					executeShowCommand();
-				}
+				realTimeUpdate();
 			}
 
 			@Override
 			public void changedUpdate(DocumentEvent e) {
+				realTimeUpdate();
+			}
+
+			private void realTimeUpdate() {
 				String command = view.txt.getText();
 
 				if (Parser.determineCommandType(command) == Parser.COMMAND_TYPES.SEARCH)
@@ -166,12 +142,12 @@ public class Control extends Application {
 					}
 				}
 				if (isRealTimeSearch && !command.contains("search")
-						&& !command.contains("remove")) {
+						&& !command.contains("remove")&&!command.contains("rm")) {
 					isRealTimeSearch = false;
 					executeShowCommand();
 				}
 			}
-
+			
 			private boolean checkRemoveIndex(String command) {
 				String content = Parser.removeFirstWord(command);
 				String[] splitContent = Parser.splitBySpace(content);
@@ -617,6 +593,7 @@ public class Control extends Application {
 
 	private String executeSettingsCommand(String[] parsedUserCommand) {
 		String oldTheme = modelHandler.getThemeMode();
+		boolean oldAutoSync = modelHandler.getAutoSync();
 		Command s = new SettingsCommand(modelHandler, view, parsedUserCommand);
 		String feedback = s.execute();
 		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_SETTINGS)) {
@@ -624,6 +601,12 @@ public class Control extends Application {
 			if(!oldTheme.equals(modelHandler.getThemeMode()))
 					view.customizeGUI();
 			view.setColourScheme(modelHandler.getColourScheme());
+			if(oldAutoSync != modelHandler.getAutoSync()) {
+				if(modelHandler.getAutoSync() == true) 
+					autoSync();
+				else 
+					autoSync();
+			}
 			CustomDate.setDisplayRemaining(modelHandler.doDisplayRemaining());
 			CustomDate.updateCurrentDate();
 			handleListener();
@@ -640,6 +623,21 @@ public class Control extends Application {
 		}
 		return feedback;
 	}
+	
+	private void autoSync( ) {
+		Timer syncTimer = new Timer();
+		syncTimer.schedule(new TimerTask() {
+			@Override
+			public void run() {
+				if (modelHandler.getAutoSync() == true) {
+					String[] nullContent = new String[1];
+					new SyncCommand(nullContent, modelHandler, sync, view, dataFile);
+				} else {
+					this.cancel();
+				}
+			}
+		}, 0, syncPeriod * MINUTE_IN_MILLIS);
+	}
 
 	private String executeSyncCommand(String[] parsedUserCommand)
 			throws IOException {
@@ -655,14 +653,6 @@ public class Control extends Application {
 		}
 		view.txt.setText("");
 		view.txt.setCaretPosition(0);
-		/*
-		 * if (feedback.equals(Command.MESSAGE_SYNC_SUCCESSFUL)) {
-		 * dataFile.storeToFile(); view.setTab(0); executeShowCommand(); }
-		 *//*
-			 * else if
-			 * (feedback.equals(Command.MESSAGE_SYNC_INVALID_USERNAME_PASSWORD
-			 * )){ view.showSettingsPage(); }
-			 */
 		return feedback;
 	}
 

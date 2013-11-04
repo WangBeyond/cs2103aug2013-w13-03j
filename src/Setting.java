@@ -73,6 +73,7 @@ public class Setting extends Store {
 			account.addContent(new Element("display_remaining").setText(model.getDisplayRemaining()==true? TRUE : FALSE));
 			account.addContent(new Element("themeMode").setText(model.getThemeMode()));
 			account.addContent(new Element("colourScheme").setText(model.getColourScheme()));
+			account.addContent(new Element("autoSync").setText(model.getAutoSync() == true? TRUE : FALSE));
 			XMLOutputter xmlOutput = new XMLOutputter();
 			xmlOutput.setFormat(Format.getPrettyFormat());
 			xmlOutput.output(doc, new FileWriter(dir));
@@ -115,6 +116,7 @@ public class Setting extends Store {
 			} else {
 				account.getChild("colourScheme").setText("Default day mode");
 			}
+			account.getChild("autoSync").setText(model.getAutoSync() == true? TRUE : FALSE);
 			XMLOutputter xmlOutput = new XMLOutputter();
 			xmlOutput.setFormat(Format.getPrettyFormat());
 			xmlOutput.output(doc, new FileWriter(dir));
@@ -141,6 +143,7 @@ public class Setting extends Store {
 			Element displayRemaining  = account.getChild("display_remaining");
 			Element themeMode = account.getChild("themeMode");
 			Element colourScheme = account.getChild("colourScheme");
+			Element autoSync = account.getChild("autoSync");
 			
 			if (username == null)
 				System.out.println("no account info");
@@ -160,6 +163,7 @@ public class Setting extends Store {
 				model.setDisplayRemaining(displayRemaining.getText().equals(TRUE) ? true : false);
 				model.setThemeMode(themeMode.getText());
 				model.setColourScheme(colourScheme.getText());
+				model.setAutoSync(autoSync.getText().equals(TRUE) ? true : false);
 			}			
 		  } catch (IOException io) {
 			System.out.println(io.getMessage());
