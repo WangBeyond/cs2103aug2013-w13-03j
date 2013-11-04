@@ -73,6 +73,10 @@ public class Settings {
 		setupDraggable();
 	}
 	
+	public Stage getSettingsStage(){
+		return settingsStage;
+	}
+	
 	public static Settings getInstanceSettings(Model model, Setting settingStore){
 		if (oneSettingsPage == null){
 			oneSettingsPage = new Settings(model, settingStore);
@@ -147,6 +151,7 @@ public class Settings {
 			    );
 		
 		colourSchemes = new ComboBox<String>(colourOptions);
+		colourSchemes.setPrefWidth(175);
 		if (model.getColourScheme() != null){
 			colourSchemes.setValue(model.getColourScheme());
 		} else {

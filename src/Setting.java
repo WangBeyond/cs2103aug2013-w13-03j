@@ -106,7 +106,7 @@ public class Setting extends Store {
 			if (model.getPassword() != null) {
 				account.getChild("password").setText(encryptedPassword);			
 			}
-			account.getChild("display_remaining").setText(model.getDisplayRemaining()==true? TRUE : FALSE);
+			account.getChild("display_remaining").setText(model.getDisplayRemaining() == true? TRUE : FALSE);
 			if (model.getThemeMode()!=null) {
 				account.getChild("themeMode").setText(model.getThemeMode());	
 			}
@@ -157,7 +157,7 @@ public class Setting extends Store {
 				}
 				model.setUsername(username.getText());
 				model.setPassword(decryptedPassword);
-				model.setDisplayRemaining(displayRemaining.getText()==TRUE? true : false);
+				model.setDisplayRemaining(displayRemaining.getText().equals(TRUE) ? true : false);
 				model.setThemeMode(themeMode.getText());
 				model.setColourScheme(colourScheme.getText());
 			}			
