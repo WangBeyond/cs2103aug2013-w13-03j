@@ -284,10 +284,30 @@ public class CustomDate {
 	}
 
 	// Compare the 2 dates according to their dates, not specific times.
-	public boolean dateEqual(CustomDate other) {
-		return this.getYear() == other.getYear()
-				&& this.getMonth() == other.getMonth()
-				&& this.getDate() == other.getDate();
+	public static int dateCompare(CustomDate date1, CustomDate date2) {
+		int difference = 0;
+		if (date1 == null && date2 == null) {
+			return EQUAL;
+		} else if (date1 == null && date2 != null) {
+			return LARGER;
+		} else if (date1 != null && date2 == null) {
+			return SMALLER;
+		}
+		
+		for (int i = 0; i < 3; i++) {
+			if (i == 0) {
+				difference = date1.getYear() - date2.getYear();
+			} else if (i == 1) {
+				difference = date1.getMonth() - date2.getMonth();
+			} else if (i == 2) {
+				difference = date1.getDate() - date2.getDate();
+			}
+			if (difference != 0) {
+				return difference;
+			}
+		}
+		
+		return difference;
 	}
 
 	public boolean beforeCurrentTime() {

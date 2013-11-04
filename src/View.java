@@ -275,14 +275,14 @@ public class View implements HotkeyListener {
 					public void run() {
 						if (getTabIndex() == 0
 								&& pendingBar.getValue() > pendingBar.getMin())
-							pendingBar.setValue(pendingBar.getValue() - 0.05);
+							pendingBar.setValue(pendingBar.getValue() - 0.2 );
 						else if (getTabIndex() == 1
 								&& completeBar.getValue() > completeBar
 										.getMin())
-							completeBar.setValue(completeBar.getValue() - 0.05);
+							completeBar.setValue(completeBar.getValue() - 0.2);
 						else if (getTabIndex() == 2
 								&& trashBar.getValue() > trashBar.getMin())
-							trashBar.setValue(trashBar.getValue() - 0.05);
+							trashBar.setValue(trashBar.getValue() - 0.2);
 					}
 				});
 			}
@@ -299,14 +299,14 @@ public class View implements HotkeyListener {
 					public void run() {
 						if (getTabIndex() == 0
 								&& pendingBar.getValue() < pendingBar.getMax())
-							pendingBar.setValue(pendingBar.getValue() + 0.05);
+							pendingBar.setValue(pendingBar.getValue() + 0.2);
 						else if (getTabIndex() == 1
 								&& completeBar.getValue() < completeBar
 										.getMax())
-							completeBar.setValue(completeBar.getValue() + 0.05);
+							completeBar.setValue(completeBar.getValue() + 0.2);
 						else if (getTabIndex() == 2
 								&& trashBar.getValue() < trashBar.getMax())
-							trashBar.setValue(trashBar.getValue() + 0.05);
+							trashBar.setValue(trashBar.getValue() + 0.2);
 					}
 				});
 			}
@@ -343,23 +343,23 @@ public class View implements HotkeyListener {
 				} else if (e.getCode() == KeyCode.UP) {
 					if (getTabIndex() == 0
 							&& pendingBar.getValue() > pendingBar.getMin())
-						pendingBar.setValue(pendingBar.getValue() - 0.05);
+						pendingBar.setValue(pendingBar.getValue() - 0.2);
 					else if (getTabIndex() == 1
 							&& completeBar.getValue() > completeBar.getMin())
-						completeBar.setValue(completeBar.getValue() - 0.05);
+						completeBar.setValue(completeBar.getValue() - 0.2);
 					else if (getTabIndex() == 2
 							&& trashBar.getValue() > trashBar.getMin())
-						trashBar.setValue(trashBar.getValue() - 0.05);
+						trashBar.setValue(trashBar.getValue() - 0.2);
 				} else if (e.getCode() == KeyCode.DOWN) {
 					if (getTabIndex() == 0
 							&& pendingBar.getValue() < pendingBar.getMax())
-						pendingBar.setValue(pendingBar.getValue() + 0.05);
+						pendingBar.setValue(pendingBar.getValue() + 0.2);
 					else if (getTabIndex() == 1
 							&& completeBar.getValue() < completeBar.getMax())
-						completeBar.setValue(completeBar.getValue() + 0.05);
+						completeBar.setValue(completeBar.getValue() + 0.2);
 					else if (getTabIndex() == 2
 							&& trashBar.getValue() < trashBar.getMax())
-						trashBar.setValue(trashBar.getValue() + 0.05);
+						trashBar.setValue(trashBar.getValue() + 0.2);
 				} else if (e.getCode() == KeyCode.RIGHT) {
 					textField.temp = 1;
 					textField.setJDialogOnTop();
