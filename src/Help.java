@@ -25,6 +25,7 @@ public class Help{
 	private final KeyCombination esc = new KeyCodeCombination(KeyCode.ESCAPE);
 	
 	private static Help oneHelpPage;
+	public Model model;
 	
 	private Scene helpScene;
 	private Stage helpStage;
@@ -37,7 +38,8 @@ public class Help{
 	private double dragAnchorX;
 	private double dragAnchorY;
 	
-	private Help(){	
+	private Help(Model model){	
+		this.model = model;
 		setupInitialStage();
 		setupButtons();
 		changeToFirstPage();	
@@ -46,9 +48,9 @@ public class Help{
 		setupDraggable();
 	}
 	
-	public static Help getInstanceHelp(){
+	public static Help getInstanceHelp(Model model){
 		if (oneHelpPage == null){
-			oneHelpPage = new Help();
+			oneHelpPage = new Help(model);
 		}		
 		return oneHelpPage;
 	}
@@ -155,12 +157,22 @@ public class Help{
 	}
 	
 	private Image getFirstHelpImage(){
-		Image firstHelpImage = new Image(getClass().getResourceAsStream("helpPage1.png"));
+		Image firstHelpImage;
+		if (model.getThemeMode().equals("day")){
+			firstHelpImage = new Image(getClass().getResourceAsStream("helpPage1.png"));
+		} else {
+			firstHelpImage = new Image(getClass().getResourceAsStream("helpNightPage1.png"));
+		}
 		return firstHelpImage;
 	}
 	
 	private Image getSecondHelpImage(){
-		Image secondHelpImage = new Image(getClass().getResourceAsStream("helpPage2.png"));		
+		Image secondHelpImage;
+		if (model.getThemeMode().equals("day")){
+			secondHelpImage = new Image(getClass().getResourceAsStream("helpPage2.png"));	
+		} else{
+			secondHelpImage = new Image(getClass().getResourceAsStream("helpNightPage2.png"));	
+		}
 		return secondHelpImage;
 	}
 	

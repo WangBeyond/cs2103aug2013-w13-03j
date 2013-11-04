@@ -199,7 +199,7 @@ public class Settings {
 	}
 
 	private void setupSyncMode() {
-		Label syncMode = new Label("AutoSync: ");
+		Label syncMode = new Label("Sync mode: ");
 		grid.add(syncMode, 0, 6);
 		ToggleGroup toggleGroup = new ToggleGroup();
 		autoSync = RadioButtonBuilder.create().text("Auto sync")
