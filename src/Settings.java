@@ -206,7 +206,7 @@ public class Settings {
 				.toggleGroup(toggleGroup).selected(true).build();
 		manualSync = RadioButtonBuilder.create().text("Manual sync")
 				.toggleGroup(toggleGroup).build();
-		if (Control.syncMode == Control.AUTOSYNC) {
+		if (model.getAutoSync() == true) {
 			autoSync.setSelected(true);
 		} else {
 			manualSync.setSelected(true);
@@ -270,32 +270,27 @@ public class Settings {
 
 		if (dayMode.isSelected()) {
 			model.setThemeMode(Model.DAY_MODE);
-			successfulChange = STORE_SUCCESSFUL;
 		} else {
 			model.setThemeMode(Model.NIGHT_MODE);
-			successfulChange = STORE_SUCCESSFUL;
 		}
 
 		if (colourSchemes.getValue() != null) {
 			String schemeChosen = colourSchemes.getValue().toString();
 			model.setColourScheme(schemeChosen);
-			successfulChange = STORE_SUCCESSFUL;
 		}
 
 		if (remaining.isSelected()) {
 			model.setDisplayRemaining(true);
-			successfulChange = STORE_SUCCESSFUL;
 		} else {
 			model.setDisplayRemaining(false);
-			successfulChange = STORE_SUCCESSFUL;
 		}
 
 		if (autoSync.isSelected()) {
-			Control.syncMode = Control.AUTOSYNC;
+			model.setAutoSync(true);
 		} else {
-			Control.syncMode = Control.MANUALSYNC;
+			model.setAutoSync(false);
 		}
-
+		successfulChange = STORE_SUCCESSFUL;
 		if (account != null) {
 			if (pw != null && pwRetype != null && pw.equals(pwRetype)) {
 				model.setUsername(account);
