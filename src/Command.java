@@ -1256,14 +1256,14 @@ class SearchCommand extends Command {
 			for (int i = 0; i < list.size(); i++) {
 				CustomDate startDate = list.get(i).getStartDate();
 				if (startDate != null
-						&& CustomDate.compare(startDate, date) == 0) {
+						&& CustomDate.compare(startDate, date) >= 0) {
 					result.add(list.get(i));
 				}
 			}
 		} else {
 			for (int i = 0; i < list.size(); i++) {
 				CustomDate startDate = list.get(i).getStartDate();
-				if (startDate != null && startDate.dateEqual(date))
+				if (startDate != null && CustomDate.compare(startDate, date) >= 0)
 					result.add(list.get(i));
 			}
 		}
@@ -1281,14 +1281,14 @@ class SearchCommand extends Command {
 		if (date.getHour() != 23 && date.getMinute() != 59) {
 			for (int i = 0; i < list.size(); i++) {
 				CustomDate endDate = list.get(i).getEndDate();
-				if (endDate != null && CustomDate.compare(endDate, date) == 0) {
+				if (endDate != null && CustomDate.compare(endDate, date) <= 0) {
 					result.add(list.get(i));
 				}
 			}
 		} else {
 			for (int i = 0; i < list.size(); i++) {
 				CustomDate endDate = list.get(i).getEndDate();
-				if (endDate != null && endDate.dateEqual(date)) {
+				if (endDate != null && CustomDate.compare(endDate, date) <= 0) {
 					result.add(list.get(i));
 				}
 			}
@@ -1321,7 +1321,8 @@ class SearchCommand extends Command {
 		ObservableList<Task> result = FXCollections.observableArrayList();
 		for (int i = 0; i < list.size(); i++) {
 			String searchedWorkInfo = list.get(i).getWorkInfo().toLowerCase();
-			if (searchedWorkInfo.contains(workInfo.toLowerCase())) {
+			String tag = list.get(i).getTag().getTag().toLowerCase().substring(1);
+			if (searchedWorkInfo.contains(workInfo.toLowerCase()) || (!tag.equals("") && workInfo.toLowerCase().contains(tag))) {
 				result.add(list.get(i));
 			}
 		}

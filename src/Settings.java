@@ -37,12 +37,13 @@ public class Settings {
 	private static final boolean STORE_SUCCESSFUL = true;
 	private static final boolean STORE_FAIL = false;
 	private final KeyCombination esc = new KeyCodeCombination(KeyCode.ESCAPE);
-	private final KeyCombination saveSettings = new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN);
-	
+	private final KeyCombination saveSettings = new KeyCodeCombination(
+			KeyCode.S, KeyCombination.CONTROL_DOWN);
+
 	private static Settings oneSettingsPage;
 	private Model model;
 	private Setting settingStore;
-	
+
 	private Stage settingsStage;
 	private Scene settingsScene;
 	private GridPane grid;
@@ -61,8 +62,8 @@ public class Settings {
 	private RadioButton exact;
 	private ComboBox<String> colourSchemes;
 	private ImageView bgImage;
-	
-	private Settings(Model model, Setting settingStore){
+
+	private Settings(Model model, Setting settingStore) {
 		this.model = model;
 		this.settingStore = settingStore;
 		setupStage();
@@ -72,39 +73,43 @@ public class Settings {
 		setupShortcuts();
 		setupDraggable();
 	}
-	
-	public Stage getSettingsStage(){
+
+	public Stage getSettingsStage() {
 		return settingsStage;
 	}
-	
-	public static Settings getInstanceSettings(Model model, Setting settingStore){
-		if (oneSettingsPage == null){
+
+	public static Settings getInstanceSettings(Model model, Setting settingStore) {
+		if (oneSettingsPage == null) {
 			oneSettingsPage = new Settings(model, settingStore);
-		}		
+		}
 		return oneSettingsPage;
 	}
-	
-	public void showSettingsPage(){
+
+	public void showSettingsPage() {
 
 		googleAccountTextfield.setText(model.getUsername());
 		pwBox.setText(model.getPassword());
 		pwRetypeBox.setText(model.getPassword());
-		
+		if (model.getColourScheme() != null)
+			colourSchemes.setValue(model.getColourScheme());
+
 		settingsScene.getStylesheets().clear();
-		if(model.getThemeMode().equals(Model.DAY_MODE)){
+		if (model.getThemeMode().equals(Model.DAY_MODE)) {
 			settingsScene.getStylesheets().addAll(
 					getClass().getResource("customize.css").toExternalForm());
-			bgImage.setImage(new Image(getClass().getResourceAsStream("settings.png")));
-	
-		} else{
+			bgImage.setImage(new Image(getClass().getResourceAsStream(
+					"settings.png")));
+
+		} else {
 			settingsScene.getStylesheets().addAll(
 					getClass().getResource("customize2.css").toExternalForm());
-			bgImage.setImage(new Image(getClass().getResourceAsStream("settingsNight.png")));
+			bgImage.setImage(new Image(getClass().getResourceAsStream(
+					"settingsNight.png")));
 		}
 		settingsStage.showAndWait();
 	}
-	
-	private void setupContent(){
+
+	private void setupContent() {
 		grid = new GridPane();
 		grid.setAlignment(Pos.CENTER_LEFT);
 		grid.setHgap(10);
@@ -116,8 +121,8 @@ public class Settings {
 		setupColourScheme();
 		setupSyncMode();
 	}
-	
-	private void setupTextfields(){
+
+	private void setupTextfields() {
 		Label googleAccount = new Label("Google account:");
 		grid.add(googleAccount, 0, 1);
 		googleAccountTextfield = new TextField();
@@ -130,32 +135,28 @@ public class Settings {
 		pwBox = new PasswordField();
 		pwBox.setText(model.getPassword());
 		grid.add(pwBox, 1, 2);
-		
+
 		Label pwRetype = new Label("Retype password:");
 		grid.add(pwRetype, 0, 3);
 		pwRetypeBox = new PasswordField();
 		pwRetypeBox.setText(model.getPassword());
 		grid.add(pwRetypeBox, 1, 3);
 	}
-	
-	private void setupColourScheme(){
+
+	private void setupColourScheme() {
 		Label colourScheme = new Label("Colour scheme:");
 		grid.add(colourScheme, 0, 7);
-		
-		ObservableList<String> colourOptions = 
-			    FXCollections.observableArrayList(
-			        "Default day mode",
-			        "Default night mode",
-			        "Goldfish",
-			        "Bright"
-			    );
-		
+
+		ObservableList<String> colourOptions = FXCollections
+				.observableArrayList("Default day mode", "Default night mode",
+						"Goldfish", "Bright");
+
 		colourSchemes = new ComboBox<String>(colourOptions);
 		colourSchemes.setPrefWidth(175);
-		if (model.getColourScheme() != null){
+		if (model.getColourScheme() != null) {
 			colourSchemes.setValue(model.getColourScheme());
 		} else {
-			if (model.getThemeMode().equals("Night mode")){
+			if (model.getThemeMode().equals("Night mode")) {
 				colourSchemes.setValue("Default night mode");
 			} else {
 				colourSchemes.setValue("Default day mode");
@@ -163,43 +164,49 @@ public class Settings {
 		}
 		grid.add(colourSchemes, 1, 7);
 	}
-	
-	private void setupTimeFormat(){
+
+	private void setupTimeFormat() {
 		Label timeFormat = new Label("Time format:");
 		grid.add(timeFormat, 0, 4);
 		ToggleGroup toggleGroup = new ToggleGroup();
-		remaining = RadioButtonBuilder.create().text("Show remaining time").toggleGroup(toggleGroup).build();
-		exact = RadioButtonBuilder.create().text("Show exact time").toggleGroup(toggleGroup).build();
-		if(model.doDisplayRemaining())
+		remaining = RadioButtonBuilder.create().text("Show remaining time")
+				.toggleGroup(toggleGroup).build();
+		exact = RadioButtonBuilder.create().text("Show exact time")
+				.toggleGroup(toggleGroup).build();
+		if (model.doDisplayRemaining())
 			remaining.setSelected(true);
 		else
 			exact.setSelected(true);
 		grid.add(remaining, 1, 4);
 		grid.add(exact, 2, 4);
 	}
-	
-	private void setupThemeMode(){
+
+	private void setupThemeMode() {
 		Label themeMode = new Label("Theme mode: ");
 		grid.add(themeMode, 0, 5);
 		ToggleGroup toggleGroup = new ToggleGroup();
-		dayMode = RadioButtonBuilder.create().text("Day mode").toggleGroup(toggleGroup).selected(true).build();
-		nightMode = RadioButtonBuilder.create().text("Night mode").toggleGroup(toggleGroup).build();
-		if(model.getThemeMode().equals(Model.DAY_MODE)){
+		dayMode = RadioButtonBuilder.create().text("Day mode")
+				.toggleGroup(toggleGroup).selected(true).build();
+		nightMode = RadioButtonBuilder.create().text("Night mode")
+				.toggleGroup(toggleGroup).build();
+		if (model.getThemeMode().equals(Model.DAY_MODE)) {
 			dayMode.setSelected(true);
-		} else{
+		} else {
 			nightMode.setSelected(true);
 		}
 		grid.add(dayMode, 1, 5);
 		grid.add(nightMode, 2, 5);
 	}
-	
-	private void setupSyncMode(){
+
+	private void setupSyncMode() {
 		Label syncMode = new Label("AutoSync: ");
 		grid.add(syncMode, 0, 6);
 		ToggleGroup toggleGroup = new ToggleGroup();
-		autoSync = RadioButtonBuilder.create().text("Auto sync").toggleGroup(toggleGroup).selected(true).build();
-		manualSync = RadioButtonBuilder.create().text("Manual sync").toggleGroup(toggleGroup).build();
-		if(Control.syncMode == Control.AUTOSYNC){
+		autoSync = RadioButtonBuilder.create().text("Auto sync")
+				.toggleGroup(toggleGroup).selected(true).build();
+		manualSync = RadioButtonBuilder.create().text("Manual sync")
+				.toggleGroup(toggleGroup).build();
+		if (Control.syncMode == Control.AUTOSYNC) {
 			autoSync.setSelected(true);
 		} else {
 			manualSync.setSelected(true);
@@ -207,8 +214,8 @@ public class Settings {
 		grid.add(autoSync, 1, 6);
 		grid.add(manualSync, 2, 6);
 	}
-	
-	private void setupScene(){
+
+	private void setupScene() {
 		root = new Group();
 		root.getChildren().add(setupBackground());
 		root.getChildren().add(grid);
@@ -218,76 +225,78 @@ public class Settings {
 				getClass().getResource("customize.css").toExternalForm());
 		settingsStage.setScene(settingsScene);
 	}
-	
-	private void setupStage(){
+
+	private void setupStage() {
 		settingsStage = new Stage();
 		settingsStage.initStyle(StageStyle.UNDECORATED);
 		settingsStage.initModality(Modality.APPLICATION_MODAL);
 		settingsStage.setWidth(599);
 		settingsStage.setHeight(450);
 		Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
-		settingsStage.setX((screenBounds.getWidth() - settingsStage.getWidth()) / 2);
-		settingsStage.setY((screenBounds.getHeight() - settingsStage.getHeight()) / 2);
+		settingsStage
+				.setX((screenBounds.getWidth() - settingsStage.getWidth()) / 2);
+		settingsStage.setY((screenBounds.getHeight() - settingsStage
+				.getHeight()) / 2);
 		settingsStage.setTitle("iDo Settings");
 		settingsStage.getIcons().add(
 				new Image(getClass().getResource("iDo_traybar.png")
 						.toExternalForm()));
 	}
-	
-	private ImageView setupBackground(){
+
+	private ImageView setupBackground() {
 		bgImage = new ImageView();
 		bgImage.setFitWidth(600);
 		bgImage.setPreserveRatio(true);
 		bgImage.setSmooth(true);
-		bgImage.setCache(true); 
-		
+		bgImage.setCache(true);
+
 		return bgImage;
 	}
-	
-	private void setupButtons(){
+
+	private void setupButtons() {
 		buttons = new Group();
 		buttons.getChildren().add(setupSaveButton());
 		buttons.getChildren().add(setupExitButton());
 		buttons.setLayoutX(520);
 		buttons.setLayoutY(375);
 	}
-	
-	private boolean storeSettingChanges(){
+
+	private boolean storeSettingChanges() {
 		boolean successfulChange = STORE_FAIL;
-		
+
 		String account = googleAccountTextfield.getText();
 		String pw = pwBox.getText();
 		String pwRetype = pwRetypeBox.getText();
-		
-		if(dayMode.isSelected()){
+
+		if (dayMode.isSelected()) {
 			model.setThemeMode(Model.DAY_MODE);
 			successfulChange = STORE_SUCCESSFUL;
 		} else {
 			model.setThemeMode(Model.NIGHT_MODE);
 			successfulChange = STORE_SUCCESSFUL;
 		}
-		
-		if(colourSchemes.getValue() != null){
+
+		if (colourSchemes.getValue() != null) {
 			String schemeChosen = colourSchemes.getValue().toString();
 			model.setColourScheme(schemeChosen);
 			successfulChange = STORE_SUCCESSFUL;
 		}
-		
-		if(remaining.isSelected()) {
+
+		if (remaining.isSelected()) {
 			model.setDisplayRemaining(true);
 			successfulChange = STORE_SUCCESSFUL;
 		} else {
 			model.setDisplayRemaining(false);
 			successfulChange = STORE_SUCCESSFUL;
 		}
-		
-		if(autoSync.isSelected()) {
+
+		if (autoSync.isSelected()) {
 			Control.syncMode = Control.AUTOSYNC;
-		} else { 
+		} else {
 			Control.syncMode = Control.MANUALSYNC;
 		}
-			
-		if(account != null){
+
+		if (account != null) {
 			if (pw != null && pwRetype != null && pw.equals(pwRetype)) {
 				model.setUsername(account);
 				model.setPassword(pw);
@@ -298,26 +307,26 @@ public class Settings {
 				successfulChange = STORE_FAIL;
 			}
 		}
-	    settingStore.updateAccount();
+		settingStore.updateAccount();
 		return successfulChange;
 	}
-	
-	private Button setupSaveButton(){
+
+	private Button setupSaveButton() {
 		Button saveButton = new Button("");
 		saveButton.setId("save");
 		saveButton.setPrefSize(76, 42);
 		saveButton.setTranslateX(-95);
 		saveButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
 			public void handle(MouseEvent e) {
-				if (storeSettingChanges()){
+				if (storeSettingChanges()) {
 					settingsStage.close();
-				} 
+				}
 			}
 		});
 		return saveButton;
 	}
-	
-	private Button setupExitButton(){
+
+	private Button setupExitButton() {
 		Button exitButton = new Button("");
 		exitButton.setId("esc");
 		exitButton.setPrefSize(42, 42);
@@ -326,24 +335,24 @@ public class Settings {
 				settingsStage.close();
 			}
 		});
-		
+
 		return exitButton;
 	}
-	
-	private void setupShortcuts(){
-		root.setOnKeyPressed(new EventHandler<KeyEvent>(){
+
+	private void setupShortcuts() {
+		root.setOnKeyPressed(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent e) {
 				if (esc.match(e)) {
 					settingsStage.close();
-				} else if (saveSettings.match(e)){
-					if (storeSettingChanges()){
+				} else if (saveSettings.match(e)) {
+					if (storeSettingChanges()) {
 						settingsStage.close();
-					} 
+					}
 				}
 			}
 		});
 	}
-	
+
 	private void setupDraggable() {
 		root.setOnMousePressed(new EventHandler<MouseEvent>() {
 			@Override
