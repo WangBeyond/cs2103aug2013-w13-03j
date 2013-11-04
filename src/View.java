@@ -217,7 +217,7 @@ public class View implements HotkeyListener {
 	}
 
 	private void setupHelpPage() {
-		helpPage = Help.getInstanceHelp();
+		helpPage = Help.getInstanceHelp(model);
 	}
 
 	public void showHelpPage() {
