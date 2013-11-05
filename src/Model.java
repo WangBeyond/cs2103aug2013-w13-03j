@@ -1,23 +1,53 @@
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
-public class Model {
-	final static int PENDING_LIST = 0;
-	final static int COMPLETE_LIST = 1;
-	final static int TRASH_LIST = 2;
-	final static String DAY_MODE = "day";
-	final static String NIGHT_MODE = "night";
+/**
+ * 
+ * This class is used to store all the data while the application is working.
+ * It comprises data in settings, list of tasks for display on the interface.
+ *
+ */
 
+public class Model {
+	private static final String MESSAGE_OUT_OF_BOUNDS_INDEX = "Out of bounds index";
+
+	// Logger
+	private static Logger logger = Logger.getLogger("Model");
 	
+	// Index of tabs
+	private final static int PENDING_TAB = 0;
+	private final static int COMPLETE_TAB = 1;
+	private final static int TRASH_TAB = 2;
+	
+	// Settings of theme mode
+	public final static String DAY_MODE = "day";
+	public final static String NIGHT_MODE = "night";
+
+	/*
+	 * List of all tasks in corresponding tabs
+	 */
 	private ObservableList<Task> pending;
 	private ObservableList<Task> complete;
 	private ObservableList<Task> trash;
+	
+	/*
+	 * List of searched tasks in corresponding tabs
+	 */
 	private ObservableList<Task> searchPending;
 	private ObservableList<Task> searchComplete;
 	private ObservableList<Task> searchTrash;
+	
+	/*
+	 * List of IDs from tasks which were removed during synchronization
+	 */
 	private ObservableList<String> removedIdDuringSync;
 	
-	// Constructor
+	/*
+	 * Default constructor
+	 */
 	public Model() {
 		pending = FXCollections.observableArrayList();
 		complete = FXCollections.observableArrayList();
@@ -30,21 +60,41 @@ public class Model {
 		themeMode = DAY_MODE;
 		colourScheme = "Default day mode";
 	}
-
-	/************************** Get a task from given index ************************************/
+	
+	/**************************************** TASK Section **********************************/
+	
+	/************************** GET a task from given index ************************************/
 	public Task getTaskFromPending(int index) {
-		return pending.get(index);
+		try{
+			Task temp = pending.get(index);
+			return temp;
+		} catch (IndexOutOfBoundsException e){
+			logger.log(Level.WARNING, MESSAGE_OUT_OF_BOUNDS_INDEX);
+			return null;
+		}
 	}
 
 	public Task getTaskFromComplete(int index) {
-		return complete.get(index);
+		try{
+			Task temp = complete.get(index);
+			return temp;
+		} catch (IndexOutOfBoundsException e){
+			logger.log(Level.WARNING, MESSAGE_OUT_OF_BOUNDS_INDEX);
+			return null;
+		}
 	}
 
 	public Task getTaskFromTrash(int index) {
-		return trash.get(index);
+		try{
+			Task temp = trash.get(index);
+			return temp;
+		} catch (IndexOutOfBoundsException e){
+			logger.log(Level.WARNING, MESSAGE_OUT_OF_BOUNDS_INDEX);
+			return null;
+		}
 	}
 
-	/****************************** Get the required list of tasks *****************************/
+	/****************************** GET the required list of tasks *****************************/
 	public ObservableList<Task> getPendingList() {
 		return pending;
 	}
@@ -69,28 +119,44 @@ public class Model {
 		return searchTrash;
 	}
 	
-	/********************************Retrieve from or operate on the index of deleted-during-sync tasks ******************/
+	/******************************** GET or MODIFY the index IDs of deleted-during-sync tasks ******************/
 	public ObservableList<String> getRemovedIdDuringSync() {
 		return removedIdDuringSync;
 	}
 	
 	public void clearSyncInfo() {
 		removedIdDuringSync.clear();
-		for(Task addedTask : pending) {
-			if(addedTask.getStatus() == Task.Status.ADDED_WHEN_SYNC)
-				addedTask.setStatus(Task.Status.NEWLY_ADDED);
-		}
-		for(Task deletedTask : complete) {
-			if (deletedTask.getStatus() == Task.Status.DELETED_WHEN_SYNC)
-			deletedTask.setStatus(Task.Status.DELETED);
-		}
+		
+		modifyStatusForAddedTasks();
+		modifyStatusForCompletedTasks();
+		modifyStatusForRemovedTasks();
+	}
+
+	private void modifyStatusForRemovedTasks() {
 		for(Task deletedTask : trash) {
-			if (deletedTask.getStatus() == Task.Status.DELETED_WHEN_SYNC)
+			if (deletedTask.getStatus() == Task.Status.DELETED_WHEN_SYNC){
 			deletedTask.setStatus(Task.Status.DELETED);
+			}
 		}
 	}
 
-	/********************************** Get the index from given index ******************************/
+	private void modifyStatusForCompletedTasks() {
+		for(Task deletedTask : complete) {
+			if (deletedTask.getStatus() == Task.Status.DELETED_WHEN_SYNC){
+			deletedTask.setStatus(Task.Status.DELETED);
+			}
+		}
+	}
+
+	private void modifyStatusForAddedTasks() {
+		for(Task addedTask : pending) {
+			if(addedTask.getStatus() == Task.Status.ADDED_WHEN_SYNC){
+				addedTask.setStatus(Task.Status.NEWLY_ADDED);
+			}
+		}
+	}
+
+	/********************************** GET the index from given task ******************************/
 	public int getIndexFromPending(Task task) {
 		return pending.indexOf(task);
 	}
@@ -104,7 +170,7 @@ public class Model {
 	}
 	
 	
-	/****************************** Add a task to the list *******************************/
+	/****************************** ADD a task to the list *******************************/
 	public void addTaskToPending(Task newPendingTask) {
 		pending.add(newPendingTask);
 	}
@@ -117,43 +183,64 @@ public class Model {
 		trash.add(newTrashTask);
 	}
 
-	/******************** Remove a task with indicated index *******************************/
-	public void removeTask(int index, int listType) {
-		if (listType == PENDING_LIST) {
+	/******************** REMOVE a task with indicated index *******************************/
+	public void removeTask(int index, int tabIndex) {
+		if (tabIndex == PENDING_TAB) {
 			removeTaskFromPending(index);
-		} else if (listType == COMPLETE_LIST) {
+		} else if (tabIndex == COMPLETE_TAB) {
 			removeTaskFromComplete(index);
-		} else if (listType == TRASH_LIST) {
+		} else if (tabIndex == TRASH_TAB) {
 			removeTaskFromTrash(index);
 		}
 	}
 
 	private void removeTaskFromPending(int index) {
-		Task t = pending.remove(index);
-		if(t.getStatus() != Task.Status.ADDED_WHEN_SYNC)
-			removedIdDuringSync.add(t.getIndexId());
-		trash.add(t);
+		try {
+			Task t = pending.remove(index);
+			if (t.getStatus() != Task.Status.ADDED_WHEN_SYNC) {
+				removedIdDuringSync.add(t.getIndexId());
+			}
+			trash.add(t);
+		} catch (IndexOutOfBoundsException e) {
+			logger.log(Level.WARNING, MESSAGE_OUT_OF_BOUNDS_INDEX);
+		}
 	}
 
 	private void removeTaskFromComplete(int index) {
-		Task t = complete.remove(index);
-		trash.add(t);
+		try {
+			Task t = complete.remove(index);
+			trash.add(t);
+		} catch (IndexOutOfBoundsException e) {
+			logger.log(Level.WARNING, MESSAGE_OUT_OF_BOUNDS_INDEX);
+		}
 	}
 
 	private void removeTaskFromTrash(int index) {
-		trash.remove(index);
+		try {
+			trash.remove(index);
+		} catch (IndexOutOfBoundsException e) {
+			logger.log(Level.WARNING, MESSAGE_OUT_OF_BOUNDS_INDEX);
+		}
 	}
 
-	/***************************** Remove a task with indicated index permanently *******************/
+	/***************************** REMOVE a task with indicated index permanently, not moving to trash *******************/
 	public void removeTaskFromPendingNoTrash(int index) {
-		pending.remove(index);
+		try {
+			pending.remove(index);
+		} catch (IndexOutOfBoundsException e) {
+			logger.log(Level.WARNING, MESSAGE_OUT_OF_BOUNDS_INDEX);
+		}
 	}
 
 	public void removeTaskFromCompleteNoTrash(int index) {
-		complete.remove(index);
+		try {
+			complete.remove(index);
+		} catch (IndexOutOfBoundsException e) {
+			logger.log(Level.WARNING, MESSAGE_OUT_OF_BOUNDS_INDEX);
+		}
 	}
 
-	/************************************** Set a specific searchList *********************************/
+	/************************************** SET a specific searchList *********************************/
 	public void setSearchPendingList(ObservableList<Task> searchList) {
 		searchPending = searchList;
 	}
@@ -166,15 +253,21 @@ public class Model {
 		searchTrash = searchList;
 	}
 	
-	/************************************ Settings Model *************************************************/
+	/************************************ SETTINGS Section *************************************************/
+	// Google Account ID
 	private String username;
+	// Google Account Password
 	private String password;
-	private String calendarID;
+	// Indicator whether to display the remaining time or not
 	private boolean displayRemaining;
+	// The theme mode: DAY or NIGHT
 	private String themeMode;
+	// The color theme
 	private String colourScheme;
+	// Indicator whether to auto sync or not
 	private boolean isAutoSync;
 	
+	/*********************************** GET functions ****************************************/
 	public boolean doDisplayRemaining(){
 		return displayRemaining;
 	}
@@ -187,28 +280,11 @@ public class Model {
 		return colourScheme;
 	}
 	
-	public void setThemeMode(String themeMode){
-		this.themeMode = themeMode;
-	}
-	
-	
 	public boolean getDisplayRemaining() {
 		return displayRemaining;
 	}
-	public void setDisplayRemaining(boolean displayRemaining){
-		this.displayRemaining = displayRemaining;
-	}
-	
-	public void setAutoSync(boolean isAutoSync) {
-		this.isAutoSync = isAutoSync;
-	}
-	
 	public boolean getAutoSync() {
 		return isAutoSync;
-	}
-	
-	public void setColourScheme(String colourScheme){
-		this.colourScheme = colourScheme;
 	}
 	
 	public String getUsername(){
@@ -219,8 +295,21 @@ public class Model {
 		return password;
 	}
 	
-	public String getCalendarID(){
-		return calendarID;
+	/***************************************** SET functions ********************************************/
+	public void setThemeMode(String themeMode){
+		this.themeMode = themeMode;
+	}
+
+	public void setDisplayRemaining(boolean displayRemaining){
+		this.displayRemaining = displayRemaining;
+	}
+
+	public void setAutoSync(boolean isAutoSync) {
+		this.isAutoSync = isAutoSync;
+	}
+
+	public void setColourScheme(String colourScheme){
+		this.colourScheme = colourScheme;
 	}
 	
 	public void setUsername(String username){
@@ -229,9 +318,5 @@ public class Model {
 	
 	public void setPassword(String password){
 		this.password = password;
-	}
-	
-	public void setCalendarID(String calendarID){
-		this.calendarID = calendarID;
 	}
 }
