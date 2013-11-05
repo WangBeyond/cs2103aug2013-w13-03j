@@ -6,133 +6,153 @@ import java.util.TimeZone;
 import com.google.gdata.data.DateTime;
 
 public class CustomDate {
-	final public static int VALID = 1;
-	final public static int INVALID = -1;
+	final private static int VALID = 1;
+	final private static int INVALID = -1;
 	final public static int OUT_OF_BOUNDS = 0;
 
-	final public static int MAXIMUM_LENGTH_OF_DATE_INFO = 4;
-	final public static int MAXIMUM_LENGTH_FOR_DATE_PART = 2;
-	final public static int MAXIMUM_LENGTH_FOR_TIME_PART = 2;
-	final public static int EMPTY_DATE_INFO = 0;
-	final public static int SUNDAY = 8;
-	final public static int MINUTE_IN_MILLIS = 60 * 1000;
-	final public static long DAY_IN_MILLIS = 24 * 60 * 60 * 1000;
-	final public static long SIX_HOURS_IN_MILLIS = 6 * 60 * 60 * 1000;
-	final public static long WEEK_IN_MILLIS = 7 * 24 * 60 * 60 * 1000;
-	final public static long MONTH_IN_MILLIS = 30L * 24 * 60 * 60 * 1000;
-	final public static long YEAR_IN_MILLIS = 365 * 24 * 60 * 60 * 1000;
-	final public static long FIRST_TWELVE_HOURS = 12 * 60;
-	final public static int HOUR_IN_MINUTES = 60;
-
+	final private static int MAXIMUM_LENGTH_OF_DATE_INFO = 4;
+	final private static int MAXIMUM_LENGTH_FOR_DATE_PART = 2;
+	final private static int MAXIMUM_LENGTH_FOR_TIME_PART = 2;
+	final private static int EMPTY_DATE_INFO = 0;
+	final private static int SUNDAY = 8;
+	final private static int MINUTE_IN_MILLIS = 60 * 1000;
+	final private static long DAY_IN_MILLIS = 24 * 60 * 60 * 1000;
+	final private static long SIX_HOURS_IN_MILLIS = 6 * 60 * 60 * 1000;
+	final private static long WEEK_IN_MILLIS = 7 * 24 * 60 * 60 * 1000;
+	final private static long MONTH_IN_MILLIS = 30L * 24 * 60 * 60 * 1000;
+	final private static long YEAR_IN_MILLIS = 365 * 24 * 60 * 60 * 1000;
+	final private static long FIRST_TWELVE_HOURS = 12 * 60;
+	final private static int HOUR_IN_MINUTES = 60;
 	
-	final public static int LARGER = 1;
-	final public static int SMALLER = -1;
-	final public static int EQUAL = 0;
+	final private static String DAILY_REGEX = "(every)(\\d+)(days?)";
+	final private static String WEEKLY_REGEX = "(every)(\\d+)(weeks?)";
+	final private static String MONTHLY_REGEX = "(every)(\\d+)(months?)";
+	final private static String YEARLY_REGEX = "(every)(\\d+)(years?)";
 	
-	private static boolean displayRemaining = true;
-	// The target date of CustomDate object
-	private GregorianCalendar targetDate;
-	// The date info of this target date
-	private String dateInfo;
-	boolean hasIndicatedDate;
+	final private static int LARGER = 1;
+	final private static int SMALLER = -1;
+	final private static int EQUAL = 0;
 
 	// The common current date among CustomDate object
 	private static GregorianCalendar currentDate;
+
+	// The option whether to display remaining time according to the current time
+	private static boolean displayRemaining = true;
+
+	// The target date of CustomDate object
+	private GregorianCalendar sourceDate;
+
+	// The date info of this target date
+	private String dateInfo;
+
+	boolean hasIndicatedDate;
 	
-	// Constructors
+	
+	// Default constructors
 	public CustomDate() {
-		targetDate = new GregorianCalendar();
+		sourceDate = new GregorianCalendar();
 	}
 	
+	/**
+	 *  Constructor from a DateTime object by converting its string format into the desired format
+	 *  DateTime format: YYYY/MM/DDTHH:MM:SS
+	 * @param dateTime the DateTime object 
+	 */
 	public CustomDate(DateTime dateTime){
-		targetDate = new GregorianCalendar();
-		String str = dateTime.toString();
-		String date = str.substring(8, 10);
-		String month = str.substring(5,7);
-		String year = str.substring(0, 4);
+		String dateTimeString = dateTime.toString();
+		String date = dateTimeString.substring(8, 10);
+		String month = dateTimeString.substring(5, 7);
+		String year = dateTimeString.substring(0, 4);
 		String time = "00:00";
 		String second = "00";
-		if(str.length()>10){
-			time = str.substring(11, 16);
-			second = str.substring(17, 19);			
+		
+		boolean hasTime = dateTimeString.length() > 10;
+		if (hasTime) {
+			time = dateTimeString.substring(11, 16);
+			second = dateTimeString.substring(17, 19);
 		}
-		String customDateFormat = date+"/"+month+"/"+year+ " " + time;
+		String customDateFormat = date + "/" + month + "/" + year + " " + time;
+		
+		sourceDate = new GregorianCalendar();
 		convert(customDateFormat);
 		setSecond(Integer.parseInt(second));
 	}
 	
-	public CustomDate(String s) {
-		targetDate = new GregorianCalendar();
-		convert(s);
+	/**
+	 * Constructor from an input string
+	 * @param inputDateString the input of date
+	 */
+	public CustomDate(String inputDateString) {
+		sourceDate = new GregorianCalendar();
+		convert(inputDateString);
 	}
 	
-	public static void setDisplayRemaining(boolean display){
-		displayRemaining = display;
+	// Set whether to display the remaining time or not
+	public static void setDisplayRemaining(boolean displayRemaining){
+		CustomDate.displayRemaining = displayRemaining;
 	}
 	
-	/*************** Get functions to get corresponding elements in the CustomDate *****************/
+	/*************** GET functions to get corresponding time elements in CustomDate *****************/
 	public int getYear() {
-		return targetDate.get(Calendar.YEAR);
+		return sourceDate.get(Calendar.YEAR);
 	}
 
 	public int getMonth() {
-		return targetDate.get(Calendar.MONTH);
+		return sourceDate.get(Calendar.MONTH);
 	}
 
 	public int getDate() {
-		return targetDate.get(Calendar.DATE);
+		return sourceDate.get(Calendar.DATE);
 	}
 
 	public int getHour() {
-		return targetDate.get(Calendar.HOUR_OF_DAY);
+		return sourceDate.get(Calendar.HOUR_OF_DAY);
 	}
 
 	public int getMinute() {
-		return targetDate.get(Calendar.MINUTE);
+		return sourceDate.get(Calendar.MINUTE);
 	}
 	
 	public int getSecond(){
-		return targetDate.get(Calendar.SECOND);
+		return sourceDate.get(Calendar.SECOND);
 	}
 	
+	public long getTimeInMillis() {
+		return sourceDate.getTimeInMillis();
+	}
+	
+	// Check whether the dateInfo has indicated an exact date
 	public boolean hasIndicatedDate(){
 		return hasIndicatedDate;
 	}
 
-	/************************** Set methods to set hour and minute **************/
+	/************************** SET methods to set the time elements in CustomDate **************/
 	public void setHour(int hour) {
-		targetDate.set(Calendar.HOUR_OF_DAY, hour);
+		sourceDate.set(Calendar.HOUR_OF_DAY, hour);
 	}
 
 	public void setMinute(int minute) {
-		targetDate.set(Calendar.MINUTE, minute);
+		sourceDate.set(Calendar.MINUTE, minute);
 	}
 	
 	public void setDate(int date){
-		targetDate.set(Calendar.DATE, date);
+		sourceDate.set(Calendar.DATE, date);
 	}
 	
 	public void setMonth(int month){
-		targetDate.set(Calendar.MONTH, month);
+		sourceDate.set(Calendar.MONTH, month);
 	}
 	
 	public void setYear(int year){
-		targetDate.set(Calendar.YEAR, year);
+		sourceDate.set(Calendar.YEAR, year);
 	}
 	
 	public void setSecond(int second){
-		targetDate.set(Calendar.SECOND, second);
+		sourceDate.set(Calendar.SECOND, second);
 	}
 	
-
-	/**************** Get the current time in milliseconds ********/
-	public long getTimeInMillis() {
-		return targetDate.getTimeInMillis();
-	}
-
-	/************** Set the current time from given time in milliseconds **************/
 	public void setTimeInMillis(long millis) {
-		targetDate.setTimeInMillis(millis);
+		sourceDate.setTimeInMillis(millis);
 	}
 
 	/**
@@ -141,19 +161,29 @@ public class CustomDate {
 	 * @return the DateTime object
 	 */
 	public DateTime returnInDateTimeFormat() {
-		return new DateTime(targetDate.getTime(), TimeZone.getTimeZone("Asia/Singapore"));
+		return new DateTime(sourceDate.getTime(), TimeZone.getDefault());
 	}
 	
+	/**
+	 * Convert into CustomDate object from the string format of recurring date from Google Library
+	 * Recurring date format: DDMMYYTHHMMSS
+	 * @param recurrenceDateString the string with format from Google Library
+	 * @return the converted CustomDate object
+	 */
 	public static CustomDate convertFromRecurringDateString(String recurrenceDateString){
 		String year = recurrenceDateString.substring(0, 4);
 		String month = recurrenceDateString.substring(4, 6);
 		String date = recurrenceDateString.substring(6, 8);
 		String hour = recurrenceDateString.substring(9, 11);
 		String minute = recurrenceDateString.substring(11, 13);
+		
 		return new CustomDate(date+"/" + Integer.parseInt(month) + "/" + year + " " + hour + ":" + minute);
 	}
 	
-	
+	/**
+	 * Get the recurring format from Google Library from the CustomDate object
+	 * @return the string in required format
+	 */
 	public String returnInRecurringFormat(){
 		DecimalFormat df = new DecimalFormat("00");
 		String year = String.valueOf(getYear());
@@ -162,84 +192,104 @@ public class CustomDate {
 		String hour = df.format(getHour());
 		String minute = df.format(getMinute());
 		String second = "00";
+		
 		return year + month + date + "T" + hour + minute+second;
 	}
 
 	/**
-	 * Convert a CustomDate object into String format to store in storage
-	 * 
-	 * @param v
-	 *            the object needed to be converted
-	 * @return the String format of this object
-	 */
-	public static String convertString(CustomDate v) {
-		if (v == null)
-			return "-";
-		GregorianCalendar target = v.targetDate;
-		int date = target.get(Calendar.DATE);
-		int month = target.get(Calendar.MONTH);
-		int year = target.get(Calendar.YEAR);
-		int hour = target.get(Calendar.HOUR_OF_DAY);
-		int minute = target.get(Calendar.MINUTE);
-		return date + "/" + (month + 1) + "/" + year + " " + hour + ":" + minute;
-	}
-
-	/**
-	 * This function is used to convert this CustomDate object to String format
-	 * to display in GUI
+	 * This function is used to convert this CustomDate object to string with
+	 * format for display in GUI
 	 * 
 	 * @param isStartDate
-	 *            whether this is a start or end date
+	 *            check whether this is a start or end date
 	 * @return the required String displayed on GUI
 	 */
 	public String toString(boolean isStartDate) {
 		updateCurrentDate();
 		boolean hasTime = hasTime(isStartDate);
-
+	
+		// Check the capability to display remaining time
 		if (displayRemaining && !beforeCurrentTime() && lessThan6Hours()) {
 			return getRemainingTime();
 		}
+	
+		// Check if the time is tonight
 		if (isTonight()) {
 			return "Tonight";
 		}
-
+	
+		// Otherwise, display the standard format
 		String result = "";
 		result += getDateString();
 		result += getTimeString(hasTime);
 		return result;
 	}
 
+	/**
+	 * Get the remaining time relatively to the current time in String
+	 * @return the required string with correct format for display
+	 */
+	public String getRemainingTime() {
+		int remainingTime = (int) (sourceDate.getTimeInMillis() - currentDate.getTimeInMillis()) / MINUTE_IN_MILLIS;
+		int remainingHours = remainingTime / HOUR_IN_MINUTES;
+		int remainingMinutes = remainingTime % HOUR_IN_MINUTES;
+		return remainingHours + "h " + remainingMinutes + "m";
+	}
+
+	/**
+	 * Get the string of the date in CustomDate object
+	 * 
+	 * @return the required string with correct format
+	 */
 	private String getDateString() {
 		if (isToday()) {
 			return "Today";
 		} else {
-			String str;
-			str = targetDate.get(Calendar.DATE) + " " + getMonthString(targetDate.get(Calendar.MONTH));
+			String dateString;
+			dateString = sourceDate.get(Calendar.DATE) + " " + getMonthString(sourceDate.get(Calendar.MONTH));
 			if (!isCurrentYear()) {
-				str += " " + targetDate.get(Calendar.YEAR);
+				dateString += " " + sourceDate.get(Calendar.YEAR);
 			}
-			return str;
+			return dateString;
 		}
 	}
-
+	
+	/**
+	 * Get the string of the time in CustomDate object
+	 * @param hasTime to check whether the dateInfo string does indicate the time
+	 * @return the required string with correct format
+	 */
 	private String getTimeString(boolean hasTime) {
 		if (hasTime) {
 			DecimalFormat df = new DecimalFormat("00");
-			return "\n " + targetDate.get(Calendar.HOUR_OF_DAY) + ":"
-					+ df.format(targetDate.get(Calendar.MINUTE));
+			return "\n " + sourceDate.get(Calendar.HOUR_OF_DAY) + ":" + df.format(sourceDate.get(Calendar.MINUTE));
 		}
 		return "";
 	}
-
+	
+	// Check whether the target year is the current year
 	private boolean isCurrentYear() {
-		return targetDate.get(Calendar.YEAR) == currentDate.get(Calendar.YEAR);
+		return sourceDate.get(Calendar.YEAR) == currentDate.get(Calendar.YEAR);
 	}
-
-	public String getRemainingTime() {
-		int remainingTime = (int) (targetDate.getTimeInMillis() - currentDate.getTimeInMillis()) / MINUTE_IN_MILLIS;
-		int remainingHours = remainingTime / HOUR_IN_MINUTES;
-		int remainingMinutes = remainingTime % HOUR_IN_MINUTES;
-		return remainingHours + "h " + remainingMinutes + "m";
+	
+	/**
+	 * Convert a CustomDate object into string with required format from DataStorage class
+	 * 
+	 * @param storedDate
+	 *            the object needed to be converted
+	 * @return the String format of this object
+	 */
+	public static String convertString(CustomDate storedDate) {
+		if (storedDate == null)
+			return "-";
+		
+		int date = storedDate.sourceDate.get(Calendar.DATE);
+		int month = storedDate.sourceDate.get(Calendar.MONTH);
+		int year = storedDate.sourceDate.get(Calendar.YEAR);
+		int hour = storedDate.sourceDate.get(Calendar.HOUR_OF_DAY);
+		int minute = storedDate.sourceDate.get(Calendar.MINUTE);
+		
+		return date + "/" + (month + 1) + "/" + year + " " + hour + ":" + minute;
 	}
 
 	/**
@@ -283,7 +333,17 @@ public class CustomDate {
 		return difference;
 	}
 
-	// Compare the 2 dates according to their dates, not specific times.
+
+	/**
+	 * This function is used to compare 2 CustomDate objects only according to
+	 * their dates, not their times
+	 * 
+	 * @param date1
+	 *            the first date
+	 * @param date2
+	 *            the second date
+	 * @return value indicating the result of comparison
+	 */
 	public static int dateCompare(CustomDate date1, CustomDate date2) {
 		int difference = 0;
 		if (date1 == null && date2 == null) {
@@ -309,213 +369,337 @@ public class CustomDate {
 		
 		return difference;
 	}
-
+	
+	// Check whether the sourceDate is before current time
 	public boolean beforeCurrentTime() {
-		return (currentDate.getTimeInMillis() - targetDate.getTimeInMillis()) > 0;
+		return (currentDate.getTimeInMillis() - sourceDate.getTimeInMillis()) > 0;
 	}
 
+	// Refresh the current time
 	public static void updateCurrentDate() {
 		currentDate = new GregorianCalendar();
 	}
 
-	/******** Get the difference between periods according to the type of repetition ***********/
-	public static long getUpdateDifference(String repetition) {
-		if (isDailyRoutine(repetition)>0) {
-			return DAY_IN_MILLIS * isDailyRoutine(repetition);
-		} else if (isWeeklyRoutine(repetition)>0) {
-			return WEEK_IN_MILLIS * isWeeklyRoutine(repetition);
-		} else if (isMonthlyRoutine(repetition)>0) {
-			return MONTH_IN_MILLIS * isMonthlyRoutine(repetition);
-		} else if (isYearlyRoutine(repetition)>0) {
-			return YEAR_IN_MILLIS * isYearlyRoutine(repetition);
+	/**
+	 * Get the distance between 2 periods in recurring rule for updating
+	 * 
+	 * @param repetition
+	 *            the string format of the recurring rule
+	 * @return the required distance
+	 */
+	public static long getUpdateDistance(String repetition) {
+		if (checkDailyRoutine(repetition)>0) {
+			return DAY_IN_MILLIS * checkDailyRoutine(repetition);
+		} else if (checkWeeklyRoutine(repetition)>0) {
+			return WEEK_IN_MILLIS * checkWeeklyRoutine(repetition);
+		} else if (checkMonthlyRoutine(repetition)>0) {
+			return MONTH_IN_MILLIS * checkMonthlyRoutine(repetition);
+		} else if (checkYearlyRoutine(repetition)>0) {
+			return YEAR_IN_MILLIS * checkYearlyRoutine(repetition);
 		} else {
 			return 0;
 		}
 	}
 
-	private static int isDailyRoutine(String repetition) {
-		String regex = "(every)(\\d+)(days?)";
-		if(repetition.equals("daily") || repetition.equals("every day"))
+	/**
+	 * This function is used to check whether the recurring rule is daily
+	 * routine. If yes, get the distance between each period.
+	 * 
+	 * @param repetition
+	 *            the string format of the recurring rule
+	 * @return 0 if this is not a daily routine. Otherwise, return the distance.
+	 */
+	private static int checkDailyRoutine(String repetition) {
+		boolean isFrequentDailyRoutine = repetition.equals("daily");
+		if (isFrequentDailyRoutine) {
 			return 1;
-		else if(repetition.matches(regex)) {
-			//System.out.println("regex "+repetition.replaceAll(regex, "$2"));
-			int dayNum = Integer.valueOf(repetition.replaceAll(regex, "$2"));
-			return dayNum;
-		} else return 0;
+		} else if (repetition.matches(DAILY_REGEX)) {
+			return Integer.valueOf(repetition.replaceAll(DAILY_REGEX, "$2"));
+		} 
+		
+		return 0;
 	}
-
-	private static int isWeeklyRoutine(String repetition) {
-		String regex = "(every)(\\d+)(weeks?)";
-		if(repetition.equals("weekly") || repetition.equals("every week"))
+	
+	/**
+	 * This function is used to check whether the recurring rule is weekly
+	 * routine. If yes, get the distance between each period.
+	 * 
+	 * @param repetition
+	 *            the string format of the recurring rule
+	 * @return 0 if this is not a weekly routine. Otherwise, return the
+	 *         distance.
+	 */
+	private static int checkWeeklyRoutine(String repetition) {
+		if (isFrequentWeeklyRoutine(repetition)) {
 			return 1;
-		else if(repetition.matches(regex)) {
-			int weekNum = Integer.valueOf(repetition.replaceAll(regex, "$2"));
+		} else if(repetition.matches(WEEKLY_REGEX)) {
+			int weekNum = Integer.valueOf(repetition.replaceAll(WEEKLY_REGEX, "$2"));
 			return weekNum;
-		} else return 0;
-	}
+		}
 
-	private static int isMonthlyRoutine(String repetition) {
-		String regex = "(every)(\\d+)(months?)";
-		if(repetition.equals("monthly") || repetition.equals("every month"))
-			return 1;
-		else if(repetition.matches(regex)) {
-			int monthNum = Integer.valueOf(repetition.replaceAll(regex, "$2"));
-			return monthNum;
-		} else return 0;
+		return 0;
 	}
-
-	private static int isYearlyRoutine(String repetition) {
-		String regex = "(every)(\\d+)(years?)";
-		if(repetition.equals("yearly") || repetition.equals("every year"))
-			return 1;
-		else if(repetition.matches(regex)) {
-			int yearNum = Integer.valueOf(repetition.replaceAll(regex, "$2"));
-			return yearNum;
-		} else return 0;
+	
+	private static boolean isFrequentWeeklyRoutine(String repetition){
+		boolean isFrequentWeeklyRoutine = repetition.equals("weekly");
+		return isFrequentWeeklyRoutine;
 	}
 
 	/**
-	 * This function is used to set the date from given info of String s
+	 * This function is used to check whether the recurring rule is monthly
+	 * routine. If yes, get the distance between each period.
 	 * 
-	 * @param s
+	 * @param repetition
+	 *            the string format of the recurring rule
+	 * @return 0 if this is not a monthly routine. Otherwise, return the
+	 *         distance.
+	 */
+	private static int checkMonthlyRoutine(String repetition) {
+		boolean isFrequentMonthlyRoutine = repetition.equals("monthly");
+		if(isFrequentMonthlyRoutine){
+			return 1;
+		} else if(repetition.matches(MONTHLY_REGEX)) {
+			int monthNum = Integer.valueOf(repetition.replaceAll(MONTHLY_REGEX, "$2"));
+			return monthNum;
+		} 
+		
+		return 0;
+	}
+	
+	/**
+	 * This function is used to check whether the recurring rule is yearly
+	 * routine. If yes, get the distance between each period.
+	 * 
+	 * @param repetition
+	 *            the string format of the recurring rule
+	 * @return 0 if this is not a yearly routine. Otherwise, return the
+	 *         distance.
+	 */
+	private static int checkYearlyRoutine(String repetition) {
+		boolean isFrequentYearlyRoutine = repetition.equals("yearly") || repetition.equals("annually");
+		if (isFrequentYearlyRoutine) {
+			return 1;
+		} else if (repetition.matches(YEARLY_REGEX)) {
+			int yearNum = Integer.valueOf(repetition.replaceAll(YEARLY_REGEX, "$2"));
+			return yearNum;
+		}
+		
+		return 0;
+	}
+
+	/**
+	 * This function is used to set the date from given info string
+	 * This is the main function for conversion for CustomDate class.
+	 * @param dateString
 	 *            the given info of the date
 	 * @return value indicating the conversion is successful or not
 	 */
-	public int convert(String s) {
-		dateInfo = s.toLowerCase();
-		String[] infos = dateInfo.split(" ");
+	public int convert(String dateString) {
+		dateInfo = dateString.toLowerCase();
+		String[] infos = dateInfo.split("\\s+");
 
 		updateCurrentDate();
 
-		boolean invalidLength = infos.length > MAXIMUM_LENGTH_OF_DATE_INFO
-				|| infos.length == EMPTY_DATE_INFO;
+		boolean invalidLength = infos.length > MAXIMUM_LENGTH_OF_DATE_INFO || infos.length == EMPTY_DATE_INFO;
 		if (invalidLength) {
 			return INVALID;
 		}
-
+		
+		// Start the process of conversion
 		try {
-			int numElements = infos.length;
+			int numElements = infos.length; // get the current number of elements in the String array
+			
 			GregorianCalendar tempDate = new GregorianCalendar();
-			tempDate.setLenient(false);
-
+			tempDate.setLenient(false); // prevent Out of Bounds date
+			
+			// Date Processing
 			numElements = processDate(infos, tempDate, numElements);
 			if (numElements == INVALID) {
 				return INVALID;
 			}
-			
-			if (numElements != infos.length) {
+			if (numElements != infos.length) { // check if the dateInfo did indicating the date
 				hasIndicatedDate = true;
 			} else {
 				hasIndicatedDate = false;
 			}
 			
+			// Time Processing
 			numElements = processTime(infos, tempDate, numElements);
 			if (numElements > 0 || numElements == INVALID) {
 				return INVALID;
 			}
 
-			targetDate = tempDate;
+			sourceDate = tempDate;
 			return VALID;
 		} catch (Exception e) {
-			if (e.getMessage().equals("Out of bounds")) {
+			if (e.getMessage().equals("Out of bounds")) { // case when the date is out of bounds
 				return OUT_OF_BOUNDS;
 			}
 			return INVALID;
 		}
 	}
-
-	private int processDate(String[] infos, GregorianCalendar tempDate,
-			int numElements) {
-		if (hasDateFormat()) {
+	
+	/**
+	 * This function is used to process the date conversion
+	 * 
+	 * @param infos
+	 *            the String array containing infos of target of conversion
+	 * @param tempDate
+	 *            the modified GregorianCalendar temporary object
+	 * @param numElements
+	 *            number of unprocessed elements left in the array
+	 * @return the number of elements left unprocessed in the array
+	 */
+	private int processDate(String[] infos, GregorianCalendar tempDate, int numElements) {
+		if (hasDateFormat()) { // has date format
 			return updateDate(infos, tempDate, numElements);
-		} else if (hasDayFormat()) {
+		} else if (hasDayFormat()) { // has day format, i.e Monday
 			return updateDay(infos, tempDate, numElements);
-		} else if (infos.length > MAXIMUM_LENGTH_FOR_TIME_PART) {
+		} else if (infos.length > MAXIMUM_LENGTH_FOR_TIME_PART) { // no indication of date and exceed length for time part 
 			return INVALID;
 		}
-
+		
 		return numElements;
 	}
-
-	private int updateDate(String[] infos, GregorianCalendar targetDate,
-			int numElements) {
+	
+	/**
+	 * This function is used to update the date in date format
+	 * 
+	 * @param infos
+	 *            the String array containing infos of target of conversion
+	 * @param tempDate
+	 *            the modified GregorianCalendar temporary object
+	 * @param numElements
+	 *            number of unprocessed elements left in the array
+	 * @return the number of elements left unprocessed in the array
+	 */
+	private int updateDate(String[] infos, GregorianCalendar tempDate, int numElements) {
 		int startIndex = getStartIndexOfDate(infos);
 		assert startIndex >= 0;
-		if (hasMonthWord()) {
-			numElements = updateDateWithMonth(infos, targetDate, numElements, startIndex);
-		} else if (dateInfo.contains("/")) {
-			numElements = updateDateWithSlash(infos, targetDate, numElements, startIndex);
-		} else {
-			numElements = updateDateWithDash(infos, targetDate, numElements, startIndex);
+		
+		if (hasMonthWord()) { // containing month String i.e Jan
+			numElements = updateDateWithMonth(infos, tempDate, numElements, startIndex);
+		} else if (hasSlashFormat(dateInfo)) { 
+			numElements = updateDateWithSlash(infos, tempDate, numElements, startIndex);
+		} else if(hasDashFormat(dateInfo)) {
+			numElements = updateDateWithDash(infos, tempDate, numElements, startIndex);
 		}
 
 		return numElements;
 	}
-
-	private int updateDateWithMonth(String[] infos,
-			GregorianCalendar targetDate, int numElements, int startIndex) {
+	
+	private static boolean hasSlashFormat(String dateInfo){
+		return dateInfo.contains("/");
+	}
+	
+	private static boolean hasDashFormat(String dateInfo){
+		return dateInfo.contains("-");
+	}
+	
+	/**
+	 * This function is used to update the date in date format with indicated
+	 * month word
+	 * 
+	 * @param infos
+	 *            the String array containing infos of target of conversion
+	 * @param tempDate
+	 *            the modified GregorianCalendar temporary object
+	 * @param numElements
+	 *            number of unprocessed elements left in the array
+	 * @param startIndex
+	 *             the start index of the date in the array
+	 * @return the number of elements left unprocessed in the array
+	 */
+	private int updateDateWithMonth(String[] infos, GregorianCalendar tempDate, int numElements, int startIndex) {
 		int date = Integer.parseInt(infos[startIndex]);
 		int month = getMonth(infos[startIndex + 1]);
 
-		targetDate.set(Calendar.MONTH, month);
-		targetDate.set(Calendar.DATE, date);
-		checkDateBound(targetDate);
+		tempDate.set(Calendar.MONTH, month);
+		tempDate.set(Calendar.DATE, date);
+		checkDateBound(tempDate); 
 
 		return numElements - 2;
 	}
-
+	
+	/**
+	 * This function is used to update the date in date format with slash
+	 * 
+	 * @param infos
+	 *            the String array containing infos of target of conversion
+	 * @param tempDate
+	 *            the modified GregorianCalendar temporary object
+	 * @param numElements
+	 *            number of unprocessed elements left in the array
+	 * @param startIndex
+	 *            the start index of the date in the array
+	 * @return the number of elements left unprocessed in the array
+	 */
 	private int updateDateWithSlash(String[] infos,
-			GregorianCalendar targetDate, int numElements, int startIndex) {
+			GregorianCalendar tempDate, int numElements, int startIndex) {
 		String[] numbers = infos[startIndex].split("/");
-
 		boolean invalidLength = numbers.length != 3 && numbers.length != 2;
 		if (invalidLength) {
 			throw new IllegalArgumentException("Invalid length in slash format");
 		}
 
 		int month = getMonth(numbers[1]);
-		targetDate.set(Calendar.MONTH, month);
-
+		tempDate.set(Calendar.MONTH, month);
 		int date = Integer.parseInt(numbers[0]);
-		targetDate.set(Calendar.DATE, date);
-
-		checkDateBound(targetDate);
+		tempDate.set(Calendar.DATE, date);
 		int year = (numbers.length == 3) ? Integer.parseInt(numbers[2]) : currentDate.get(Calendar.YEAR);
-		targetDate.set(Calendar.YEAR, year);
+		tempDate.set(Calendar.YEAR, year);
+		checkDateBound(tempDate); // check whether the date is out of bounds
 
 		return numElements - 1;
 	}
-
+	
+	/**
+	 * This function is used to update the date in date format with dash
+	 * 
+	 * @param infos
+	 *            the String array containing infos of target of conversion
+	 * @param tempDate
+	 *            the modified GregorianCalendar temporary object
+	 * @param numElements
+	 *            number of unprocessed elements left in the array
+	 * @param startIndex
+	 *            the start index of the date in the array
+	 * @return the number of elements left unprocessed in the array
+	 */
 	private int updateDateWithDash(String[] infos,
-			GregorianCalendar targetDate, int numElements, int startIndex) {
-		String[] numbers = infos[0].split("-");
-
+			GregorianCalendar tempDate, int numElements, int startIndex) {
+		String[] numbers = infos[startIndex].split("-");
 		boolean invalidLength = numbers.length != 3 && numbers.length != 2;
 		if (invalidLength)
 			throw new IllegalArgumentException("Invalid length in dash format");
 
-		int date = Integer.parseInt(numbers[0]);
-		targetDate.set(Calendar.DATE, date);
-
 		int month = getMonth(numbers[1]);
-		targetDate.set(Calendar.MONTH, month);
-
-		checkDateBound(targetDate);
+		tempDate.set(Calendar.MONTH, month);
+		int date = Integer.parseInt(numbers[0]);
+		tempDate.set(Calendar.DATE, date);
 		int year = (numbers.length == 3) ? Integer.parseInt(numbers[2]) : currentDate.get(Calendar.YEAR);
-		targetDate.set(Calendar.YEAR, year);
+		tempDate.set(Calendar.YEAR, year);
+		checkDateBound(tempDate); // check whether the date is out of bounds
 
 		return numElements - 1;
 	}
-
-	private void checkDateBound(GregorianCalendar targetDate) {
+	
+	/*
+	 * This function is used to check whether the date is out of bounds
+	 * If yes, it will throw an IllegalArgumentException with indicated message
+	 */
+	private void checkDateBound(GregorianCalendar tempDate) {
 		try {
-			targetDate.get(Calendar.DATE);
-			targetDate.get(Calendar.MONTH);
+			tempDate.get(Calendar.DATE);
+			tempDate.get(Calendar.MONTH);
 		} catch (IllegalArgumentException e) {
 			throw new IllegalArgumentException("Out of bounds");
 		}
 	}
-
+	
+	/*
+	 * Get the starting index of the DATE part in the string array
+	 */
 	private int getStartIndexOfDate(String[] infos) {
 		if (hasTimeFormat()) {
 			int temp = getIndexOfTime(infos);
@@ -532,63 +716,93 @@ public class CustomDate {
 		}
 		return 0;
 	}
-
-	private int updateDay(String[] infos, GregorianCalendar targetDate,
+	
+	/**
+	 * This function is used to update the date in day format
+	 * 
+	 * @param infos
+	 *            the String array containing infos of target of conversion
+	 * @param tempDate
+	 *            the modified GregorianCalendar temporary object
+	 * @param numElements
+	 *            number of unprocessed elements left in the array
+	 * @return the number of elements left unprocessed in the array
+	 */
+	private int updateDay(String[] infos, GregorianCalendar tempDate,
 			int numElements) {
 		int startIndex = getStartIndexOfDate(infos);
+		
 		if (isTomorrowKeyWord(infos[startIndex])) {
-			numElements = updateTomorrow(targetDate, numElements);
+			numElements = updateTomorrow(tempDate, numElements);
 		} else if (isTodayKeyWord(infos[startIndex])) {
-			numElements--;
+			numElements--; // no need to update
 		} else if (isTonightKeyWord(infos[startIndex])) {
-			numElements--;
+			numElements--; // no need to update
 		} else if (hasDayWord()) {
-			numElements = updateDateWithDay(infos, targetDate, numElements,	startIndex);
+			numElements = updateDateWithDay(infos, tempDate, numElements, startIndex);
 		}
 		
 		return numElements;
 	}
-
-	private int updateTomorrow(GregorianCalendar targetDate, int numElements) {
-		targetDate.set(Calendar.DATE, targetDate.get(Calendar.DATE) + 1);
+	
+	// Update the target date as tomorrow
+	private int updateTomorrow(GregorianCalendar tempDate, int numElements) {
+		tempDate.setTimeInMillis(currentDate.getTimeInMillis() + DAY_IN_MILLIS);
 		return numElements - 1;
 	}
-
-	private int updateDateWithDay(String[] infos, GregorianCalendar targetDate,
+	
+	/**
+	 * This function is used to update the date in date format with day i.e Monday
+	 * 
+	 * @param infos
+	 *            the String array containing infos of target of conversion
+	 * @param tempDate
+	 *            the modified GregorianCalendar temporary object
+	 * @param numElements
+	 *            number of unprocessed elements left in the array
+	 * @param startIndex
+	 *            the start index of the date in the array
+	 * @return the number of elements left unprocessed in the array
+	 */
+	private int updateDateWithDay(String[] infos, GregorianCalendar tempDate,
 			int numElements, int startIndex) {
 		boolean hasNext = infos[startIndex].equals("next");
 		int currentDay = currentDate.get(Calendar.DAY_OF_WEEK);
 		int targetDay = (hasNext == true) ? getDay(infos[startIndex + 1]) : getDay(infos[startIndex]);
-		if (targetDay == 1) {
-			targetDay = SUNDAY;
+		if (targetDay == 1) { // value of Sunday in GregorianCalendar is 1
+			targetDay = SUNDAY; // change to 8
 		}
 		if (currentDay == 1) {
 			currentDay = SUNDAY;
 		}
 
 		long difference = targetDay - currentDay + ((hasNext || targetDay < currentDay) ? 7 : 0);
-		targetDate.setTimeInMillis(currentDate.getTimeInMillis() + difference * DAY_IN_MILLIS);
-
+		tempDate.setTimeInMillis(currentDate.getTimeInMillis() + difference * DAY_IN_MILLIS);
 		if (hasNext == true) {
 			numElements -= 2;
 		} else {
 			numElements--;
 		}
+		
 		return numElements;
 	}
-
-	private boolean isTomorrowKeyWord(String s) {
-		return s.equals("tomorrow") || s.equals("tmr");
+	
+	// Check if the day String is tomorrow
+	private boolean isTomorrowKeyWord(String day) {
+		return day.equals("tomorrow") || day.equals("tmr");
+	}
+	
+	// Check if the day String is today
+	private boolean isTodayKeyWord(String day) {
+		return day.equals("today");
 	}
 
-	private boolean isTodayKeyWord(String s) {
-		return s.equals("today");
+	// Check if the day String is tonight
+	private boolean isTonightKeyWord(String day) {
+		return day.equals("tonight");
 	}
-
-	private boolean isTonightKeyWord(String s) {
-		return s.equals("tonight");
-	}
-
+	
+	// Check if the dateInfo String may have day format
 	private boolean hasDayFormat() {
 		boolean hasToday = dateInfo.contains("today");
 		boolean hasTomorrow = dateInfo.contains("tomorrow") || dateInfo.contains("tmr");
@@ -596,21 +810,24 @@ public class CustomDate {
 
 		return hasToday || hasTomorrow || hasDayWord() || hasTonight;
 	}
-
+	
+	// Check if the dateInfo String may contain days in a week
 	private boolean hasDayWord() {
 		return dateInfo.contains("mon") || dateInfo.contains("tue")
 				|| dateInfo.contains("wed") || dateInfo.contains("thu")
 				|| dateInfo.contains("fri") || dateInfo.contains("sat")
 				|| dateInfo.contains("sun");
 	}
-
+	
+	// Check if the dateInfo String may have date format
 	private boolean hasDateFormat() {
 		boolean hasSlash = dateInfo.contains("/");
 		boolean hasDash = dateInfo.contains("-");
 
 		return hasSlash || hasDash || hasMonthWord();
-	}
+	}	
 
+	// Check if the dateInfo String may contain month in a year
 	private boolean hasMonthWord() {
 		return dateInfo.contains("jan") || dateInfo.contains("feb")
 				|| dateInfo.contains("mar") || dateInfo.contains("apr")
@@ -619,185 +836,211 @@ public class CustomDate {
 				|| dateInfo.contains("sep") || dateInfo.contains("oct")
 				|| dateInfo.contains("nov") || dateInfo.contains("dec");
 	}
-
-	private int getDay(String s) {
-		if (isMonday(s)) {
+	
+	/*
+	 * This function is used to get the corresponding Integer value of the day string 
+	 */
+	private int getDay(String day) {
+		if (isMonday(day)) {
 			return Calendar.MONDAY;
-		} else if (isTuesday(s)) {
+		} else if (isTuesday(day)) {
 			return Calendar.TUESDAY;
-		} else if (isWednesday(s)) {
+		} else if (isWednesday(day)) {
 			return Calendar.WEDNESDAY;
-		} else if (isThursday(s)) {
+		} else if (isThursday(day)) {
 			return Calendar.THURSDAY;
-		} else if (isFriday(s)) {
+		} else if (isFriday(day)) {
 			return Calendar.FRIDAY;
-		} else if (isSaturday(s)) {
+		} else if (isSaturday(day)) {
 			return Calendar.SATURDAY;
-		} else if (isSunday(s)) {
+		} else if (isSunday(day)) {
 			return Calendar.SUNDAY;
 		} else {
 			throw new IllegalArgumentException("Invalid Day");
 		}
 	}
-
-	private boolean isMonday(String s) {
-		return s.equals("monday") || s.equals("mon");
+	
+	/********************************************* Determine the day in the week  **************************************/
+	private boolean isMonday(String day) {
+		return day.equals("monday") || day.equals("mon");
 	}
 
-	private boolean isTuesday(String s) {
-		return s.equals("tuesday") || s.equals("tue");
+	private boolean isTuesday(String day) {
+		return day.equals("tuesday") || day.equals("tue");
 	}
 
-	private boolean isWednesday(String s) {
-		return s.equals("wednesday") || s.equals("wed");
+	private boolean isWednesday(String day) {
+		return day.equals("wednesday") || day.equals("wed");
 	}
 
-	private boolean isThursday(String s) {
-		return s.equals("thursday") || s.equals("thu");
+	private boolean isThursday(String day) {
+		return day.equals("thursday") || day.equals("thu");
 	}
 
-	private boolean isFriday(String s) {
-		return s.equals("friday") || s.equals("fri");
+	private boolean isFriday(String day) {
+		return day.equals("friday") || day.equals("fri");
 	}
 
-	private boolean isSaturday(String s) {
-		return s.equals("saturday") || s.equals("sat");
+	private boolean isSaturday(String day) {
+		return day.equals("saturday") || day.equals("sat");
 	}
 
-	private boolean isSunday(String s) {
-		return s.equals("sunday") || s.equals("sun");
+	private boolean isSunday(String day) {
+		return day.equals("sunday") || day.equals("sun");
 	}
-
-	private int getMonth(String s) {
-		if (isJanuary(s)) {
+	
+	/*
+	 * This function is used to get the Integer value of the month String
+	 */
+	private int getMonth(String month) {
+		if (isJanuary(month)) {
 			return Calendar.JANUARY;
-		} else if (isFebruary(s)) {
+		} else if (isFebruary(month)) {
 			return Calendar.FEBRUARY;
-		} else if (isMarch(s)) {
+		} else if (isMarch(month)) {
 			return Calendar.MARCH;
-		} else if (isApril(s)) {
+		} else if (isApril(month)) {
 			return Calendar.APRIL;
-		} else if (isMay(s)) {
+		} else if (isMay(month)) {
 			return Calendar.MAY;
-		} else if (isJune(s)) {
+		} else if (isJune(month)) {
 			return Calendar.JUNE;
-		} else if (isJuly(s)) {
+		} else if (isJuly(month)) {
 			return Calendar.JULY;
-		} else if (isAugust(s)) {
+		} else if (isAugust(month)) {
 			return Calendar.AUGUST;
-		} else if (isSeptember(s)) {
+		} else if (isSeptember(month)) {
 			return Calendar.SEPTEMBER;
-		} else if (isOctober(s)) {
+		} else if (isOctober(month)) {
 			return Calendar.OCTOBER;
-		} else if (isNovember(s)) {
+		} else if (isNovember(month)) {
 			return Calendar.NOVEMBER;
-		} else if (isDecember(s)) {
+		} else if (isDecember(month)) {
 			return Calendar.DECEMBER;
-		} else if (isInteger(s)) {
+		} else if (isInteger(month)) {
 			throw new IllegalArgumentException("Out of bounds");
 		} else {
 			throw new IllegalArgumentException("Invalid Month");
 		}
 	}
-
-	private String getMonthString(int i) {
-		if (i == Calendar.JANUARY)
+	
+	/*
+	 * This function is used to get the string of the month for display
+	 */
+	private String getMonthString(int month) {
+		if (month == Calendar.JANUARY) {
 			return "Jan";
-		else if (i == Calendar.FEBRUARY)
+		} else if (month == Calendar.FEBRUARY) {
 			return "Feb";
-		else if (i == Calendar.MARCH)
+		} else if (month == Calendar.MARCH) {
 			return "Mar";
-		else if (i == Calendar.APRIL)
+		} else if (month == Calendar.APRIL) {
 			return "Apr";
-		else if (i == Calendar.MAY)
+		} else if (month == Calendar.MAY) {
 			return "May";
-		else if (i == Calendar.JUNE)
+		} else if (month == Calendar.JUNE) {
 			return "June";
-		else if (i == Calendar.JULY)
+		} else if (month == Calendar.JULY) {
 			return "July";
-		else if (i == Calendar.AUGUST)
+		} else if (month == Calendar.AUGUST) {
 			return "Aug";
-		else if (i == Calendar.SEPTEMBER)
+		} else if (month == Calendar.SEPTEMBER) {
 			return "Sep";
-		else if (i == Calendar.OCTOBER)
+		} else if (month == Calendar.OCTOBER) {
 			return "Oct";
-		else if (i == Calendar.NOVEMBER)
+		} else if (month == Calendar.NOVEMBER) {
 			return "Nov";
-		else if (i == Calendar.DECEMBER)
+		} else if (month == Calendar.DECEMBER) {
 			return "Dec";
-		else
+		} else {
 			return "Invalid";
+		}
+	}
+	/********************************* Determine the month *********************************************/
+	private boolean isJanuary(String month) {
+		return month.equals("jan") || month.equals("1") || month.equals("january");
 	}
 
-	private boolean isJanuary(String s) {
-		return s.equals("jan") || s.equals("1") || s.equals("january");
+	private boolean isFebruary(String month) {
+		return month.equals("feb") || month.equals("2") || month.equals("february");
 	}
 
-	private boolean isFebruary(String s) {
-		return s.equals("feb") || s.equals("2") || s.equals("february");
+	private boolean isMarch(String month) {
+		return month.equals("mar") || month.equals("3") || month.equals("march");
 	}
 
-	private boolean isMarch(String s) {
-		return s.equals("mar") || s.equals("3") || s.equals("march");
+	private boolean isApril(String month) {
+		return month.equals("apr") || month.equals("4") || month.equals("april");
 	}
 
-	private boolean isApril(String s) {
-		return s.equals("apr") || s.equals("4") || s.equals("april");
+	private boolean isMay(String month) {
+		return month.equals("may") || month.equals("5");
 	}
 
-	private boolean isMay(String s) {
-		return s.equals("may") || s.equals("5");
+	private boolean isJune(String month) {
+		return month.equals("june") || month.equals("6");
 	}
 
-	private boolean isJune(String s) {
-		return s.equals("june") || s.equals("6");
+	private boolean isJuly(String month) {
+		return month.equals("july") || month.equals("7");
 	}
 
-	private boolean isJuly(String s) {
-		return s.equals("july") || s.equals("7");
+	private boolean isAugust(String month) {
+		return month.equals("aug") || month.equals("8") || month.equals("august");
 	}
 
-	private boolean isAugust(String s) {
-		return s.equals("aug") || s.equals("8") || s.equals("august");
+	private boolean isSeptember(String month) {
+		return month.equals("sep") || month.equals("9") || month.equals("september");
 	}
 
-	private boolean isSeptember(String s) {
-		return s.equals("sep") || s.equals("9") || s.equals("september");
+	private boolean isOctober(String month) {
+		return month.equals("oct") || month.equals("10") || month.equals("october");
 	}
 
-	private boolean isOctober(String s) {
-		return s.equals("oct") || s.equals("10") || s.equals("october");
+	private boolean isNovember(String month) {
+		return month.equals("nov") || month.equals("11") || month.equals("november");
 	}
 
-	private boolean isNovember(String s) {
-		return s.equals("nov") || s.equals("11") || s.equals("november");
+	private boolean isDecember(String month) {
+		return month.equals("dec") || month.equals("12") || month.equals("december");
 	}
-
-	private boolean isDecember(String s) {
-		return s.equals("dec") || s.equals("12") || s.equals("december");
-	}
-
+	
+	/**
+	 * This function is used to process the time conversion
+	 * 
+	 * @param infos
+	 *            the String array containing infos of target of conversion
+	 * @param tempDate
+	 *            the modified GregorianCalendar temporary object
+	 * @param numElements
+	 *            number of unprocessed elements left in the array
+	 * @return the number of elements left unprocessed in the array
+	 */
 	private int processTime(String[] infos, GregorianCalendar tempDate, int numElements) {
 		if (hasTimeFormat()) {
 			return updateTime(infos, tempDate, numElements);
 		} else {
-			if (infos.length > MAXIMUM_LENGTH_FOR_DATE_PART) {
+			if (infos.length > MAXIMUM_LENGTH_FOR_DATE_PART) { // no indication of date and exceed length for DATE part 
 				return INVALID;
 			}
-			resetTime(tempDate);
+			resetTime(tempDate); 
 		}
+		
 		return numElements;
 	}
-
+	
+	// Get the start index of TIME with 'am' or 'pm' in the String array
 	private int getIndexOfTime(String[] infos) {
 		for (int i = 0; i < infos.length; i++) {
 			if (infos[i].contains("am") || infos[i].contains("pm")) {
 				return i;
 			}
 		}
+		
 		return INVALID;
 	}
-
+	
+	// Get the start index of TIME with colon in the String array
 	private int getIndexOfColon(String[] infos) {
 		for (int i = 0; i < infos.length; i++) {
 			if (infos[i].contains(":")) {
@@ -807,32 +1050,57 @@ public class CustomDate {
 		return INVALID;
 	}
 
-	private int updateTime(String[] infos, GregorianCalendar targetDate,
+	/**
+	 * This function is used to update the time
+	 * 
+	 * @param infos
+	 *            the String array containing infos of target of conversion
+	 * @param tempDate
+	 *            the modified GregorianCalendar temporary object
+	 * @param numElements
+	 *            number of unprocessed elements left in the array
+	 * @return the number of elements left unprocessed in the array
+	 */
+	private int updateTime(String[] infos, GregorianCalendar tempDate,
 			int numElements) {
 		int index = getIndexOfTime(infos);
-
-		if (index != INVALID) {
-			numElements = updateTimeWith12Format(infos, targetDate, index, numElements);
+		if (index != INVALID) { // has time with 12 Format
+			numElements = updateTimeWith12Format(infos, tempDate, index, numElements);
 		} else {
-			numElements = updateTimeWith24Format(infos, targetDate, numElements);
+			numElements = updateTimeWith24Format(infos, tempDate, numElements);
 		}
 		
+		// Conversion of time for 'tonight'
 		if (dateInfo.contains("tonight")) {
-			if (targetDate.get(Calendar.HOUR_OF_DAY) * HOUR_IN_MINUTES + targetDate.get(Calendar.MINUTE) < FIRST_TWELVE_HOURS) {
-				targetDate.setTimeInMillis(targetDate.getTimeInMillis() + DAY_IN_MILLIS);
+			if (tempDate.get(Calendar.HOUR_OF_DAY) * HOUR_IN_MINUTES + tempDate.get(Calendar.MINUTE) < FIRST_TWELVE_HOURS) {
+				tempDate.setTimeInMillis(tempDate.getTimeInMillis() + DAY_IN_MILLIS);
 			}
 		}
-		targetDate.set(Calendar.SECOND, 0);
 		
+		tempDate.set(Calendar.SECOND, 0); // default second for time
 		return numElements;
 	}
-
+	
+	/**
+	 * This function is used to update the time in 12-hour format
+	 * 
+	 * @param infos
+	 *            the String array containing infos of target of conversion
+	 * @param tempDate
+	 *            the modified GregorianCalendar temporary object
+	 * @param numElements
+	 *            number of unprocessed elements left in the array
+	 * @param startIndex
+	 *            the start index of the time in the array
+	 * @return the number of elements left unprocessed in the array
+	 */
 	private int updateTimeWith12Format(String[] infos,
-			GregorianCalendar targetDate, int index, int numElements) {
+			GregorianCalendar tempDate, int index, int numElements) {
 		boolean isDay;
 		String timeInfo;
 		boolean hasSpace;
-
+		
+		// Check whether the 'am' or 'pm' is attached to the time info(i.e 6pm or 6 pm)
 		if (infos[index].equals("am") || infos[index].equals("pm")) {
 			isDay = infos[index].equals("am");
 			timeInfo = infos[index - 1];
@@ -842,13 +1110,16 @@ public class CustomDate {
 			timeInfo = infos[index].substring(0, infos[index].length() - 2);
 			hasSpace = false;
 		}
-
-		if (timeInfo.contains(":")) {
-			updateTimeWithColon(timeInfo, isDay, targetDate);
-		} else if (timeInfo.contains(".")) {
-			updateTimeWithDot(timeInfo, isDay, targetDate);
-		} else {
-			updateTimeWithoutSign(timeInfo, isDay, targetDate);
+		
+		// Start updating
+		boolean hasColon = timeInfo.contains(":");
+		boolean hasDot = timeInfo.contains(".");
+		if (hasColon) {
+			updateTimeWithColon(timeInfo, isDay, tempDate);
+		} else if (hasDot) {
+			updateTimeWithDot(timeInfo, isDay, tempDate);
+		} else { // no signs
+			updateTimeWithoutSign(timeInfo, isDay, tempDate);
 		}
 
 		if (hasSpace) {
@@ -857,104 +1128,169 @@ public class CustomDate {
 			return numElements - 1;
 		}
 	}
-
+	
+	/**
+	 * This function is used to update time in 12-hour format with colon
+	 * 
+	 * @param timeInfo
+	 *            the time info String
+	 * @param isDay
+	 *            indicator whether it is 'am' or 'pm'
+	 * @param modifiedDate
+	 *            the modified GregorianCalendar temporary object
+	 */
 	private void updateTimeWithColon(String timeInfo, boolean isDay,
-			GregorianCalendar targetDate) {
+			GregorianCalendar modifiedDate) {
 		String[] time = timeInfo.split(":");
-		if (time.length > 2) {
+		boolean invalidLength = time.length > 2;
+		if (invalidLength) {
 			throw new IllegalArgumentException("Invalid length in colon time format");
 		}
+		
 		int hour = Integer.parseInt(time[0]) + (isDay ? 0 : 12);
 		if (hour == 24 || hour == 12)
 			hour -= 12;
 		int minute = Integer.parseInt(time[1]);
-		targetDate.set(Calendar.HOUR_OF_DAY, hour);
-		targetDate.set(Calendar.MINUTE, minute);
-		checkTimeBound(targetDate);
+		
+		modifiedDate.set(Calendar.HOUR_OF_DAY, hour);
+		modifiedDate.set(Calendar.MINUTE, minute);
+		checkTimeBound(modifiedDate);
 	}
-
+	
+	/**
+	 * This function is used to update time in 12-hour format with dot
+	 * 
+	 * @param timeInfo
+	 *            the time info String
+	 * @param isDay
+	 *            indicator whether it is 'am' or 'pm'
+	 * @param modifiedDate
+	 *            the modified GregorianCalendar temporary object
+	 */
 	private void updateTimeWithDot(String timeInfo, boolean isDay,
-			GregorianCalendar targetDate) {
+			GregorianCalendar tempDate) {
 		String[] time = timeInfo.split("\\.");
-		if (time.length > 2) {
+		boolean invalidLength = time.length > 2;
+		if (invalidLength) {
 			throw new IllegalArgumentException("Invalid length in dot time format");
 		}
+		
 		int hour = Integer.parseInt(time[0]) + (isDay ? 0 : 12);
 		if (hour == 24 || hour == 12) {
 			hour -= 12;
 		}
 		int minute = Integer.parseInt(time[1]);
-		targetDate.set(Calendar.HOUR_OF_DAY, hour);
-		targetDate.set(Calendar.MINUTE, minute);
-		checkTimeBound(targetDate);
+		
+		tempDate.set(Calendar.HOUR_OF_DAY, hour);
+		tempDate.set(Calendar.MINUTE, minute);
+		checkTimeBound(tempDate);
 	}
-
+	
+	/**
+	 * This function is used to update time in 12-hour format without any signs
+	 * 
+	 * @param timeInfo
+	 *            the time info String
+	 * @param isDay
+	 *            indicator whether it is 'am' or 'pm'
+	 * @param modifiedDate
+	 *            the modified GregorianCalendar temporary object
+	 */
 	private void updateTimeWithoutSign(String timeInfo, boolean isDay,
-			GregorianCalendar targetDate) {
-		int s = Integer.parseInt(timeInfo);
-		if (timeInfo.length() < 3) {
-			int hour = s + (isDay ? 0 : 12);
+			GregorianCalendar tempDate) {
+		int timeInNumberFormat = Integer.parseInt(timeInfo);
+		
+		boolean hasOnlyHour = timeInfo.length() < 3;
+		boolean hasHourAndMinute = timeInfo.length() == 3 || timeInfo.length() == 4;
+		if (hasOnlyHour) {
+			int hour = timeInNumberFormat + (isDay ? 0 : 12);
 			if (hour == 24 || hour == 12){
 				hour -= 12;
 			}
-			targetDate.set(Calendar.HOUR_OF_DAY, hour);
-			targetDate.set(Calendar.MINUTE, 0);
-			checkTimeBound(targetDate);
-		} else if (timeInfo.length() == 3 || timeInfo.length() == 4) {
-			int hour = s / 100 + (isDay ? 0 : 12);
+			
+			tempDate.set(Calendar.HOUR_OF_DAY, hour);
+			tempDate.set(Calendar.MINUTE, 0);
+			checkTimeBound(tempDate);
+		} else if (hasHourAndMinute) {
+			int hour = timeInNumberFormat / 100 + (isDay ? 0 : 12);
 			if (hour == 24 || hour == 12){
 				hour -= 12;
 			}
-			int minute = s % 100;
-			targetDate.set(Calendar.HOUR_OF_DAY, hour);
-			targetDate.set(Calendar.MINUTE, minute);
-			checkTimeBound(targetDate);
+			int minute = timeInNumberFormat % 100;
+			
+			tempDate.set(Calendar.HOUR_OF_DAY, hour);
+			tempDate.set(Calendar.MINUTE, minute);
+			checkTimeBound(tempDate);
 		} else {
 			throw new IllegalArgumentException("Invalid length in time without sign format");
 		}
 	}
-
-	private void checkTimeBound(GregorianCalendar targetDate) {
-		try {
-			targetDate.get(Calendar.HOUR_OF_DAY);
-			targetDate.get(Calendar.MINUTE);
-		} catch (IllegalArgumentException e) {
-			throw new IllegalArgumentException("Out of bounds");
-		}
-	}
-
+	
+	/**
+	 * This function is used to update the time in 24-hour format
+	 * 
+	 * @param infos
+	 *            the String array containing infos of target of conversion
+	 * @param tempDate
+	 *            the modified GregorianCalendar temporary object
+	 * @param numElements
+	 *            number of unprocessed elements left in the array
+	 * @return the number of elements left unprocessed in the array
+	 */
 	private int updateTimeWith24Format(String[] infos,
-			GregorianCalendar targetDate, int numElements) {
+			GregorianCalendar tempDate, int numElements) {
 		int index = getIndexOfColon(infos);
 		String[] time = infos[index].split(":");
-		if (time.length > 2){
+		boolean invalidLength = time.length > 2;
+		if (invalidLength){
 			throw new IllegalArgumentException("Invalid in time with colon format");
 		}
+		
 		int hour = Integer.parseInt(time[0]);
 		int minute = Integer.parseInt(time[1]);
 
-		targetDate.set(Calendar.HOUR_OF_DAY, hour);
-		targetDate.set(Calendar.MINUTE, minute);
-		checkTimeBound(targetDate);
+		tempDate.set(Calendar.HOUR_OF_DAY, hour);
+		tempDate.set(Calendar.MINUTE, minute);
+		checkTimeBound(tempDate);
 		
 		return numElements - 1;
 	}
-
+	
+	/*
+	 * This function is used to reset the hour, minute and second back to 0
+	 * But if the time is 'tonight', hour and minute will be reseted back to 23 and 59 respectively
+	 */
 	private void resetTime(GregorianCalendar targetDate) {
 		targetDate.set(Calendar.HOUR_OF_DAY, 0);
 		targetDate.set(Calendar.MINUTE, 0);
 		targetDate.set(Calendar.SECOND, 0);
 		
-		if (dateInfo.contains("tonight")) {
+		boolean isTonight = dateInfo.contains("tonight");
+		if (isTonight) {
 			targetDate.set(Calendar.HOUR_OF_DAY, 23);
 			targetDate.set(Calendar.MINUTE, 59);
 		}
 	}
 
+	/*
+	 * This function is used to check whether the time is out of bounds
+	 * If yes, it will throw an IllegalArgumentException with indicated message
+	 */
+	private void checkTimeBound(GregorianCalendar tempDate) {
+		try {
+			tempDate.get(Calendar.HOUR_OF_DAY);
+			tempDate.get(Calendar.MINUTE);
+		} catch (IllegalArgumentException e) {
+			throw new IllegalArgumentException("Out of bounds");
+		}
+	}
+
+	// Check whether the dateInfo may contain TIME format
 	private boolean hasTimeFormat() {
 		return dateInfo.contains(":") || dateInfo.contains("am")|| dateInfo.contains("pm");
 	}
-
+	
+	// Check if the string can be converted into an integer
 	private boolean isInteger(String s) {
 		try {
 			Integer.parseInt(s);
@@ -963,16 +1299,21 @@ public class CustomDate {
 			return false;
 		}
 	}
-
+	
+	// Check whether the time of sourceDate is just less than 6 hours before the current time
 	private boolean lessThan6Hours() {
-		return (targetDate.getTimeInMillis() - currentDate.getTimeInMillis()) <= SIX_HOURS_IN_MILLIS;
+		return (sourceDate.getTimeInMillis() - currentDate.getTimeInMillis()) <= SIX_HOURS_IN_MILLIS;
 	}
-
+	
+	/*
+	 * This function is used to check whether the user did input the time
+	 */
 	private boolean hasTime(boolean isStartDate) {
-		boolean isMidnight = targetDate.get(Calendar.HOUR_OF_DAY) == 23
-				&& targetDate.get(Calendar.MINUTE) == 59;
-		boolean isNewDay = targetDate.get(Calendar.HOUR_OF_DAY) == 0
-				&& targetDate.get(Calendar.MINUTE) == 0;
+		boolean isMidnight = sourceDate.get(Calendar.HOUR_OF_DAY) == 23
+				&& sourceDate.get(Calendar.MINUTE) == 59;
+		boolean isNewDay = sourceDate.get(Calendar.HOUR_OF_DAY) == 0
+				&& sourceDate.get(Calendar.MINUTE) == 0;
+		
 		if (isStartDate && isNewDay) {
 			return false;
 		} else if (!isStartDate && isMidnight) {
@@ -981,20 +1322,26 @@ public class CustomDate {
 
 		return true;
 	}
-
+	
+	/*
+	 * This function is used to check whether the date is today
+	 */
 	private boolean isToday() {
-		boolean isCurrentYear = targetDate.get(Calendar.YEAR) == currentDate.get(Calendar.YEAR);
-		boolean isCurrentMonth = targetDate.get(Calendar.MONTH) == currentDate.get(Calendar.MONTH);
-		boolean isCurrentDate = targetDate.get(Calendar.DATE) == currentDate.get(Calendar.DATE);
+		boolean isCurrentYear = sourceDate.get(Calendar.YEAR) == currentDate.get(Calendar.YEAR);
+		boolean isCurrentMonth = sourceDate.get(Calendar.MONTH) == currentDate.get(Calendar.MONTH);
+		boolean isCurrentDate = sourceDate.get(Calendar.DATE) == currentDate.get(Calendar.DATE);
 		
 		return isCurrentYear && isCurrentMonth && isCurrentDate;
 	}
-
+	
+	/*
+	 * This function is used to check whether the time is tonight
+	 */
 	private boolean isTonight() {
-		boolean isCurrentYear = targetDate.get(Calendar.YEAR) == currentDate.get(Calendar.YEAR);
-		boolean isCurrentMonth = targetDate.get(Calendar.MONTH) == currentDate.get(Calendar.MONTH);
-		boolean isCurrentDate = targetDate.get(Calendar.DATE) == currentDate.get(Calendar.DATE);
-		boolean isMidnight = (targetDate.get(Calendar.HOUR_OF_DAY) == 23 && targetDate.get(Calendar.MINUTE) == 59);
+		boolean isCurrentYear = sourceDate.get(Calendar.YEAR) == currentDate.get(Calendar.YEAR);
+		boolean isCurrentMonth = sourceDate.get(Calendar.MONTH) == currentDate.get(Calendar.MONTH);
+		boolean isCurrentDate = sourceDate.get(Calendar.DATE) == currentDate.get(Calendar.DATE);
+		boolean isMidnight = (sourceDate.get(Calendar.HOUR_OF_DAY) == 23 && sourceDate.get(Calendar.MINUTE) == 59);
 		
 		return isCurrentYear && isCurrentMonth && isCurrentDate && isMidnight;
 	}

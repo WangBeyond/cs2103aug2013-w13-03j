@@ -119,7 +119,7 @@ public class Task implements Comparable<Task> {
 	 * repetitive task when the end time is behind the current time
 	 */
 	public void updateDateForRepetitiveTask() {
-		long difference = CustomDate.getUpdateDifference(getTag()
+		long difference = CustomDate.getUpdateDistance(getTag()
 				.getRepetition());
 		while (getEndDate().beforeCurrentTime()) {
 			current_occurrence++;
