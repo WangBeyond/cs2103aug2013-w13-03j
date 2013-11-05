@@ -17,7 +17,6 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
-// TODO: fix image 
 public class Help{
 	private static Logger log = Logger.getLogger("Help");
 	private final KeyCombination nextPage = new KeyCodeCombination(KeyCode.RIGHT, KeyCombination.CONTROL_DOWN);
@@ -39,15 +38,14 @@ public class Help{
 	private double dragAnchorY;
 	
 	private Help(Model model){	
-		this.model = model;
-		setupInitialStage();
-		setupButtons();
-		changeToFirstPage();	
+		initializeModel(model);
+		setupInitialStage();	
 		setupScene();
 		setupShortcuts();
 		setupDraggable();
 	}
 	
+	/************************** public methods ****************************/
 	public static Help getInstanceHelp(Model model){
 		if (oneHelpPage == null){
 			oneHelpPage = new Help(model);
@@ -60,76 +58,9 @@ public class Help{
 		helpStage.show();
 	}
 	
-	private void setupScene(){
-		root = new Group();
-		root.getChildren().add(helpPage);
-		root.getChildren().add(buttons);
-		helpScene = new Scene(root, 600, 730);
-		helpScene.getStylesheets().addAll(
-				getClass().getResource("customize.css").toExternalForm());
-		helpStage.setScene(helpScene);
-	}
-	
-	private void setupNextButton() {
-		nextButton = new Button("");
-		nextButton.setId("next");
-		nextButton.setPrefSize(30, 30);
-		nextButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
-			public void handle(MouseEvent e) {
-				changeToSecondPage();
-			}
-		});
-	}
-	
-	private void setupBackButton() {
-		backButton = new Button("");
-		backButton.setId("back");
-		backButton.setPrefSize(30, 30);
-		backButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
-			public void handle(MouseEvent e) {
-				changeToFirstPage();
-			}
-		});
-	}
-	
-	private void setupExitButton() {
-		exitButton = new Button("");
-		exitButton.setId("close_help");
-		exitButton.setPrefSize(25, 25);
-		exitButton.setTranslateX(40);
-		exitButton.setTranslateY(3);
-		exitButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
-			public void handle(MouseEvent e) {
-				helpStage.close();
-			}
-		});
-	}
-	
-	private void setupButtons() {
-		setupBackButton();
-		setupNextButton();
-		setupExitButton();
-		buttons.getChildren().add(backButton);
-		buttons.getChildren().add(nextButton);
-		buttons.getChildren().add(exitButton);
-		buttons.setLayoutX(510);
-		buttons.setLayoutY(25);
-	}
-
-	private void changeToFirstPage(){
-		setupImage(getFirstHelpImage());
-		nextButton.setVisible(true);
-		nextButton.setDisable(false);
-		backButton.setVisible(false);
-		backButton.setDisable(true);
-	}
-	
-	private void changeToSecondPage(){
-		setupImage(getSecondHelpImage());
-		backButton.setVisible(true);
-		backButton.setDisable(false);
-		nextButton.setVisible(false);
-		nextButton.setDisable(true);
+	/************************** private methods ****************************/
+	private void initializeModel(Model model){
+		this.model = model;
 	}
 	
 	private void setupInitialStage(){
@@ -146,34 +77,17 @@ public class Help{
 		helpStage.getIcons().add(
 				new Image(getClass().getResource("iDo_traybar.png")
 						.toExternalForm()));
+		setupButtons();
+		changeToFirstPage();
 	}
-	
-	private void setupImage(Image helpImage){
-		helpPage.setImage(helpImage);
-		helpPage.setFitWidth(600);
-		helpPage.setPreserveRatio(true);
-		helpPage.setSmooth(true);
-		helpPage.setCache(true);
-	}
-	
-	private Image getFirstHelpImage(){
-		Image firstHelpImage;
-		if (model.getThemeMode().equals("day")){
-			firstHelpImage = new Image(getClass().getResourceAsStream("helpPage1.png"));
-		} else {
-			firstHelpImage = new Image(getClass().getResourceAsStream("helpNightPage1.png"));
-		}
-		return firstHelpImage;
-	}
-	
-	private Image getSecondHelpImage(){
-		Image secondHelpImage;
-		if (model.getThemeMode().equals("day")){
-			secondHelpImage = new Image(getClass().getResourceAsStream("helpPage2.png"));	
-		} else{
-			secondHelpImage = new Image(getClass().getResourceAsStream("helpNightPage2.png"));	
-		}
-		return secondHelpImage;
+	private void setupScene(){
+		root = new Group();
+		root.getChildren().add(helpPage);
+		root.getChildren().add(buttons);
+		helpScene = new Scene(root, 600, 730);
+		helpScene.getStylesheets().addAll(
+				getClass().getResource("customize.css").toExternalForm());
+		helpStage.setScene(helpScene);
 	}
 	
 	private void setupShortcuts(){
@@ -210,5 +124,95 @@ public class Help{
 				helpStage.setY(me.getScreenY() - dragAnchorY);
 			}
 		});
+	}
+	
+	private void setupButtons() {
+		setupBackButton();
+		setupNextButton();
+		setupExitButton();
+		buttons.getChildren().add(backButton);
+		buttons.getChildren().add(nextButton);
+		buttons.getChildren().add(exitButton);
+		buttons.setLayoutX(510);
+		buttons.setLayoutY(25);
+	}
+	
+	private void changeToFirstPage(){
+		setupImage(getFirstHelpImage());
+		nextButton.setVisible(true);
+		nextButton.setDisable(false);
+		backButton.setVisible(false);
+		backButton.setDisable(true);
+	}
+	
+	private void changeToSecondPage(){
+		setupImage(getSecondHelpImage());
+		backButton.setVisible(true);
+		backButton.setDisable(false);
+		nextButton.setVisible(false);
+		nextButton.setDisable(true);
+	}
+	
+	private void setupNextButton() {
+		nextButton = new Button("");
+		nextButton.setId("next");
+		nextButton.setPrefSize(30, 30);
+		nextButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
+			public void handle(MouseEvent e) {
+				changeToSecondPage();
+			}
+		});
+	}
+	
+	private void setupBackButton() {
+		backButton = new Button("");
+		backButton.setId("back");
+		backButton.setPrefSize(30, 30);
+		backButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
+			public void handle(MouseEvent e) {
+				changeToFirstPage();
+			}
+		});
+	}
+	
+	private void setupExitButton() {
+		exitButton = new Button("");
+		exitButton.setId("close_help");
+		exitButton.setPrefSize(25, 25);
+		exitButton.setTranslateX(40);
+		exitButton.setTranslateY(3);
+		exitButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
+			public void handle(MouseEvent e) {
+				helpStage.close();
+			}
+		});
+	}	
+
+	private void setupImage(Image helpImage){
+		helpPage.setImage(helpImage);
+		helpPage.setFitWidth(600);
+		helpPage.setPreserveRatio(true);
+		helpPage.setSmooth(true);
+		helpPage.setCache(true);
+	}
+	
+	private Image getFirstHelpImage(){
+		Image firstHelpImage;
+		if (model.getThemeMode().equals("day")){
+			firstHelpImage = new Image(getClass().getResourceAsStream("helpPage1.png"));
+		} else {
+			firstHelpImage = new Image(getClass().getResourceAsStream("helpNightPage1.png"));
+		}
+		return firstHelpImage;
+	}
+	
+	private Image getSecondHelpImage(){
+		Image secondHelpImage;
+		if (model.getThemeMode().equals("day")){
+			secondHelpImage = new Image(getClass().getResourceAsStream("helpPage2.png"));	
+		} else{
+			secondHelpImage = new Image(getClass().getResourceAsStream("helpNightPage2.png"));	
+		}
+		return secondHelpImage;
 	}
 }

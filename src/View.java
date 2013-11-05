@@ -156,7 +156,7 @@ public class View implements HotkeyListener {
 	TrayIcon trayIcon;
 
 	Model model;
-	Setting settingStore;
+	SettingsStorage settingStore;
 
 	/**
 	 * This is the constructor for class View. It will create the content in the
@@ -168,7 +168,7 @@ public class View implements HotkeyListener {
 	 *            main stage of the GUI
 	 */
 	public View(final Model model, final Stage primaryStage,
-			Setting settingStore) {
+			SettingsStorage settingStore) {
 		stage = primaryStage;
 		this.model = model;
 		this.settingStore = settingStore;
@@ -528,7 +528,7 @@ public class View implements HotkeyListener {
 		stage.setX((primaryScreenBounds.getWidth() - stage.getWidth()) / 2);
 		stage.setY((primaryScreenBounds.getHeight() - stage.getHeight()) / 2);
 		stage.initStyle(StageStyle.UNDECORATED);
-		stage.setTitle("iDo V0.1");
+		stage.setTitle("iDo");
 		stage.getIcons().add(
 				new Image(getClass().getResource("iDo_traybar.png")
 						.toExternalForm()));
@@ -562,7 +562,7 @@ public class View implements HotkeyListener {
 					if (newValue.booleanValue() == false) {
 						txt.setCaretColor(ColourPalette.BLACK);
 					} else {
-						txt.setCaretColor(new java.awt.Color(0, 0, 0, 0));
+						txt.setCaretColor(ColourPalette.caretColour);
 					}
 				}
 			};
@@ -578,14 +578,14 @@ public class View implements HotkeyListener {
 		} else {
 			scene.getStylesheets().addAll(
 					getClass().getResource("customize2.css").toExternalForm());
-			txt.setBackground(new java.awt.Color(50, 50, 50));
+			txt.setBackground(ColourPalette.cmdBackgroundColour);
 			caretListener = new ChangeListener<Boolean>() {
 				public void changed(ObservableValue<? extends Boolean> ov,
 						Boolean oldValue, Boolean newValue) {
 					if (newValue.booleanValue() == false) {
 						txt.setCaretColor(ColourPalette.WHITE);
 					} else {
-						txt.setCaretColor(new java.awt.Color(0, 0, 0, 0));
+						txt.setCaretColor(ColourPalette.caretColour);
 					}
 				}
 			};
@@ -1253,7 +1253,7 @@ public class View implements HotkeyListener {
 	}
 
 	private void createTrayIcon(java.awt.Image iconImage, PopupMenu popupMenu) {
-		trayIcon = new TrayIcon(iconImage, "iDo V0.1", popupMenu);
+		trayIcon = new TrayIcon(iconImage, "iDo", popupMenu);
 		trayIcon.setImageAutoSize(true);
 		trayIcon.addActionListener(createShowListener());
 	}
@@ -1342,7 +1342,7 @@ public class View implements HotkeyListener {
 	private void checkIntellitype() {
 		// first check to see if an instance of this application is already
 		// running, use the name of the window title of this JFrame for checking
-		if (JIntellitype.checkInstanceAlreadyRunning("iDo V0.1")) {
+		if (JIntellitype.checkInstanceAlreadyRunning("iDo")) {
 			System.exit(1);
 		}
 
