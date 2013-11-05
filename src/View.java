@@ -1406,7 +1406,8 @@ public class View implements HotkeyListener {
 		case Control.MESSAGE_ADD_TIP:
 			setFeedbackStyle(0, "add", colourScheme[0]);
 			setFeedbackStyle(1, "<workflow>", colourScheme[1]);
-			setFeedbackStyle(2, "<start time>", colourScheme[2]);
+			setFeedbackStyle(2, "<start tim"
+					+ "e>", colourScheme[2]);
 			setFeedbackStyle(3, "<end time>", colourScheme[3]);
 			setFeedbackStyle(4, "<importance *>", colourScheme[4]);
 			setFeedbackStyle(5, "<#tag>", colourScheme[5]);

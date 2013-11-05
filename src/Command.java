@@ -76,6 +76,7 @@ public abstract class Command {
 	}
 	
 	protected void checkInvalidDates(boolean isRepetitive, boolean hasStartDate, boolean hasEndDate, CustomDate startDate, CustomDate endDate, String repeatingType){
+		System.out.println(repeatingType);
 		if (hasStartDate && hasEndDate) {
 			boolean hasEndDateBeforeStartDate = CustomDate.compare(endDate, startDate) < 0;
 			if (hasEndDateBeforeStartDate) {
@@ -88,7 +89,7 @@ public abstract class Command {
 		
 		if (isRepetitive) {
 			long expectedDifference = CustomDate
-					.getUpdateDifference(repeatingType);
+					.getUpdateDistance(repeatingType);
 			long actualDifference = endDate.getTimeInMillis()
 					- startDate.getTimeInMillis();
 			if (actualDifference > expectedDifference) {
@@ -267,7 +268,6 @@ class AddCommand extends TwoWayCommand {
 	private String endDateString;
 	private boolean isImptTask;
 	private String repeatingType;
-	private String processedRepeatingType;
 	private Task task;
 
 	public AddCommand(String[] parsedUserCommand, Model model, int tabIndex) throws IllegalArgumentException {
@@ -285,7 +285,7 @@ class AddCommand extends TwoWayCommand {
 	public String execute() {
 		task = new Task();
 		task.setWorkInfo(workInfo);
-		processedRepeatingType = repeatingType;
+
 		boolean isRepetitive = !repeatingType.equals(Parser.NULL);
 		boolean hasStartDate = !startDateString.equals(Parser.NULL);
 		boolean hasEndDate = !endDateString.equals(Parser.NULL);
@@ -325,7 +325,7 @@ class AddCommand extends TwoWayCommand {
 		if(isRepetitive) {
 			splitRepeatingInfo();
 		}
-		checkInvalidDates(isRepetitive, hasStartDate, hasEndDate, task.getStartDate(), task.getEndDate(), processedRepeatingType);
+		checkInvalidDates(isRepetitive, hasStartDate, hasEndDate, task.getStartDate(), task.getEndDate(), repeatingType);
 		
 		setTag();
 		if (isRepetitive) {
@@ -351,31 +351,35 @@ class AddCommand extends TwoWayCommand {
 	private void splitRepeatingInfo() {
 		String pattern = "(.*)(\\s+)(\\d+)(\\s+times?.*)";
 		if(repeatingType.matches(pattern)) {
-			int num = Integer.valueOf(processedRepeatingType.replaceAll(pattern,"$3"));
+			int num = Integer.valueOf(repeatingType.replaceAll(pattern,"$3"));
 			task.setNumOccurrences(num);
-			processedRepeatingType = processedRepeatingType.replaceAll(pattern, "$1");
+			repeatingType = repeatingType.replaceAll(pattern, "$1");
 
 		} else 
 			task.setNumOccurrences(0);
 		String regex = "(every\\s*1?\\s*)(day|week|month|year)(\\s?)";
-		if(processedRepeatingType.matches(regex)) {
-			if(processedRepeatingType.matches(regex)) {
-				processedRepeatingType = processedRepeatingType.replaceAll(regex,"$2");
-				if(processedRepeatingType.equals("day"))
-					processedRepeatingType = "daily"; 
+		String frequentDayRegex = "(every\\s*1?\\s*)(monday|tuesday|wednesday|thursday|friday|saturday|sunday)(\\s?)";
+		String dayRegex = "(every)\\s*(\\d+)\\s*(mondays?|tuesdays?|wednesdays?|thursdays?|fridays?|saturdays?|sundays?)";
+		if(repeatingType.matches(regex)) {
+				repeatingType = repeatingType.replaceAll(regex,"$2");
+				if(repeatingType.equals("day"))
+					repeatingType = "daily"; 
 				else	
-					processedRepeatingType = processedRepeatingType+"ly";
-			}
-		} else if(processedRepeatingType.matches("every\\s*\\d+\\s*(days?|weeks?|months?|years?)")) {
-			processedRepeatingType = processedRepeatingType.replaceAll("\\s+", "");
+					repeatingType = repeatingType+"ly";
+		} else if (repeatingType.matches(frequentDayRegex)) {
+			repeatingType = "weekly";
+		}	else if(repeatingType.matches("every\\s*\\d+\\s*(days?|weeks?|months?|years?)")) {
+			repeatingType = repeatingType.replaceAll("\\s+", "");
+		} else if(repeatingType.matches(dayRegex)){
+			repeatingType = repeatingType.replaceAll(dayRegex, "$1$2weeks");
 		}
 	}
 	
 	private void setTag(){
 		if (tag.equals(Parser.NULL) || tag.equals(HASH_TAG)) {
-				task.setTag(new Tag(Parser.HYPHEN, processedRepeatingType));
+				task.setTag(new Tag(Parser.HYPHEN, repeatingType));
 		} else {
-				task.setTag(new Tag(tag, processedRepeatingType));
+				task.setTag(new Tag(tag, repeatingType));
 		}
 	}
 }
@@ -515,20 +519,29 @@ class EditCommand extends TwoWayCommand {
 	}
 	
 	private void splitRepeatingInfo() {
-		String remainInfo = null;
-		for( String key : Parser.repeatingKeys ) {
-			if(repeatingType.contains(key)) {	
-				remainInfo = repeatingType.replace(key, "");
-				repeatingType = key;
-				break;
-			}
-		}
-		int num;
-		try {
-			num = Integer.valueOf(Parser.getFirstWord(remainInfo));
+		String pattern = "(.*)(\\s+)(\\d+)(\\s+times?.*)";
+		if(repeatingType.matches(pattern)) {
+			int num = Integer.valueOf(repeatingType.replaceAll(pattern,"$3"));
 			targetTask.setNumOccurrences(num);
-		} catch(Exception e) {
+			repeatingType = repeatingType.replaceAll(pattern, "$1");
+
+		} else 
 			targetTask.setNumOccurrences(0);
+		String regex = "(every\\s*1?\\s*)(day|week|month|year)(\\s?)";
+		String frequentDayRegex = "(every\\s*1?\\s*)(monday|tuesday|wednesday|thursday|friday|saturday|sunday)(\\s?)";
+		String dayRegex = "(every)\\s*(\\d+)\\s*(mondays?|tuesdays?|wednesdays?|thursdays?|fridays?|saturdays?|sundays?)";
+		if(repeatingType.matches(regex)) {
+				repeatingType = repeatingType.replaceAll(regex,"$2");
+				if(repeatingType.equals("day"))
+					repeatingType = "daily"; 
+				else	
+					repeatingType = repeatingType+"ly";
+		} else if (repeatingType.matches(frequentDayRegex)) {
+			repeatingType = "weekly";
+		}	else if(repeatingType.matches("every\\s*\\d+\\s*(days?|weeks?|months?|years?)")) {
+			repeatingType = repeatingType.replaceAll("\\s+", "");
+		} else if(repeatingType.matches(dayRegex)){
+			repeatingType = repeatingType.replaceAll(dayRegex, "$1$2weeks");
 		}
 	}
 
@@ -1122,19 +1135,29 @@ class SearchCommand extends Command {
 	}
 	
 	private void splitRepeatingInfo() {
-		String remainInfo = null;
-		for( String key : Parser.repeatingKeys ) {
-			if(repeatingType.contains(key)) {	
-				remainInfo = repeatingType.replace(key, "");
-				repeatingType = key;
-				break;
-			}
-		}
-		int num;
-		try {
-			num = Integer.valueOf(Parser.getFirstWord(remainInfo));
+		String pattern = "(.*)(\\s+)(\\d+)(\\s+times?.*)";
+		if(repeatingType.matches(pattern)) {
+			int num = Integer.valueOf(repeatingType.replaceAll(pattern,"$3"));
 			numOccurrences = num;
-		} catch(Exception e) {
+			repeatingType = repeatingType.replaceAll(pattern, "$1");
+
+		} else 
+			numOccurrences = 0;
+		String regex = "(every\\s*1?\\s*)(day|week|month|year)(\\s?)";
+		String frequentDayRegex = "(every\\s*1?\\s*)(monday|tuesday|wednesday|thursday|friday|saturday|sunday)(\\s?)";
+		String dayRegex = "(every)\\s*(\\d+)\\s*(mondays?|tuesdays?|wednesdays?|thursdays?|fridays?|saturdays?|sundays?)";
+		if(repeatingType.matches(regex)) {
+				repeatingType = repeatingType.replaceAll(regex,"$2");
+				if(repeatingType.equals("day"))
+					repeatingType = "daily"; 
+				else	
+					repeatingType = repeatingType+"ly";
+		} else if (repeatingType.matches(frequentDayRegex)) {
+			repeatingType = "weekly";
+		}	else if(repeatingType.matches("every\\s*\\d+\\s*(days?|weeks?|months?|years?)")) {
+			repeatingType = repeatingType.replaceAll("\\s+", "");
+		} else if(repeatingType.matches(dayRegex)){
+			repeatingType = repeatingType.replaceAll(dayRegex, "$1$2weeks");
 		}
 	}
 	

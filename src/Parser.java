@@ -20,11 +20,21 @@ public class Parser {
 			"end before", "to", "till", "until", "by", "due", "before", "next", "today",
 			"tonight" };
 
-	static String[] repeatingKeys = { "daily", "weekly", "monthly",
-			"yearly", "annually", "every monday", "every tuesday",
-			"every wednesday", "every thursday", "every friday",
-			"every saturday", "every sunday", "every\\s*\\d*\\s*(days?|weeks?|months?|years?)" };
-	
+	static String[] repeatingKeys = {
+			"daily",
+			"weekly",
+			"monthly",
+			"yearly",
+			"annually",
+			"every monday",
+			"every tuesday",
+			"every wednesday",
+			"every thursday",
+			"every friday",
+			"every saturday",
+			"every sunday",
+			"every\\s*\\d*\\s*(days?|weeks?|months?|years?|mondays?|tuesdays?|wednesdays?|thursdays?|fridays?|saturdays?|sundays?)" };
+
 	public static final int INDEX_USELESS_INFO = -2;
 	public static final int INDEX_COMMAND_TYPE = -1;
 	public static final int INDEX_WORK_INFO = 0;
