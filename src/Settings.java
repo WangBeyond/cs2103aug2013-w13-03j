@@ -42,7 +42,7 @@ public class Settings {
 
 	private static Settings oneSettingsPage;
 	private Model model;
-	private Setting settingStore;
+	private SettingsStorage settingStore;
 
 	private Stage settingsStage;
 	private Scene settingsScene;
@@ -63,7 +63,7 @@ public class Settings {
 	private ComboBox<String> colourSchemes;
 	private ImageView bgImage;
 
-	private Settings(Model model, Setting settingStore) {
+	private Settings(Model model, SettingsStorage settingStore) {
 		this.model = model;
 		this.settingStore = settingStore;
 		setupStage();
@@ -78,7 +78,7 @@ public class Settings {
 		return settingsStage;
 	}
 
-	public static Settings getInstanceSettings(Model model, Setting settingStore) {
+	public static Settings getInstanceSettings(Model model, SettingsStorage settingStore) {
 		if (oneSettingsPage == null) {
 			oneSettingsPage = new Settings(model, settingStore);
 		}

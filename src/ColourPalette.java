@@ -29,6 +29,8 @@ public class ColourPalette {
 	
 	public static final java.awt.Color WHITE = java.awt.Color.white;
 	public static final java.awt.Color BLACK = java.awt.Color.black;
+	public static final java.awt.Color caretColour = new java.awt.Color(0, 0, 0, 0);
+	public static final java.awt.Color cmdBackgroundColour = new java.awt.Color(50, 50, 50);
 	
 	public static final AttributeSet attrRed = cont.addAttribute(cont.getEmptySet(),
 			StyleConstants.Foreground, new java.awt.Color(255, 41, 41));

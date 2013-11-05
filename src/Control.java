@@ -62,7 +62,7 @@ public class Control extends Application {
 	public History commandHistory = new History();
 	public View view;
 	private DataStorage dataFile;
-	private Setting settingStore;
+	private SettingsStorage settingStore;
 	public Synchronization sync = new Synchronization(modelHandler);
 	static public SyncCommand s;
 
@@ -88,7 +88,7 @@ public class Control extends Application {
 		try {
 			dataFile = new DataStorage("dataStorage.xml", modelHandler);
 			dataFile.loadFromFile();
-			settingStore = new Setting("setting.xml", modelHandler);
+			settingStore = new SettingsStorage("setting.xml", modelHandler);
 			settingStore.retrieveAccount();
 			CustomDate.setDisplayRemaining(modelHandler.doDisplayRemaining());
 			

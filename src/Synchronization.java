@@ -44,7 +44,7 @@ public class Synchronization  {
 	Model model;
 
 	/* sync store */
-	Setting syncStore;
+	SettingsStorage syncStore;
 
 	/* calendar id */
 	String calendarId = null;
@@ -76,7 +76,7 @@ public class Synchronization  {
 		password = p;
 	}
 
-	public void setSyncStore(Setting s) {
+	public void setSyncStore(SettingsStorage s) {
 		syncStore = s;
 	}
 
