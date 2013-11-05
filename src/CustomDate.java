@@ -5,6 +5,12 @@ import java.util.TimeZone;
 
 import com.google.gdata.data.DateTime;
 
+/**
+ *
+ * This class is used to store the start date and end date in iDo
+ * It provides the conversions for various type of inputs or class objects
+ *
+ */
 public class CustomDate {
 	final private static int VALID = 1;
 	final private static int INVALID = -1;
