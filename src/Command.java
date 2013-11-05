@@ -25,9 +25,11 @@ public abstract class Command {
 	protected static final String MESSAGE_SUCCESSFUL_UNMARK = "Indicated task(s) has/have been unmarked successfully.";
 	protected static final String MESSAGE_SUCCESSFUL_COMPLETE = "Indicated task(s) has/have been marked as complete.";
 	protected static final String MESSAGE_SUCCESSFUL_INCOMPLETE = "Indicated task(s) has/have been marked as incomplete.";
+	protected static final String MESSAGE_SUCCESSFUL_RECOVER = "Indicated task(s) has/have been recovered successfully";
 	protected static final String MESSAGE_SUCCESSFUL_UNDO = "Undo was successful.";
 	protected static final String MESSAGE_WRONG_COMPLETE_TABS = "Cannot complete the tasks in this current tab.";
 	protected static final String MESSAGE_WRONG_INCOMPLETE_TABS = "Cannot incomplete the tasks in this current tab.";
+	protected static final String MESSAGE_WRONG_RECOVER_TABS = "Cannot recover the tasks in this current tab.";
 	protected static final String MESSAGE_SUCCESSFUL_HELP = "Help window opened.";
 	protected static final String MESSAGE_SUCCESSFUL_SETTINGS = "Settings window opened.";
 	protected static final String MESSAGE_SYNC_SUCCESSFUL = "Successful synchronized.";
@@ -832,6 +834,84 @@ class IncompleteCommand extends IndexCommand {
 			model.addTaskToComplete(toComplete);
 		}
 		Control.sortList(model.getCompleteList());
+		Control.sortList(model.getPendingList());
+
+		return MESSAGE_SUCCESSFUL_UNDO;
+	}
+}
+
+/**
+ * 
+ * Class RecoverCommand
+ * 
+ */
+class RecoverCommand extends IndexCommand {
+	Task[] toRecoverTasks;
+	int[] indexInPendingList;
+
+
+	public RecoverCommand(String[] parsedUserCommand, Model model,
+			int tabIndex) {
+		super(model, tabIndex);
+		assert parsedUserCommand != null;
+		modifiedList = this.model.getTrashList();
+		indexCount = parsedUserCommand.length;
+		indexInPendingList = new int[indexCount];
+		toRecoverTasks = new Task[indexCount];
+
+		indexList = new int[indexCount];
+		for (int i = 0; i < indexCount; i++) {
+			indexList[i] = Integer.valueOf(parsedUserCommand[i]);
+		}
+	}
+
+	public String execute() {
+		Arrays.sort(indexList);
+		checkSuitableTab();
+		checkValidIndexes();
+		
+		processRecover();
+		retrieveIndexesAfterProcessing();
+		
+		return MESSAGE_SUCCESSFUL_RECOVER;
+	}
+	
+	private void processRecover(){
+		for (int i = indexCount - 1; i >= 0; i--) {
+			int recoverIndex = convertIndex(indexList[i] - 1);
+			Task toPending = model.getTaskFromTrash(recoverIndex);
+			reverseStatus(toPending);
+			toRecoverTasks[i] = toPending;
+			model.getTrashList().remove(recoverIndex);
+			model.addTaskToPending(toPending);
+		}
+		Control.sortList(model.getPendingList());
+		Control.sortList(model.getTrashList());
+	}
+	
+	private void retrieveIndexesAfterProcessing(){
+		for (int i = 0; i < indexCount; i++) {
+			indexInPendingList[i] = model
+					.getIndexFromPending(toRecoverTasks[i]);
+		}
+		Arrays.sort(indexInPendingList);
+	}
+	
+	private void checkSuitableTab(){
+		if (tabIndex != TRASH_TAB) {
+			throw new IllegalArgumentException(MESSAGE_WRONG_RECOVER_TABS);
+		}
+	}
+
+	public String undo() {
+		for (int i = indexCount - 1; i >= 0; i--) {
+			Task toTrash = model.getTaskFromPending(indexInPendingList[i]);
+			modifyStatus(toTrash);
+			toRecoverTasks[i] = toTrash;
+			model.getPendingList().remove(indexInPendingList[i]);
+			model.addTaskToTrash(toTrash);
+		}
+		Control.sortList(model.getTrashList());
 		Control.sortList(model.getPendingList());
 
 		return MESSAGE_SUCCESSFUL_UNDO;

@@ -138,7 +138,7 @@ public class View implements HotkeyListener {
 	static String[] COMMAND_TYPES = { "add", "remove", "delete", "edit",
 			"modify", "search", "find", "clear", "mark", "unmark", "complete",
 			"incomplete", "all", "list", "today", "help", "del", "exit", "rm",
-			"show", "ls", "clr", "done", "undone", "settings", "sync" };
+			"show", "ls", "clr", "done", "undone", "settings", "sync", "recover", "rec" };
 	public HBox feedbacks;
 	private static Color[] colourScheme;
 	public static AttributeSet[] colourSchemeCommandLine;
@@ -1402,99 +1402,114 @@ public class View implements HotkeyListener {
 	 */
 	void setFeedback(String feedback) {
 		emptyFeedback(0);
-		if (feedback.equals(Control.MESSAGE_INVALID_COMMAND_TYPE)
-				|| feedback.equals(Control.MESSAGE_REQUEST_COMMAND)
-				|| feedback.equals(Control.MESSAGE_INVALID_UNDO)
-				|| feedback.equals(Control.MESSAGE_INVALID_REDO)
-				|| feedback.equals(Control.MESSAGE_EXIT_TIP)
-				|| feedback.equals(Control.MESSAGE_TODAY_TIP)
-				|| feedback.equals(Control.MESSAGE_SHOW_ALL_TIP)
-				|| feedback.equals(Control.MESSAGE_UNDO_TIP)
-				|| feedback.equals(Control.MESSAGE_REDO_TIP)) {
-			setFeedbackStyle(0, feedback, colourScheme[1]);
+		switch (feedback) {
+		case Control.MESSAGE_ADD_TIP:
+			setFeedbackStyle(0, "add", colourScheme[0]);
+			setFeedbackStyle(1, "<workflow>", colourScheme[1]);
+			setFeedbackStyle(2, "<start time>", colourScheme[2]);
+			setFeedbackStyle(3, "<end time>", colourScheme[3]);
+			setFeedbackStyle(4, "<importance *>", colourScheme[4]);
+			setFeedbackStyle(5, "<#tag>", colourScheme[5]);
+			emptyFeedback(6);
+			break;
+		case Control.MESSAGE_EDIT_TIP:
+			setFeedbackStyle(0, "edit", colourScheme[0]);
+			setFeedbackStyle(1, "<index>", colourScheme[6]);
+			setFeedbackStyle(2, "<workflow>", colourScheme[1]);
+			setFeedbackStyle(3, "<start time>", colourScheme[2]);
+			setFeedbackStyle(4, "<end time>", colourScheme[3]);
+			setFeedbackStyle(5, "<importance *>", colourScheme[4]);
+			setFeedbackStyle(6, "<#tag>", colourScheme[5]);
+			emptyFeedback(7);
+			break;
+		case Control.MESSAGE_RECOVER_TIP:
+			setFeedbackStyle(0, "recover", colourScheme[0]);
+			setFeedbackStyle(1, "<index1> <index2> <index3> ...",
+					colourScheme[6]);
+			emptyFeedback(2);
+			break;
+		case Control.MESSAGE_REMOVE_INDEX_TIP:
+			setFeedbackStyle(0, "remove", colourScheme[0]);
+			setFeedbackStyle(1, "<index>", colourScheme[6]);
+			emptyFeedback(2);
+			break;
+		case Control.MESSAGE_REMOVE_INFO_TIP:
+			setFeedbackStyle(0, "remove", colourScheme[0]);
+			setFeedbackStyle(1, "<workflow>", colourScheme[1]);
+			setFeedbackStyle(2, "<start time>", colourScheme[2]);
+			setFeedbackStyle(3, "<end time>", colourScheme[3]);
+			setFeedbackStyle(4, "<importance *>", colourScheme[4]);
+			setFeedbackStyle(5, "<#tag>", colourScheme[5]);
+			emptyFeedback(6);
+			break;
+		case Control.MESSAGE_SEARCH_TIP:
+			setFeedbackStyle(0, "search", colourScheme[0]);
+			setFeedbackStyle(1, "<workflow>", colourScheme[1]);
+			setFeedbackStyle(2, "<start time>", colourScheme[2]);
+			setFeedbackStyle(3, "<end time>", colourScheme[3]);
+			setFeedbackStyle(4, "<importance *>", colourScheme[4]);
+			setFeedbackStyle(5, "<#tag>", colourScheme[5]);
+			emptyFeedback(6);
+			break;
+		case Control.MESSAGE_UNDO_TIP:
+			setFeedbackStyle(0, "<undo>", colourScheme[0]);
 			emptyFeedback(1);
-		} else {
-			switch (feedback) {
-			case Control.MESSAGE_ADD_TIP:
-				setFeedbackStyle(0, "add", colourScheme[0]);
-				setFeedbackStyle(1, "<workflow>", colourScheme[1]);
-				setFeedbackStyle(2, "<start time>", colourScheme[2]);
-				setFeedbackStyle(3, "<end time>", colourScheme[3]);
-				setFeedbackStyle(4, "<importance *>", colourScheme[4]);
-				setFeedbackStyle(5, "<#tag>", colourScheme[5]);
-				emptyFeedback(6);
-				break;
-			case Control.MESSAGE_EDIT_TIP:
-				setFeedbackStyle(0, "edit", colourScheme[0]);
-				setFeedbackStyle(1, "<index>", colourScheme[6]);
-				setFeedbackStyle(2, "<workflow>", colourScheme[1]);
-				setFeedbackStyle(3, "<start time>", colourScheme[2]);
-				setFeedbackStyle(4, "<end time>", colourScheme[3]);
-				setFeedbackStyle(5, "<importance *>", colourScheme[4]);
-				setFeedbackStyle(6, "<#tag>", colourScheme[5]);
-				emptyFeedback(7);
-				break;
-			case Control.MESSAGE_REMOVE_INDEX_TIP:
-				setFeedbackStyle(0, "remove", colourScheme[0]);
-				setFeedbackStyle(1, "<index>", colourScheme[6]);
-				emptyFeedback(2);
-				break;
-			case Control.MESSAGE_REMOVE_INFO_TIP:
-				setFeedbackStyle(0, "remove", colourScheme[0]);
-				setFeedbackStyle(1, "<workflow>", colourScheme[1]);
-				setFeedbackStyle(2, "<start time>", colourScheme[2]);
-				setFeedbackStyle(3, "<end time>", colourScheme[3]);
-				setFeedbackStyle(4, "<importance *>", colourScheme[4]);
-				setFeedbackStyle(5, "<#tag>", colourScheme[5]);
-				emptyFeedback(6);
-				break;
-			case Control.MESSAGE_SEARCH_TIP:
-				setFeedbackStyle(0, "search", colourScheme[0]);
-				setFeedbackStyle(1, "<workflow>", colourScheme[1]);
-				setFeedbackStyle(2, "<start time>", colourScheme[2]);
-				setFeedbackStyle(3, "<end time>", colourScheme[3]);
-				setFeedbackStyle(4, "<importance *>", colourScheme[4]);
-				setFeedbackStyle(5, "<#tag>", colourScheme[5]);
-				emptyFeedback(6);
-				break;
-			case Control.MESSAGE_MARK_TIP:
-				setFeedbackStyle(0, "<mark>", colourScheme[0]);
-				setFeedbackStyle(1, "<index1> <index2> <index3> ...",
-						colourScheme[6]);
-				emptyFeedback(2);
-				break;
-			case Control.MESSAGE_UNMARK_TIP:
-				setFeedbackStyle(0, "<unmark>", colourScheme[0]);
-				setFeedbackStyle(1, "<index1> <index2> <index3> ...",
-						colourScheme[6]);
-				emptyFeedback(2);
-				break;
-			case Control.MESSAGE_COMPLETE_TIP:
-				setFeedbackStyle(0, "<complete/done>", colourScheme[0]);
-				setFeedbackStyle(1, "<index1> <index2> <index3> ...",
-						colourScheme[6]);
-				emptyFeedback(2);
-				break;
-			case Control.MESSAGE_INCOMPLETE_TIP:
-				setFeedbackStyle(0, "<incomplete/undone>", colourScheme[0]);
-				setFeedbackStyle(1, "<index1> <index2> <index3> ...",
-						colourScheme[6]);
-				emptyFeedback(2);
-				break;
-			default:
-				emptyFeedback(0);
-				ArrayList<String> availCommands = getAvailCommandNum(feedback
-						.trim());
-				for (int i = 0; i < availCommands.size(); i++) {
-					setFeedbackStyle(i + 1, availCommands.get(i),
-							colourScheme[0]);
-				}
-				setFeedbackStyle(0,
-						availCommands.size() > 0 ? "Available commands: "
-								: Control.MESSAGE_REQUEST_COMMAND,
-						colourScheme[1]);
-				break;
+			break;
+		case Control.MESSAGE_REDO_TIP:
+			setFeedbackStyle(0, "<redo>", colourScheme[0]);
+			emptyFeedback(1);
+			break;
+		case Control.MESSAGE_TODAY_TIP:
+			setFeedbackStyle(0, "<today>", colourScheme[0]);
+			emptyFeedback(1);
+			break;
+		case Control.MESSAGE_SHOW_ALL_TIP:
+			setFeedbackStyle(0, "<show>", colourScheme[0]);
+			emptyFeedback(1);
+			break;
+		case Control.MESSAGE_SYNC_TIP:
+			setFeedbackStyle(0, "<sync>", colourScheme[0]);
+			emptyFeedback(1);
+			break;
+		case Control.MESSAGE_EXIT_TIP:
+			setFeedbackStyle(0, "<exit>", colourScheme[0]);
+			emptyFeedback(1);
+			break;
+		case Control.MESSAGE_MARK_TIP:
+			setFeedbackStyle(0, "<mark>", colourScheme[0]);
+			setFeedbackStyle(1, "<index1> <index2> <index3> ...",
+					colourScheme[6]);
+			emptyFeedback(2);
+			break;
+		case Control.MESSAGE_UNMARK_TIP:
+			setFeedbackStyle(0, "<unmark>", colourScheme[0]);
+			setFeedbackStyle(1, "<index1> <index2> <index3> ...",
+					colourScheme[6]);
+			emptyFeedback(2);
+			break;
+		case Control.MESSAGE_COMPLETE_TIP:
+			setFeedbackStyle(0, "<complete/done>", colourScheme[0]);
+			setFeedbackStyle(1, "<index1> <index2> <index3> ...",
+					colourScheme[6]);
+			emptyFeedback(2);
+			break;
+		case Control.MESSAGE_INCOMPLETE_TIP:
+			setFeedbackStyle(0, "<incomplete/undone>", colourScheme[0]);
+			setFeedbackStyle(1, "<index1> <index2> <index3> ...",
+					colourScheme[6]);
+			emptyFeedback(2);
+			break;
+		default:
+			emptyFeedback(0);
+			ArrayList<String> availCommands = getAvailCommandNum(feedback
+					.trim());
+			for (int i = 0; i < availCommands.size(); i++) {
+				setFeedbackStyle(i + 1, availCommands.get(i), colourScheme[0]);
 			}
+			setFeedbackStyle(0,
+					availCommands.size() > 0 ? "Available commands: "
+							: Control.MESSAGE_REQUEST_COMMAND, colourScheme[1]);
+			break;
 		}
 	}
 

@@ -30,23 +30,25 @@ public class Control extends Application {
 	static final String MESSAGE_INVALID_UNDO = "You cannot undo anymore!";
 	static final String MESSAGE_INVALID_REDO = "You cannot redo anymore!";
 	static final String MESSAGE_SUCCESSFUL_REDO = "Redo was successful.";
-	static final String MESSAGE_ADD_TIP = "<add> <task info 1> <task info 2> <task info 3> <task info 4> ...";
-	static final String MESSAGE_EDIT_TIP = "<edit/mod/modify> <index> <task info 1> <task info 2> <task info 3> ...";
-	static final String MESSAGE_REMOVE_INDEX_TIP = "<delete/del/remove/rm> <index 1> <index 2> <index 3> ...";
-	static final String MESSAGE_REMOVE_INFO_TIP = "<remove> <task info 1> <task info 2> <task info 3> <task info 4> ...";
-	static final String MESSAGE_SEARCH_TIP = "<search/find> <task info 1> <task info 2> <task info 3> ...";
-	static final String MESSAGE_TODAY_TIP = "<today>";
-	static final String MESSAGE_SHOW_ALL_TIP = "<show/all/list/ls>";
-	static final String MESSAGE_CLEAR_ALL_TIP = "<clear/clr>";
-	static final String MESSAGE_UNDO_TIP = "<undo>";
-	static final String MESSAGE_REDO_TIP = "<redo>";
-	static final String MESSAGE_MARK_TIP = "<mark> <index 1> <index 2> <index 3> ...";
-	static final String MESSAGE_UNMARK_TIP = "<unmark> <index 1> <index 2> <index 3> ...";
-	static final String MESSAGE_COMPLETE_TIP = "<complete/done> <index 1> <index 2> <index 3> ...";
-	static final String MESSAGE_INCOMPLETE_TIP = "<incomplete/undone> <index 1> <index 2> <index 3> ...";
-	static final String MESSAGE_HELP_TIP = "<help>";
-	static final String MESSAGE_SETTINGS_TIP = "<settings>";
-	static final String MESSAGE_EXIT_TIP = "<exit>";
+	static final String MESSAGE_ADD_TIP = "Tip for ADD command";
+	static final String MESSAGE_EDIT_TIP = "Tip for EDIT command";
+	static final String MESSAGE_RECOVER_TIP = "Tip for RECOVER command";
+	static final String MESSAGE_REMOVE_INDEX_TIP = "Tip for REMOVE with index command";
+	static final String MESSAGE_REMOVE_INFO_TIP = "Tip for REMOVE with info command";
+	static final String MESSAGE_SEARCH_TIP = "Tip for SEARCH command";
+	static final String MESSAGE_TODAY_TIP = "Tip for TODAY command";
+	static final String MESSAGE_SHOW_ALL_TIP = "Tip for SHOW command";
+	static final String MESSAGE_CLEAR_ALL_TIP = "Tip for CLEAR command";
+	static final String MESSAGE_UNDO_TIP = "Tip for UNDO command";
+	static final String MESSAGE_REDO_TIP = "Tip for REDO command";
+	static final String MESSAGE_MARK_TIP = "Tip for MARK command";
+	static final String MESSAGE_UNMARK_TIP = "Tip for UNMARK command";
+	static final String MESSAGE_COMPLETE_TIP = "Tip for COMPLETE command";
+	static final String MESSAGE_INCOMPLETE_TIP = "Tip for INCOMPLETE command";
+	static final String MESSAGE_SYNC_TIP = "Tip for SYNC command";
+	static final String MESSAGE_HELP_TIP = "Tip for HELP command";
+	static final String MESSAGE_SETTINGS_TIP = "Tip for SETTINGS command";
+	static final String MESSAGE_EXIT_TIP = "Tip for EXIT command";
 	static final String MESSAGE_REQUEST_COMMAND = "Please enter a command or type help to view commands.";
 
 	static final String UNDO_COMMAND = "undo";
@@ -89,8 +91,7 @@ public class Control extends Application {
 			settingStore = new Setting("setting.xml", modelHandler);
 			settingStore.retrieveAccount();
 			CustomDate.setDisplayRemaining(modelHandler.doDisplayRemaining());
-			if(modelHandler.getAutoSync())
-				autoSync();
+			
 		} catch (IOException e) {
 			System.out.println("Cannot read the given file");
 		}
@@ -126,12 +127,12 @@ public class Control extends Application {
 
 			@Override
 			public void changedUpdate(DocumentEvent e) {
-				realTimeUpdate();
+	
 			}
 
 			private void realTimeUpdate() {
 				String command = view.txt.getText();
-
+				realTimeFeedback(command);
 				if (Parser.determineCommandType(command) == Parser.COMMAND_TYPES.SEARCH)
 					realTimeSearch(command);
 				else if (Parser.determineCommandType(command) == Parser.COMMAND_TYPES.REMOVE) {
@@ -182,6 +183,9 @@ public class Control extends Application {
 							else
 								view.setFeedback(MESSAGE_REMOVE_INFO_TIP);
 							break;
+						case RECOVER:
+							view.setFeedback(MESSAGE_RECOVER_TIP);
+							break;
 						case SEARCH:
 							view.setFeedback(MESSAGE_SEARCH_TIP);
 							break;
@@ -214,6 +218,9 @@ public class Control extends Application {
 							break;
 						case HELP:
 							view.setFeedback(MESSAGE_HELP_TIP);
+							break;
+						case SYNC:
+							view.setFeedback(MESSAGE_SYNC_TIP);
 							break;
 						case SETTINGS:
 							view.setFeedback(MESSAGE_SETTINGS_TIP);
@@ -387,6 +394,8 @@ public class Control extends Application {
 			return executeEditCommand(parsedUserCommand);
 		case REMOVE:
 			return executeRemoveCommand(parsedUserCommand);
+		case RECOVER:
+			return executeRecoverCommand(parsedUserCommand);
 		case UNDO:
 			return executeUndoCommand();
 		case REDO:
@@ -555,6 +564,21 @@ public class Control extends Application {
 		}
 		return feedback;
 	}
+	
+	private String executeRecoverCommand(String[] parsedUserCommand) throws IOException{
+		boolean isAfterSearch = TwoWayCommand.listedIndexType;
+		int tabIndex = view.getTabIndex();
+		Command s = new RecoverCommand(parsedUserCommand, modelHandler, tabIndex);
+		String feedback = s.execute();
+		
+		if(feedback.equals(Command.MESSAGE_SUCCESSFUL_RECOVER)){
+			commandHistory.updateCommand((TwoWayCommand)s, isAfterSearch);
+			dataFile.storeToFile();
+			executeShowCommand();
+		}
+		
+		return feedback;
+	}
 
 	private String executeMarkCommand(String[] parsedUserCommand)
 			throws IOException {
@@ -585,7 +609,7 @@ public class Control extends Application {
 		}
 		return feedback;
 	}
-
+	
 	private String executeHelpCommand() {
 		Command s = new HelpCommand(modelHandler, view);
 		return s.execute();
@@ -670,6 +694,7 @@ public class Control extends Application {
 	private boolean successfulExecution(String feedback) {
 		return feedback.equals(Command.MESSAGE_NO_RESULTS)
 				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_REMOVE)
+				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_RECOVER)
 				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_ADD)
 				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_CLEAR_ALL)
 				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_COMPLETE)
@@ -698,6 +723,9 @@ public class Control extends Application {
 				displayMessage();
 			}
 		}, 0, MINUTE_IN_MILLIS);
+		
+		if(modelHandler.getAutoSync())
+			autoSync();
 	}
 
 	private void displayMessage() {
