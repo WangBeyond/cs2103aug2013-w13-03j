@@ -7,7 +7,7 @@ import java.util.regex.*;
 
 public class Parser {
 	static enum COMMAND_TYPES {
-		ADD, REMOVE, SEARCH, EDIT, COMPLETE, INCOMPLETE, UNDO, REDO, CLEAR_ALL, TODAY, SHOW_ALL, SYNC, SETTINGS, HELP, EXIT, INVALID, MARK, UNMARK
+		ADD, REMOVE, RECOVER, SEARCH, EDIT, COMPLETE, INCOMPLETE, UNDO, REDO, CLEAR_ALL, TODAY, SHOW_ALL, SYNC, SETTINGS, HELP, EXIT, INVALID, MARK, UNMARK
 	}
 
 	/* start date keys */
@@ -82,7 +82,9 @@ public class Parser {
 			return COMMAND_TYPES.EDIT;
 		} else if (isRemoveCommand(commandTypeString)) {
 			return COMMAND_TYPES.REMOVE;
-		} else if (isUndoCommand(commandTypeString)) {
+		} else if(isRecoverCommand(commandTypeString)){ 
+			return COMMAND_TYPES.RECOVER;
+		}	else if (isUndoCommand(commandTypeString)) {
 			return COMMAND_TYPES.UNDO;
 		} else if (isRedoCommand(commandTypeString)) {
 			return COMMAND_TYPES.REDO;
@@ -147,7 +149,7 @@ public class Parser {
 		else if (commandType == COMMAND_TYPES.COMPLETE
 				|| commandType == COMMAND_TYPES.INCOMPLETE
 				|| commandType == COMMAND_TYPES.MARK
-				|| commandType == COMMAND_TYPES.UNMARK)
+				|| commandType == COMMAND_TYPES.UNMARK || commandType == COMMAND_TYPES.RECOVER)
 			return parseCommandWithIndex(content);
 		else if (commandType == COMMAND_TYPES.SYNC){
 			return parseSyncCommand(content);
@@ -426,7 +428,7 @@ public class Parser {
 						|| commandType.equals(COMMAND_TYPES.COMPLETE)
 						|| commandType.equals(COMMAND_TYPES.INCOMPLETE)
 						|| commandType.equals(COMMAND_TYPES.MARK)
-						|| commandType.equals(COMMAND_TYPES.UNMARK)) {
+						|| commandType.equals(COMMAND_TYPES.UNMARK) || commandType.equals(COMMAND_TYPES.RECOVER)) {
 					infoList.add(new InfoWithIndex(command
 							.substring(beginIndex), beginIndex,
 							INDEX_INDEX_INFO));
@@ -525,9 +527,12 @@ public class Parser {
 	 */
 	private static String appendWithDateKey(String date, String command,
 			int startOrEnd) {
-		int startIndex = command.indexOf(date);
-		int secondSpaceIndex = startIndex - 2;
+		int startIndex = 0;
 		String dateWithPreposition = date;
+		while(startIndex != -1){
+		startIndex = command.indexOf(date, startIndex + 1);
+		int secondSpaceIndex = startIndex - 2;
+		
 		while (secondSpaceIndex > 0 && command.charAt(secondSpaceIndex) != ' ') {
 			secondSpaceIndex--;
 		}
@@ -545,6 +550,9 @@ public class Parser {
 				startIndex)))
 			dateWithPreposition = command.substring(secondSpaceIndex + 1,
 					startIndex) + date;
+		if(!dateWithPreposition.equals(date))
+			return dateWithPreposition;
+		}
 		return dateWithPreposition;
 	}
 
@@ -882,6 +890,11 @@ public class Parser {
 				|| commandTypeString.equalsIgnoreCase("delete")
 				|| commandTypeString.equalsIgnoreCase("del");
 		return isRemove;
+	}
+	
+	private static boolean isRecoverCommand(String commandTypeString){
+		boolean isRecover = commandTypeString.equalsIgnoreCase("recover") || commandTypeString.equalsIgnoreCase("rec");
+		return isRecover;
 	}
 
 	private static boolean isUndoCommand(String commandTypeString) {
