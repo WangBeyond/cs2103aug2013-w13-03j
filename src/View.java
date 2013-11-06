@@ -156,7 +156,7 @@ public class View implements HotkeyListener {
 	TrayIcon trayIcon;
 
 	Model model;
-	SettingsStorage settingStore;
+	Storage settingStore;
 
 	/**
 	 * This is the constructor for class View. It will create the content in the
@@ -168,7 +168,7 @@ public class View implements HotkeyListener {
 	 *            main stage of the GUI
 	 */
 	public View(final Model model, final Stage primaryStage,
-			SettingsStorage settingStore) {
+			Storage settingStore) {
 		stage = primaryStage;
 		this.model = model;
 		this.settingStore = settingStore;

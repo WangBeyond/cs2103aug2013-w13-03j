@@ -1537,14 +1537,14 @@ class SyncCommand extends Command implements Runnable {
 	
 	Synchronization sync;
 	View view;
-	DataStorage dataFile;
+	Storage taskFile;
 	Thread t;
-	public SyncCommand(String[] parsedUserCommand, Model model, Synchronization sync, View view, DataStorage dataFile) {
+	public SyncCommand(String[] parsedUserCommand, Model model, Synchronization sync, View view, Storage taskFile) {
 		super(model);
 		this.sync = sync;
 		this.view = view;
 		int size = parsedUserCommand.length;
-		this.dataFile = dataFile;
+		this.taskFile = taskFile;
 		if(size == 2){
 			username = parsedUserCommand[0];
 			password = parsedUserCommand[1];
@@ -1567,7 +1567,7 @@ class SyncCommand extends Command implements Runnable {
 		isRunning = false;
 		model.clearSyncInfo();
 		try {
-			dataFile.storeToFile();
+			taskFile.storeToFile();
 		} catch (IOException io) {
 			System.out.println(io.getMessage());
 		}

@@ -14,7 +14,7 @@ import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 
-public class Setting extends Store {
+public class Setting extends Storage {
 	private BufferedReader in;
 	private BufferedWriter out;
 

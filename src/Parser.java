@@ -932,7 +932,7 @@ public class Parser {
 				|| commandTypeString.equalsIgnoreCase("ls");
 		return isShowAll;
 	}
-
+	
 	private static boolean isClearAllCommand(String commandTypeString) {
 		boolean isClearAll = commandTypeString.equalsIgnoreCase("clear")
 				|| commandTypeString.equalsIgnoreCase("clr");
