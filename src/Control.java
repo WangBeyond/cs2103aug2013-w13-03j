@@ -64,7 +64,7 @@ public class Control extends Application {
 	private Storage taskFile;
 	private Storage settingStore;
 	public Synchronization sync = new Synchronization(modelHandler);
-	static public SyncCommand s;
+	static public SyncCommand syncThread;
 
 	static boolean isRealTimeSearch = false;
 	static final boolean SEARCHED = true;
@@ -670,12 +670,12 @@ public class Control extends Application {
 	private String executeSyncCommand(String[] parsedUserCommand)
 			throws IOException {
 		// Check whether there is already a sync thread
-		if (s == null || !s.isRunning())
-			s = new SyncCommand(parsedUserCommand, modelHandler, sync, view,
+		if (syncThread == null || !syncThread.isRunning())
+			syncThread = new SyncCommand(parsedUserCommand, modelHandler, sync, view,
 					taskFile);
 
 		// String feedback = s.execute();
-		String feedback = s.getFeedback();
+		String feedback = syncThread.getFeedback();
 		if (feedback == null){
 			feedback = MESSAGE_REQUEST_COMMAND;
 		}

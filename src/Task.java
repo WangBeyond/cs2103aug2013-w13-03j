@@ -79,7 +79,7 @@ public class Task implements Comparable<Task> {
 		setTag(new Tag(EMPTY, "null"));
 		indexId = "";
 		indexInList = 0;
-		if(Control.s!=null && Control.s.isRunning()){
+		if(Control.syncThread!=null && Control.syncThread.isRunning()){
 			setStatus(Status.ADDED_WHEN_SYNC);
 		}else{
 			setStatus(Status.NEWLY_ADDED);
