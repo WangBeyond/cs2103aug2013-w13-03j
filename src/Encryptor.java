@@ -1,8 +1,4 @@
-import java.io.File;
-import java.io.UnsupportedEncodingException;
-
 import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.spec.SecretKeySpec;
 
 import sun.misc.BASE64Encoder;
@@ -10,13 +6,21 @@ import sun.misc.BASE64Decoder;
 
 public class Encryptor {
 	
+	//Key generator source
 	private static final String KEYGENSOURCE = "HignDlPs";
+	//The algorithm for the encryption, eg: DES/ECB/PKCS5Padding
     private String algo;
 	
     public Encryptor(String algo) {
         this.algo = algo; 
     }
     
+    /**
+     * encrypt a information string
+     * @param str  a string to be encrypted
+     * @return a encrypted string
+     * @throws Exception
+     */
 	public String encrypt(String str) throws Exception {
 	         Cipher ecipher =  Cipher.getInstance(algo);  
 	         byte k[] = KEYGENSOURCE .getBytes();   
@@ -30,10 +34,16 @@ public class Encryptor {
 			// Encode bytes to base64 to get a string
 			return new sun.misc.BASE64Encoder().encode(enc);
 	}
-
-	public String decrypt(String str) throws Exception{
+	
+	/**
+	 * decrypt a encrypted string
+	 * @param str   encrypted string
+	 * @return  a decrupted string
+	 * @throws Exception
+	 */
+	public String decrypt(String encryptedStr) throws Exception{
 			// Decode base64 to get bytes
-			byte[] dec = new sun.misc.BASE64Decoder().decodeBuffer(str);
+			byte[] dec = new sun.misc.BASE64Decoder().decodeBuffer(encryptedStr);
 			Cipher dcipher =  Cipher.getInstance(algo);
 	         byte k[] = KEYGENSOURCE .getBytes();   
 	         SecretKeySpec key = new SecretKeySpec(k,algo.split("/")[0]);  

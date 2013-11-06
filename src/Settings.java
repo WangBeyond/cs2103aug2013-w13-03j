@@ -1,5 +1,7 @@
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+
+import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -42,7 +44,7 @@ public class Settings {
 
 	private static Settings oneSettingsPage;
 	private Model model;
-	private SettingsStorage settingStore;
+	private Storage settingStore;
 
 	private Stage settingsStage;
 	private Scene settingsScene;
@@ -63,7 +65,7 @@ public class Settings {
 	private ComboBox<String> colourSchemes;
 	private ImageView bgImage;
 
-	private Settings(Model model, SettingsStorage settingStore) {
+	private Settings(Model model, Storage settingStore) {
 		this.model = model;
 		this.settingStore = settingStore;
 		setupStage();
@@ -78,7 +80,7 @@ public class Settings {
 		return settingsStage;
 	}
 
-	public static Settings getInstanceSettings(Model model, SettingsStorage settingStore) {
+	public static Settings getInstanceSettings(Model model, Storage settingStore) {
 		if (oneSettingsPage == null) {
 			oneSettingsPage = new Settings(model, settingStore);
 		}
@@ -302,7 +304,11 @@ public class Settings {
 				successfulChange = STORE_FAIL;
 			}
 		}
-		settingStore.updateAccount();
+		try {
+			settingStore.updateToFile();
+		} catch (IOException io) {
+			successfulChange = STORE_FAIL;
+		}
 		return successfulChange;
 	}
 

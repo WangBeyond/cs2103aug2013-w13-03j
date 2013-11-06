@@ -1,7 +1,7 @@
 import java.io.File;
 import java.io.IOException;
 
-public abstract class Store {
+public abstract class Storage {
 	
 	protected final static String TRUE = "true";
 	protected final static String FALSE = "false";
@@ -16,6 +16,10 @@ public abstract class Store {
 	};
 	
 	public void storeToFile() throws IOException {
+		
+	};
+	
+	public void updateToFile() throws IOException {
 		
 	};
 	
@@ -36,7 +40,6 @@ public abstract class Store {
 	
 	/**
 	 * find user's Documents directory
-	 * 
 	 * @return user Documents dir
 	 */
 	protected String findUserDocDir() {
@@ -45,7 +48,6 @@ public abstract class Store {
 
 	/**
 	 * check if target file exists
-	 * 
 	 * @param file
 	 */
 

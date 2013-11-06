@@ -1,7 +1,4 @@
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.lang.String;
 import java.io.File;
@@ -14,34 +11,8 @@ import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 
-public class SettingsStorage extends Store {
-	private BufferedReader in;
-	private BufferedWriter out;
+public class SettingsStorage extends Storage {
 
-	private String fileName;
-
-	/*public static void main(String args[]) {
-		try {
-			System.out.println(System.getProperty("user.home"));
-	        Security.insertProviderAt(new BouncyCastleProvider(), 1);
-
-	        String passphrase = "The quick brown fox jumped over the lazy brown dog";
-	        String plaintext = "hello world";
-	        byte [] ciphertext = encrypt(passphrase, plaintext);
-	        String recoveredPlaintext = decrypt(passphrase, ciphertext);
-
-	        System.out.println(recoveredPlaintext);
-			// settingStore.setFontSize(20);
-			// settingStore.encryptFile();
-			// System.out.println(settingStore.getFontSize());
-			// settingStore.decryptFile();
-			// settingStore.loadFromFile();
-			// System.out.println(settingStore.getFontSize());
-		} catch (Exception e) {
-			System.out.println(e);
-		}
-	}
-	*/
 	String dir;
 	public SettingsStorage(String fileName, Model model) {
 
@@ -53,37 +24,43 @@ public class SettingsStorage extends Store {
         //Security.insertProviderAt(new BouncyCastleProvider(), 1);
 	}
 	
-	public void storeAccount() {
-		try {
-			Element root = new Element("root");
-			Document doc = new Document(root);
-			Element account = new Element("account");
-			doc.getRootElement().getChildren().add(account);
-			String encryptedPassword;
-			try{
-				encryptedPassword = encryptString(model.getPassword());
-				System.out.println("store: "+model.getPassword()+"->"+encryptedPassword);
-			}catch(Exception e) {
-				System.out.println("fail to encrypt password");
-				System.out.println("store: "+e.getMessage());
-				encryptedPassword = model.getPassword();
-			}
-			account.addContent(new Element("username").setText(model.getUsername()));
-			account.addContent(new Element("password").setText(encryptedPassword));
-			account.addContent(new Element("display_remaining").setText(model.getDisplayRemaining()==true? TRUE : FALSE));
-			account.addContent(new Element("themeMode").setText(model.getThemeMode()));
-			account.addContent(new Element("colourScheme").setText(model.getColourScheme()));
-			account.addContent(new Element("autoSync").setText(model.getAutoSync() == true? TRUE : FALSE));
-			XMLOutputter xmlOutput = new XMLOutputter();
-			xmlOutput.setFormat(Format.getPrettyFormat());
-			xmlOutput.output(doc, new FileWriter(dir));
-			System.out.println("Setting saved");
-		} catch (IOException io) {
-			System.out.println(io.getMessage());
+	/************************** store and load account information  **************************/
+	
+	@Override
+	/**
+	 * Store account information to XML file of setting storage
+	 */
+	public void storeToFile() throws IOException {
+		Element root = new Element("root");
+		Document doc = new Document(root);
+		Element account = new Element("account");
+		doc.getRootElement().getChildren().add(account);
+		String encryptedPassword;
+		try{
+			encryptedPassword = encryptString(model.getPassword());
+			System.out.println("store: "+model.getPassword()+"->"+encryptedPassword);
+		}catch(Exception e) {
+			System.out.println("fail to encrypt password");
+			System.out.println("store: "+e.getMessage());
+			encryptedPassword = model.getPassword();
 		}
+		account.addContent(new Element("username").setText(model.getUsername()));
+		account.addContent(new Element("password").setText(encryptedPassword));
+		account.addContent(new Element("display_remaining").setText(model.getDisplayRemaining()==true? TRUE : FALSE));
+		account.addContent(new Element("themeMode").setText(model.getThemeMode()));
+		account.addContent(new Element("colourScheme").setText(model.getColourScheme()));
+		account.addContent(new Element("autoSync").setText(model.getAutoSync() == true? TRUE : FALSE));
+		XMLOutputter xmlOutput = new XMLOutputter();
+		xmlOutput.setFormat(Format.getPrettyFormat());
+		xmlOutput.output(doc, new FileWriter(dir));
+		System.out.println("Setting saved");
 	}
 	
-	public void updateAccount() {
+	@Override
+	/**
+	 * Update account information to XML file of setting storage after settings changed
+	 */
+	public void updateToFile() throws IOException{
 		 
 		  try {	 
 			SAXBuilder builder = new SAXBuilder();
@@ -124,14 +101,16 @@ public class SettingsStorage extends Store {
 			// xmlOutput.output(doc, System.out);
 	 
 			System.out.println("File updated!");
-		  } catch (IOException io) {
-			io.printStackTrace();
 		  } catch (JDOMException e) {
 			e.printStackTrace();
 		  }
 	}
 	
-	public void retrieveAccount() {
+	@Override
+	/**
+	 * Load account information from XML file of setting storage when the program is launched
+	 */
+	public void loadFromFile() throws IOException {
 		 
 		SAXBuilder builder = new SAXBuilder();
 		  try {
@@ -165,78 +144,12 @@ public class SettingsStorage extends Store {
 				model.setColourScheme(colourScheme.getText());
 				model.setAutoSync(autoSync.getText().equals(TRUE) ? true : false);
 			}			
-		  } catch (IOException io) {
-			System.out.println(io.getMessage());
 		  } catch (JDOMException jdomex) {
 			System.out.println(jdomex.getMessage());
 		  }
 	}
-	
-	/*
-	public void storeCalendarID () {
-		  try {
-				 
-			SAXBuilder builder = new SAXBuilder();
-			File xmlFile = new File(dir);
-	 
-			Document doc = (Document) builder.build(xmlFile);
-			Element rootNode = doc.getRootElement();
-			Element account = rootNode.getChild("account");
-			account.addContent(new Element("CalendarID").setText(model.getCalendarID()));
-			XMLOutputter xmlOutput = new XMLOutputter();
-			xmlOutput.setFormat(Format.getPrettyFormat());
-			xmlOutput.output(doc, new FileWriter(dir));
-	 
-			// xmlOutput.output(doc, System.out);
-	 
-			System.out.println("calID saved!");
-		  } catch (IOException io) {
-			io.printStackTrace();
-		  } catch (JDOMException e) {
-			e.printStackTrace();
-		  }
-	}
-	
 
-	
-	public void retrieveCalID() {
-		 
-		SAXBuilder builder = new SAXBuilder();
-		String calendarID = null;
-		  try {
-			Document doc = (Document) builder.build(xmlFile);
-			Element rootNode = doc.getRootElement();
-			Element account = rootNode.getChild("account");
-			Element calID = account.getChild("CalendarID");
-
-			if (calID != null)
-				model.setCalendarID(calID.getText());
-		
-		  } catch (IOException io) {
-			System.out.println(io.getMessage());
-		  } catch (JDOMException jdomex) {
-			System.out.println(jdomex.getMessage());
-		  }
-	}
-*/	
-
-
-	protected void createDir() {
-		File theDir = new File(findUserDocDir()+FOLDERNAME);
-		// if the directory does not exist, create it
-		if (!theDir.exists()) {
-			System.out.println("creating directory: ");
-			boolean result = theDir.mkdir();
-			if (result) {
-				System.out.println("DIR created");
-			}
-		}
-	}
-
-	protected String findUserDocDir() {
-		return System.getProperty("user.home") + "\\Documents\\" ;
-	}
-
+	/***************** encryption and decryption *************************/
 	public String encryptString(String plainText) throws Exception {
 		return new Encryptor("DES/ECB/PKCS5Padding").encrypt(plainText);
 

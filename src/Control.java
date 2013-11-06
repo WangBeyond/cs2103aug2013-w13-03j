@@ -61,8 +61,8 @@ public class Control extends Application {
 	public Model modelHandler = new Model();
 	public History commandHistory = new History();
 	public View view;
-	private DataStorage dataFile;
-	private SettingsStorage settingStore;
+	private Storage taskFile;
+	private Storage settingStore;
 	public Synchronization sync = new Synchronization(modelHandler);
 	static public SyncCommand s;
 
@@ -86,10 +86,10 @@ public class Control extends Application {
 
 	public void loadData() {
 		try {
-			dataFile = new DataStorage("dataStorage.xml", modelHandler);
-			dataFile.loadFromFile();
-			settingStore = new SettingsStorage("setting.xml", modelHandler);
-			settingStore.retrieveAccount();
+			taskFile = new TaskStorage("task_storage.xml", modelHandler);
+			taskFile.loadFromFile();
+			settingStore = new SettingsStorage("setting_storage.xml", modelHandler);
+			settingStore.loadFromFile();
 			CustomDate.setDisplayRemaining(modelHandler.doDisplayRemaining());
 			
 		} catch (IOException e) {
@@ -104,7 +104,11 @@ public class Control extends Application {
 		updateOverdueLine(modelHandler.getPendingList());
 		updateOverdueLine(modelHandler.getCompleteList());
 		updateOverdueLine(modelHandler.getTrashList());
-		settingStore.storeAccount();
+		try{
+			settingStore.storeToFile();
+		} catch(IOException io) {
+			view.setFeedback(io.getMessage());
+		}
 		
 	}
 
@@ -447,7 +451,7 @@ public class Control extends Application {
 		String feedback = s.execute();
 		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_ADD)) {
 			commandHistory.updateCommand((TwoWayCommand) s);
-			dataFile.storeToFile();
+			taskFile.storeToFile();
 			view.setTab(0);
 			executeShowCommand();
 		}
@@ -462,7 +466,7 @@ public class Control extends Application {
 		String feedback = s.execute();
 		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_EDIT)) {
 			commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
-			dataFile.storeToFile();
+			taskFile.storeToFile();
 			executeShowCommand();
 		}
 		return feedback;
@@ -476,7 +480,7 @@ public class Control extends Application {
 		String feedback = s.execute();
 		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_REMOVE)) {
 			commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
-			dataFile.storeToFile();
+			taskFile.storeToFile();
 			// syncFile.storeToFile();
 			executeShowCommand();
 		}
@@ -488,7 +492,7 @@ public class Control extends Application {
 			executeShowCommand();
 			TwoWayCommand undoCommand = commandHistory.getPrevCommandForUndo();
 			String feedback = undoCommand.undo();
-			dataFile.storeToFile();
+			taskFile.storeToFile();
 			return feedback;
 		} else
 			return MESSAGE_INVALID_UNDO;
@@ -502,7 +506,7 @@ public class Control extends Application {
 			executeShowCommand();
 			TwoWayCommand redoCommand = commandHistory.getPrevCommandForRedo();
 			redoCommand.execute();
-			dataFile.storeToFile();
+			taskFile.storeToFile();
 			return MESSAGE_SUCCESSFUL_REDO;
 		} else
 			return MESSAGE_INVALID_REDO;
@@ -527,7 +531,7 @@ public class Control extends Application {
 		String feedback = s.execute();
 		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_CLEAR_ALL)) {
 			commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
-			dataFile.storeToFile();
+			taskFile.storeToFile();
 			executeShowCommand();
 		}
 		return feedback;
@@ -543,7 +547,7 @@ public class Control extends Application {
 
 		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_COMPLETE)) {
 			commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
-			dataFile.storeToFile();
+			taskFile.storeToFile();
 			executeShowCommand();
 		}
 		return feedback;
@@ -559,7 +563,7 @@ public class Control extends Application {
 
 		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_INCOMPLETE)) {
 			commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
-			dataFile.storeToFile();
+			taskFile.storeToFile();
 			executeShowCommand();
 		}
 		return feedback;
@@ -573,7 +577,7 @@ public class Control extends Application {
 		
 		if(feedback.equals(Command.MESSAGE_SUCCESSFUL_RECOVER)){
 			commandHistory.updateCommand((TwoWayCommand)s, isAfterSearch);
-			dataFile.storeToFile();
+			taskFile.storeToFile();
 			executeShowCommand();
 		}
 		
@@ -589,7 +593,7 @@ public class Control extends Application {
 
 		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_MARK)) {
 			commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
-			dataFile.storeToFile();
+			taskFile.storeToFile();
 			executeShowCommand();
 		}
 		return feedback;
@@ -604,7 +608,7 @@ public class Control extends Application {
 
 		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_UNMARK)) {
 			commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
-			dataFile.storeToFile();
+			taskFile.storeToFile();
 			executeShowCommand();
 		}
 		return feedback;
@@ -615,13 +619,13 @@ public class Control extends Application {
 		return s.execute();
 	}
 
-	private String executeSettingsCommand(String[] parsedUserCommand) {
+	private String executeSettingsCommand(String[] parsedUserCommand) throws IOException{
 		String oldTheme = modelHandler.getThemeMode();
 		boolean oldAutoSync = modelHandler.getAutoSync();
 		Command s = new SettingsCommand(modelHandler, view, parsedUserCommand);
 		String feedback = s.execute();
 		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_SETTINGS)) {
-			settingStore.storeAccount();
+			settingStore.storeToFile();
 			if(!oldTheme.equals(modelHandler.getThemeMode()))
 					view.customizeGUI();
 			view.setColourScheme(modelHandler.getColourScheme());
@@ -655,7 +659,7 @@ public class Control extends Application {
 			public void run() {
 				if (modelHandler.getAutoSync() == true) {
 					String[] nullContent = new String[1];
-					new SyncCommand(nullContent, modelHandler, sync, view, dataFile);
+					new SyncCommand(nullContent, modelHandler, sync, view, taskFile);
 				} else {
 					this.cancel();
 				}
@@ -668,7 +672,7 @@ public class Control extends Application {
 		// Check whether there is already a sync thread
 		if (s == null || !s.isRunning())
 			s = new SyncCommand(parsedUserCommand, modelHandler, sync, view,
-					dataFile);
+					taskFile);
 
 		// String feedback = s.execute();
 		String feedback = s.getFeedback();
