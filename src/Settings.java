@@ -35,7 +35,7 @@ import javafx.stage.StageStyle;
 
 // Pop up settings dialog.
 public class Settings {
-
+	
 	private static final boolean STORE_SUCCESSFUL = true;
 	private static final boolean STORE_FAIL = false;
 
