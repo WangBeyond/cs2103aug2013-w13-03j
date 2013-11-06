@@ -15,15 +15,29 @@ import org.jdom2.JDOMException;
 
 public class TaskStorage extends Storage {
 	
-	/*public static void main (String[] args) {
-		WriteXMLFile xml = new WriteXMLFile();
-	}*/
+	private static final String INDEXID = "indexID";
+	private static final String WORK_INFO ="workInfo";
+	private static final String START_DATE = "startDate";
+	private static final String END_DATE = "endDate";
+	private static final String TAG = "tag";
+	private static final String REPETITION= "repetition";
+	private static final String IS_IMPORTANT = "isImportant";
+	private static final String INDEX_IN_LIST = "indexInList";
+	private static final String MODIFIED_DATE = "modifiedDate";
+	private static final String CURRENT_OCCURRENCE = "currentOccurrence";
+	private static final String NUM_OCCURRENCE = "numOccurrences";
+	private static final String STATUS = "status";
+	private static final String NEW = "new";
+	private static final String UNCHANGED = "unchanged";
+	private static final String DELETED = "deleted";
+	private static final String ADDED_WHEN_SYNC = "added_when_sync";
+	private static final String DELETED_WHEN_SYNC = "deleted_when_sync";
+	
+	private static final String PENDING = "pending";
+	private static final String COMPLETE = "complete";
+	private static final  String TRASH = "trash";
 
-	private final static String PENDING = "pending";
-	private final static String COMPLETE = "complete";
-	private final static String TRASH = "trash";
-
-
+	
 	public TaskStorage(String fileName, Model model) {
 		createDir();
 		xmlFile = new File(findUserDocDir() + FOLDERNAME + "/" + fileName);
@@ -82,6 +96,8 @@ public class TaskStorage extends Storage {
 		  }
 	}
 	
+
+	
 	/**
 	 * retrieve the elements in the XML file of task storage, building the corresponding tasks and store them to model
 	 * @param element   task list element in XML file: pending, complete or trash
@@ -94,29 +110,34 @@ public class TaskStorage extends Storage {
 		for(int i = 0; i<taskList.size();i++) {
 			Task newTask = new Task();
 			Element targetElement = taskList.get(i);
-			newTask.setIndexId(targetElement.getChildText("indexID"));
-			newTask.setWorkInfo(targetElement.getChildText("workInfo"));
-			if(!targetElement.getChildText("startDate").equals("-"))
-				newTask.setStartDate(new CustomDate(targetElement.getChildText("startDate")));
-			if(!targetElement.getChildText("endDate").equals("-"))
-				newTask.setEndDate(new CustomDate(targetElement.getChildText("endDate")));
-			newTask.setTag(new Tag(targetElement.getChildText("tag"),targetElement.getChildText("repetition")));
-			newTask.setIsImportant(targetElement.getChildText("isImportant").equals(Common.TRUE) ? true : false);
-			newTask.setIndexInList(Integer.parseInt(targetElement.getChildText("indexInList")));
-			String latestDateString = targetElement.getChildText("modifiedDate");
+			newTask.setIndexId(targetElement.getChildText(INDEXID));
+			newTask.setWorkInfo(targetElement.getChildText(WORK_INFO));
+			if(!targetElement.getChildText(START_DATE).equals("-"))
+				newTask.setStartDate(new CustomDate(targetElement.getChildText(START_DATE)));
+			if(!targetElement.getChildText(END_DATE).equals("-"))
+				newTask.setEndDate(new CustomDate(targetElement.getChildText(END_DATE)));
+			newTask.setTag(new Tag(targetElement.getChildText(TAG),targetElement.getChildText(REPETITION)));
+			newTask.setIsImportant(targetElement.getChildText(IS_IMPORTANT).equals(Common.TRUE) ? true : false);
+			newTask.setIndexInList(Integer.parseInt(targetElement.getChildText(INDEX_IN_LIST)));
+			String latestDateString = targetElement.getChildText(MODIFIED_DATE);
 			String second = latestDateString.substring(latestDateString.lastIndexOf(":") + 1);
 			String remains = latestDateString.substring(0, latestDateString.lastIndexOf(":"));
 			newTask.setLatestModifiedDate(new CustomDate(remains));
 			newTask.getLatestModifiedDate().setSecond(Integer.parseInt(second));
-			newTask.setCurrentOccurrence(Integer.parseInt(targetElement.getChildText("currentOccurrence")));
-			newTask.setNumOccurrences(Integer.parseInt(targetElement.getChildText("numOccurrences")));
-			String statusString = targetElement.getChildText("status");
-			if (statusString.equals("new"))
+			newTask.setCurrentOccurrence(Integer.parseInt(targetElement.getChildText(CURRENT_OCCURRENCE)));
+			newTask.setNumOccurrences(Integer.parseInt(targetElement.getChildText(NUM_OCCURRENCE)));
+			String statusString = targetElement.getChildText(STATUS);
+			if (statusString.equals(NEW)) {
 				newTask.setStatus(Task.Status.NEWLY_ADDED);
-			else if (statusString.equals("unchanged"))
+			} else if (statusString.equals(UNCHANGED)) {
 				newTask.setStatus(Task.Status.UNCHANGED);
-			else
+			} else if(statusString.equals(DELETED)) {
 				newTask.setStatus(Task.Status.DELETED);
+			} else if (statusString.equals(ADDED_WHEN_SYNC)) {
+				newTask.setStatus(Task.Status.ADDED_WHEN_SYNC);
+			} else if (statusString.equals(DELETED_WHEN_SYNC)) {
+				newTask.setStatus(Task.Status.DELETED_WHEN_SYNC);
+			}
             switch (taskType) {
             case PENDING:
                     model.addTaskToPending(newTask);
@@ -144,27 +165,28 @@ public class TaskStorage extends Storage {
 			Task targetTask = taskList.get(i);
 			Element newTask = new Element(taskType+""+i);
 			element.getChildren().add(newTask);
-			newTask.addContent(new Element("indexID").setText(targetTask.getIndexId()));
-			newTask.addContent(new Element("workInfo").setText((targetTask.getWorkInfo())));
-			newTask.addContent(new Element("startDate").setText((CustomDate.convertString(targetTask.getStartDate()))));
-			newTask.addContent(new Element("endDate").setText((CustomDate.convertString(targetTask.getEndDate()))));
-			newTask.addContent(new Element("tag").setText((targetTask.getTag().getTag())));
-			newTask.addContent(new Element("repetition").setText((targetTask.getTag().getRepetition())));
-			newTask.addContent(new Element("isImportant").setText(((targetTask.getIsImportant() == true ? Common.TRUE : Common.FALSE))));
-			newTask.addContent(new Element("indexInList").setText((targetTask.getIndexInList()+"")));
-			newTask.addContent(new Element("modifiedDate").setText((CustomDate.convertString(targetTask.getLatestModifiedDate()) +":"+ targetTask.getLatestModifiedDate().getSecond())));
-			newTask.addContent(new Element("currentOccurrence").setText((targetTask.getCurrentOccurrence()+"")));
-			newTask.addContent(new Element("numOccurrences").setText((targetTask.getNumOccurrences()+"")));
-			if(targetTask.getStatus() == Task.Status.NEWLY_ADDED)
-				newTask.addContent(new Element("status").setText(("new")));
-			else if(targetTask.getStatus() == Task.Status.UNCHANGED)
-				newTask.addContent(new Element("status").setText(("unchanged")));
-			else if(targetTask.getStatus() == Task.Status.DELETED)
-				newTask.addContent(new Element("status").setText(("deleted")));
-			else if(targetTask.getStatus() == Task.Status.ADDED_WHEN_SYNC)
-				newTask.addContent(new Element("status").setText(("added_when_sync")));
-			else 
-				newTask.addContent(new Element("status").setText(("deleted_when_sync")));
+			newTask.addContent(new Element(INDEXID).setText(targetTask.getIndexId()));
+			newTask.addContent(new Element(WORK_INFO).setText((targetTask.getWorkInfo())));
+			newTask.addContent(new Element(START_DATE).setText((CustomDate.convertString(targetTask.getStartDate()))));
+			newTask.addContent(new Element(END_DATE).setText((CustomDate.convertString(targetTask.getEndDate()))));
+			newTask.addContent(new Element(TAG).setText((targetTask.getTag().getTag())));
+			newTask.addContent(new Element(REPETITION).setText((targetTask.getTag().getRepetition())));
+			newTask.addContent(new Element(IS_IMPORTANT).setText(((targetTask.getIsImportant() == true ? Common.TRUE : Common.FALSE))));
+			newTask.addContent(new Element(INDEX_IN_LIST).setText((targetTask.getIndexInList()+"")));
+			newTask.addContent(new Element(MODIFIED_DATE).setText((CustomDate.convertString(targetTask.getLatestModifiedDate()) +":"+ targetTask.getLatestModifiedDate().getSecond())));
+			newTask.addContent(new Element(CURRENT_OCCURRENCE).setText((targetTask.getCurrentOccurrence()+"")));
+			newTask.addContent(new Element(NUM_OCCURRENCE).setText((targetTask.getNumOccurrences()+"")));
+			if(targetTask.getStatus() == Task.Status.NEWLY_ADDED) {
+				newTask.addContent(new Element(STATUS).setText((NEW)));
+			} else if(targetTask.getStatus() == Task.Status.UNCHANGED) {
+				newTask.addContent(new Element(STATUS).setText((UNCHANGED)));
+			} else if(targetTask.getStatus() == Task.Status.DELETED) {
+				newTask.addContent(new Element(STATUS).setText((DELETED)));
+			} else if(targetTask.getStatus() == Task.Status.ADDED_WHEN_SYNC) {
+				newTask.addContent(new Element(STATUS).setText((ADDED_WHEN_SYNC)));
+			} else {
+				newTask.addContent(new Element(STATUS).setText((DELETED_WHEN_SYNC)));
+			}
 				
 		}
 		return element;
