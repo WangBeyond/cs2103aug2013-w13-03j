@@ -218,7 +218,7 @@ abstract class IndexCommand extends TwoWayCommand{
 		if (isPendingTab() && modifiedTask.hasNewlyAddedStatus()) {
 			modifiedTask.setStatus(Task.Status.UNCHANGED);
 		} else if (isPendingTab() && modifiedTask.hasUnchangedStatus()) {
-			if(Control.s == null || !Control.s.isRunning() )
+			if(Control.syncThread == null || !Control.syncThread.isRunning() )
 				modifiedTask.setStatus(Task.Status.DELETED);
 			else 
 				modifiedTask.setStatus(Task.Status.DELETED_WHEN_SYNC);
@@ -227,7 +227,7 @@ abstract class IndexCommand extends TwoWayCommand{
 	
 	protected void reverseStatus(Task modifiedTask){
 		if (isPendingTab() && modifiedTask.hasUnchangedStatus()) {
-			if(Control.s == null || !Control.s.isRunning() )
+			if(Control.syncThread == null || !Control.syncThread.isRunning() )
 				modifiedTask.setStatus(Task.Status.NEWLY_ADDED);
 			else
 				modifiedTask.setStatus(Task.Status.ADDED_WHEN_SYNC);
