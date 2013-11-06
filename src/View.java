@@ -84,24 +84,6 @@ import javafx.util.Callback;
 import javafx.util.Duration;
 
 public class View implements HotkeyListener {
-	private static final KeyCombination collapseWindow = new KeyCodeCombination(KeyCode.UP,
-			KeyCombination.CONTROL_DOWN);
-	private static final KeyCombination expandWindow = new KeyCodeCombination(KeyCode.DOWN,
-			KeyCombination.CONTROL_DOWN);
-	private static final KeyCombination hideWindow = new KeyCodeCombination(KeyCode.H,
-			KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN);
-	private static final KeyCombination changeTab = new KeyCodeCombination(KeyCode.TAB,
-			KeyCombination.CONTROL_DOWN);
-
-	public static final int TYPING = -2;
-	public static final int COMMAND = -1;
-	public static final int WORK_INFO = 0;
-	public static final int TAG = 1;
-	public static final int START_TIME = 2;
-	public static final int END_TIME = 3;
-	public static final int IMPORTANT = 4;
-	public static final int RECURRING = 5;
-	public static final int INDEX = 6;
 
 	// Small windows that View class may show
 	private Help helpPage;
@@ -137,14 +119,10 @@ public class View implements HotkeyListener {
 	private Color defaultColor;
 	public JTextPane txt;
 	public ArrayList<Text> feedbackList = new ArrayList<Text>();
-	static String[] COMMAND_TYPES = { "add", "remove", "delete", "edit",
-			"modify", "search", "find", "clear", "mark", "unmark", "complete",
-			"incomplete", "all", "list", "today", "help", "del", "exit", "rm",
-			"show", "ls", "clr", "done", "undone", "settings", "sync", "recover", "rec" };
 	public HBox feedbacks;
 	private static Color[] colourScheme;
 	public static AttributeSet[] colourSchemeCommandLine;
-	private static final String WELCOME_MESSAGE = "Welcome back, %s";
+
 	// private HBox multiColorCommand;
 	private ScrollBar pendingBar;
 	private ScrollBar completeBar;
@@ -218,7 +196,7 @@ public class View implements HotkeyListener {
 		if (model.getUsername() != null)
 			setFeedbackStyle(
 					0,
-					String.format(WELCOME_MESSAGE,
+					String.format(Common.WELCOME_MESSAGE,
 							model.getUsername().replace("@gmail.com", "")),
 					defaultColor);
 		else
@@ -337,18 +315,18 @@ public class View implements HotkeyListener {
 	private void setupShortcuts() {
 		root.setOnKeyPressed(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent e) {
-				if (changeTab.match(e)) {
+				if (Common.changeTab.match(e)) {
 					int index = tabPane.getSelectionModel().getSelectedIndex();
 					if (index != 2)
 						tabPane.getSelectionModel().selectNext();
 					else
 						tabPane.getSelectionModel().selectFirst();
 				}
-				if (collapseWindow.match(e)) {
+				if (Common.collapseWindow.match(e)) {
 					collapseAnimation();
-				} else if (expandWindow.match(e)) {
+				} else if (Common.expandWindow.match(e)) {
 					expandAnimation();
-				} else if (hideWindow.match(e)) {
+				} else if (Common.hideWindow.match(e)) {
 					hide();
 				} else if (e.getCode() == KeyCode.BACK_SPACE) {
 					textField.temp = 1;
@@ -1421,7 +1399,7 @@ public class View implements HotkeyListener {
 	void setFeedback(String feedback) {
 		emptyFeedback(0);
 		switch (feedback) {
-		case Control.MESSAGE_ADD_TIP:
+		case Common.MESSAGE_ADD_TIP:
 			setFeedbackStyle(0, "add", colourScheme[0]);
 			setFeedbackStyle(1, "<workflow>", colourScheme[1]);
 			setFeedbackStyle(2, "<start tim"
@@ -1431,7 +1409,7 @@ public class View implements HotkeyListener {
 			setFeedbackStyle(5, "<#tag>", colourScheme[5]);
 			emptyFeedback(6);
 			break;
-		case Control.MESSAGE_EDIT_TIP:
+		case Common.MESSAGE_EDIT_TIP:
 			setFeedbackStyle(0, "edit", colourScheme[0]);
 			setFeedbackStyle(1, "<index>", colourScheme[6]);
 			setFeedbackStyle(2, "<workflow>", colourScheme[1]);
@@ -1441,18 +1419,18 @@ public class View implements HotkeyListener {
 			setFeedbackStyle(6, "<#tag>", colourScheme[5]);
 			emptyFeedback(7);
 			break;
-		case Control.MESSAGE_RECOVER_TIP:
+		case Common.MESSAGE_RECOVER_TIP:
 			setFeedbackStyle(0, "recover", colourScheme[0]);
 			setFeedbackStyle(1, "<index1> <index2> <index3> ...",
 					colourScheme[6]);
 			emptyFeedback(2);
 			break;
-		case Control.MESSAGE_REMOVE_INDEX_TIP:
+		case Common.MESSAGE_REMOVE_INDEX_TIP:
 			setFeedbackStyle(0, "remove", colourScheme[0]);
 			setFeedbackStyle(1, "<index>", colourScheme[6]);
 			emptyFeedback(2);
 			break;
-		case Control.MESSAGE_REMOVE_INFO_TIP:
+		case Common.MESSAGE_REMOVE_INFO_TIP:
 			setFeedbackStyle(0, "remove", colourScheme[0]);
 			setFeedbackStyle(1, "<workflow>", colourScheme[1]);
 			setFeedbackStyle(2, "<start time>", colourScheme[2]);
@@ -1461,7 +1439,7 @@ public class View implements HotkeyListener {
 			setFeedbackStyle(5, "<#tag>", colourScheme[5]);
 			emptyFeedback(6);
 			break;
-		case Control.MESSAGE_SEARCH_TIP:
+		case Common.MESSAGE_SEARCH_TIP:
 			setFeedbackStyle(0, "search", colourScheme[0]);
 			setFeedbackStyle(1, "<workflow>", colourScheme[1]);
 			setFeedbackStyle(2, "<start time>", colourScheme[2]);
@@ -1470,49 +1448,49 @@ public class View implements HotkeyListener {
 			setFeedbackStyle(5, "<#tag>", colourScheme[5]);
 			emptyFeedback(6);
 			break;
-		case Control.MESSAGE_UNDO_TIP:
+		case Common.MESSAGE_UNDO_TIP:
 			setFeedbackStyle(0, "<undo>", colourScheme[0]);
 			emptyFeedback(1);
 			break;
-		case Control.MESSAGE_REDO_TIP:
+		case Common.MESSAGE_REDO_TIP:
 			setFeedbackStyle(0, "<redo>", colourScheme[0]);
 			emptyFeedback(1);
 			break;
-		case Control.MESSAGE_TODAY_TIP:
+		case Common.MESSAGE_TODAY_TIP:
 			setFeedbackStyle(0, "<today>", colourScheme[0]);
 			emptyFeedback(1);
 			break;
-		case Control.MESSAGE_SHOW_ALL_TIP:
+		case Common.MESSAGE_SHOW_ALL_TIP:
 			setFeedbackStyle(0, "<show>", colourScheme[0]);
 			emptyFeedback(1);
 			break;
-		case Control.MESSAGE_SYNC_TIP:
+		case Common.MESSAGE_SYNC_TIP:
 			setFeedbackStyle(0, "<sync>", colourScheme[0]);
 			emptyFeedback(1);
 			break;
-		case Control.MESSAGE_EXIT_TIP:
+		case Common.MESSAGE_EXIT_TIP:
 			setFeedbackStyle(0, "<exit>", colourScheme[0]);
 			emptyFeedback(1);
 			break;
-		case Control.MESSAGE_MARK_TIP:
+		case Common.MESSAGE_MARK_TIP:
 			setFeedbackStyle(0, "<mark>", colourScheme[0]);
 			setFeedbackStyle(1, "<index1> <index2> <index3> ...",
 					colourScheme[6]);
 			emptyFeedback(2);
 			break;
-		case Control.MESSAGE_UNMARK_TIP:
+		case Common.MESSAGE_UNMARK_TIP:
 			setFeedbackStyle(0, "<unmark>", colourScheme[0]);
 			setFeedbackStyle(1, "<index1> <index2> <index3> ...",
 					colourScheme[6]);
 			emptyFeedback(2);
 			break;
-		case Control.MESSAGE_COMPLETE_TIP:
+		case Common.MESSAGE_COMPLETE_TIP:
 			setFeedbackStyle(0, "<complete/done>", colourScheme[0]);
 			setFeedbackStyle(1, "<index1> <index2> <index3> ...",
 					colourScheme[6]);
 			emptyFeedback(2);
 			break;
-		case Control.MESSAGE_INCOMPLETE_TIP:
+		case Common.MESSAGE_INCOMPLETE_TIP:
 			setFeedbackStyle(0, "<incomplete/undone>", colourScheme[0]);
 			setFeedbackStyle(1, "<index1> <index2> <index3> ...",
 					colourScheme[6]);
@@ -1527,15 +1505,15 @@ public class View implements HotkeyListener {
 			}
 			setFeedbackStyle(0,
 					availCommands.size() > 0 ? "Available commands: "
-							: Control.MESSAGE_REQUEST_COMMAND, colourScheme[1]);
+							: Common.MESSAGE_REQUEST_COMMAND, colourScheme[1]);
 			break;
 		}
 	}
 
 	ArrayList<String> getAvailCommandNum(String feedback) {
 		ArrayList<String> availCommands = new ArrayList<String>();
-		for (int i = 0; i < COMMAND_TYPES.length; i++) {
-			String command = COMMAND_TYPES[i];
+		for (int i = 0; i < Common.COMMAND_TYPES_STR.length; i++) {
+			String command = Common.COMMAND_TYPES_STR[i];
 			if (command.indexOf(feedback) == 0 && !command.equals(feedback))
 				availCommands.add(command);
 		}
@@ -1594,39 +1572,39 @@ class CustomStyledDocumentForDayMode extends DefaultStyledDocument {
 		for (int i = 0; i < infoList.size(); i++) {
 			InfoWithIndex info = infoList.get(i);
 			switch (info.getInfoType()) {
-			case View.TYPING:
+			case Common.INDEX_TYPING_INFO:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[0], false);
 				break;
-			case View.COMMAND:
+			case Common.INDEX_COMMAND_TYPE :
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[1], false);
 				break;
-			case View.WORK_INFO:
+			case Common.INDEX_WORK_INFO:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[2], false);
 				break;
-			case View.TAG:
+			case Common.INDEX_TAG:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[3], false);
 				break;
-			case View.START_TIME:
+			case Common.INDEX_START_DATE:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[4], false);
 				break;
-			case View.END_TIME:
+			case Common.INDEX_END_DATE:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[5], false);
 				break;
-			case View.IMPORTANT:
+			case Common.INDEX_IS_IMPT :
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[6], false);
 				break;
-			case View.RECURRING:
+			case Common.INDEX_REPEATING:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[7], false);
 				break;
-			case View.INDEX:
+			case Common.INDEX_INDEX_INFO:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[8], false);
 				break;
@@ -1649,46 +1627,46 @@ class CustomStyledDocumentForNightMode extends DefaultStyledDocument {
 		super.remove(offs, len);
 		setColor();
 	}
-
+	
 	private void setColor() throws BadLocationException {
 		String text = getText(0, getLength());
 		ArrayList<InfoWithIndex> infoList = Parser.parseForView(text);
 		for (int i = 0; i < infoList.size(); i++) {
 			InfoWithIndex info = infoList.get(i);
 			switch (info.getInfoType()) {
-			case View.TYPING:
+			case Common.INDEX_TYPING_INFO:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[0], false);
 				break;
-			case View.COMMAND:
+			case Common.INDEX_COMMAND_TYPE:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[1], false);
 				break;
-			case View.WORK_INFO:
+			case Common.INDEX_WORK_INFO:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[2], false);
 				break;
-			case View.TAG:
+			case Common.INDEX_TAG :
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[3], false);
 				break;
-			case View.START_TIME:
+			case Common.INDEX_START_DATE:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[4], false);
 				break;
-			case View.END_TIME:
+			case Common.INDEX_END_DATE:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[5], false);
 				break;
-			case View.IMPORTANT:
+			case Common.INDEX_IS_IMPT:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[6], false);
 				break;
-			case View.RECURRING:
+			case Common.INDEX_REPEATING :
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[7], false);
 				break;
-			case View.INDEX:
+			case Common.INDEX_INDEX_INFO:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[8], false);
 				break;

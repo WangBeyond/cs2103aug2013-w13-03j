@@ -25,38 +25,10 @@ import javafx.stage.Stage;
 
 public class Control extends Application {
 
-	static final String MESSAGE_INVALID_COMMAND_TYPE = "Invalid Command Type!";
-	static final String MESSAGE_EMPTY_COMMAND = "Empty Command!";
-	static final String MESSAGE_INVALID_UNDO = "You cannot undo anymore!";
-	static final String MESSAGE_INVALID_REDO = "You cannot redo anymore!";
-	static final String MESSAGE_SUCCESSFUL_REDO = "Redo was successful.";
-	static final String MESSAGE_ADD_TIP = "Tip for ADD command";
-	static final String MESSAGE_EDIT_TIP = "Tip for EDIT command";
-	static final String MESSAGE_RECOVER_TIP = "Tip for RECOVER command";
-	static final String MESSAGE_REMOVE_INDEX_TIP = "Tip for REMOVE with index command";
-	static final String MESSAGE_REMOVE_INFO_TIP = "Tip for REMOVE with info command";
-	static final String MESSAGE_SEARCH_TIP = "Tip for SEARCH command";
-	static final String MESSAGE_TODAY_TIP = "Tip for TODAY command";
-	static final String MESSAGE_SHOW_ALL_TIP = "Tip for SHOW command";
-	static final String MESSAGE_CLEAR_ALL_TIP = "Tip for CLEAR command";
-	static final String MESSAGE_UNDO_TIP = "Tip for UNDO command";
-	static final String MESSAGE_REDO_TIP = "Tip for REDO command";
-	static final String MESSAGE_MARK_TIP = "Tip for MARK command";
-	static final String MESSAGE_UNMARK_TIP = "Tip for UNMARK command";
-	static final String MESSAGE_COMPLETE_TIP = "Tip for COMPLETE command";
-	static final String MESSAGE_INCOMPLETE_TIP = "Tip for INCOMPLETE command";
-	static final String MESSAGE_SYNC_TIP = "Tip for SYNC command";
-	static final String MESSAGE_HELP_TIP = "Tip for HELP command";
-	static final String MESSAGE_SETTINGS_TIP = "Tip for SETTINGS command";
-	static final String MESSAGE_EXIT_TIP = "Tip for EXIT command";
-	static final String MESSAGE_REQUEST_COMMAND = "Please enter a command or type help to view commands.";
+
 
 	static final String UNDO_COMMAND = "undo";
 	static final String REDO_COMMAND = "redo";
-	static final KeyCombination undo_hot_key = new KeyCodeCombination(
-			KeyCode.Z, KeyCodeCombination.CONTROL_DOWN);
-	static final KeyCombination redo_hot_key = new KeyCodeCombination(
-			KeyCode.Y, KeyCodeCombination.CONTROL_DOWN);
 
 	public Model modelHandler = new Model();
 	public History commandHistory = new History();
@@ -167,7 +139,7 @@ public class Control extends Application {
 			private void realTimeFeedback(String command) {
 
 				if (Parser.checkEmptyCommand(command)) {
-					view.setFeedback(MESSAGE_REQUEST_COMMAND);
+					view.setFeedback(Common.MESSAGE_REQUEST_COMMAND);
 				} else {
 					Common.COMMAND_TYPES commandType = Parser
 							.determineCommandType(command);
@@ -176,61 +148,61 @@ public class Control extends Application {
 					} else {
 						switch (commandType) {
 						case ADD:
-							view.setFeedback(MESSAGE_ADD_TIP);
+							view.setFeedback(Common.MESSAGE_ADD_TIP);
 							break;
 						case EDIT:
-							view.setFeedback(MESSAGE_EDIT_TIP);
+							view.setFeedback(Common.MESSAGE_EDIT_TIP);
 							break;
 						case REMOVE:
 							if (checkRemoveIndex(command))
-								view.setFeedback(MESSAGE_REMOVE_INDEX_TIP);
+								view.setFeedback(Common.MESSAGE_REMOVE_INDEX_TIP);
 							else
-								view.setFeedback(MESSAGE_REMOVE_INFO_TIP);
+								view.setFeedback(Common.MESSAGE_REMOVE_INFO_TIP);
 							break;
 						case RECOVER:
-							view.setFeedback(MESSAGE_RECOVER_TIP);
+							view.setFeedback(Common.MESSAGE_RECOVER_TIP);
 							break;
 						case SEARCH:
-							view.setFeedback(MESSAGE_SEARCH_TIP);
+							view.setFeedback(Common.MESSAGE_SEARCH_TIP);
 							break;
 						case SHOW_ALL:
-							view.setFeedback(MESSAGE_SHOW_ALL_TIP);
+							view.setFeedback(Common.MESSAGE_SHOW_ALL_TIP);
 							break;
 						case UNDO:
-							view.setFeedback(MESSAGE_UNDO_TIP);
+							view.setFeedback(Common.MESSAGE_UNDO_TIP);
 							break;
 						case REDO:
-							view.setFeedback(MESSAGE_REDO_TIP);
+							view.setFeedback(Common.MESSAGE_REDO_TIP);
 							break;
 						case MARK:
-							view.setFeedback(MESSAGE_MARK_TIP);
+							view.setFeedback(Common.MESSAGE_MARK_TIP);
 							break;
 						case UNMARK:
-							view.setFeedback(MESSAGE_UNMARK_TIP);
+							view.setFeedback(Common.MESSAGE_UNMARK_TIP);
 							break;
 						case COMPLETE:
-							view.setFeedback(MESSAGE_COMPLETE_TIP);
+							view.setFeedback(Common.MESSAGE_COMPLETE_TIP);
 							break;
 						case INCOMPLETE:
-							view.setFeedback(MESSAGE_INCOMPLETE_TIP);
+							view.setFeedback(Common.MESSAGE_INCOMPLETE_TIP);
 							break;
 						case TODAY:
-							view.setFeedback(MESSAGE_TODAY_TIP);
+							view.setFeedback(Common.MESSAGE_TODAY_TIP);
 							break;
 						case CLEAR_ALL:
-							view.setFeedback(MESSAGE_CLEAR_ALL_TIP);
+							view.setFeedback(Common.MESSAGE_CLEAR_ALL_TIP);
 							break;
 						case HELP:
-							view.setFeedback(MESSAGE_HELP_TIP);
+							view.setFeedback(Common.MESSAGE_HELP_TIP);
 							break;
 						case SYNC:
-							view.setFeedback(MESSAGE_SYNC_TIP);
+							view.setFeedback(Common.MESSAGE_SYNC_TIP);
 							break;
 						case SETTINGS:
-							view.setFeedback(MESSAGE_SETTINGS_TIP);
+							view.setFeedback(Common.MESSAGE_SETTINGS_TIP);
 							break;
 						case EXIT:
-							view.setFeedback(MESSAGE_EXIT_TIP);
+							view.setFeedback(Common.MESSAGE_EXIT_TIP);
 							break;
 						}
 					}
@@ -242,11 +214,11 @@ public class Control extends Application {
 	private void handleKeyPressEvent() {
 		view.generalBase.setOnKeyPressed(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent e) {
-				if (undo_hot_key.match(e)) {
+				if (Common.undo_hot_key.match(e)) {
 					isRealTimeSearch = false;
 					String feedback = executeCommand("undo");
 					updateFeedback(feedback);
-				} else if (redo_hot_key.match(e)) {
+				} else if (Common.redo_hot_key.match(e)) {
 					isRealTimeSearch = false;
 					String feedback = executeCommand("redo");
 					updateFeedback(feedback);
@@ -372,7 +344,7 @@ public class Control extends Application {
 	private String executeCommand(String userCommand) {
 		boolean isEmptyCommand = Parser.checkEmptyCommand(userCommand);
 		if (isEmptyCommand) {
-			return MESSAGE_EMPTY_COMMAND;
+			return Common.MESSAGE_EMPTY_COMMAND;
 		}
 		try {
 			Common.COMMAND_TYPES commandType = Parser
@@ -429,7 +401,7 @@ public class Control extends Application {
 		case EXIT:
 			return executeExitCommand();
 		case INVALID:
-			return MESSAGE_INVALID_COMMAND_TYPE;
+			return Common.MESSAGE_INVALID_COMMAND_TYPE;
 		default:
 			throw new Error("Unrecognised command type.");
 		}
@@ -449,7 +421,7 @@ public class Control extends Application {
 		int tabIndex = view.getTabIndex();
 		Command s = new AddCommand(parsedUserCommand, modelHandler, tabIndex);
 		String feedback = s.execute();
-		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_ADD)) {
+		if (feedback.equals(Common.MESSAGE_SUCCESSFUL_ADD)) {
 			commandHistory.updateCommand((TwoWayCommand) s);
 			taskFile.storeToFile();
 			view.setTab(0);
@@ -464,7 +436,7 @@ public class Control extends Application {
 		int tabIndex = view.getTabIndex();
 		Command s = new EditCommand(parsedUserCommand, modelHandler, tabIndex);
 		String feedback = s.execute();
-		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_EDIT)) {
+		if (feedback.equals(Common.MESSAGE_SUCCESSFUL_EDIT)) {
 			commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
 			taskFile.storeToFile();
 			executeShowCommand();
@@ -478,7 +450,7 @@ public class Control extends Application {
 		int tabIndex = view.getTabIndex();
 		Command s = new RemoveCommand(parsedUserCommand, modelHandler, tabIndex);
 		String feedback = s.execute();
-		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_REMOVE)) {
+		if (feedback.equals(Common.MESSAGE_SUCCESSFUL_REMOVE)) {
 			commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
 			taskFile.storeToFile();
 			// syncFile.storeToFile();
@@ -495,7 +467,7 @@ public class Control extends Application {
 			taskFile.storeToFile();
 			return feedback;
 		} else
-			return MESSAGE_INVALID_UNDO;
+			return Common.MESSAGE_INVALID_UNDO;
 	}
 
 	private String executeRedoCommand() throws IOException {
@@ -507,9 +479,9 @@ public class Control extends Application {
 			TwoWayCommand redoCommand = commandHistory.getPrevCommandForRedo();
 			redoCommand.execute();
 			taskFile.storeToFile();
-			return MESSAGE_SUCCESSFUL_REDO;
+			return Common.MESSAGE_SUCCESSFUL_REDO;
 		} else
-			return MESSAGE_INVALID_REDO;
+			return Common.MESSAGE_INVALID_REDO;
 	}
 
 	private String executeSearchCommand(String[] parsedUserCommand,
@@ -529,7 +501,7 @@ public class Control extends Application {
 		int tabIndex = view.getTabIndex();
 		Command s = new ClearAllCommand(modelHandler, tabIndex);
 		String feedback = s.execute();
-		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_CLEAR_ALL)) {
+		if (feedback.equals(Common.MESSAGE_SUCCESSFUL_CLEAR_ALL)) {
 			commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
 			taskFile.storeToFile();
 			executeShowCommand();
@@ -545,7 +517,7 @@ public class Control extends Application {
 				tabIndex);
 		String feedback = s.execute();
 
-		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_COMPLETE)) {
+		if (feedback.equals(Common.MESSAGE_SUCCESSFUL_COMPLETE)) {
 			commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
 			taskFile.storeToFile();
 			executeShowCommand();
@@ -561,7 +533,7 @@ public class Control extends Application {
 				tabIndex);
 		String feedback = s.execute();
 
-		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_INCOMPLETE)) {
+		if (feedback.equals(Common.MESSAGE_SUCCESSFUL_INCOMPLETE)) {
 			commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
 			taskFile.storeToFile();
 			executeShowCommand();
@@ -575,7 +547,7 @@ public class Control extends Application {
 		Command s = new RecoverCommand(parsedUserCommand, modelHandler, tabIndex);
 		String feedback = s.execute();
 		
-		if(feedback.equals(Command.MESSAGE_SUCCESSFUL_RECOVER)){
+		if(feedback.equals(Common.MESSAGE_SUCCESSFUL_RECOVER)){
 			commandHistory.updateCommand((TwoWayCommand)s, isAfterSearch);
 			taskFile.storeToFile();
 			executeShowCommand();
@@ -591,7 +563,7 @@ public class Control extends Application {
 		Command s = new MarkCommand(parsedUserCommand, modelHandler, tabIndex);
 		String feedback = s.execute();
 
-		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_MARK)) {
+		if (feedback.equals(Common.MESSAGE_SUCCESSFUL_MARK)) {
 			commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
 			taskFile.storeToFile();
 			executeShowCommand();
@@ -606,7 +578,7 @@ public class Control extends Application {
 		Command s = new UnmarkCommand(parsedUserCommand, modelHandler, tabIndex);
 		String feedback = s.execute();
 
-		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_UNMARK)) {
+		if (feedback.equals(Common.MESSAGE_SUCCESSFUL_UNMARK)) {
 			commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
 			taskFile.storeToFile();
 			executeShowCommand();
@@ -624,7 +596,7 @@ public class Control extends Application {
 		boolean oldAutoSync = modelHandler.getAutoSync();
 		Command s = new SettingsCommand(modelHandler, view, parsedUserCommand);
 		String feedback = s.execute();
-		if (feedback.equals(Command.MESSAGE_SUCCESSFUL_SETTINGS)) {
+		if (feedback.equals(Common.MESSAGE_SUCCESSFUL_SETTINGS)) {
 			settingStore.storeToFile();
 			if(!oldTheme.equals(modelHandler.getThemeMode()))
 					view.customizeGUI();
@@ -677,7 +649,7 @@ public class Control extends Application {
 		// String feedback = s.execute();
 		String feedback = syncThread.getFeedback();
 		if (feedback == null){
-			feedback = MESSAGE_REQUEST_COMMAND;
+			feedback = Common.MESSAGE_REQUEST_COMMAND;
 		}
 		view.txt.setText("");
 		view.txt.setCaretPosition(0);
@@ -696,23 +668,23 @@ public class Control extends Application {
 	}
 
 	private boolean successfulExecution(String feedback) {
-		return feedback.equals(Command.MESSAGE_NO_RESULTS)
-				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_REMOVE)
-				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_RECOVER)
-				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_ADD)
-				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_CLEAR_ALL)
-				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_COMPLETE)
-				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_EDIT)
-				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_INCOMPLETE)
-				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_MARK)
-				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_SEARCH)
-				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_SHOW_ALL)
-				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_UNMARK)
-				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_UNDO)
-				|| feedback.equals(MESSAGE_SUCCESSFUL_REDO)
-				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_HELP)
-				|| feedback.equals(Command.MESSAGE_SUCCESSFUL_SETTINGS)
-				|| feedback.equals(Command.MESSAGE_SYNC_SUCCESSFUL);
+		return feedback.equals(Common.MESSAGE_NO_RESULTS)
+				|| feedback.equals(Common.MESSAGE_SUCCESSFUL_REMOVE)
+				|| feedback.equals(Common.MESSAGE_SUCCESSFUL_RECOVER)
+				|| feedback.equals(Common.MESSAGE_SUCCESSFUL_ADD)
+				|| feedback.equals(Common.MESSAGE_SUCCESSFUL_CLEAR_ALL)
+				|| feedback.equals(Common.MESSAGE_SUCCESSFUL_COMPLETE)
+				|| feedback.equals(Common.MESSAGE_SUCCESSFUL_EDIT)
+				|| feedback.equals(Common.MESSAGE_SUCCESSFUL_INCOMPLETE)
+				|| feedback.equals(Common.MESSAGE_SUCCESSFUL_MARK)
+				|| feedback.equals(Common.MESSAGE_SUCCESSFUL_SEARCH)
+				|| feedback.equals(Common.MESSAGE_SUCCESSFUL_SHOW_ALL)
+				|| feedback.equals(Common.MESSAGE_SUCCESSFUL_UNMARK)
+				|| feedback.equals(Common.MESSAGE_SUCCESSFUL_UNDO)
+				|| feedback.equals(Common.MESSAGE_SUCCESSFUL_REDO)
+				|| feedback.equals(Common.MESSAGE_SUCCESSFUL_HELP)
+				|| feedback.equals(Common.MESSAGE_SUCCESSFUL_SETTINGS)
+				|| feedback.equals(Common.MESSAGE_SYNC_SUCCESSFUL);
 	}
 
 	private void loadUpdateTimer() {

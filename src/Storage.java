@@ -3,8 +3,6 @@ import java.io.IOException;
 
 public abstract class Storage {
 	
-	protected final static String TRUE = "true";
-	protected final static String FALSE = "false";
 	protected final static boolean DONE_READING = true;
 	protected final static boolean UNDONE_READING = false;
 	public final static String FOLDERNAME = "iDo Files";

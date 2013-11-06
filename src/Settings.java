@@ -38,10 +38,7 @@ public class Settings {
 
 	private static final boolean STORE_SUCCESSFUL = true;
 	private static final boolean STORE_FAIL = false;
-	
-	private final KeyCombination esc = new KeyCodeCombination(KeyCode.ESCAPE);
-	private final KeyCombination saveSettings = new KeyCodeCombination(
-			KeyCode.S, KeyCombination.CONTROL_DOWN);
+
 
 	private static Settings oneSettingsPage;
 	private Model model;
@@ -348,9 +345,9 @@ public class Settings {
 	private void setupShortcuts() {
 		root.setOnKeyPressed(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent e) {
-				if (esc.match(e)) {
+				if (Common.esc.match(e)) {
 					settingsStage.close();
-				} else if (saveSettings.match(e)) {
+				} else if (Common.saveSettings.match(e)) {
 					if (storeSettingChanges()) {
 						settingsStage.close();
 					}

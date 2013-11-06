@@ -9,40 +9,11 @@ import javafx.collections.ObservableList;
 
 /****************************************** Abstract Class Command ***************************/
 public abstract class Command {
-	protected static final String MESSAGE_SUCCESSFUL_SHOW_ALL = "Show all the tasks";
-	protected static final String MESSAGE_SUCCESSFUL_CLEAR_ALL = "Clear all the tasks";
-	protected static final String MESSAGE_SUCCESSFUL_SEARCH = "Successful search!";
-	protected static final String MESSAGE_NO_RESULTS = "No results found!";
-	protected static final String MESSAGE_SUCCESSFUL_ADD = "One task has been added successfully.";
-	protected static final String MESSAGE_INVALID_START_END_DATES = "There must be both start and end dates for repetitive task.";
-	protected static final String MESSAGE_INVALID_TIME_REPETITIVE = "The difference is larger than the limit of repetitive period.";
-	protected static final String MESSAGE_SUCCESSFUL_EDIT = "Indicated task has been edited successfully.";
-	protected static final String MESSAGE_SUCCESSFUL_REMOVE = "Indicated tasks has/have been removed.";
-	protected static final String MESSAGE_INVALID_DATE_RANGE = "Invalid date range as start date is after end date.";
-	protected static final String MESSAGE_DUPLICATE_INDEXES = "There are duplicate indexes!";
-	protected static final String MESSAGE_INDEX_OUT_OF_BOUNDS = "There is an index outside the range of the list.";
-	protected static final String MESSAGE_SUCCESSFUL_MARK = "Indicated task(s) has/have been marked successfully.";
-	protected static final String MESSAGE_SUCCESSFUL_UNMARK = "Indicated task(s) has/have been unmarked successfully.";
-	protected static final String MESSAGE_SUCCESSFUL_COMPLETE = "Indicated task(s) has/have been marked as complete.";
-	protected static final String MESSAGE_SUCCESSFUL_INCOMPLETE = "Indicated task(s) has/have been marked as incomplete.";
-	protected static final String MESSAGE_SUCCESSFUL_RECOVER = "Indicated task(s) has/have been recovered successfully.";
-	protected static final String MESSAGE_SUCCESSFUL_UNDO = "Undo was successful.";
-	protected static final String MESSAGE_WRONG_COMPLETE_TABS = "Cannot complete the tasks in this current tab.";
-	protected static final String MESSAGE_WRONG_INCOMPLETE_TABS = "Cannot incomplete the tasks in this current tab.";
-	protected static final String MESSAGE_WRONG_RECOVER_TABS = "Cannot recover the tasks in this current tab.";
-	protected static final String MESSAGE_SUCCESSFUL_HELP = "Help window opened.";
-	protected static final String MESSAGE_SUCCESSFUL_SETTINGS = "Settings window opened.";
-	protected static final String MESSAGE_SYNC_SUCCESSFUL = "Successful synchronized.";
-	protected static final String MESSAGE_SYNC_INVALID_USERNAME_PASSWORD = "Synchronization failed: Invalid username and password.";
-	protected static final String MESSAGE_SYNC_SERVICE_STOPPED = "Synchronization service has stopped working.";
-	protected static final String MESSAGE_SYNC_FAIL_TO_CREATE_CALENDAR = "Fail to create a calendar.";
+
 	
 	protected static final String HAVING_START_DATE = "having start date";
 	protected static final String HAVING_END_DATE = "having end date";
-	
-	static final int PENDING_TAB = 0;
-	static final int COMPLETE_TAB = 1;
-	static final int TRASH_TAB = 2;
+
 
 	// Model containing lists of tasks to process
 	protected Model model;
@@ -62,9 +33,9 @@ public abstract class Command {
 	public abstract String execute();
 	
 	protected ObservableList<Task> getSearchList(int tabIndex) {
-		if (tabIndex == PENDING_TAB) {
+		if (tabIndex == Common.PENDING_TAB) {
 			return model.getSearchPendingList();
-		} else if (tabIndex == COMPLETE_TAB) {
+		} else if (tabIndex == Common.COMPLETE_TAB) {
 			return model.getSearchCompleteList();
 		} else {
 			return model.getSearchTrashList();
@@ -76,11 +47,11 @@ public abstract class Command {
 		if (hasStartDate && hasEndDate) {
 			boolean hasEndDateBeforeStartDate = CustomDate.compare(endDate, startDate) < 0;
 			if (hasEndDateBeforeStartDate) {
-				throw new IllegalArgumentException(MESSAGE_INVALID_DATE_RANGE);
+				throw new IllegalArgumentException(Common.MESSAGE_INVALID_DATE_RANGE);
 			}
 		}
 		if (isRepetitive && (!hasStartDate || !hasEndDate)) {
-			throw new IllegalArgumentException(MESSAGE_INVALID_START_END_DATES);
+			throw new IllegalArgumentException(Common.MESSAGE_INVALID_START_END_DATES);
 		}
 		
 		if (isRepetitive) {
@@ -89,7 +60,7 @@ public abstract class Command {
 			long actualDifference = endDate.getTimeInMillis()
 					- startDate.getTimeInMillis();
 			if (actualDifference > expectedDifference) {
-				throw new IllegalArgumentException(MESSAGE_INVALID_TIME_REPETITIVE);
+				throw new IllegalArgumentException(Common.MESSAGE_INVALID_TIME_REPETITIVE);
 			}
 		}
 	}
@@ -110,15 +81,15 @@ public abstract class Command {
 	}
 	
 	protected boolean isPendingTab(){
-		return tabIndex == PENDING_TAB;
+		return tabIndex == Common.PENDING_TAB;
 	}
 	
 	protected boolean isCompleteTab(){
-		return tabIndex == COMPLETE_TAB;
+		return tabIndex == Common.COMPLETE_TAB;
 	}
 	
 	protected boolean isTrashTab(){
-		return tabIndex == TRASH_TAB;
+		return tabIndex == Common.TRASH_TAB;
 	}
 	
 	protected ObservableList<Task> getModifiedList(int tabIndex){
@@ -238,7 +209,7 @@ abstract class IndexCommand extends TwoWayCommand{
 	protected void checkValidIndexes(){
 		for (int i = 0; i < indexCount - 1; i++) {
 			if (indexList[i] == indexList[i + 1]) {
-				throw new IllegalArgumentException(MESSAGE_DUPLICATE_INDEXES);
+				throw new IllegalArgumentException(Common.MESSAGE_DUPLICATE_INDEXES);
 			}
 		}
 		
@@ -247,7 +218,7 @@ abstract class IndexCommand extends TwoWayCommand{
 		
 		if (convertIndex(indexList[MAX_INDEX] - 1) == INVALID
 				|| convertIndex(indexList[MIN_INDEX] - 1) == INVALID) {
-			throw new IllegalArgumentException(MESSAGE_INDEX_OUT_OF_BOUNDS);
+			throw new IllegalArgumentException(Common.MESSAGE_INDEX_OUT_OF_BOUNDS);
 		}
 	}
 }
@@ -336,7 +307,7 @@ class AddCommand extends TwoWayCommand {
 		model.addTaskToPending(task);
 		Common.sortList(model.getPendingList());
 
-		return MESSAGE_SUCCESSFUL_ADD;
+		return Common.MESSAGE_SUCCESSFUL_ADD;
 	}
 
 	public String undo() {
@@ -344,7 +315,7 @@ class AddCommand extends TwoWayCommand {
 		model.removeTaskFromPendingNoTrash(index);
 		Common.sortList(model.getPendingList());
 		assert model.getTaskFromPending(index).equals(task);
-		return MESSAGE_SUCCESSFUL_UNDO;
+		return Common.MESSAGE_SUCCESSFUL_UNDO;
 	}
 	
 	private void splitRepeatingInfo() {
@@ -415,7 +386,7 @@ class EditCommand extends TwoWayCommand {
 
 	public String execute() {
 		if (convertIndex(index - 1) == INVALID) {
-			return MESSAGE_INDEX_OUT_OF_BOUNDS;
+			return Common.MESSAGE_INDEX_OUT_OF_BOUNDS;
 		}
 		targetTask = modifiedList.get(convertIndex(index - 1));
 		setOriginalTask();
@@ -489,7 +460,7 @@ class EditCommand extends TwoWayCommand {
 
 		targetTask.updateLatestModifiedDate();
 		Common.sortList(modifiedList);
-		return MESSAGE_SUCCESSFUL_EDIT;
+		return Common.MESSAGE_SUCCESSFUL_EDIT;
 	}
 	
 	private void setTag() {
@@ -557,7 +528,7 @@ class EditCommand extends TwoWayCommand {
 		targetTask.setOccurrence(originalTask.getNumOccurrences(), originalTask.getCurrentOccurrence());
 		Common.sortList(modifiedList);
 
-		return MESSAGE_SUCCESSFUL_UNDO;
+		return Common.MESSAGE_SUCCESSFUL_UNDO;
 	}
 }
 
@@ -589,7 +560,7 @@ class RemoveCommand extends IndexCommand {
 		processRemove();
 		sortInvolvedLists();
 
-		return MESSAGE_SUCCESSFUL_REMOVE;
+		return Common.MESSAGE_SUCCESSFUL_REMOVE;
 	}
 	
 	private void processRemove(){
@@ -618,14 +589,14 @@ class RemoveCommand extends IndexCommand {
 			modifiedList.add(removedTask);
 			if (isPendingTab() || isCompleteTab()) {
 				int index = model.getIndexFromTrash(removedTaskInfo.get(i));
-				model.removeTask(index, TRASH_TAB);
+				model.removeTask(index, Common.TRASH_TAB);
 			}
 		}
 		
 		removedTaskInfo.clear();
 		Common.sortList(modifiedList);
 
-		return MESSAGE_SUCCESSFUL_UNDO;
+		return Common.MESSAGE_SUCCESSFUL_UNDO;
 	}
 }
 
@@ -656,7 +627,7 @@ class ClearAllCommand extends IndexCommand {
 		}
 		
 		processClear();
-		return MESSAGE_SUCCESSFUL_CLEAR_ALL;
+		return Common.MESSAGE_SUCCESSFUL_CLEAR_ALL;
 	}
 	
 	private void processClear(){
@@ -696,7 +667,7 @@ class ClearAllCommand extends IndexCommand {
 		
 		Common.sortList(model.getTrashList());
 
-		return MESSAGE_SUCCESSFUL_UNDO;
+		return Common.MESSAGE_SUCCESSFUL_UNDO;
 	}
 }
 
@@ -730,7 +701,7 @@ class CompleteCommand extends IndexCommand {
 		processComplete();
 		retrieveIndexesAfterProcessing();
 
-		return MESSAGE_SUCCESSFUL_COMPLETE;
+		return Common.MESSAGE_SUCCESSFUL_COMPLETE;
 	}
 	
 	private void processComplete(){
@@ -755,8 +726,8 @@ class CompleteCommand extends IndexCommand {
 	
 	
 	private void checkSuitableTab(){
-		if (tabIndex != PENDING_TAB) {
-			throw new IllegalArgumentException(MESSAGE_WRONG_COMPLETE_TABS);
+		if (tabIndex != Common.PENDING_TAB) {
+			throw new IllegalArgumentException(Common.MESSAGE_WRONG_COMPLETE_TABS);
 		}
 	}
 
@@ -770,7 +741,7 @@ class CompleteCommand extends IndexCommand {
 		Common.sortList(model.getPendingList());
 		Common.sortList(model.getCompleteList());
 
-		return MESSAGE_SUCCESSFUL_UNDO;
+		return Common.MESSAGE_SUCCESSFUL_UNDO;
 	}
 }
 
@@ -807,7 +778,7 @@ class IncompleteCommand extends IndexCommand {
 		processIncomplete();
 		retrieveIndexesAfterProcessing();
 		
-		return MESSAGE_SUCCESSFUL_INCOMPLETE;
+		return Common.MESSAGE_SUCCESSFUL_INCOMPLETE;
 	}
 	
 	private void processIncomplete(){
@@ -832,8 +803,8 @@ class IncompleteCommand extends IndexCommand {
 	}
 	
 	private void checkSuitableTab(){
-		if (tabIndex != COMPLETE_TAB) {
-			throw new IllegalArgumentException(MESSAGE_WRONG_INCOMPLETE_TABS);
+		if (tabIndex != Common.COMPLETE_TAB) {
+			throw new IllegalArgumentException(Common.MESSAGE_WRONG_INCOMPLETE_TABS);
 		}
 	}
 
@@ -848,7 +819,7 @@ class IncompleteCommand extends IndexCommand {
 		Common.sortList(model.getCompleteList());
 		Common.sortList(model.getPendingList());
 
-		return MESSAGE_SUCCESSFUL_UNDO;
+		return Common.MESSAGE_SUCCESSFUL_UNDO;
 	}
 }
 
@@ -885,7 +856,7 @@ class RecoverCommand extends IndexCommand {
 		processRecover();
 		retrieveIndexesAfterProcessing();
 		
-		return MESSAGE_SUCCESSFUL_RECOVER;
+		return Common.MESSAGE_SUCCESSFUL_RECOVER;
 	}
 	
 	private void processRecover(){
@@ -910,8 +881,8 @@ class RecoverCommand extends IndexCommand {
 	}
 	
 	private void checkSuitableTab(){
-		if (tabIndex != TRASH_TAB) {
-			throw new IllegalArgumentException(MESSAGE_WRONG_RECOVER_TABS);
+		if (tabIndex != Common.TRASH_TAB) {
+			throw new IllegalArgumentException(Common.MESSAGE_WRONG_RECOVER_TABS);
 		}
 	}
 
@@ -926,7 +897,7 @@ class RecoverCommand extends IndexCommand {
 		Common.sortList(model.getTrashList());
 		Common.sortList(model.getPendingList());
 
-		return MESSAGE_SUCCESSFUL_UNDO;
+		return Common.MESSAGE_SUCCESSFUL_UNDO;
 	}
 }
 
@@ -956,7 +927,7 @@ class MarkCommand extends IndexCommand {
 			targetTask.setIsImportant(true);
 		}
 
-		return MESSAGE_SUCCESSFUL_MARK;
+		return Common.MESSAGE_SUCCESSFUL_MARK;
 	}
 
 	public String undo() {
@@ -965,7 +936,7 @@ class MarkCommand extends IndexCommand {
 			Task targetTask = modifiedList.get(unmarkIndex);
 			targetTask.setIsImportant(false);
 		}
-		return MESSAGE_SUCCESSFUL_UNDO;
+		return Common.MESSAGE_SUCCESSFUL_UNDO;
 	}
 }
 
@@ -995,7 +966,7 @@ class UnmarkCommand extends IndexCommand {
 			targetTask.setIsImportant(false);
 		}
 
-		return MESSAGE_SUCCESSFUL_UNMARK;
+		return Common.MESSAGE_SUCCESSFUL_UNMARK;
 	}
 
 	public String undo() {
@@ -1004,7 +975,7 @@ class UnmarkCommand extends IndexCommand {
 			Task targetTask = modifiedList.get(markIndex);
 			targetTask.setIsImportant(true);
 		}
-		return MESSAGE_SUCCESSFUL_UNDO;
+		return Common.MESSAGE_SUCCESSFUL_UNDO;
 	}
 }
 
@@ -1067,21 +1038,21 @@ class SearchCommand extends Command {
 		
 		searchList = mergeLists(tempSearchList, searchList);
 		if (!isRealTimeSearch && searchList.isEmpty()) {
-			return MESSAGE_NO_RESULTS;
+			return Common.MESSAGE_NO_RESULTS;
 		}
 		
 		TwoWayCommand.setIndexType(TwoWayCommand.SEARCHED);
-		if (tabIndex == PENDING_TAB) {
+		if (tabIndex == Common.PENDING_TAB) {
 			model.setSearchPendingList(searchList);
 			view.taskPendingList.setItems(model.getSearchPendingList());
-		} else if (tabIndex == COMPLETE_TAB) {
+		} else if (tabIndex == Common.COMPLETE_TAB) {
 			model.setSearchCompleteList(searchList);
 			view.taskCompleteList.setItems(model.getSearchCompleteList());
 		} else {
 			model.setSearchTrashList(searchList);
 			view.taskTrashList.setItems(model.getSearchTrashList());
 		}
-		return MESSAGE_SUCCESSFUL_SEARCH;
+		return Common.MESSAGE_SUCCESSFUL_SEARCH;
 	}
 
 	private ObservableList<Task> mergeLists(ObservableList<Task> list1,
@@ -1471,17 +1442,17 @@ class ShowAllCommand extends Command {
 	public String execute() {
 		TwoWayCommand.setIndexType(TwoWayCommand.SHOWN);
 		int tabIndex = view.getTabIndex();
-		if (tabIndex == PENDING_TAB) {
+		if (tabIndex == Common.PENDING_TAB) {
 			view.taskPendingList.setItems(model.getPendingList());
 			Control.updateOverdueLine(model.getPendingList());
-		} else if (tabIndex == COMPLETE_TAB) {
+		} else if (tabIndex == Common.COMPLETE_TAB) {
 			view.taskCompleteList.setItems(model.getCompleteList());
 			Control.updateOverdueLine(model.getCompleteList());
 		} else {
 			view.taskTrashList.setItems(model.getTrashList());
 			Control.updateOverdueLine(model.getTrashList());
 		}
-		return MESSAGE_SUCCESSFUL_SHOW_ALL;
+		return Common.MESSAGE_SUCCESSFUL_SHOW_ALL;
 	}
 }
 
@@ -1500,7 +1471,7 @@ class HelpCommand extends Command {
 
 	public String execute() {
 		view.showHelpPage();
-		return MESSAGE_SUCCESSFUL_HELP;
+		return Common.MESSAGE_SUCCESSFUL_HELP;
 	}
 }
 
@@ -1519,7 +1490,7 @@ class SettingsCommand extends Command {
 
 	public String execute() {
 		view.showSettingsPage();
-		return MESSAGE_SUCCESSFUL_SETTINGS;
+		return Common.MESSAGE_SUCCESSFUL_SETTINGS;
 	}
 }
 

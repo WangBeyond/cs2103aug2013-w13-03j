@@ -101,7 +101,7 @@ public class TaskStorage extends Storage {
 			if(!targetElement.getChildText("endDate").equals("-"))
 				newTask.setEndDate(new CustomDate(targetElement.getChildText("endDate")));
 			newTask.setTag(new Tag(targetElement.getChildText("tag"),targetElement.getChildText("repetition")));
-			newTask.setIsImportant(targetElement.getChildText("isImportant").equals(TRUE) ? true : false);
+			newTask.setIsImportant(targetElement.getChildText("isImportant").equals(Common.TRUE) ? true : false);
 			newTask.setIndexInList(Integer.parseInt(targetElement.getChildText("indexInList")));
 			String latestDateString = targetElement.getChildText("modifiedDate");
 			String second = latestDateString.substring(latestDateString.lastIndexOf(":") + 1);
@@ -150,7 +150,7 @@ public class TaskStorage extends Storage {
 			newTask.addContent(new Element("endDate").setText((CustomDate.convertString(targetTask.getEndDate()))));
 			newTask.addContent(new Element("tag").setText((targetTask.getTag().getTag())));
 			newTask.addContent(new Element("repetition").setText((targetTask.getTag().getRepetition())));
-			newTask.addContent(new Element("isImportant").setText(((targetTask.getIsImportant() == true ? TRUE : FALSE))));
+			newTask.addContent(new Element("isImportant").setText(((targetTask.getIsImportant() == true ? Common.TRUE : Common.FALSE))));
 			newTask.addContent(new Element("indexInList").setText((targetTask.getIndexInList()+"")));
 			newTask.addContent(new Element("modifiedDate").setText((CustomDate.convertString(targetTask.getLatestModifiedDate()) +":"+ targetTask.getLatestModifiedDate().getSecond())));
 			newTask.addContent(new Element("currentOccurrence").setText((targetTask.getCurrentOccurrence()+"")));

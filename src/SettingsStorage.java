@@ -13,7 +13,16 @@ import org.jdom2.output.XMLOutputter;
 
 public class SettingsStorage extends Storage {
 
-	String dir;
+	private static String encryptAlgo = "DES/ECB/PKCS5Padding";
+	private static final String ENCRYPTION_FAIL = "fail to encrypt password";
+	private static final String USERNAME = "username";
+	private static final String PASSWORD = "password";
+	private static final String DISPLAY_REMAINING = "display_remaining";
+	private static final String THEMEMODE = "themeMode";
+	private static final String COLOR_SCHEME="colorScheme";
+	private static final String AUTO_SYNC = "autoSync";
+	
+	private String dir;
 	public SettingsStorage(String fileName, Model model) {
 
 		createDir();
@@ -40,16 +49,16 @@ public class SettingsStorage extends Storage {
 			encryptedPassword = encryptString(model.getPassword());
 			System.out.println("store: "+model.getPassword()+"->"+encryptedPassword);
 		}catch(Exception e) {
-			System.out.println("fail to encrypt password");
+			System.out.println(ENCRYPTION_FAIL);
 			System.out.println("store: "+e.getMessage());
 			encryptedPassword = model.getPassword();
 		}
-		account.addContent(new Element("username").setText(model.getUsername()));
-		account.addContent(new Element("password").setText(encryptedPassword));
-		account.addContent(new Element("display_remaining").setText(model.getDisplayRemaining()==true? TRUE : FALSE));
+		account.addContent(new Element(USERNAME).setText(model.getUsername()));
+		account.addContent(new Element(PASSWORD).setText(encryptedPassword));
+		account.addContent(new Element("display_remaining").setText(model.getDisplayRemaining()==true? Common.TRUE : Common.FALSE));
 		account.addContent(new Element("themeMode").setText(model.getThemeMode()));
 		account.addContent(new Element("colourScheme").setText(model.getColourScheme()));
-		account.addContent(new Element("autoSync").setText(model.getAutoSync() == true? TRUE : FALSE));
+		account.addContent(new Element("autoSync").setText(model.getAutoSync() == true? Common.TRUE : Common.FALSE));
 		XMLOutputter xmlOutput = new XMLOutputter();
 		xmlOutput.setFormat(Format.getPrettyFormat());
 		xmlOutput.output(doc, new FileWriter(dir));
@@ -70,7 +79,7 @@ public class SettingsStorage extends Storage {
 			Element rootNode = doc.getRootElement();
 			Element account = rootNode.getChild("account");
 			if (model.getUsername() != null) {
-				account.getChild("username").setText(model.getUsername());				
+				account.getChild(USERNAME).setText(model.getUsername());				
 			}
 			String encryptedPassword;
 			try{
@@ -84,7 +93,7 @@ public class SettingsStorage extends Storage {
 			if (model.getPassword() != null) {
 				account.getChild("password").setText(encryptedPassword);			
 			}
-			account.getChild("display_remaining").setText(model.getDisplayRemaining() == true? TRUE : FALSE);
+			account.getChild("display_remaining").setText(model.getDisplayRemaining() == true? Common.TRUE : Common.FALSE);
 			if (model.getThemeMode()!=null) {
 				account.getChild("themeMode").setText(model.getThemeMode());	
 			}
@@ -93,7 +102,7 @@ public class SettingsStorage extends Storage {
 			} else {
 				account.getChild("colourScheme").setText("Default day mode");
 			}
-			account.getChild("autoSync").setText(model.getAutoSync() == true? TRUE : FALSE);
+			account.getChild("autoSync").setText(model.getAutoSync() == true? Common.TRUE : Common.FALSE);
 			XMLOutputter xmlOutput = new XMLOutputter();
 			xmlOutput.setFormat(Format.getPrettyFormat());
 			xmlOutput.output(doc, new FileWriter(dir));
@@ -117,8 +126,8 @@ public class SettingsStorage extends Storage {
 			Document doc = (Document) builder.build(xmlFile);
 			Element rootNode = doc.getRootElement();
 			Element account = rootNode.getChild("account");
-			Element username = account.getChild("username");
-			Element password = account.getChild("password");
+			Element username = account.getChild(USERNAME);
+			Element password = account.getChild(PASSWORD);
 			Element displayRemaining  = account.getChild("display_remaining");
 			Element themeMode = account.getChild("themeMode");
 			Element colourScheme = account.getChild("colourScheme");
@@ -139,10 +148,10 @@ public class SettingsStorage extends Storage {
 				}
 				model.setUsername(username.getText());
 				model.setPassword(decryptedPassword);
-				model.setDisplayRemaining(displayRemaining.getText().equals(TRUE) ? true : false);
+				model.setDisplayRemaining(displayRemaining.getText().equals(Common.TRUE) ? true : false);
 				model.setThemeMode(themeMode.getText());
 				model.setColourScheme(colourScheme.getText());
-				model.setAutoSync(autoSync.getText().equals(TRUE) ? true : false);
+				model.setAutoSync(autoSync.getText().equals(Common.TRUE) ? true : false);
 			}			
 		  } catch (JDOMException jdomex) {
 			System.out.println(jdomex.getMessage());
@@ -151,12 +160,12 @@ public class SettingsStorage extends Storage {
 
 	/***************** encryption and decryption *************************/
 	public String encryptString(String plainText) throws Exception {
-		return new Encryptor("DES/ECB/PKCS5Padding").encrypt(plainText);
+		return new Encryptor(encryptAlgo).encrypt(plainText);
 
 	}
 
 	public String decryptString(String cipherString) throws Exception {
-		return new Encryptor("DES/ECB/PKCS5Padding").decrypt(cipherString);
+		return new Encryptor("encryptAlgo").decrypt(cipherString);
 	}
 
 }
