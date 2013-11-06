@@ -219,56 +219,56 @@ public class Task implements Comparable<Task> {
 	}
 
 	/************************ GET Property Functions **********************************/
-	private ObjectProperty<RowStatus> rowStatusProperty() {
+	public ObjectProperty<RowStatus> rowStatusProperty() {
 		if (rowStatus == null) {
 			rowStatus = new SimpleObjectProperty<RowStatus>(this, ROWSTATUS_PROPERTY_ID);
 		}
 		return rowStatus;
 	}
 
-	private StringProperty workInfoProperty() {
+	public StringProperty workInfoProperty() {
 		if (workInfo == null) {
 			workInfo = new SimpleStringProperty(this, WORKINFO_PROPERTY_ID);
 		}
 		return workInfo;
 	}
 
-	private ObjectProperty<Tag> tagProperty() {
+	public ObjectProperty<Tag> tagProperty() {
 		if (tag == null) {
 			tag = new SimpleObjectProperty<Tag>(this, TAG_PROPERTY_ID);
 		}
 		return tag;
 	}
 
-	private ObjectProperty<CustomDate> startDateProperty() {
+	public ObjectProperty<CustomDate> startDateProperty() {
 		if (startDate == null) {
 			startDate = new SimpleObjectProperty<CustomDate>(this, STARTDATE_PROPERTY_ID);
 		}
 		return startDate;
 	}
 
-	private ObjectProperty<CustomDate> endDateProperty() {
+	public ObjectProperty<CustomDate> endDateProperty() {
 		if (endDate == null) {
 			endDate = new SimpleObjectProperty<CustomDate>(this, ENDDATE_PROPERTY_ID);
 		}
 		return endDate;
 	}
 
-	private StringProperty startDateStringProperty() {
+	public StringProperty startDateStringProperty() {
 		if (startDateString == null) {
 			startDateString = new SimpleStringProperty(this, START_STRING_PROPERTY_ID);
 		}
 		return startDateString;
 	}
 
-	private StringProperty endDateStringProperty() {
+	public StringProperty endDateStringProperty() {
 		if (endDateString == null) {
 			endDateString = new SimpleStringProperty(this, END_STRING_PROPERTY_ID);
 		}
 		return endDateString;
 	}
 
-	private StringProperty occurrenceProperty() {
+	public StringProperty occurrenceProperty() {
 		if (occurrenceString == null) {
 			occurrenceString = new SimpleStringProperty(this, OCCURRENCE_PROPERTY_ID);
 		}
