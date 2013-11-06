@@ -731,7 +731,7 @@ public class Synchronization  {
 							freq = "every" + interval + suffix;
 						}
 						System.out.println("freq: " + freq);
-						t.setTag(new Tag(Parser.HYPHEN, freq.toLowerCase()));
+						t.setTag(new Tag(Common.HYPHEN, freq.toLowerCase()));
 
 						if (recurData.contains("COUNT=")) {
 							int startIndex = recurData.indexOf("COUNT=") + 6;
@@ -745,7 +745,7 @@ public class Synchronization  {
 						} else if (freq.equals("DAILY")) {
 							t.setStartDate(null);
 							t.setEndDate(null);
-							t.setTag(new Tag(Parser.HYPHEN, "null"));
+							t.setTag(new Tag(Common.HYPHEN, "null"));
 						}
 
 					} else {// timed recurring event
@@ -815,7 +815,7 @@ public class Synchronization  {
 						}
 						System.out.println("freq: " + freq);
 
-						t.setTag(new Tag(Parser.HYPHEN, freq.toLowerCase()));
+						t.setTag(new Tag(Common.HYPHEN, freq.toLowerCase()));
 						if (recurData.contains("COUNT=")) {
 							int startIndex = recurData.indexOf("COUNT=") + 6;
 							int endIndex = recurData.indexOf(";", startIndex);

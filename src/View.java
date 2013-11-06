@@ -1086,7 +1086,7 @@ public class View implements HotkeyListener {
 							public void updateItem(Tag item, boolean empty) {
 								if (item != null) {
 									if (item.getRepetition()
-											.equals(Parser.NULL)) {
+											.equals(Common.NULL)) {
 										if (item.getTag().equals("-"))
 											text = new Text("             -");
 										else {
