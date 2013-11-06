@@ -34,6 +34,8 @@ public class Synchronization  {
 	private static final String CALENDAR_TITLE = "iDo";
 	private static final String CALENDAR_SUMMARY = "This calendar synchronizes with iDo Task Manager.";
 	private static final String SERVICE_NAME = "sg.edu.nus.cs2103aug2013-w13-03j";
+	
+	/*default time for reminders*/
 	private static final int REMINDER_MINUTES = 30;
 
 	/* use username and password to login */
@@ -43,22 +45,16 @@ public class Synchronization  {
 	/* model */
 	Model model;
 
-	/* sync store */
-	SettingsStorage syncStore;
-
-	/* calendar id */
-	String calendarId = null;
-
 	/* calendar service */
 	CalendarService service;
 
 	/* The base URL for a user's calendar metafeed (needs a username appended). */
 	private static final String METAFEED_URL_BASE = "https://www.google.com/calendar/feeds/";
 
-	// The string to add to the user's metafeedUrl to access the owncalendars
-	// feed.
+	/*The string to add to the user's metafeedUrl to access the owncalendars feed.*/
 	private static final String OWNCALENDARS_FEED_URL_SUFFIX = "/owncalendars/full";
 
+	/*The string to add to the user's eventfeedUrl to access the private feed.*/
 	private static final String EVENT_FEED_URL_SUFFIX = "/private/full";
 
 	URL owncalendarsFeedUrl = null;
@@ -66,39 +62,41 @@ public class Synchronization  {
 
 	/* a list of event entry from Google calendar */
 	private List<CalendarEventEntry> eventEntry = new ArrayList<CalendarEventEntry>();
-
+	
+	/* Constructor */
 	public Synchronization(Model m) {
 		model = m;
 	}
-
+	
+	/*************** start of public methods ****************/
+	/**
+	 * Sets user account and password for login.
+	 * @param n - username.
+	 * @param p - password.
+	 */
 	public void setUsernameAndPassword(String n, String p) {
 		username = n;
 		password = p;
 	}
 
-	public void setSyncStore(SettingsStorage s) {
-		syncStore = s;
-	}
-
+	/**
+	 * Starts the synchronization with Google Calendar.
+	 * @return feedback
+	 */
 	public String execute() {
-
 		try {
 			initService();
 		} catch (AuthenticationException e) {
 			return Command.MESSAGE_SYNC_INVALID_USERNAME_PASSWORD;
 		}
 
-		// form feed url
-		if (eventFeedUrl == null) {
-			try {
-				eventFeedUrl = formEventFeedUrl(service);
-			} catch (IOException | ServiceException e) {
-				return Command.MESSAGE_SYNC_FAIL_TO_CREATE_CALENDAR;
-			}
+		try {
+			eventFeedUrl = formEventFeedUrl(service);
+		} catch (IOException | ServiceException e) {
+			return Command.MESSAGE_SYNC_FAIL_TO_CREATE_CALENDAR;
 		}
 
 		try {
-			// get all events from Google calendar
 			eventEntry = getEventsFromGCal(service, eventFeedUrl);
 
 			// sync newly added tasks to GCal
@@ -116,7 +114,6 @@ public class Synchronization  {
 			System.out.println("fail to update");
 		}
 		System.out.println("updated unchanged task.");
-
 		try {
 			// delete events on GCal which have been deleted locally
 			syncDeletedTasksToGCal(service, model, eventEntry, eventFeedUrl);
@@ -135,7 +132,7 @@ public class Synchronization  {
 		deleteTasksLocally(eventEntry, model);
 
 		// add tasks locally which have been added on GCal
-		addEventsLocally(eventEntry, model);
+		addEventsLocally(eventEntry, model); 
 		return Command.MESSAGE_SYNC_SUCCESSFUL;
 	}
 
@@ -145,6 +142,7 @@ public class Synchronization  {
 
 		// authenticate using ClientLogin
 		service.setUserCredentials(username, password);
+		System.out.println("system initialized.");
 	}
 
 	URL formEventFeedUrl(CalendarService service) throws ServiceException,
@@ -152,9 +150,11 @@ public class Synchronization  {
 		URL owncalUrl = new URL(METAFEED_URL_BASE + username
 				+ OWNCALENDARS_FEED_URL_SUFFIX);
 		String calId = isCalendarExist(service, owncalUrl);
+		System.out.println(calId);
 		if (calId == null) {
 			CalendarEntry calendar = createCalendar(service, owncalUrl);
 			calId = trimId(calendar.getId());
+			System.out.println("created a new calendar.");
 		}
 		return new URL(METAFEED_URL_BASE + calId + EVENT_FEED_URL_SUFFIX);
 	}
@@ -167,7 +167,6 @@ public class Synchronization  {
 	void syncNewTasksToGCal(CalendarService service, Model model, URL feedUrl)
 			throws ServiceException, IOException {
 		ObservableList<Task> pendingList = model.getPendingList();
-		List<CalendarEventEntry> eventsToAdd = new ArrayList<CalendarEventEntry>();
 		for (int i = 0; i < pendingList.size(); i++) {
 			Task task = pendingList.get(i);
 			if (task.getStatus() == Task.Status.NEWLY_ADDED) {
@@ -203,12 +202,10 @@ public class Synchronization  {
 						throw new Error("date format error");
 					}
 				}
-				eventsToAdd.add(e);
 				task.setIndexId(e.getId());
 				task.setStatus(Task.Status.UNCHANGED);
 			}
 		}
-		addEvents(service, eventsToAdd, feedUrl);
 	}
 
 	private void updateUnchangedTasks(CalendarService service, Model model,
@@ -929,7 +926,7 @@ public class Synchronization  {
 		}
 
 		// Send the request and receive the response:
-		return myEntry;
+		return service.insert(feedUrl, myEntry);
 	}
 
 	/**
@@ -1127,6 +1124,7 @@ public class Synchronization  {
 		}
 		if (entries != null) {
 			for (int i = 0; i < entries.size(); i++) {
+				System.out.println("Cal ID: "+entries.get(i).getTitle().getPlainText());
 				if (entries.get(i).getTitle().getPlainText()
 						.equals(CALENDAR_TITLE)) {
 					calendarId = trimId(entries.get(i).getId());
@@ -1135,43 +1133,5 @@ public class Synchronization  {
 			}
 		}
 		return calendarId;
-	}
-	
-	private void addEvents(CalendarService service, List<CalendarEventEntry> eventsToAdd, URL feedUrl) throws IOException, ServiceException{
-		// Add each item in eventsToDelete to the batch request.
-		CalendarEventFeed batchRequest = new CalendarEventFeed();
-		for (int i = 0; i < eventsToAdd.size(); i++) {
-			CalendarEventEntry toAdd = eventsToAdd.get(i);
-			// Modify the entry toDelete with batch ID and operation type.
-			BatchUtils.setBatchId(toAdd, String.valueOf(i));
-			BatchUtils.setBatchOperationType(toAdd,
-					BatchOperationType.INSERT);
-			batchRequest.getEntries().add(toAdd);
-		}
-
-		// Get the URL to make batch requests to
-		CalendarEventFeed feed = service.getFeed(feedUrl,
-				CalendarEventFeed.class);
-		Link batchLink = feed.getLink(Link.Rel.FEED_BATCH, Link.Type.ATOM);
-		URL batchUrl = new URL(batchLink.getHref());
-
-		// Submit the batch request
-		CalendarEventFeed batchResponse = service.batch(batchUrl, batchRequest);
-
-		// Ensure that all the operations were successful.
-		boolean isSuccess = true;
-		for (CalendarEventEntry entry : batchResponse.getEntries()) {
-			String batchId = BatchUtils.getBatchId(entry);
-			if (!BatchUtils.isSuccess(entry)) {
-				isSuccess = false;
-				BatchStatus status = BatchUtils.getBatchStatus(entry);
-				System.out.println("\n" + batchId + " failed ("
-						+ status.getReason() + ") " + status.getContent());
-			}
-		}
-		if (isSuccess) {
-			System.out
-					.println("Successfully updated all events via batch request.");
-		}
 	}
 }
