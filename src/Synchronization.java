@@ -87,13 +87,13 @@ public class Synchronization  {
 		try {
 			initService();
 		} catch (AuthenticationException e) {
-			return Command.MESSAGE_SYNC_INVALID_USERNAME_PASSWORD;
+			return Common.MESSAGE_SYNC_INVALID_USERNAME_PASSWORD;
 		}
 
 		try {
 			eventFeedUrl = formEventFeedUrl(service);
 		} catch (IOException | ServiceException e) {
-			return Command.MESSAGE_SYNC_FAIL_TO_CREATE_CALENDAR;
+			return Common.MESSAGE_SYNC_FAIL_TO_CREATE_CALENDAR;
 		}
 
 		try {
@@ -118,14 +118,14 @@ public class Synchronization  {
 			// delete events on GCal which have been deleted locally
 			syncDeletedTasksToGCal(service, model, eventEntry, eventFeedUrl);
 		} catch (ServiceException | IOException e) {
-			return Command.MESSAGE_SYNC_SERVICE_STOPPED;
+			return Common.MESSAGE_SYNC_SERVICE_STOPPED;
 		}
 
 		// get all events from Google calendar
 		try {
 			eventEntry = getEventsFromGCal(service, eventFeedUrl);
 		} catch (IOException | ServiceException e) {
-			return Command.MESSAGE_SYNC_SERVICE_STOPPED;
+			return Common.MESSAGE_SYNC_SERVICE_STOPPED;
 		}
 
 		// delete tasks locally which have been deleted on GCal
@@ -133,7 +133,7 @@ public class Synchronization  {
 
 		// add tasks locally which have been added on GCal
 		addEventsLocally(eventEntry, model); 
-		return Command.MESSAGE_SYNC_SUCCESSFUL;
+		return Common.MESSAGE_SYNC_SUCCESSFUL;
 	}
 
 	private void initService() throws AuthenticationException {

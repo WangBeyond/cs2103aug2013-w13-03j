@@ -22,15 +22,6 @@ public class Parser {
 			"every sunday",
 			"every\\s*\\d*\\s*(days?|weeks?|months?|years?|mondays?|tuesdays?|wednesdays?|thursdays?|fridays?|saturdays?|sundays?)" };
 
-	public static final int INDEX_USELESS_INFO = -2;
-	public static final int INDEX_COMMAND_TYPE = -1;
-	public static final int INDEX_WORK_INFO = 0;
-	public static final int INDEX_TAG = 1;
-	public static final int INDEX_START_DATE = 2;
-	public static final int INDEX_END_DATE = 3;
-	public static final int INDEX_IS_IMPT = 4;
-	public static final int INDEX_REPEATING = 5;
-	public static final int INDEX_INDEX_INFO = 6;
 
 	/* maximum length of a date. Example: next Monday 4pm */
 	public static final int MAX_DATE_LENGTH = 4;
@@ -38,10 +29,7 @@ public class Parser {
 	public static final String START_KEY = "start key";
 	public static final String END_KEY = "end key";
 
-	private static final String NO_EDITING_INFO = "No infos for editing";
-	private static final String INVALID_INDEX = "Invalid index";
-	private static final String INVALID_RANGE_END_SMALLER = "Invalid range as end point is smaller than start point";
-	private static final String INVALID_RANGE = "Invalid Range";
+
 
 	private static final int START_DATE = 0;
 	private static final int END_DATE = 1;
@@ -164,11 +152,11 @@ public class Parser {
 		try {
 			index = Integer.parseInt(Common.getFirstWord(content));
 		} catch (NumberFormatException e) {
-			throw new IllegalArgumentException(INVALID_INDEX);
+			throw new IllegalArgumentException(Common.INVALID_INDEX);
 		}
 
 		if (splittedUserCommand.length < 2)
-			throw new IllegalArgumentException(NO_EDITING_INFO);
+			throw new IllegalArgumentException(Common.NO_EDITING_INFO);
 
 		String[] temp = parseCommandWithInfo(Common.removeFirstWord(content),
 				Common.COMMAND_TYPES.EDIT);
@@ -247,12 +235,12 @@ public class Parser {
 		String[] parsedCommand = new String[] { Common.NULL, Common.NULL, Common.NULL, Common.NULL, Common.FALSE,
 				Common.NULL };
 
-		parsedCommand[INDEX_WORK_INFO] = workInfo;
-		parsedCommand[INDEX_START_DATE] = startDateString;
-		parsedCommand[INDEX_END_DATE] = endDateString;
-		parsedCommand[INDEX_TAG] = tag;
-		parsedCommand[INDEX_IS_IMPT] = isImpt;
-		parsedCommand[INDEX_REPEATING] = repeatingType;
+		parsedCommand[Common.INDEX_WORK_INFO] = workInfo;
+		parsedCommand[Common.INDEX_START_DATE] = startDateString;
+		parsedCommand[Common.INDEX_END_DATE] = endDateString;
+		parsedCommand[Common.INDEX_TAG] = tag;
+		parsedCommand[Common.INDEX_IS_IMPT] = isImpt;
+		parsedCommand[Common.INDEX_REPEATING] = repeatingType;
 
 		return parsedCommand;
 	}
@@ -263,9 +251,9 @@ public class Parser {
 		} catch (Exception e) {
 			ObservableList<Task> modifiedList;
 			int tabIndex = view.tabPane.getSelectionModel().getSelectedIndex();
-			if (tabIndex == Command.PENDING_TAB) {
+			if (tabIndex == Common.PENDING_TAB) {
 				modifiedList = model.getSearchPendingList();
-			} else if (tabIndex == Command.COMPLETE_TAB) {
+			} else if (tabIndex == Common.COMPLETE_TAB) {
 				modifiedList = model.getSearchCompleteList();
 			} else {
 				modifiedList = model.getSearchTrashList();
@@ -317,12 +305,12 @@ public class Parser {
 	private static void processRange(Vector<String> indexList, String s) {
 		String[] limits = s.split(Common.HYPHEN);
 		if (limits.length > 2)
-			throw new IllegalArgumentException(INVALID_RANGE);
+			throw new IllegalArgumentException(Common.INVALID_RANGE);
 		int startPoint, endPoint;
 		startPoint = Integer.parseInt(limits[0]);
 		endPoint = Integer.parseInt(limits[1]);
 		if (startPoint > endPoint)
-			throw new IllegalArgumentException(INVALID_RANGE_END_SMALLER);
+			throw new IllegalArgumentException(Common.INVALID_RANGE_END_SMALLER);
 		for (int i = startPoint; i <= endPoint; i++)
 			indexList.add(String.valueOf(i));
 	}
@@ -342,7 +330,7 @@ public class Parser {
 
 		commandType = determineCommandType(command);
 		if (commandType == Common.COMMAND_TYPES.INVALID) {
-			infoList.add(new InfoWithIndex(command, 0, INDEX_USELESS_INFO));
+			infoList.add(new InfoWithIndex(command, 0, Common.INDEX_TYPING_INFO));
 			return infoList;
 		}
 		
@@ -353,7 +341,7 @@ public class Parser {
 			indexCommand--;
 		}
 		
-		infoList.add(new InfoWithIndex(commandTypeStr, 0, INDEX_COMMAND_TYPE));
+		infoList.add(new InfoWithIndex(commandTypeStr, 0, Common.INDEX_COMMAND_TYPE));
 		try {
 			String[] result = parseCommand(command, commandType, model, view);
 			// Add the commandType first
@@ -363,7 +351,7 @@ public class Parser {
 				String indexWithSpace = completeWithSpace(index, command,
 						command.indexOf(index));
 				InfoWithIndex indexInfo = new InfoWithIndex(indexWithSpace,
-						command.indexOf(index), INDEX_INDEX_INFO);
+						command.indexOf(index), Common.INDEX_INDEX_INFO);
 				infoList.add(indexInfo);
 				for (int i = 0; i < result.length - 1; i++)
 					result[i] = result[i + 1];
@@ -377,16 +365,16 @@ public class Parser {
 				for (int infoIndex = 0; infoIndex < result.length; infoIndex++) {
 					String info = result[infoIndex];
 					// append the preposition or date keys with date info
-					if (infoIndex == INDEX_START_DATE && info != Common.NULL)
+					if (infoIndex == Common.INDEX_START_DATE && info != Common.NULL)
 						info = appendWithDateKey(info, command, START_DATE);
-					if (infoIndex == INDEX_END_DATE && info != Common.NULL)
+					if (infoIndex == Common.INDEX_END_DATE && info != Common.NULL)
 						info = appendWithDateKey(info, command, END_DATE);
 					// Add * if command has
-					if (infoIndex == INDEX_IS_IMPT && info == Common.TRUE) {
+					if (infoIndex == Common.INDEX_IS_IMPT && info == Common.TRUE) {
 						String markStr = completeWithSpace(Common.IMPT_MARK, command,
 								command.indexOf(Common.IMPT_MARK));
 						InfoWithIndex imptInfo = new InfoWithIndex(markStr,
-								command.indexOf(Common.IMPT_MARK), INDEX_IS_IMPT);
+								command.indexOf(Common.IMPT_MARK), Common.INDEX_IS_IMPT);
 						infoList.add(imptInfo);
 					}
 					if (command.contains(info)) {
@@ -395,7 +383,7 @@ public class Parser {
 						// otherwise some mistakes make occur: eg: add ad will
 						// return workflow index 1
 						int startIndex;
-						if (infoIndex == INDEX_WORK_INFO) {
+						if (infoIndex == Common.INDEX_WORK_INFO) {
 							String temp = command.substring(commandTypeStr
 									.length());
 							startIndex = temp.indexOf(info)
@@ -422,25 +410,25 @@ public class Parser {
 						|| commandType.equals(Common.COMMAND_TYPES.UNMARK) || commandType.equals(Common.COMMAND_TYPES.RECOVER)) {
 					infoList.add(new InfoWithIndex(command
 							.substring(beginIndex), beginIndex,
-							INDEX_INDEX_INFO));
+							Common.INDEX_INDEX_INFO));
 				} else {
 					infoList.add(new InfoWithIndex(command
 							.substring(beginIndex), beginIndex,
-							INDEX_USELESS_INFO));
+							Common.INDEX_TYPING_INFO));
 				}
 
 			}
 			return infoList;
 		} catch (Exception e) {
 			infoList.clear();
-			infoList.add(new InfoWithIndex(commandTypeStr, 0, INDEX_COMMAND_TYPE));
+			infoList.add(new InfoWithIndex(commandTypeStr, 0, Common.INDEX_COMMAND_TYPE));
 			String remainingInfo = Common.removeFirstWord(command);
-			if (e.getMessage()!=null && e.getMessage().equals(NO_EDITING_INFO))
+			if (e.getMessage()!=null && e.getMessage().equals(Common.NO_EDITING_INFO))
 				infoList.add(new InfoWithIndex(remainingInfo, commandTypeStr
-						.length(), INDEX_INDEX_INFO));
+						.length(), Common.INDEX_INDEX_INFO));
 			else
 				infoList.add(new InfoWithIndex(remainingInfo, commandTypeStr.length(),
-						INDEX_USELESS_INFO));
+						Common.INDEX_TYPING_INFO));
 			return infoList;
 		}
 	}
@@ -549,7 +537,7 @@ public class Parser {
 
 	/**
 	 * add the remaining info without highlighted by parser to infoList with
-	 * InfoType: INDEX_USELESS_INFO
+	 * InfoType: INDEX_TYPING_INFO
 	 * 
 	 * @param infoList
 	 * @param command
@@ -568,7 +556,7 @@ public class Parser {
 				endIndex = command.length();
 			if (startIndex < endIndex)
 				infoList.add(new InfoWithIndex(command.substring(startIndex,
-						endIndex), startIndex, INDEX_WORK_INFO));
+						endIndex), startIndex, Common.INDEX_WORK_INFO));
 		}
 		Collections.sort(infoList);
 		return infoList;
