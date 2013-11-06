@@ -456,7 +456,8 @@ public class Parser {
 			// find first occurrence of a <key>
 			int keyIndex = temp.toLowerCase().indexOf(keys[i]);
 			int keyLength = keys[i].length();
-			while (keyIndex >= 0) {
+			boolean isValidIndex = keyIndex == 0 || (keyIndex > 0 && temp.charAt(keyIndex-1) == ' ');
+			while (isValidIndex) {
 				// get string before the date key
 				String stringBeforeKey = temp.substring(0, keyIndex).trim();
 				// get string after the date key
@@ -484,6 +485,7 @@ public class Parser {
 					keyIndex = temp.indexOf(keys[i]);
 
 				}
+				isValidIndex = keyIndex == 0 || (keyIndex > 0 && temp.charAt(keyIndex-1) == ' ');
 			}
 		}
 
