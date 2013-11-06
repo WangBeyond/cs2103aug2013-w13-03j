@@ -89,6 +89,7 @@ public class SettingsStorage extends Storage {
 				encryptedPassword = encryptString( model.getPassword());
 				System.out.println("update: "+model.getPassword()+"->"+encryptedPassword);
 			}catch(Exception e) {
+				
 				System.out.println(ENCRYPTION_FAIL);
 				System.out.println("update: "+e.getMessage());
 				encryptedPassword = model.getPassword();
@@ -145,6 +146,7 @@ public class SettingsStorage extends Storage {
 						decryptedPassword = decryptString(password.getText());
 						System.out.println("retrieve: "+password.getText()+"->"+decryptedPassword);
 					}catch(Exception e) {
+						e.printStackTrace();
 						System.out.println(ENCRYPTION_FAIL);
 						decryptedPassword = password.getText();
 					}
@@ -168,7 +170,7 @@ public class SettingsStorage extends Storage {
 	}
 
 	public String decryptString(String cipherString) throws Exception {
-		return new Encryptor("encryptAlgo").decrypt(cipherString);
+		return new Encryptor(encryptAlgo).decrypt(cipherString);
 	}
 
 }
