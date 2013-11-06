@@ -240,7 +240,7 @@ public class Control extends Application {
 	}
 
 	private void handleKeyPressEvent() {
-		view.root2.setOnKeyPressed(new EventHandler<KeyEvent>() {
+		view.generalBase.setOnKeyPressed(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent e) {
 				if (undo_hot_key.match(e)) {
 					isRealTimeSearch = false;

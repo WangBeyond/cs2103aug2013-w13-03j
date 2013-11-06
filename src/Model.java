@@ -21,10 +21,6 @@ public class Model {
 	private final static int PENDING_TAB = 0;
 	private final static int COMPLETE_TAB = 1;
 	private final static int TRASH_TAB = 2;
-	
-	// Settings of theme mode
-	public final static String DAY_MODE = "day";
-	public final static String NIGHT_MODE = "night";
 
 	/*
 	 * List of all tasks in corresponding tabs
@@ -57,8 +53,8 @@ public class Model {
 		searchTrash = FXCollections.observableArrayList();
 		removedIdDuringSync = FXCollections.observableArrayList();
 		displayRemaining = true;
-		themeMode = DAY_MODE;
-		colourScheme = "Default day mode";
+		themeMode = Common.DAY_MODE;
+		colourScheme = Common.DAY_MODE;
 	}
 	
 	/**************************************** TASK Section **********************************/
