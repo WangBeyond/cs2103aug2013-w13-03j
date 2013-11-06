@@ -41,9 +41,6 @@ public abstract class Command {
 	protected static final String HAVING_START_DATE = "having start date";
 	protected static final String HAVING_END_DATE = "having end date";
 	
-	protected static final String HASH_TAG = "#";
-	protected static final String HYPHEN = "-";
-	
 	static final int PENDING_TAB = 0;
 	static final int COMPLETE_TAB = 1;
 	static final int TRASH_TAB = 2;
@@ -278,7 +275,7 @@ class AddCommand extends TwoWayCommand {
 		tag = parsedUserCommand[1];
 		startDateString = parsedUserCommand[2];
 		endDateString = parsedUserCommand[3];
-		isImptTask =  parsedUserCommand[4].equals(Parser.TRUE);
+		isImptTask =  parsedUserCommand[4].equals(Common.TRUE);
 		repeatingType = parsedUserCommand[5];
 	}
 
@@ -286,9 +283,9 @@ class AddCommand extends TwoWayCommand {
 		task = new Task();
 		task.setWorkInfo(workInfo);
 
-		boolean isRepetitive = !repeatingType.equals(Parser.NULL);
-		boolean hasStartDate = !startDateString.equals(Parser.NULL);
-		boolean hasEndDate = !endDateString.equals(Parser.NULL);
+		boolean isRepetitive = !repeatingType.equals(Common.NULL);
+		boolean hasStartDate = !startDateString.equals(Common.NULL);
+		boolean hasEndDate = !endDateString.equals(Common.NULL);
 		
 		if (hasStartDate && hasEndDate) {
 			CustomDate startDate = new CustomDate(startDateString);
@@ -335,7 +332,7 @@ class AddCommand extends TwoWayCommand {
 		task.setIsImportant(isImptTask);
 		
 		model.addTaskToPending(task);
-		Control.sortList(model.getPendingList());
+		Common.sortList(model.getPendingList());
 
 		return MESSAGE_SUCCESSFUL_ADD;
 	}
@@ -343,7 +340,7 @@ class AddCommand extends TwoWayCommand {
 	public String undo() {
 		int index = model.getIndexFromPending(task);
 		model.removeTaskFromPendingNoTrash(index);
-		Control.sortList(model.getPendingList());
+		Common.sortList(model.getPendingList());
 		assert model.getTaskFromPending(index).equals(task);
 		return MESSAGE_SUCCESSFUL_UNDO;
 	}
@@ -376,8 +373,8 @@ class AddCommand extends TwoWayCommand {
 	}
 	
 	private void setTag(){
-		if (tag.equals(Parser.NULL) || tag.equals(HASH_TAG)) {
-				task.setTag(new Tag(Parser.HYPHEN, repeatingType));
+		if (tag.equals(Common.NULL) || tag.equals(Common.HASH_TAG)) {
+				task.setTag(new Tag(Common.HYPHEN, repeatingType));
 		} else {
 				task.setTag(new Tag(tag, repeatingType));
 		}
@@ -410,7 +407,7 @@ class EditCommand extends TwoWayCommand {
 		tag = parsedUserCommand[2];
 		startDateString = parsedUserCommand[3];
 		endDateString = parsedUserCommand[4];
-		hasImptTaskToggle = (parsedUserCommand[5].equals(Parser.TRUE)) ? true: false;
+		hasImptTaskToggle = (parsedUserCommand[5].equals(Common.TRUE)) ? true: false;
 		repeatingType = parsedUserCommand[6];
 	}
 
@@ -423,10 +420,10 @@ class EditCommand extends TwoWayCommand {
 		
 		CustomDate startDate, endDate;
 		startDate = endDate = null;
-		boolean hasRepetitiveKey = !repeatingType.equals(Parser.NULL);
-		boolean hasWorkInfoKey = !workInfo.equals(Parser.NULL);
-		boolean hasStartDateKey = !startDateString.equals(Parser.NULL);
-		boolean hasEndDateKey = !endDateString.equals(Parser.NULL);
+		boolean hasRepetitiveKey = !repeatingType.equals(Common.NULL);
+		boolean hasWorkInfoKey = !workInfo.equals(Common.NULL);
+		boolean hasStartDateKey = !startDateString.equals(Common.NULL);
+		boolean hasEndDateKey = !endDateString.equals(Common.NULL);
 		
 		if (!hasRepetitiveKey && !hasWorkInfoKey) {
 			repeatingType = targetTask.getTag().getRepetition();
@@ -443,7 +440,7 @@ class EditCommand extends TwoWayCommand {
 			endDate = targetTask.getEndDate();
 		}
 		
-		boolean isRepetitive = !repeatingType.equals(Parser.NULL);
+		boolean isRepetitive = !repeatingType.equals(Common.NULL);
 		boolean hasStartDate = startDate != null;
 		boolean hasEndDate = endDate != null;
 		if(isRepetitive)
@@ -489,15 +486,15 @@ class EditCommand extends TwoWayCommand {
 		}
 
 		targetTask.updateLatestModifiedDate();
-		Control.sortList(modifiedList);
+		Common.sortList(modifiedList);
 		return MESSAGE_SUCCESSFUL_EDIT;
 	}
 	
 	private void setTag() {
-		if (tag != Parser.NULL) {
+		if (tag != Common.NULL) {
 			targetTask.setTag(new Tag(tag, repeatingType));
-			if (tag.equals(HASH_TAG)) {
-				targetTask.getTag().setTag(HYPHEN);
+			if (tag.equals(Common.HASH_TAG)) {
+				targetTask.getTag().setTag(Common.HYPHEN);
 			}
 		} else {
 			targetTask.setTag(new Tag(targetTask.getTag().getTag(), repeatingType));
@@ -556,7 +553,7 @@ class EditCommand extends TwoWayCommand {
 		targetTask.setIndexId(originalTask.getIndexId());
 		targetTask.setLatestModifiedDate(originalTask.getLatestModifiedDate());
 		targetTask.setOccurrence(originalTask.getNumOccurrences(), originalTask.getCurrentOccurrence());
-		Control.sortList(modifiedList);
+		Common.sortList(modifiedList);
 
 		return MESSAGE_SUCCESSFUL_UNDO;
 	}
@@ -605,11 +602,11 @@ class RemoveCommand extends IndexCommand {
 	
 	private void sortInvolvedLists(){
 		if (isPendingTab()) {
-			Control.sortList(model.getPendingList());
+			Common.sortList(model.getPendingList());
 		} else if (isCompleteTab()) {
-			Control.sortList(model.getCompleteList());
+			Common.sortList(model.getCompleteList());
 		}
-		Control.sortList(model.getTrashList());
+		Common.sortList(model.getTrashList());
 	}
 	
 	public String undo() {
@@ -624,7 +621,7 @@ class RemoveCommand extends IndexCommand {
 		}
 		
 		removedTaskInfo.clear();
-		Control.sortList(modifiedList);
+		Common.sortList(modifiedList);
 
 		return MESSAGE_SUCCESSFUL_UNDO;
 	}
@@ -672,7 +669,7 @@ class ClearAllCommand extends IndexCommand {
 			model.removeTask(convertIndex(i), tabIndex);
 		}
 		if (isPendingTab() || isCompleteTab()) {
-			Control.sortList(model.getTrashList());
+			Common.sortList(model.getTrashList());
 		}
 	}
 
@@ -682,12 +679,12 @@ class ClearAllCommand extends IndexCommand {
 				model.addTaskToPending(clearedTasks[i]);
 				reverseStatus(clearedTasks[i]);
 			}
-			Control.sortList(model.getPendingList());
+			Common.sortList(model.getPendingList());
 		} else if (isCompleteTab()) {
 			for (int i = 0; i < clearedTasks.length; i++) {
 				model.addTaskToComplete(clearedTasks[i]);
 			}
-			Control.sortList(model.getCompleteList());
+			Common.sortList(model.getCompleteList());
 		}
 		
 		model.getTrashList().clear();
@@ -695,7 +692,7 @@ class ClearAllCommand extends IndexCommand {
 			model.addTaskToTrash(originalTrashTasks[i]);
 		}
 		
-		Control.sortList(model.getTrashList());
+		Common.sortList(model.getTrashList());
 
 		return MESSAGE_SUCCESSFUL_UNDO;
 	}
@@ -743,8 +740,8 @@ class CompleteCommand extends IndexCommand {
 			model.getPendingList().remove(completeIndex);
 			model.addTaskToComplete(toComplete);
 		}
-		Control.sortList(model.getPendingList());
-		Control.sortList(model.getCompleteList());
+		Common.sortList(model.getPendingList());
+		Common.sortList(model.getCompleteList());
 	}
 	
 	private void retrieveIndexesAfterProcessing(){
@@ -768,8 +765,8 @@ class CompleteCommand extends IndexCommand {
 			model.removeTaskFromCompleteNoTrash(indexInCompleteList[i]);
 			model.addTaskToPending(toPending);
 		}
-		Control.sortList(model.getPendingList());
-		Control.sortList(model.getCompleteList());
+		Common.sortList(model.getPendingList());
+		Common.sortList(model.getCompleteList());
 
 		return MESSAGE_SUCCESSFUL_UNDO;
 	}
@@ -820,8 +817,8 @@ class IncompleteCommand extends IndexCommand {
 			model.getCompleteList().remove(incompleteIndex);
 			model.addTaskToPending(toPending);
 		}
-		Control.sortList(model.getPendingList());
-		Control.sortList(model.getCompleteList());
+		Common.sortList(model.getPendingList());
+		Common.sortList(model.getCompleteList());
 	}
 	
 	private void retrieveIndexesAfterProcessing(){
@@ -846,8 +843,8 @@ class IncompleteCommand extends IndexCommand {
 			model.getPendingList().remove(indexInIncompleteList[i]);
 			model.addTaskToComplete(toComplete);
 		}
-		Control.sortList(model.getCompleteList());
-		Control.sortList(model.getPendingList());
+		Common.sortList(model.getCompleteList());
+		Common.sortList(model.getPendingList());
 
 		return MESSAGE_SUCCESSFUL_UNDO;
 	}
@@ -898,8 +895,8 @@ class RecoverCommand extends IndexCommand {
 			model.getTrashList().remove(recoverIndex);
 			model.addTaskToPending(toPending);
 		}
-		Control.sortList(model.getPendingList());
-		Control.sortList(model.getTrashList());
+		Common.sortList(model.getPendingList());
+		Common.sortList(model.getTrashList());
 	}
 	
 	private void retrieveIndexesAfterProcessing(){
@@ -924,8 +921,8 @@ class RecoverCommand extends IndexCommand {
 			model.getPendingList().remove(indexInPendingList[i]);
 			model.addTaskToTrash(toTrash);
 		}
-		Control.sortList(model.getTrashList());
-		Control.sortList(model.getPendingList());
+		Common.sortList(model.getTrashList());
+		Common.sortList(model.getPendingList());
 
 		return MESSAGE_SUCCESSFUL_UNDO;
 	}
@@ -1162,7 +1159,7 @@ class SearchCommand extends Command {
 	}
 	
 	private void processStartDate(){
-		if (!startDateString.equals(Parser.NULL)) {
+		if (!startDateString.equals(Common.NULL)) {
 			if (startDateString.equals(HAVING_START_DATE)) {
 				if (isFirstTimeSearch) {
 					searchList = searchHavingStartDate(initialList);
@@ -1182,7 +1179,7 @@ class SearchCommand extends Command {
 	}
 	
 	private void processEndDate(){
-		if (!endDateString.equals(Parser.NULL)) {
+		if (!endDateString.equals(Common.NULL)) {
 			if (endDateString.equals(HAVING_END_DATE)) {
 				if (isFirstTimeSearch) {
 					searchList = searchHavingEndDate(initialList);
@@ -1207,7 +1204,7 @@ class SearchCommand extends Command {
 	}
 	
 	private void processIsImportant(){
-		if (isImpt.equals(Parser.TRUE)) {
+		if (isImpt.equals(Common.TRUE)) {
 			if (isFirstTimeSearch) {
 				searchList = searchImportantTask(initialList);
 			} else {
@@ -1228,7 +1225,7 @@ class SearchCommand extends Command {
 	}
 	
 	private void processRepeatingType(){
-		if (!repeatingType.equals(Parser.NULL)) {
+		if (!repeatingType.equals(Common.NULL)) {
 			if (isFirstTimeSearch) {
 				searchList = searchRepeatingType(initialList, repeatingType);
 			} else {
@@ -1239,7 +1236,7 @@ class SearchCommand extends Command {
 	}
 	
 	private void processTag(){
-		if (!tag.equals(Parser.NULL)) {
+		if (!tag.equals(Common.NULL)) {
 			if (isFirstTimeSearch) {
 				searchList = searchTag(initialList, tag);
 			} else {
@@ -1250,7 +1247,7 @@ class SearchCommand extends Command {
 	}
 	
 	private void processWorkInfo(){
-		if (!workInfo.equals(Parser.NULL)) {
+		if (!workInfo.equals(Common.NULL)) {
 			if (isFirstTimeSearch) {
 				searchList = searchWorkInfo(initialList, workInfo);
 			} else {
@@ -1262,7 +1259,7 @@ class SearchCommand extends Command {
 	
 
 	private boolean searchForDateKey() {
-		String[] splittedWorkInfo = Parser.splitBySpace(workInfo);
+		String[] splittedWorkInfo = Common.splitBySpace(workInfo);
 		String lastWords1, lastWords2;
 		if (splittedWorkInfo.length >= 1) {
 				if(splittedWorkInfo.length == 1)
@@ -1273,15 +1270,15 @@ class SearchCommand extends Command {
 				lastWords2 = splittedWorkInfo[splittedWorkInfo.length - 1];
 				if(splittedWorkInfo.length == 1)
 					lastWords1 = lastWords2;
-			if (startDateString == Parser.NULL) {
-				if (doesArrayWeaklyContain(Parser.startDateKeys, lastWords1, lastWords2)) {
+			if (startDateString == Common.NULL) {
+				if (doesArrayWeaklyContain(Common.startDateKeys, lastWords1, lastWords2)) {
 					startDateString = HAVING_START_DATE;
 					return true;
 				}
 			}
 
-			if (endDateString == Parser.NULL) {
-				if (doesArrayWeaklyContain(Parser.endDateKeys, lastWords1, lastWords2)) {
+			if (endDateString == Common.NULL) {
+				if (doesArrayWeaklyContain(Common.endDateKeys, lastWords1, lastWords2)) {
 					endDateString = HAVING_END_DATE;
 					return true;
 				}
@@ -1579,7 +1576,7 @@ class SyncCommand extends Command implements Runnable {
 			view.setSyncProgressVisible(true);
 			sync.setUsernameAndPassword(username, password);
 			feedback = sync.execute();
-			Control.sortList(model.getPendingList());
+			Common.sortList(model.getPendingList());
 			return feedback;
 		} catch(Exception e){
 			view.setSyncProgressVisible(false);

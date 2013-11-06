@@ -6,19 +6,6 @@ import javafx.collections.ObservableList;
 import java.util.regex.*;
 
 public class Parser {
-	static enum COMMAND_TYPES {
-		ADD, REMOVE, RECOVER, SEARCH, EDIT, COMPLETE, INCOMPLETE, UNDO, REDO, CLEAR_ALL, TODAY, SHOW_ALL, SYNC, SETTINGS, HELP, EXIT, INVALID, MARK, UNMARK
-	}
-
-	/* start date keys */
-	static String[] startDateKeys = { "start from", "start at",
-			"start on", "begin from", "begin at", "begin on", "from", "after", "on",
-			"at"};
-
-	/* end date keys */
-	static String[] endDateKeys = { "end on", "end at", "end by",
-			"end before", "to", "till", "until", "by", "due", "before", "next", "today",
-			"tonight" };
 
 	static String[] repeatingKeys = {
 			"daily",
@@ -48,12 +35,6 @@ public class Parser {
 	/* maximum length of a date. Example: next Monday 4pm */
 	public static final int MAX_DATE_LENGTH = 4;
 
-	public static final String IMPT_MARK = "*";
-	public static final String HASH_TAG = "#";
-	public static final String HYPHEN = "-";
-	public static final String TRUE = "true";
-	public static final String FALSE = "false";
-	public static final String NULL = "null";
 	public static final String START_KEY = "start key";
 	public static final String END_KEY = "end key";
 
@@ -79,51 +60,51 @@ public class Parser {
 	 *            - the command input read from the user
 	 * @return the corresponding command type
 	 */
-	public static COMMAND_TYPES determineCommandType(String userCommand) {
-		String commandTypeString = getFirstWord(userCommand);
+	public static Common.COMMAND_TYPES determineCommandType(String userCommand) {
+		String commandTypeString = Common.getFirstWord(userCommand);
 
 		if (commandTypeString == null)
 			throw new IllegalArgumentException(
 					"Command type string cannot be null!");
 
 		if (isAddCommand(commandTypeString)) {
-			return COMMAND_TYPES.ADD;
+			return Common.COMMAND_TYPES.ADD;
 		} else if (isEditCommand(commandTypeString)) {
-			return COMMAND_TYPES.EDIT;
+			return Common.COMMAND_TYPES.EDIT;
 		} else if (isRemoveCommand(commandTypeString)) {
-			return COMMAND_TYPES.REMOVE;
+			return Common.COMMAND_TYPES.REMOVE;
 		} else if(isRecoverCommand(commandTypeString)){ 
-			return COMMAND_TYPES.RECOVER;
+			return Common.COMMAND_TYPES.RECOVER;
 		}	else if (isUndoCommand(commandTypeString)) {
-			return COMMAND_TYPES.UNDO;
+			return Common.COMMAND_TYPES.UNDO;
 		} else if (isRedoCommand(commandTypeString)) {
-			return COMMAND_TYPES.REDO;
+			return Common.COMMAND_TYPES.REDO;
 		} else if (isSearchCommand(commandTypeString)) {
-			return COMMAND_TYPES.SEARCH;
+			return Common.COMMAND_TYPES.SEARCH;
 		} else if (isTodayCommand(commandTypeString)) {
-			return COMMAND_TYPES.TODAY;
+			return Common.COMMAND_TYPES.TODAY;
 		} else if (isShowAllCommand(commandTypeString)) {
-			return COMMAND_TYPES.SHOW_ALL;
+			return Common.COMMAND_TYPES.SHOW_ALL;
 		} else if (isClearAllCommand(commandTypeString)) {
-			return COMMAND_TYPES.CLEAR_ALL;
+			return Common.COMMAND_TYPES.CLEAR_ALL;
 		} else if (isCompleteCommand(commandTypeString)) {
-			return COMMAND_TYPES.COMPLETE;
+			return Common.COMMAND_TYPES.COMPLETE;
 		} else if (isIncompleteCommand(commandTypeString)) {
-			return COMMAND_TYPES.INCOMPLETE;
+			return Common.COMMAND_TYPES.INCOMPLETE;
 		} else if (isMarkCommand(commandTypeString)) {
-			return COMMAND_TYPES.MARK;
+			return Common.COMMAND_TYPES.MARK;
 		} else if (isUnmarkCommand(commandTypeString)) {
-			return COMMAND_TYPES.UNMARK;
+			return Common.COMMAND_TYPES.UNMARK;
 		} else if (isSettingsCommand(commandTypeString)) {
-			return COMMAND_TYPES.SETTINGS;
+			return Common.COMMAND_TYPES.SETTINGS;
 		} else if (isHelpCommand(commandTypeString)) {
-			return COMMAND_TYPES.HELP;
+			return Common.COMMAND_TYPES.HELP;
 		} else if (isSyncCommand(commandTypeString)) {
-			return COMMAND_TYPES.SYNC;
+			return Common.COMMAND_TYPES.SYNC;
 		} else if (isExitCommand(commandTypeString)) {
-			return COMMAND_TYPES.EXIT;
+			return Common.COMMAND_TYPES.EXIT;
 		} else {
-			return COMMAND_TYPES.INVALID;
+			return Common.COMMAND_TYPES.INVALID;
 		}
 	}
 
@@ -145,23 +126,23 @@ public class Parser {
 	 * @return the array of infos necessary for each command
 	 */
 	public static String[] parseCommand(String userCommand,
-			COMMAND_TYPES commandType, Model model, View view) {
-		String content = removeFirstWord(userCommand);
+			Common.COMMAND_TYPES commandType, Model model, View view) {
+		String content = Common.removeFirstWord(userCommand);
 		content = removeUnneededSpaces(content);
-		if (commandType == COMMAND_TYPES.ADD)
-			return parseCommandWithInfo(content, COMMAND_TYPES.ADD);
-		else if (commandType == COMMAND_TYPES.SEARCH)
-			return parseCommandWithInfo(content, COMMAND_TYPES.SEARCH);
-		else if (commandType == COMMAND_TYPES.EDIT)
+		if (commandType == Common.COMMAND_TYPES.ADD)
+			return parseCommandWithInfo(content, Common.COMMAND_TYPES.ADD);
+		else if (commandType == Common.COMMAND_TYPES.SEARCH)
+			return parseCommandWithInfo(content, Common.COMMAND_TYPES.SEARCH);
+		else if (commandType == Common.COMMAND_TYPES.EDIT)
 			return parseEditCommand(content);
-		else if (commandType == COMMAND_TYPES.REMOVE)
+		else if (commandType == Common.COMMAND_TYPES.REMOVE)
 			return parseRemoveCommand(content, view, model);
-		else if (commandType == COMMAND_TYPES.COMPLETE
-				|| commandType == COMMAND_TYPES.INCOMPLETE
-				|| commandType == COMMAND_TYPES.MARK
-				|| commandType == COMMAND_TYPES.UNMARK || commandType == COMMAND_TYPES.RECOVER)
+		else if (commandType == Common.COMMAND_TYPES.COMPLETE
+				|| commandType == Common.COMMAND_TYPES.INCOMPLETE
+				|| commandType == Common.COMMAND_TYPES.MARK
+				|| commandType == Common.COMMAND_TYPES.UNMARK || commandType == Common.COMMAND_TYPES.RECOVER)
 			return parseCommandWithIndex(content);
-		else if (commandType == COMMAND_TYPES.SYNC){
+		else if (commandType == Common.COMMAND_TYPES.SYNC){
 			return parseSyncCommand(content);
 		} else
 			return null;
@@ -178,10 +159,10 @@ public class Parser {
 	 *         is endDateString. Sixth field is isImpt.
 	 */
 	private static String[] parseEditCommand(String content) {
-		String[] splittedUserCommand = splitBySpace(content);
+		String[] splittedUserCommand = Common.splitBySpace(content);
 		int index;
 		try {
-			index = Integer.parseInt(getFirstWord(content));
+			index = Integer.parseInt(Common.getFirstWord(content));
 		} catch (NumberFormatException e) {
 			throw new IllegalArgumentException(INVALID_INDEX);
 		}
@@ -189,8 +170,8 @@ public class Parser {
 		if (splittedUserCommand.length < 2)
 			throw new IllegalArgumentException(NO_EDITING_INFO);
 
-		String[] temp = parseCommandWithInfo(removeFirstWord(content),
-				COMMAND_TYPES.EDIT);
+		String[] temp = parseCommandWithInfo(Common.removeFirstWord(content),
+				Common.COMMAND_TYPES.EDIT);
 
 		String[] parsedCommand = new String[7];
 		parsedCommand[0] = String.valueOf(index);
@@ -207,22 +188,22 @@ public class Parser {
 	 * 
 	 * @param content
 	 *            command string after removing the command type
-	 * @return an array of strings where the first field contains workInfo, NULL
-	 *         if it is empty; the second field contains tag, NULL if it is
-	 *         empty; the third field contains startDateString, NULL if it is
-	 *         empty; the fourth field contains endDateString, NULL if it is
-	 *         empty; the fifth field contains isImpt (TRUE or FALSE).
+	 * @return an array of strings where the first field contains workInfo, Common.NULL
+	 *         if it is empty; the second field contains tag, Common.NULL if it is
+	 *         empty; the third field contains startDateString, Common.NULL if it is
+	 *         empty; the fourth field contains endDateString, Common.NULL if it is
+	 *         empty; the fifth field contains isImpt (Common.TRUE or Common.FALSE).
 	 */
 	private static String[] parseCommandWithInfo(String content,
-			COMMAND_TYPES commandType) {
+			Common.COMMAND_TYPES commandType) {
 		String commandString = content.trim();
 
-		String workInfo = NULL;
-		String startDateString = NULL;
-		String endDateString = NULL;
-		String tag = NULL;
-		String isImpt = FALSE;
-		String repeatingType = NULL;
+		String workInfo = Common.NULL;
+		String startDateString = Common.NULL;
+		String endDateString = Common.NULL;
+		String tag = Common.NULL;
+		String isImpt = Common.FALSE;
+		String repeatingType = Common.NULL;
 		
 		String[] result = getRepeatingType(commandString);
 		commandString = result[0];
@@ -232,7 +213,7 @@ public class Parser {
 					"Invalid Command: multiple hash tags(#).");
 		} else {
 			tag = getTagName(commandString);
-			commandString = (!tag.equals(NULL)) ? removeTag(commandString)
+			commandString = (!tag.equals(Common.NULL)) ? removeTag(commandString)
 					: commandString;
 		}
 
@@ -242,29 +223,29 @@ public class Parser {
 					"Invalid Command: multiple important marks(*).");
 		} else {
 			isImpt = isImptTask(commandString);
-			commandString = (isImpt.equals(TRUE)) ? removeImptMark(commandString)
+			commandString = (isImpt.equals(Common.TRUE)) ? removeImptMark(commandString)
 					: commandString;
 		}
 
-		result = checkDate(commandString, startDateKeys, START_KEY);
+		result = checkDate(commandString, Common.startDateKeys, START_KEY);
 		commandString = result[0];
 		startDateString = result[1];
 
-		result = checkDate(commandString, endDateKeys, END_KEY);
+		result = checkDate(commandString, Common.endDateKeys, END_KEY);
 		commandString = result[0];
 		endDateString = result[1];
 
 		if (commandString.trim().equals("")) {
-			if (commandType == COMMAND_TYPES.ADD)
+			if (commandType == Common.COMMAND_TYPES.ADD)
 				throw new IllegalArgumentException(
 						"Invalid command: work information cannot be empty");
 			else
-				workInfo = Parser.NULL;
+				workInfo = Common.NULL;
 		} else
 			workInfo = commandString.trim();
 
-		String[] parsedCommand = new String[] { NULL, NULL, NULL, NULL, FALSE,
-				NULL };
+		String[] parsedCommand = new String[] { Common.NULL, Common.NULL, Common.NULL, Common.NULL, Common.FALSE,
+				Common.NULL };
 
 		parsedCommand[INDEX_WORK_INFO] = workInfo;
 		parsedCommand[INDEX_START_DATE] = startDateString;
@@ -289,7 +270,7 @@ public class Parser {
 			} else {
 				modifiedList = model.getSearchTrashList();
 			}
-			String indexRange = "1" + HYPHEN + modifiedList.size();
+			String indexRange = "1" + Common.HYPHEN + modifiedList.size();
 			return parseCommandWithIndex(indexRange);
 		} 
 	}
@@ -303,7 +284,7 @@ public class Parser {
 	 * @return array of indexes in form of strings.
 	 */
 	private static String[] parseCommandWithIndex(String content) {
-		String[] splittedUserCommand = splitBySpace(content);
+		String[] splittedUserCommand = Common.splitBySpace(content);
 		Vector<String> indexList = new Vector<String>();
 
 		if (splittedUserCommand.length < 1)
@@ -311,7 +292,7 @@ public class Parser {
 
 		try {
 			for (String s : splittedUserCommand) {
-				if (s.contains(HYPHEN))
+				if (s.contains(Common.HYPHEN))
 					processRange(indexList, s);
 				else
 					indexList.add(String.valueOf(Integer.parseInt(s)));
@@ -325,7 +306,7 @@ public class Parser {
 	}
 
 	private static String[] parseSyncCommand(String content){
-		String[] splittedUserCommand = splitBySpace(content);
+		String[] splittedUserCommand = Common.splitBySpace(content);
 		
 		if(splittedUserCommand.length != 1 && !splittedUserCommand[0].equals("") && splittedUserCommand.length != 2){
 			throw new IllegalArgumentException("Invalid sync command.");
@@ -334,7 +315,7 @@ public class Parser {
 	}
 	
 	private static void processRange(Vector<String> indexList, String s) {
-		String[] limits = s.split(HYPHEN);
+		String[] limits = s.split(Common.HYPHEN);
 		if (limits.length > 2)
 			throw new IllegalArgumentException(INVALID_RANGE);
 		int startPoint, endPoint;
@@ -356,17 +337,17 @@ public class Parser {
 	 */
 	static ArrayList<InfoWithIndex> parseForView(String command) {
 		ArrayList<InfoWithIndex> infoList = new ArrayList<InfoWithIndex>();
-		COMMAND_TYPES commandType;
+		Common.COMMAND_TYPES commandType;
 		String commandTypeStr;
 
 		commandType = determineCommandType(command);
-		if (commandType == COMMAND_TYPES.INVALID) {
+		if (commandType == Common.COMMAND_TYPES.INVALID) {
 			infoList.add(new InfoWithIndex(command, 0, INDEX_USELESS_INFO));
 			return infoList;
 		}
 		
-		int indexCommand = command.indexOf(getFirstWord(command));
-		commandTypeStr = completeWithSpace(getFirstWord(command), command, indexCommand);
+		int indexCommand = command.indexOf(Common.getFirstWord(command));
+		commandTypeStr = completeWithSpace(Common.getFirstWord(command), command, indexCommand);
 		while(indexCommand != 0){
 			commandTypeStr = (command.charAt(indexCommand) == '\t' ? "\t" : " ") + commandTypeStr;
 			indexCommand--;
@@ -377,7 +358,7 @@ public class Parser {
 			String[] result = parseCommand(command, commandType, model, view);
 			// Add the commandType first
 
-			if (commandType == COMMAND_TYPES.EDIT) {
+			if (commandType == Common.COMMAND_TYPES.EDIT) {
 				String index = result[0];
 				String indexWithSpace = completeWithSpace(index, command,
 						command.indexOf(index));
@@ -386,26 +367,26 @@ public class Parser {
 				infoList.add(indexInfo);
 				for (int i = 0; i < result.length - 1; i++)
 					result[i] = result[i + 1];
-				result[result.length - 1] = NULL;
+				result[result.length - 1] = Common.NULL;
 			}
 
 			// First consider command with info
-			if (commandType == COMMAND_TYPES.ADD
-					|| commandType == COMMAND_TYPES.SEARCH
-					|| commandType == COMMAND_TYPES.EDIT) {
+			if (commandType == Common.COMMAND_TYPES.ADD
+					|| commandType == Common.COMMAND_TYPES.SEARCH
+					|| commandType == Common.COMMAND_TYPES.EDIT) {
 				for (int infoIndex = 0; infoIndex < result.length; infoIndex++) {
 					String info = result[infoIndex];
 					// append the preposition or date keys with date info
-					if (infoIndex == INDEX_START_DATE && info != NULL)
+					if (infoIndex == INDEX_START_DATE && info != Common.NULL)
 						info = appendWithDateKey(info, command, START_DATE);
-					if (infoIndex == INDEX_END_DATE && info != NULL)
+					if (infoIndex == INDEX_END_DATE && info != Common.NULL)
 						info = appendWithDateKey(info, command, END_DATE);
 					// Add * if command has
-					if (infoIndex == INDEX_IS_IMPT && info == TRUE) {
-						String markStr = completeWithSpace(IMPT_MARK, command,
-								command.indexOf(IMPT_MARK));
+					if (infoIndex == INDEX_IS_IMPT && info == Common.TRUE) {
+						String markStr = completeWithSpace(Common.IMPT_MARK, command,
+								command.indexOf(Common.IMPT_MARK));
 						InfoWithIndex imptInfo = new InfoWithIndex(markStr,
-								command.indexOf(IMPT_MARK), INDEX_IS_IMPT);
+								command.indexOf(Common.IMPT_MARK), INDEX_IS_IMPT);
 						infoList.add(imptInfo);
 					}
 					if (command.contains(info)) {
@@ -433,12 +414,12 @@ public class Parser {
 						// but if the commandType is invalid, just add them as
 						// uselessInfo
 				int beginIndex = commandTypeStr.length();
-				if (commandType != COMMAND_TYPES.INVALID
-						&& commandType.equals(COMMAND_TYPES.REMOVE)
-						|| commandType.equals(COMMAND_TYPES.COMPLETE)
-						|| commandType.equals(COMMAND_TYPES.INCOMPLETE)
-						|| commandType.equals(COMMAND_TYPES.MARK)
-						|| commandType.equals(COMMAND_TYPES.UNMARK) || commandType.equals(COMMAND_TYPES.RECOVER)) {
+				if (commandType != Common.COMMAND_TYPES.INVALID
+						&& commandType.equals(Common.COMMAND_TYPES.REMOVE)
+						|| commandType.equals(Common.COMMAND_TYPES.COMPLETE)
+						|| commandType.equals(Common.COMMAND_TYPES.INCOMPLETE)
+						|| commandType.equals(Common.COMMAND_TYPES.MARK)
+						|| commandType.equals(Common.COMMAND_TYPES.UNMARK) || commandType.equals(Common.COMMAND_TYPES.RECOVER)) {
 					infoList.add(new InfoWithIndex(command
 							.substring(beginIndex), beginIndex,
 							INDEX_INDEX_INFO));
@@ -453,7 +434,7 @@ public class Parser {
 		} catch (Exception e) {
 			infoList.clear();
 			infoList.add(new InfoWithIndex(commandTypeStr, 0, INDEX_COMMAND_TYPE));
-			String remainingInfo = removeFirstWord(command);
+			String remainingInfo = Common.removeFirstWord(command);
 			if (e.getMessage()!=null && e.getMessage().equals(NO_EDITING_INFO))
 				infoList.add(new InfoWithIndex(remainingInfo, commandTypeStr
 						.length(), INDEX_INDEX_INFO));
@@ -482,7 +463,7 @@ public class Parser {
 			String keyType) {
 		String temp = commandString + "";
 		boolean hasDate = false;
-		String dateString = NULL;
+		String dateString = Common.NULL;
 		for (int i = 0; i < keys.length; i++) {
 			// find first occurrence of a <key>
 			int keyIndex = temp.toLowerCase().indexOf(keys[i]);
@@ -550,13 +531,13 @@ public class Parser {
 		while (firstSpaceIndex > 0 && command.charAt(firstSpaceIndex) != ' ') {
 			firstSpaceIndex--;
 		}
-		if (doesArrayContain(startOrEnd == START_DATE ? startDateKeys
-				: endDateKeys, command.substring(firstSpaceIndex + 1,
+		if (doesArrayContain(startOrEnd == START_DATE ? Common.startDateKeys
+				: Common.endDateKeys, command.substring(firstSpaceIndex + 1,
 				startIndex)))
 			dateWithPreposition = command.substring(firstSpaceIndex + 1,
 					startIndex) + date;
-		else if (doesArrayContain(startOrEnd == START_DATE ? startDateKeys
-				: endDateKeys, command.substring(secondSpaceIndex + 1,
+		else if (doesArrayContain(startOrEnd == START_DATE ? Common.startDateKeys
+				: Common.endDateKeys, command.substring(secondSpaceIndex + 1,
 				startIndex)))
 			dateWithPreposition = command.substring(secondSpaceIndex + 1,
 					startIndex) + date;
@@ -642,13 +623,13 @@ public class Parser {
 	 * @return a string array including command string and repeating tag
 	 */
 	private static String[] getRepeatingType(String commandString) {
-		String repeatingKey = Parser.NULL;
+		String repeatingKey = Common.NULL;
 		for (int i = 0; i < repeatingKeys.length; i++) {
 			String regex = "(\\s+)?"+repeatingKeys[i]+"(\\s+\\d+\\s+times?)?";
 		    Pattern pattern = Pattern.compile(regex);
 		    Matcher matcher = pattern.matcher(commandString);
 			while (matcher.find()) {
-				if (repeatingKey.equals(Parser.NULL))
+				if (repeatingKey.equals(Common.NULL))
 					repeatingKey = matcher.group();
 				else {
 					throw new IllegalArgumentException(
@@ -656,7 +637,7 @@ public class Parser {
 				}
 			}		
 		}
-		if(!repeatingKey.equals(Parser.NULL))
+		if(!repeatingKey.equals(Common.NULL))
 			commandString = commandString.replace(repeatingKey, "");
 		return new String[] { commandString, repeatingKey.trim() };
 	}
@@ -671,7 +652,7 @@ public class Parser {
 	 */
 	static int isValidDate(String dateString) {
 		CustomDate dateTester = new CustomDate();
-		String[] dateStringArray = splitBySpace(dateString);
+		String[] dateStringArray = Common.splitBySpace(dateString);
 		int length = 0;
 
 		if (dateStringArray.length >= MAX_DATE_LENGTH) {
@@ -697,7 +678,7 @@ public class Parser {
 				throw new IllegalArgumentException(
 						"The time is out of bounds. Please recheck!");
 			}
-			tester = removeLastWord(tester);
+			tester = Common.removeLastWord(tester);
 		}
 		return INVALID;
 	}
@@ -710,11 +691,11 @@ public class Parser {
 	 * @return true if it contains more than one hash tag; false otherwise.
 	 */
 	private static boolean hasMultipleTags(String commandString) {
-		String[] words = splitBySpace(commandString);
+		String[] words = Common.splitBySpace(commandString);
 		boolean hasTag = false;
 
 		for (int i = 0; i < words.length; i++) {
-			if (words[i].startsWith(HASH_TAG)) {
+			if (words[i].startsWith(Common.HASH_TAG)) {
 				if (hasTag) {
 					return true;
 				}
@@ -733,7 +714,7 @@ public class Parser {
 	 *         otherwise, returns the same string.
 	 */
 	private static String removeTag(String commandString) {
-		String[] words = splitBySpace(commandString);
+		String[] words = Common.splitBySpace(commandString);
 		String result = "";
 		int index = indexOfTag(commandString);
 		if (index >= 0) {
@@ -753,16 +734,16 @@ public class Parser {
 	 * @param commandString
 	 *            - the string which may contains a hash tag.
 	 * @return the content of the hash tag with '#' being removed if the string
-	 *         contains a hash tag; the string NULL otherwise.
+	 *         contains a hash tag; the string Common.NULL otherwise.
 	 */
 	private static String getTagName(String commandString) {
-		String[] words = splitBySpace(commandString);
+		String[] words = Common.splitBySpace(commandString);
 		for (int i = 0; i < words.length; i++) {
-			if (words[i].startsWith(HASH_TAG)) {
+			if (words[i].startsWith(Common.HASH_TAG)) {
 				return words[i];
 			}
 		}
-		return NULL;
+		return Common.NULL;
 	}
 
 	/**
@@ -774,9 +755,9 @@ public class Parser {
 	 *         otherwise.
 	 */
 	private static int indexOfTag(String commandString) {
-		String[] words = splitBySpace(commandString);
+		String[] words = Common.splitBySpace(commandString);
 		for (int i = 0; i < words.length; i++) {
-			if (words[i].startsWith(HASH_TAG)) {
+			if (words[i].startsWith(Common.HASH_TAG)) {
 				return i;
 			}
 		}
@@ -793,11 +774,11 @@ public class Parser {
 	 *         otherwise.
 	 */
 	private static boolean hasMultipleImptMarks(String commandString) {
-		String[] words = splitBySpace(commandString);
+		String[] words = Common.splitBySpace(commandString);
 		boolean isImpt = false;
 
 		for (int i = 0; i < words.length; i++) {
-			if (words[i].equals(IMPT_MARK)) {
+			if (words[i].equals(Common.IMPT_MARK)) {
 				if (isImpt) {
 					return true;
 				}
@@ -813,19 +794,19 @@ public class Parser {
 	 * 
 	 * @param commandString
 	 *            - the string which is being checked.
-	 * @return the string TRUE if it is a important task; otherwise, returns the
-	 *         string FALSE.
+	 * @return the string Common.TRUE if it is a important task; otherwise, returns the
+	 *         string Common.FALSE.
 	 */
 	private static String isImptTask(String commandString) {
-		String[] words = splitBySpace(commandString);
+		String[] words = Common.splitBySpace(commandString);
 
 		for (int i = 0; i < words.length; i++) {
-			if (words[i].equals(IMPT_MARK)) {
-				return TRUE;
+			if (words[i].equals(Common.IMPT_MARK)) {
+				return Common.TRUE;
 			}
 		}
 
-		return FALSE;
+		return Common.FALSE;
 	}
 
 	/**
@@ -837,10 +818,10 @@ public class Parser {
 	 *         important mark; otherwise the same string is returned.
 	 */
 	private static String removeImptMark(String commandString) {
-		String[] words = splitBySpace(commandString);
+		String[] words = Common.splitBySpace(commandString);
 		String result = "";
 		for (int i = 0; i < words.length; i++) {
-			if (!words[i].equals(IMPT_MARK)) {
+			if (!words[i].equals(Common.IMPT_MARK)) {
 				result = result + " " + words[i];
 			}
 		}
@@ -848,7 +829,7 @@ public class Parser {
 	}
 
 	private static String removeUnneededSpaces(String content) {
-		String[] words = splitBySpace(content);
+		String[] words = Common.splitBySpace(content);
 		String result = "";
 		for (int i = 0; i < words.length; i++)
 			result += words[i] + " ";
@@ -856,30 +837,6 @@ public class Parser {
 		return result.trim();
 	}
 
-	static String getLastWord(String commandString) {
-		String[] stringArray = commandString.trim().split("\\s+");
-		return stringArray[stringArray.length - 1];
-	}
-
-	static String removeLastWord(String commandString) {
-		String lastWord = getLastWord(commandString);
-		return commandString.substring(0,
-				commandString.length() - lastWord.length()).trim();
-	}
-
-	static String getFirstWord(String commandString) {
-		String[] stringArray = splitBySpace(commandString);
-		return stringArray[0];
-	}
-
-	static String removeFirstWord(String commandString) {
-		return commandString.replaceFirst(getFirstWord(commandString), "")
-				.trim();
-	}
-
-	static String[] splitBySpace(String content) {
-		return content.trim().split("\\s+");
-	}
 
 	/******************************** Determine command type Section ***************************************************************/
 

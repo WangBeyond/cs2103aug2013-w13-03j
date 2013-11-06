@@ -24,7 +24,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 
 public class Control extends Application {
-	static final int MINUTE_IN_MILLIS = 60000;
+
 	static final String MESSAGE_INVALID_COMMAND_TYPE = "Invalid Command Type!";
 	static final String MESSAGE_EMPTY_COMMAND = "Empty Command!";
 	static final String MESSAGE_INVALID_UNDO = "You cannot undo anymore!";
@@ -137,9 +137,9 @@ public class Control extends Application {
 			private void realTimeUpdate() {
 				String command = view.txt.getText();
 				realTimeFeedback(command);
-				if (Parser.determineCommandType(command) == Parser.COMMAND_TYPES.SEARCH)
+				if (Parser.determineCommandType(command) == Common.COMMAND_TYPES.SEARCH)
 					realTimeSearch(command);
-				else if (Parser.determineCommandType(command) == Parser.COMMAND_TYPES.REMOVE) {
+				else if (Parser.determineCommandType(command) == Common.COMMAND_TYPES.REMOVE) {
 					String content = removeCommandTypeString(command);
 					if (!content.matches("\\s*")) {
 						if (!content.matches("\\s*\\d+.*"))
@@ -154,8 +154,8 @@ public class Control extends Application {
 			}
 			
 			private boolean checkRemoveIndex(String command) {
-				String content = Parser.removeFirstWord(command);
-				String[] splitContent = Parser.splitBySpace(content);
+				String content = Common.removeFirstWord(command);
+				String[] splitContent = Common.splitBySpace(content);
 				try {
 					Integer.valueOf(splitContent[0]);
 					return true;
@@ -169,9 +169,9 @@ public class Control extends Application {
 				if (Parser.checkEmptyCommand(command)) {
 					view.setFeedback(MESSAGE_REQUEST_COMMAND);
 				} else {
-					Parser.COMMAND_TYPES commandType = Parser
+					Common.COMMAND_TYPES commandType = Parser
 							.determineCommandType(command);
-					if (commandType == Parser.COMMAND_TYPES.INVALID) {
+					if (commandType == Common.COMMAND_TYPES.INVALID) {
 						view.setFeedback(command);
 					} else {
 						switch (commandType) {
@@ -355,7 +355,7 @@ public class Control extends Application {
 	}
 	
 	private String removeCommandTypeString(String command) {
-		String commandTypeStr = Parser.getFirstWord(command);
+		String commandTypeStr = Common.getFirstWord(command);
 		return command.substring(commandTypeStr.length());
 	}
 
@@ -375,7 +375,7 @@ public class Control extends Application {
 			return MESSAGE_EMPTY_COMMAND;
 		}
 		try {
-			Parser.COMMAND_TYPES commandType = Parser
+			Common.COMMAND_TYPES commandType = Parser
 					.determineCommandType(userCommand);
 
 			String[] parsedUserCommand = Parser.parseCommand(userCommand,
@@ -389,7 +389,7 @@ public class Control extends Application {
 	}
 
 	private String executeCommandCorrespondingType(String[] parsedUserCommand,
-			Parser.COMMAND_TYPES commandType) throws IllegalArgumentException,
+			Common.COMMAND_TYPES commandType) throws IllegalArgumentException,
 			IOException {
 		switch (commandType) {
 		case ADD:
@@ -664,7 +664,7 @@ public class Control extends Application {
 					this.cancel();
 				}
 			}
-		}, 0, syncPeriod * MINUTE_IN_MILLIS);
+		}, 0, syncPeriod * Common.MINUTE_IN_MILLIS);
 	}
 
 	private String executeSyncCommand(String[] parsedUserCommand)
@@ -726,7 +726,7 @@ public class Control extends Application {
 				updateList(modelHandler.getTrashList());
 				displayMessage();
 			}
-		}, 0, MINUTE_IN_MILLIS);
+		}, 0, Common.MINUTE_IN_MILLIS);
 		
 		if(modelHandler.getAutoSync())
 			autoSync();
@@ -759,24 +759,7 @@ public class Control extends Application {
 				list.get(i).updateDateForRepetitiveTask();
 			}
 		}
-		sortList(list);
-	}
-
-	public static void sortList(ObservableList<Task> list) {
-		Collections.sort(list);
-		updateIndexInList(list);
-	}
-
-	private static void updateIndexInList(ObservableList<Task> list) {
-		boolean hasLastOverdue = false;
-		for (int i = list.size() - 1; i >= 0; i--) {
-			list.get(i).setIndexInList(i);
-			list.get(i).setIsLastOverdue(false);
-			if (!hasLastOverdue && list.get(i).isOverdueTask()) {
-				list.get(i).setIsLastOverdue(true);
-				hasLastOverdue = true;
-			}
-		}
+		Common.sortList(list);
 	}
 
 	public static void updateOverdueLine(ObservableList<Task> list) {
