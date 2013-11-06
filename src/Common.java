@@ -25,7 +25,10 @@ public class Common {
 	public static final String HASH_TAG = "#";
 	public static final String HYPHEN = "-";
 	
-	static final int MINUTE_IN_MILLIS = 60000;
+	public static final int MINUTE_IN_MILLIS = 60000;
+	
+	public static final String DAY_MODE = "Day mode";
+	public static final String NIGHT_MODE = "Night mode";
 	
 	public static void sortList(ObservableList<Task> list) {
 		Collections.sort(list);

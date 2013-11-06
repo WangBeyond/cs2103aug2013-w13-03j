@@ -1,5 +1,3 @@
-import java.util.logging.Level;
-
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -25,9 +23,11 @@ import javafx.stage.StageStyle;
 
 
 public class Login {
+	static final String MESSAGE_PASSWORDS_MATCH_FAIL = "Passwords do not match!";
 	
 	static final boolean STORE_SUCCESSFUL = true;
 	static final boolean STORE_FAIL = false;
+	
 	private final KeyCombination saveInput = new KeyCodeCombination(KeyCode.ENTER);
 	private final KeyCombination cancelLogin = new KeyCodeCombination(KeyCode.ESCAPE);
 	
@@ -46,7 +46,7 @@ public class Login {
 	private PasswordField pwRetypeBox;
 	
 	private Login(Model model){
-		this.model = model;
+		initializeModel(model);
 		setupStage();
 		setupForm();
 		setupButtons();
@@ -64,6 +64,10 @@ public class Login {
 	
 	public void showLoginPage(){
 		loginStage.showAndWait();
+	}
+	
+	private void initializeModel(Model model){
+		this.model = model;
 	}
 	
 	private void setupStage(){
@@ -184,7 +188,7 @@ public class Login {
 				return STORE_SUCCESSFUL;
 			} else {
 				pwRetypeBox.clear();
-				pwRetypeBox.setPromptText("Passwords do not match!");
+				pwRetypeBox.setPromptText(MESSAGE_PASSWORDS_MATCH_FAIL);
 			}
 		}
 		return STORE_FAIL;

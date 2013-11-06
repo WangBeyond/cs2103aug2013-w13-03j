@@ -28,7 +28,6 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
 import javax.swing.text.MutableAttributeSet;
 import javax.swing.text.StyleConstants;
-import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
 
 import com.melloware.jintellitype.HotkeyListener;
@@ -93,6 +92,7 @@ public class View implements HotkeyListener {
 			KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN);
 	private static final KeyCombination changeTab = new KeyCodeCombination(KeyCode.TAB,
 			KeyCombination.CONTROL_DOWN);
+
 	public static final int TYPING = -2;
 	public static final int COMMAND = -1;
 	public static final int WORK_INFO = 0;
@@ -104,9 +104,9 @@ public class View implements HotkeyListener {
 	public static final int INDEX = 6;
 
 	// Small windows that View class may show
-	public Help helpPage;
-	public Settings settingsPage;
-	public Login loginPage;
+	private Help helpPage;
+	private Settings settingsPage;
+	private Login loginPage;
 	
 	// Command Line for user to input command
 	public TextField commandLine;
@@ -116,24 +116,24 @@ public class View implements HotkeyListener {
 	public Button showOrHide;
 	// Tab Pane to contain 3 tables
 	public TabPane tabPane;
-
+	// Menu shown when clicking on icon in tray
 	public PopupMenu popupMenu;
 	// Table View in 3 tabs
 	public TableView<Task> taskPendingList;
 	public TableView<Task> taskCompleteList;
 	public TableView<Task> taskTrashList;
+	
 	private ImageView title;
-	public Scene scene;
-	public BorderPane root;
-	public StackPane root2;
+	private Scene scene;
+	private BorderPane root;
+	public StackPane generalBase;
 	public Stage stage;
-	JScrollPane scrollPane;
-	SwingNode textField;
+	private JScrollPane scrollPane;
+	private SwingNode textField;
 	private ChangeListener<Boolean> caretListener;
-	// Store the coordinates of the anchor of the window
-	double dragAnchorX;
-	double dragAnchorY;
-	public ProgressIndicator syncProgress;
+	private double dragAnchorX;
+	private double dragAnchorY;
+	private ProgressIndicator syncProgress;
 	private Color defaultColor;
 	public JTextPane txt;
 	public ArrayList<Text> feedbackList = new ArrayList<Text>();
@@ -170,24 +170,23 @@ public class View implements HotkeyListener {
 	 *            main stage of the GUI
 	 */
 	public View(final Model model, final Stage primaryStage,
-			Storage settingStore) {
+			Storage settingStore) {	
 		
+		loadAllLibraries();	
 		initializeKeyVariables(model, primaryStage, settingStore);
+		setupMainGUI();
 		
 		setupPopupWindows();
-		setupStage();
+		showLoginPage();
+		
+		setupScene();
+		showInitialMessage();
+	}
+	
+	private void loadAllLibraries(){
 		loadLibrary();
 		checkIntellitype();
 		initGlobalHotKey();
-
-		hideInSystemTray();
-		Platform.setImplicitExit(false);
-		createContent();
-		setDraggable();
-		showLoginPage();
-		setupScene();
-		setupShortcuts();
-		showInitialMessage();
 	}
 	
 	private void initializeKeyVariables(Model model, Stage primaryStage, 
@@ -195,6 +194,15 @@ public class View implements HotkeyListener {
 		stage = primaryStage;
 		this.model = model;
 		this.settingStore = settingStore;
+	}
+	
+	private void setupMainGUI(){
+		setupStage();
+		hideInSystemTray();
+		Platform.setImplicitExit(false);
+		createContent();
+		setDraggable();
+		setupShortcuts();
 	}
 	
 	private void setupPopupWindows(){
@@ -505,10 +513,10 @@ public class View implements HotkeyListener {
 		textField.setTranslateX(36);
 		textField.setTranslateY(-93);
 
-		root2 = new StackPane();
+		generalBase = new StackPane();
 		root = BorderPaneBuilder.create().top(top).center(center)
 				.bottom(bottom).build();
-		root2.getChildren().addAll(textField, root);
+		generalBase.getChildren().addAll(textField, root);
 	}
 
 	private void setFont(JTextPane txt) {
@@ -548,7 +556,7 @@ public class View implements HotkeyListener {
 
 	private void setupScene() {
 		stage.setHeight(70.0);
-		scene = new Scene(root2);
+		scene = new Scene(generalBase);
 		customizeGUI();
 		stage.setScene(scene);
 		stage.show();
@@ -564,7 +572,7 @@ public class View implements HotkeyListener {
 			stage.focusedProperty().removeListener(caretListener);
 
 		scene.getStylesheets().clear();
-		if (model.getThemeMode().equals(Model.DAY_MODE)) {
+		if (model.getThemeMode().equals(Common.DAY_MODE)) {
 			scene.getStylesheets().addAll(
 					getClass().getResource("customize.css").toExternalForm());
 			txt.setBackground(ColourPalette.WHITE);
@@ -582,8 +590,8 @@ public class View implements HotkeyListener {
 			txt.setStyledDocument(new CustomStyledDocumentForDayMode());
 			defaultColor = ColourPalette.fxWHITE;
 			
-			if(model.getColourScheme().equals("Default night mode"))
-			model.setColourScheme("Default day mode");
+			if(model.getColourScheme().equals(Common.NIGHT_MODE))
+			model.setColourScheme(Common.DAY_MODE);
 
 			setColourScheme(model.getColourScheme());
 			stage.focusedProperty().addListener(caretListener);
@@ -606,8 +614,8 @@ public class View implements HotkeyListener {
 					"iDoNight.png")));
 			defaultColor = ColourPalette.fxNEAR_WHITE;
 			
-			if(model.getColourScheme().equals("Default day mode"))
-			model.setColourScheme("Default night mode");
+			if(model.getColourScheme().equals(Common.DAY_MODE))
+			model.setColourScheme(Common.NIGHT_MODE);
 
 			setColourScheme(model.getColourScheme());
 			stage.focusedProperty().addListener(caretListener);
@@ -713,7 +721,7 @@ public class View implements HotkeyListener {
 			@Override
 			public void handle(MouseEvent me) {
 				if (me.getScreenX() < stage.getX())
-					System.out.println("bleble");
+					System.out.println("bleble");	//TODO: what is this
 				dragAnchorX = me.getScreenX() - stage.getX();
 				dragAnchorY = me.getScreenY() - stage.getY();
 			}
@@ -737,9 +745,9 @@ public class View implements HotkeyListener {
 
 		top.getChildren().addAll(title, syncIndicator, buttons);
 		AnchorPane.setLeftAnchor(title, 10.0);
-		AnchorPane.setTopAnchor(buttons, 25.0); // 50.0
+		AnchorPane.setTopAnchor(buttons, 25.0); 
 		AnchorPane.setTopAnchor(title, 30.0);
-		AnchorPane.setRightAnchor(buttons, 5.0); // 30.0
+		AnchorPane.setRightAnchor(buttons, 5.0);
 		AnchorPane.setRightAnchor(syncIndicator, 305.0);
 		AnchorPane.setBottomAnchor(syncIndicator, -28.0);
 	}
@@ -1253,7 +1261,6 @@ public class View implements HotkeyListener {
 			java.awt.Image iconImage = getIconImage();
 
 			popupMenu = createPopupMenu();
-
 			createTrayIcon(iconImage, popupMenu);
 
 			try {
@@ -1308,8 +1315,6 @@ public class View implements HotkeyListener {
 			}
 		};
 	}
-
-	
 
 	private ActionListener createExitListener() {
 		return new ActionListener() {
@@ -1375,7 +1380,8 @@ public class View implements HotkeyListener {
 					JIntellitype.MOD_CONTROL + JIntellitype.MOD_SHIFT, 'D');
 		} catch (RuntimeException ex) {
 			System.out
-					.println("Either you are not on Windows, or there is a problem with the JIntellitype library!");
+					.println("Either you are not on Windows, "
+							+ "or there is a problem with the JIntellitype library!");
 		}
 	}
 
@@ -1539,10 +1545,10 @@ public class View implements HotkeyListener {
 	public void setColourScheme(String colourOption) {
 		colourScheme = ColourPalette.defaultScheme;
 		colourSchemeCommandLine = ColourPalette.defaultDaySchemeSwing;
-		if (colourOption.equals("Default day mode")) {
+		if (colourOption.equals(Common.DAY_MODE)) {
 			colourScheme = ColourPalette.defaultScheme;
 			colourSchemeCommandLine = ColourPalette.defaultDaySchemeSwing;
-		} else if (colourOption.equals("Default night mode")) {
+		} else if (colourOption.equals(Common.NIGHT_MODE)) {
 			colourScheme = ColourPalette.defaultNightScheme;
 			colourSchemeCommandLine = ColourPalette.defaultNightSchemeSwing;
 		} else if (colourOption.equals("Goldfish")) {

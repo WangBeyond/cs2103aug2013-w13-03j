@@ -38,6 +38,7 @@ public class Settings {
 
 	private static final boolean STORE_SUCCESSFUL = true;
 	private static final boolean STORE_FAIL = false;
+	
 	private final KeyCombination esc = new KeyCodeCombination(KeyCode.ESCAPE);
 	private final KeyCombination saveSettings = new KeyCodeCombination(
 			KeyCode.S, KeyCombination.CONTROL_DOWN);
@@ -66,8 +67,8 @@ public class Settings {
 	private ImageView bgImage;
 
 	private Settings(Model model, Storage settingStore) {
-		this.model = model;
-		this.settingStore = settingStore;
+		initializeKeyVariables(model, settingStore);
+	
 		setupStage();
 		setupContent();
 		setupButtons();
@@ -88,7 +89,6 @@ public class Settings {
 	}
 
 	public void showSettingsPage() {
-
 		googleAccountTextfield.setText(model.getUsername());
 		pwBox.setText(model.getPassword());
 		pwRetypeBox.setText(model.getPassword());
@@ -96,7 +96,7 @@ public class Settings {
 			colourSchemes.setValue(model.getColourScheme());
 
 		settingsScene.getStylesheets().clear();
-		if (model.getThemeMode().equals(Model.DAY_MODE)) {
+		if (model.getThemeMode().equals(Common.DAY_MODE)) {
 			settingsScene.getStylesheets().addAll(
 					getClass().getResource("customize.css").toExternalForm());
 			bgImage.setImage(new Image(getClass().getResourceAsStream(
@@ -111,6 +111,11 @@ public class Settings {
 		settingsStage.showAndWait();
 	}
 
+	private void initializeKeyVariables(Model model, Storage settingStore){
+		this.model = model;
+		this.settingStore = settingStore;
+	}
+	
 	private void setupContent() {
 		grid = new GridPane();
 		grid.setAlignment(Pos.CENTER_LEFT);
@@ -150,7 +155,7 @@ public class Settings {
 		grid.add(colourScheme, 0, 7);
 
 		ObservableList<String> colourOptions = FXCollections
-				.observableArrayList("Default day mode", "Default night mode",
+				.observableArrayList(Common.DAY_MODE, Common.NIGHT_MODE,
 						"Goldfish", "Bright");
 
 		colourSchemes = new ComboBox<String>(colourOptions);
@@ -158,10 +163,10 @@ public class Settings {
 		if (model.getColourScheme() != null) {
 			colourSchemes.setValue(model.getColourScheme());
 		} else {
-			if (model.getThemeMode().equals("Night mode")) {
-				colourSchemes.setValue("Default night mode");
+			if (model.getThemeMode().equals(Common.NIGHT_MODE)) {
+				colourSchemes.setValue(Common.NIGHT_MODE);
 			} else {
-				colourSchemes.setValue("Default day mode");
+				colourSchemes.setValue(Common.DAY_MODE);
 			}
 		}
 		grid.add(colourSchemes, 1, 7);
@@ -187,11 +192,11 @@ public class Settings {
 		Label themeMode = new Label("Theme mode: ");
 		grid.add(themeMode, 0, 5);
 		ToggleGroup toggleGroup = new ToggleGroup();
-		dayMode = RadioButtonBuilder.create().text("Day mode")
+		dayMode = RadioButtonBuilder.create().text(Common.DAY_MODE)
 				.toggleGroup(toggleGroup).selected(true).build();
-		nightMode = RadioButtonBuilder.create().text("Night mode")
+		nightMode = RadioButtonBuilder.create().text(Common.NIGHT_MODE)
 				.toggleGroup(toggleGroup).build();
-		if (model.getThemeMode().equals(Model.DAY_MODE)) {
+		if (model.getThemeMode().equals(Common.DAY_MODE)) {
 			dayMode.setSelected(true);
 		} else {
 			nightMode.setSelected(true);
@@ -271,9 +276,9 @@ public class Settings {
 		String pwRetype = pwRetypeBox.getText();
 
 		if (dayMode.isSelected()) {
-			model.setThemeMode(Model.DAY_MODE);
+			model.setThemeMode(Common.DAY_MODE);
 		} else {
-			model.setThemeMode(Model.NIGHT_MODE);
+			model.setThemeMode(Common.NIGHT_MODE);
 		}
 
 		if (colourSchemes.getValue() != null) {
