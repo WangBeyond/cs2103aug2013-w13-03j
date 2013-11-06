@@ -11,21 +11,21 @@ import javafx.collections.ObservableList;
 public abstract class Command {
 	protected static final String MESSAGE_SUCCESSFUL_SHOW_ALL = "Show all the tasks";
 	protected static final String MESSAGE_SUCCESSFUL_CLEAR_ALL = "Clear all the tasks";
-	protected static final String MESSAGE_SUCCESSFUL_SEARCH = "Successful Search!";
-	protected static final String MESSAGE_NO_RESULTS = "Search no results!";
-	protected static final String MESSAGE_SUCCESSFUL_ADD = "One task has been added successfully";
-	protected static final String MESSAGE_INVALID_START_END_DATES = "There must be both start and end dates for repetitive task";
-	protected static final String MESSAGE_INVALID_TIME_REPETITIVE = "The difference is larger than the limit of repetitive period";
-	protected static final String MESSAGE_SUCCESSFUL_EDIT = "Indicated task has been edited successfully";
-	protected static final String MESSAGE_SUCCESSFUL_REMOVE = "Indicated tasks has/have been removed";
-	protected static final String MESSAGE_INVALID_DATE_RANGE = "Invalid date range as start date is after end date";
-	protected static final String MESSAGE_DUPLICATE_INDEXES = "There are duplicate indexes";
-	protected static final String MESSAGE_INDEX_OUT_OF_BOUNDS = "There is an index outside the range of the list";
+	protected static final String MESSAGE_SUCCESSFUL_SEARCH = "Successful search!";
+	protected static final String MESSAGE_NO_RESULTS = "No results found!";
+	protected static final String MESSAGE_SUCCESSFUL_ADD = "One task has been added successfully.";
+	protected static final String MESSAGE_INVALID_START_END_DATES = "There must be both start and end dates for repetitive task.";
+	protected static final String MESSAGE_INVALID_TIME_REPETITIVE = "The difference is larger than the limit of repetitive period.";
+	protected static final String MESSAGE_SUCCESSFUL_EDIT = "Indicated task has been edited successfully.";
+	protected static final String MESSAGE_SUCCESSFUL_REMOVE = "Indicated tasks has/have been removed.";
+	protected static final String MESSAGE_INVALID_DATE_RANGE = "Invalid date range as start date is after end date.";
+	protected static final String MESSAGE_DUPLICATE_INDEXES = "There are duplicate indexes!";
+	protected static final String MESSAGE_INDEX_OUT_OF_BOUNDS = "There is an index outside the range of the list.";
 	protected static final String MESSAGE_SUCCESSFUL_MARK = "Indicated task(s) has/have been marked successfully.";
 	protected static final String MESSAGE_SUCCESSFUL_UNMARK = "Indicated task(s) has/have been unmarked successfully.";
 	protected static final String MESSAGE_SUCCESSFUL_COMPLETE = "Indicated task(s) has/have been marked as complete.";
 	protected static final String MESSAGE_SUCCESSFUL_INCOMPLETE = "Indicated task(s) has/have been marked as incomplete.";
-	protected static final String MESSAGE_SUCCESSFUL_RECOVER = "Indicated task(s) has/have been recovered successfully";
+	protected static final String MESSAGE_SUCCESSFUL_RECOVER = "Indicated task(s) has/have been recovered successfully.";
 	protected static final String MESSAGE_SUCCESSFUL_UNDO = "Undo was successful.";
 	protected static final String MESSAGE_WRONG_COMPLETE_TABS = "Cannot complete the tasks in this current tab.";
 	protected static final String MESSAGE_WRONG_INCOMPLETE_TABS = "Cannot incomplete the tasks in this current tab.";
@@ -37,7 +37,6 @@ public abstract class Command {
 	protected static final String MESSAGE_SYNC_SERVICE_STOPPED = "Synchronization service has stopped working.";
 	protected static final String MESSAGE_SYNC_FAIL_TO_CREATE_CALENDAR = "Fail to create a calendar.";
 	
-
 	protected static final String HAVING_START_DATE = "having start date";
 	protected static final String HAVING_END_DATE = "having end date";
 	
@@ -265,6 +264,7 @@ class AddCommand extends TwoWayCommand {
 	private String endDateString;
 	private boolean isImptTask;
 	private String repeatingType;
+	private String processedRepeatingType;	
 	private Task task;
 
 	public AddCommand(String[] parsedUserCommand, Model model, int tabIndex) throws IllegalArgumentException {
@@ -282,7 +282,8 @@ class AddCommand extends TwoWayCommand {
 	public String execute() {
 		task = new Task();
 		task.setWorkInfo(workInfo);
-
+		processedRepeatingType = repeatingType;
+		
 		boolean isRepetitive = !repeatingType.equals(Common.NULL);
 		boolean hasStartDate = !startDateString.equals(Common.NULL);
 		boolean hasEndDate = !endDateString.equals(Common.NULL);
@@ -322,7 +323,8 @@ class AddCommand extends TwoWayCommand {
 		if(isRepetitive) {
 			splitRepeatingInfo();
 		}
-		checkInvalidDates(isRepetitive, hasStartDate, hasEndDate, task.getStartDate(), task.getEndDate(), repeatingType);
+		checkInvalidDates(isRepetitive, hasStartDate, hasEndDate, 
+				task.getStartDate(), task.getEndDate(), processedRepeatingType);
 		
 		setTag();
 		if (isRepetitive) {
@@ -347,36 +349,36 @@ class AddCommand extends TwoWayCommand {
 	
 	private void splitRepeatingInfo() {
 		String pattern = "(.*)(\\s+)(\\d+)(\\s+times?.*)";
-		if(repeatingType.matches(pattern)) {
-			int num = Integer.valueOf(repeatingType.replaceAll(pattern,"$3"));
+		if(processedRepeatingType.matches(pattern)) {
+			int num = Integer.valueOf(processedRepeatingType.replaceAll(pattern,"$3"));
 			task.setNumOccurrences(num);
-			repeatingType = repeatingType.replaceAll(pattern, "$1");
+			processedRepeatingType = processedRepeatingType.replaceAll(pattern, "$1");
 
 		} else 
 			task.setNumOccurrences(0);
 		String regex = "(every\\s*1?\\s*)(day|week|month|year)(\\s?)";
 		String frequentDayRegex = "(every\\s*1?\\s*)(monday|tuesday|wednesday|thursday|friday|saturday|sunday)(\\s?)";
 		String dayRegex = "(every)\\s*(\\d+)\\s*(mondays?|tuesdays?|wednesdays?|thursdays?|fridays?|saturdays?|sundays?)";
-		if(repeatingType.matches(regex)) {
-				repeatingType = repeatingType.replaceAll(regex,"$2");
-				if(repeatingType.equals("day"))
-					repeatingType = "daily"; 
+		if(processedRepeatingType.matches(regex)) {
+			processedRepeatingType = processedRepeatingType.replaceAll(regex,"$2");
+				if(processedRepeatingType.equals("day"))
+					processedRepeatingType = "daily"; 
 				else	
-					repeatingType = repeatingType+"ly";
-		} else if (repeatingType.matches(frequentDayRegex)) {
-			repeatingType = "weekly";
-		}	else if(repeatingType.matches("every\\s*\\d+\\s*(days?|weeks?|months?|years?)")) {
-			repeatingType = repeatingType.replaceAll("\\s+", "");
-		} else if(repeatingType.matches(dayRegex)){
-			repeatingType = repeatingType.replaceAll(dayRegex, "$1$2weeks");
+					processedRepeatingType = repeatingType+"ly";
+		} else if (processedRepeatingType.matches(frequentDayRegex)) {
+			processedRepeatingType = "weekly";
+		} else if(processedRepeatingType.matches("every\\s*\\d+\\s*(days?|weeks?|months?|years?)")) {
+			processedRepeatingType = processedRepeatingType.replaceAll("\\s+", "");
+		} else if(processedRepeatingType.matches(dayRegex)){
+			processedRepeatingType = processedRepeatingType.replaceAll(dayRegex, "$1$2weeks");
 		}
 	}
 	
 	private void setTag(){
 		if (tag.equals(Common.NULL) || tag.equals(Common.HASH_TAG)) {
-				task.setTag(new Tag(Common.HYPHEN, repeatingType));
+				task.setTag(new Tag(Common.HYPHEN, processedRepeatingType));
 		} else {
-				task.setTag(new Tag(tag, repeatingType));
+				task.setTag(new Tag(tag, processedRepeatingType));
 		}
 	}
 }

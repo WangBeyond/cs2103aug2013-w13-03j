@@ -85,13 +85,13 @@ import javafx.util.Callback;
 import javafx.util.Duration;
 
 public class View implements HotkeyListener {
-	final KeyCombination collapseWindow = new KeyCodeCombination(KeyCode.UP,
+	private static final KeyCombination collapseWindow = new KeyCodeCombination(KeyCode.UP,
 			KeyCombination.CONTROL_DOWN);
-	final KeyCombination expandWindow = new KeyCodeCombination(KeyCode.DOWN,
+	private static final KeyCombination expandWindow = new KeyCodeCombination(KeyCode.DOWN,
 			KeyCombination.CONTROL_DOWN);
-	final KeyCombination hideWindow = new KeyCodeCombination(KeyCode.H,
+	private static final KeyCombination hideWindow = new KeyCodeCombination(KeyCode.H,
 			KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN);
-	final KeyCombination changeTab = new KeyCodeCombination(KeyCode.TAB,
+	private static final KeyCombination changeTab = new KeyCodeCombination(KeyCode.TAB,
 			KeyCombination.CONTROL_DOWN);
 	public static final int TYPING = -2;
 	public static final int COMMAND = -1;
@@ -103,9 +103,11 @@ public class View implements HotkeyListener {
 	public static final int RECURRING = 5;
 	public static final int INDEX = 6;
 
+	// Small windows that View class may show
 	public Help helpPage;
 	public Settings settingsPage;
 	public Login loginPage;
+	
 	// Command Line for user to input command
 	public TextField commandLine;
 	// Instant feedback
@@ -115,8 +117,7 @@ public class View implements HotkeyListener {
 	// Tab Pane to contain 3 tables
 	public TabPane tabPane;
 
-	public ProgressIndicator syncProgress;
-	PopupMenu popupMenu;
+	public PopupMenu popupMenu;
 	// Table View in 3 tabs
 	public TableView<Task> taskPendingList;
 	public TableView<Task> taskCompleteList;
@@ -132,6 +133,7 @@ public class View implements HotkeyListener {
 	// Store the coordinates of the anchor of the window
 	double dragAnchorX;
 	double dragAnchorY;
+	public ProgressIndicator syncProgress;
 	private Color defaultColor;
 	public JTextPane txt;
 	public ArrayList<Text> feedbackList = new ArrayList<Text>();
@@ -144,13 +146,13 @@ public class View implements HotkeyListener {
 	public static AttributeSet[] colourSchemeCommandLine;
 	private static final String WELCOME_MESSAGE = "Welcome back, %s";
 	// private HBox multiColorCommand;
-	ScrollBar pendingBar;
-	ScrollBar completeBar;
-	ScrollBar trashBar;
+	private ScrollBar pendingBar;
+	private ScrollBar completeBar;
+	private ScrollBar trashBar;
 	// The 3 sections
-	VBox bottom;
-	HBox center;
-	AnchorPane top;
+	private VBox bottom;
+	private HBox center;
+	private AnchorPane top;
 
 	// Icon in the system tray
 	TrayIcon trayIcon;
@@ -169,12 +171,10 @@ public class View implements HotkeyListener {
 	 */
 	public View(final Model model, final Stage primaryStage,
 			Storage settingStore) {
-		stage = primaryStage;
-		this.model = model;
-		this.settingStore = settingStore;
-
-		setupHelpPage();
-		setupSettingsPage();
+		
+		initializeKeyVariables(model, primaryStage, settingStore);
+		
+		setupPopupWindows();
 		setupStage();
 		loadLibrary();
 		checkIntellitype();
@@ -188,6 +188,18 @@ public class View implements HotkeyListener {
 		setupScene();
 		setupShortcuts();
 		showInitialMessage();
+	}
+	
+	private void initializeKeyVariables(Model model, Stage primaryStage, 
+			Storage settingStore){
+		stage = primaryStage;
+		this.model = model;
+		this.settingStore = settingStore;
+	}
+	
+	private void setupPopupWindows(){
+		setupHelpPage();
+		setupSettingsPage();
 	}
 	
 	public void toFrontSettingsStage(){
