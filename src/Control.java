@@ -2,7 +2,6 @@ import java.awt.TrayIcon.MessageType;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -18,15 +17,10 @@ import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyCodeCombination;
-import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 
 public class Control extends Application {
-
-
-
 	static final String UNDO_COMMAND = "undo";
 	static final String REDO_COMMAND = "redo";
 
@@ -37,12 +31,10 @@ public class Control extends Application {
 	private Storage settingStore;
 	public Synchronization sync = new Synchronization(modelHandler);
 	static public SyncCommand syncThread;
-
+	private Timer syncTimer;
 	static boolean isRealTimeSearch = false;
 	static final boolean SEARCHED = true;
 	static final boolean SHOWN = false;
-	//period for auto sync (in minute)
-	private int syncPeriod = 1;
 
 	public static void main(String[] args) {
 		Application.launch(args);
@@ -600,6 +592,8 @@ public class Control extends Application {
 	private String executeSettingsCommand(String[] parsedUserCommand) throws IOException{
 		String oldTheme = modelHandler.getThemeMode();
 		boolean oldAutoSync = modelHandler.getAutoSync();
+		if(syncTimer != null)
+			syncTimer.cancel();
 		Command s = new SettingsCommand(modelHandler, view, parsedUserCommand);
 		String feedback = s.execute();
 		if (feedback.equals(Common.MESSAGE_SUCCESSFUL_SETTINGS)) {
@@ -608,9 +602,6 @@ public class Control extends Application {
 					view.customizeGUI();
 			view.setColourScheme(modelHandler.getColourScheme());
 			if(oldAutoSync != modelHandler.getAutoSync()) {
-				if(modelHandler.getAutoSync() == true) 
-					autoSync();
-				else 
 					autoSync();
 			}
 			CustomDate.setDisplayRemaining(modelHandler.doDisplayRemaining());
@@ -631,7 +622,7 @@ public class Control extends Application {
 	}
 	
 	private void autoSync( ) {
-		Timer syncTimer = new Timer();
+		syncTimer = new Timer();
 		syncTimer.schedule(new TimerTask() {
 			@Override
 			public void run() {
@@ -642,7 +633,7 @@ public class Control extends Application {
 					this.cancel();
 				}
 			}
-		}, 0, syncPeriod * Common.MINUTE_IN_MILLIS);
+		}, 0, modelHandler.getSyncPeriod() * Common.MINUTE_IN_MILLIS);
 	}
 
 	private String executeSyncCommand(String[] parsedUserCommand)
@@ -718,16 +709,20 @@ public class Control extends Application {
 		ObservableList<Task> list = modelHandler.getPendingList();
 		for (int i = 0; i < list.size(); i++) {
 			if (list.get(i).getIsImportant() == true) {
-				if (list.get(i).getStartDate().getRemainingTime()
-						.equals("0h 30m")) {
-					System.out.println("test");
-					view.trayIcon.displayMessage("Reminder",
-							"A task will begin after the next 30 minutes",
+				int remainingTimeForStartDate = list.get(i).getStartDate().getRemainingTime();
+				int remainingTimeForEndDate = list.get(i).getEndDate().getRemainingTime();
+				if (remainingTimeForStartDate <= 60 && remainingTimeForStartDate > 0 && remainingTimeForStartDate % 15 == 0) {
+					view.trayIcon.displayMessage("Reminder", "Task \""
+							+ list.get(i).getWorkInfo()
+							+ "\"  will begin after the next "
+							+ remainingTimeForStartDate + " minutes",
 							MessageType.INFO);
-				} else if (list.get(i).getEndDate().getRemainingTime()
-						.equals("0h 30m")) {
+				} else if (remainingTimeForEndDate <= 60 && remainingTimeForEndDate > 0 && remainingTimeForEndDate % 15 == 0) {
 					view.trayIcon.displayMessage("Reminder",
-							"A task will be due after the next 30 minutes",
+							"Task \""
+									+ list.get(i).getWorkInfo()
+									+ "\" will end after the next con cac "
+									+ remainingTimeForStartDate + " minutes",
 							MessageType.INFO);
 				}
 			}

@@ -24,6 +24,7 @@ public class SettingsStorage extends Storage {
 	private static final String THEMEMODE = "themeMode";
 	private static final String COLOR_SCHEME="colourScheme";
 	private static final String AUTO_SYNC = "autoSync";
+	private static final String SYNC_PERIOD = "syncPeriod";
 	
 	private String dir;
 	public SettingsStorage(String fileName, Model model) {
@@ -61,6 +62,7 @@ public class SettingsStorage extends Storage {
 		account.addContent(new Element(THEMEMODE).setText(model.getThemeMode()));
 		account.addContent(new Element(COLOR_SCHEME).setText(model.getColourScheme()));
 		account.addContent(new Element(AUTO_SYNC).setText(model.getAutoSync() == true? Common.TRUE : Common.FALSE));
+		account.addContent(new Element(SYNC_PERIOD).setText(String.valueOf(model.getSyncPeriod())));
 		XMLOutputter xmlOutput = new XMLOutputter();
 		xmlOutput.setFormat(Format.getPrettyFormat());
 		xmlOutput.output(doc, new FileWriter(dir));
@@ -106,6 +108,7 @@ public class SettingsStorage extends Storage {
 				account.getChild(COLOR_SCHEME).setText("Default day mode");
 			}
 			account.getChild(AUTO_SYNC).setText(model.getAutoSync() == true? Common.TRUE : Common.FALSE);
+			account.getChild(SYNC_PERIOD).setText(String.valueOf(model.getSyncPeriod()));
 			XMLOutputter xmlOutput = new XMLOutputter();
 			xmlOutput.setFormat(Format.getPrettyFormat());
 			xmlOutput.output(doc, new FileWriter(dir));
@@ -135,6 +138,7 @@ public class SettingsStorage extends Storage {
 			Element themeMode = account.getChild(THEMEMODE);
 			Element colourScheme = account.getChild(COLOR_SCHEME);
 			Element autoSync = account.getChild(AUTO_SYNC);
+			Element syncPeriod = account.getChild(SYNC_PERIOD);
 			
 			if (username == null) {
 				System.out.println("no account info");
@@ -156,6 +160,7 @@ public class SettingsStorage extends Storage {
 				model.setThemeMode(themeMode.getText());
 				model.setColourScheme(colourScheme.getText());
 				model.setAutoSync(autoSync.getText().equals(Common.TRUE) ? true : false);
+				model.setSyncPeriod(Integer.valueOf(syncPeriod.getText()));
 			}			
 		  } catch (JDOMException jdomex) {
 			System.out.println(jdomex.getMessage());

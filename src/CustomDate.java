@@ -216,7 +216,7 @@ public class CustomDate {
 	
 		// Check the capability to display remaining time
 		if (displayRemaining && !beforeCurrentTime() && lessThan6Hours()) {
-			return getRemainingTime();
+			return getRemainingTimeString();
 		}
 	
 		// Check if the time is tonight
@@ -235,11 +235,16 @@ public class CustomDate {
 	 * Get the remaining time relatively to the current time in String
 	 * @return the required string with correct format for display
 	 */
-	public String getRemainingTime() {
+	public String getRemainingTimeString() {
 		int remainingTime = (int) (sourceDate.getTimeInMillis() - currentDate.getTimeInMillis()) / MINUTE_IN_MILLIS;
 		int remainingHours = remainingTime / HOUR_IN_MINUTES;
 		int remainingMinutes = remainingTime % HOUR_IN_MINUTES;
 		return remainingHours + "h " + remainingMinutes + "m";
+	}
+	
+	public int getRemainingTime(){
+		int remainingTime = (int) (sourceDate.getTimeInMillis() - currentDate.getTimeInMillis()) / MINUTE_IN_MILLIS;
+		return remainingTime;
 	}
 
 	/**
@@ -899,32 +904,34 @@ public class CustomDate {
 	 * This function is used to get the Integer value of the month String
 	 */
 	private int getMonth(String month) {
-		if (isJanuary(month)) {
-			return Calendar.JANUARY;
-		} else if (isFebruary(month)) {
-			return Calendar.FEBRUARY;
-		} else if (isMarch(month)) {
-			return Calendar.MARCH;
-		} else if (isApril(month)) {
-			return Calendar.APRIL;
-		} else if (isMay(month)) {
-			return Calendar.MAY;
-		} else if (isJune(month)) {
-			return Calendar.JUNE;
-		} else if (isJuly(month)) {
-			return Calendar.JULY;
-		} else if (isAugust(month)) {
-			return Calendar.AUGUST;
-		} else if (isSeptember(month)) {
-			return Calendar.SEPTEMBER;
-		} else if (isOctober(month)) {
-			return Calendar.OCTOBER;
-		} else if (isNovember(month)) {
-			return Calendar.NOVEMBER;
-		} else if (isDecember(month)) {
-			return Calendar.DECEMBER;
-		} else if (isInteger(month)) {
-			throw new IllegalArgumentException("Out of bounds");
+		if (isInteger(month)) {
+			if (isJanuary(month)) {
+				return Calendar.JANUARY;
+			} else if (isFebruary(month)) {
+				return Calendar.FEBRUARY;
+			} else if (isMarch(month)) {
+				return Calendar.MARCH;
+			} else if (isApril(month)) {
+				return Calendar.APRIL;
+			} else if (isMay(month)) {
+				return Calendar.MAY;
+			} else if (isJune(month)) {
+				return Calendar.JUNE;
+			} else if (isJuly(month)) {
+				return Calendar.JULY;
+			} else if (isAugust(month)) {
+				return Calendar.AUGUST;
+			} else if (isSeptember(month)) {
+				return Calendar.SEPTEMBER;
+			} else if (isOctober(month)) {
+				return Calendar.OCTOBER;
+			} else if (isNovember(month)) {
+				return Calendar.NOVEMBER;
+			} else if (isDecember(month)) {
+				return Calendar.DECEMBER;
+			} else {
+				throw new IllegalArgumentException("Out of bounds");
+			}
 		} else {
 			throw new IllegalArgumentException("Invalid Month");
 		}
@@ -964,51 +971,51 @@ public class CustomDate {
 	}
 	/********************************* Determine the month *********************************************/
 	private boolean isJanuary(String month) {
-		return month.equals("jan") || month.equals("1") || month.equals("january");
+		return month.equals("jan") || String.valueOf(Integer.parseInt(month)).equals("1") || month.equals("january");
 	}
 
 	private boolean isFebruary(String month) {
-		return month.equals("feb") || month.equals("2") || month.equals("february");
+		return month.equals("feb") ||  String.valueOf(Integer.parseInt(month)).equals("2") || month.equals("february");
 	}
 
 	private boolean isMarch(String month) {
-		return month.equals("mar") || month.equals("3") || month.equals("march");
+		return month.equals("mar") ||  String.valueOf(Integer.parseInt(month)).equals("3") || month.equals("march");
 	}
 
 	private boolean isApril(String month) {
-		return month.equals("apr") || month.equals("4") || month.equals("april");
+		return month.equals("apr") ||  String.valueOf(Integer.parseInt(month)).equals("4") || month.equals("april");
 	}
 
 	private boolean isMay(String month) {
-		return month.equals("may") || month.equals("5");
+		return month.equals("may") ||  String.valueOf(Integer.parseInt(month)).equals("5");
 	}
 
 	private boolean isJune(String month) {
-		return month.equals("june") || month.equals("6");
+		return month.equals("june") ||  String.valueOf(Integer.parseInt(month)).equals("6");
 	}
 
 	private boolean isJuly(String month) {
-		return month.equals("july") || month.equals("7");
+		return month.equals("july") ||  String.valueOf(Integer.parseInt(month)).equals("7");
 	}
 
 	private boolean isAugust(String month) {
-		return month.equals("aug") || month.equals("8") || month.equals("august");
+		return month.equals("aug") ||  String.valueOf(Integer.parseInt(month)).equals("8") || month.equals("august");
 	}
 
 	private boolean isSeptember(String month) {
-		return month.equals("sep") || month.equals("9") || month.equals("september");
+		return month.equals("sep") ||  String.valueOf(Integer.parseInt(month)).equals("9") || month.equals("september");
 	}
 
 	private boolean isOctober(String month) {
-		return month.equals("oct") || month.equals("10") || month.equals("october");
+		return month.equals("oct") ||  String.valueOf(Integer.parseInt(month)).equals("10") || month.equals("october");
 	}
 
 	private boolean isNovember(String month) {
-		return month.equals("nov") || month.equals("11") || month.equals("november");
+		return month.equals("nov") ||  String.valueOf(Integer.parseInt(month)).equals("11") || month.equals("november");
 	}
 
 	private boolean isDecember(String month) {
-		return month.equals("dec") || month.equals("12") || month.equals("december");
+		return month.equals("dec") ||  String.valueOf(Integer.parseInt(month)).equals("12") || month.equals("december");
 	}
 	
 	/**

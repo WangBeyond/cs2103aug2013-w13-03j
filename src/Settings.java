@@ -1,3 +1,5 @@
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -27,6 +29,7 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Screen;
@@ -61,6 +64,7 @@ public class Settings {
 	private RadioButton remaining;
 	private RadioButton exact;
 	private ComboBox<String> colourSchemes;
+	private TextField syncPeriodTextfield;
 	private ImageView bgImage;
 
 	private Settings(Model model, Storage settingStore) {
@@ -89,9 +93,23 @@ public class Settings {
 		googleAccountTextfield.setText(model.getUsername());
 		pwBox.setText(model.getPassword());
 		pwRetypeBox.setText(model.getPassword());
+		if (model.doDisplayRemaining())
+			remaining.setSelected(true);
+		else
+			exact.setSelected(true);
+		if (model.getThemeMode().equals(Common.DAY_MODE)) {
+			dayMode.setSelected(true);
+		} else {
+			nightMode.setSelected(true);
+		}
 		if (model.getColourScheme() != null)
 			colourSchemes.setValue(model.getColourScheme());
-
+		if (model.getAutoSync() == true) {
+			autoSync.setSelected(true);
+		} else {
+			manualSync.setSelected(true);
+		}
+		syncPeriodTextfield.setText(String.valueOf(model.getSyncPeriod()));
 		settingsScene.getStylesheets().clear();
 		if (model.getThemeMode().equals(Common.DAY_MODE)) {
 			settingsScene.getStylesheets().addAll(
@@ -124,6 +142,7 @@ public class Settings {
 		setupThemeMode();
 		setupColourScheme();
 		setupSyncMode();
+		setupSyncPeriod();
 	}
 
 	private void setupTextfields() {
@@ -218,6 +237,45 @@ public class Settings {
 		grid.add(autoSync, 1, 6);
 		grid.add(manualSync, 2, 6);
 	}
+	
+	private void setupSyncPeriod(){
+		Label syncPeriod = new Label("Sync period: ");
+		grid.add(syncPeriod, 0, 8);
+		syncPeriodTextfield = new TextField();
+		syncPeriodTextfield.textProperty().addListener(new ChangeListener<String>() {
+		    @Override
+		    public void changed(ObservableValue<? extends String> observable,
+		            String oldValue, String newValue) {
+		        try {
+		            // force numeric value by resetting to old value if exception is thrown
+		            Integer.parseInt(newValue);
+		            // force correct length by resetting to old value if longer than maxLength
+		            if(newValue.length() > 4 || Integer.parseInt(newValue) == 0)
+		                syncPeriodTextfield.setText(oldValue);
+		        } catch (Exception e) {
+		        	if(!newValue.equals(""))
+		            syncPeriodTextfield.setText(oldValue);
+		        }
+		    }
+		});
+		
+		syncPeriodTextfield.focusedProperty().addListener(new ChangeListener<Boolean>() {
+			public void changed(ObservableValue<? extends Boolean> ov, Boolean oldVal, Boolean newVal){
+				if(newVal == false){
+					if(syncPeriodTextfield.getText().equals(""))
+							syncPeriodTextfield.setText("1");
+				}
+			}
+		});
+		syncPeriodTextfield.setMaxWidth(50);
+		syncPeriodTextfield.setText(String.valueOf(model.getSyncPeriod()));
+		Label minutes = new Label("minute(s)");
+		HBox hb = new HBox();
+		hb.setAlignment(Pos.CENTER_LEFT);
+		hb.setSpacing(10);
+		hb.getChildren().addAll(syncPeriodTextfield, minutes);
+		grid.add(hb, 1, 8);
+	}
 
 	private void setupScene() {
 		root = new Group();
@@ -271,7 +329,19 @@ public class Settings {
 		String account = googleAccountTextfield.getText();
 		String pw = pwBox.getText();
 		String pwRetype = pwRetypeBox.getText();
-
+		
+		if (account != null) {
+			if (pw != null && pwRetype != null && pw.equals(pwRetype)) {
+				model.setUsername(account);
+				model.setPassword(pw);
+				successfulChange = STORE_SUCCESSFUL;
+			} else {
+				pwRetypeBox.clear();
+				pwRetypeBox.setPromptText("Passwords do not match!");
+				return successfulChange;
+			}
+		}
+		
 		if (dayMode.isSelected()) {
 			model.setThemeMode(Common.DAY_MODE);
 		} else {
@@ -294,18 +364,10 @@ public class Settings {
 		} else {
 			model.setAutoSync(false);
 		}
+		
+		model.setSyncPeriod(Integer.parseInt(syncPeriodTextfield.getText()));
 		successfulChange = STORE_SUCCESSFUL;
-		if (account != null) {
-			if (pw != null && pwRetype != null && pw.equals(pwRetype)) {
-				model.setUsername(account);
-				model.setPassword(pw);
-				successfulChange = STORE_SUCCESSFUL;
-			} else {
-				pwRetypeBox.clear();
-				pwRetypeBox.setPromptText("Passwords do not match!");
-				successfulChange = STORE_FAIL;
-			}
-		}
+		
 		try {
 			settingStore.updateToFile();
 		} catch (IOException io) {
