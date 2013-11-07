@@ -4,6 +4,8 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -20,22 +22,47 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 
+/**
+ * 
+ * Control class is the main class in iDo application. 
+ * 
+ *
+ */
 public class Control extends Application {
-	static final String UNDO_COMMAND = "undo";
-	static final String REDO_COMMAND = "redo";
-
-	public Model modelHandler = new Model();
-	public History commandHistory = new History();
-	public View view;
+	// Restriction message from executing specific commands during process of synchronization
+	private static final String MESSAGE_UNDO_RESTRICTION = "Cannot undo during process of synchronization";
+	private static final String MESSAGE_REDO_RESTRICTION = "Cannot redo during process of synchronization";
+	private static final String MESSAGE_EXIT_RESTRICTION = "Cannot exit during process of synchronization";
+	// Display message in system tray
+	private static final String POPUP_MESSAGE_START_DATE = "Task \"%1$s\" will begin after the next %2$s minutes";
+	private static final String POPUP_MESSAGE_END_DATE = "Task \"%1$s\" will end after the next %2$s minutes";
+	// Filename for storage
+	private static final String TASK_FILENAME = "task_storage.xml";
+	private static final String SETTING_FILENAME = "setting_storage.xml";
+	// Logging object
+	private static Logger logger = Logger.getLogger("Control");
+	
+	// Indicator whether application is under real time search or not
+	private static boolean isRealTimeSearch = false;
+	// Model in the application, containing info of tasks and settings
+	private Model model = new Model();
+	// History keep track of previous commands
+	private History commandHistory = new History();
+	// View in the application, providing the GUI
+	private View view;
+	// Storages
 	private Storage taskFile;
 	private Storage settingStore;
-	public Synchronization sync = new Synchronization(modelHandler);
-	static public SyncCommand syncThread;
+	// Sync thread of Control class
+	public static SyncCommand syncThread;
+	private Synchronization sync = new Synchronization(model);
+	// Timer for auto sync
 	private Timer syncTimer;
-	static boolean isRealTimeSearch = false;
-	static final boolean SEARCHED = true;
-	static final boolean SHOWN = false;
-
+	
+	/**
+	 * Main Function of the application
+	 * @param args
+	 */
 	public static void main(String[] args) {
 		Application.launch(args);
 	}
@@ -44,43 +71,85 @@ public class Control extends Application {
 	public void start(final Stage primaryStage) {
 		loadData();
 		loadGUI(primaryStage);
-		loadUpdateTimer();
+		loadTimer();
 	}
-
+	
+	/**
+	 * Load the data from storage files
+	 */
 	public void loadData() {
 		try {
-			taskFile = new TaskStorage("task_storage.xml", modelHandler);
-			taskFile.loadFromFile();
-			settingStore = new SettingsStorage("setting_storage.xml", modelHandler);
-			settingStore.loadFromFile();
-			CustomDate.setDisplayRemaining(modelHandler.doDisplayRemaining());
-			
+			loadTask();
+			loadSettings();
+			CustomDate.setDisplayRemaining(model.doDisplayRemaining());
 		} catch (IOException e) {
-			System.out.println("Cannot read the given file");
+			logger.log(Level.INFO,"Cannot read the given file");
 		}
 	}
 
+	/**
+	 * Load the settings data
+	 */
+	private void loadSettings() throws IOException {
+		settingStore = new SettingsStorage(SETTING_FILENAME, model);
+		settingStore.loadFromFile();
+	}
+
+	/**
+	 * Load the task data
+	 */
+	private void loadTask() throws IOException {
+		taskFile = new TaskStorage(TASK_FILENAME, model);
+		taskFile.loadFromFile();
+	}
+	
+	/**
+	 * Initialize the graphical user interface of the application. Setup the
+	 * listeners and key bindings in the interface
+	 * 
+	 * @param primaryStage
+	 *            the main window of the application
+	 */
 	private void loadGUI(Stage primaryStage) {
-		view = new View(modelHandler, primaryStage, settingStore);
+		view = new View(model, primaryStage, settingStore);
 		addListenerForPreferences();
 		handleEventForCommandLine();
-		updateOverdueLine(modelHandler.getPendingList());
-		updateOverdueLine(modelHandler.getCompleteList());
-		updateOverdueLine(modelHandler.getTrashList());
+		updateLastOverdueTasks();
+		storeSettings();
+	}
+	
+	/**
+	 * Store settings data into storage files
+	 */
+	private void storeSettings() {
 		try{
 			settingStore.storeToFile();
 		} catch(IOException io) {
-			view.setFeedback(io.getMessage());
+			logger.log(Level.INFO, "Cannot store with the given filename");
 		}
-		
 	}
-
+	
+	/**
+	 * Update the lines separating overdue tasks and ongoing tasks in all lists
+	 */
+	private void updateLastOverdueTasks() {
+		updateOverdueLine(model.getPendingList());
+		updateOverdueLine(model.getCompleteList());
+		updateOverdueLine(model.getTrashList());
+	}
+	
+	/**
+	 * Setup handling for all necessary events for command line
+	 */
 	private void handleEventForCommandLine() {
-		handleListener();
-		handleKeyPressEvent();
+		setupChangeListener();
+		handleKeyEvent();
 	}
-
-	private void handleListener() {
+	
+	/**
+	 * Setup the change listener in the command line
+	 */
+	private void setupChangeListener() {
 		view.txt.getDocument().addDocumentListener(new DocumentListener() {
 			@Override
 			public void removeUpdate(DocumentEvent e) {
@@ -96,131 +165,270 @@ public class Control extends Application {
 			public void changedUpdate(DocumentEvent e) {
 	
 			}
-
+			
+			/**
+			 * Real time update in the interface due to changes in the content of command line
+			 */
 			private void realTimeUpdate() {
 				String command = view.txt.getText();
+				update(command);
+				checkValid(command);
+			}
+			
+			/**
+			 * The real time update including updating in the feedback and the
+			 * results of searching
+			 * 
+			 * @param command
+			 *            the current content in the command line
+			 */
+			private void update(String command) {
 				realTimeFeedback(command);
-				if (Parser.determineCommandType(command) == Common.COMMAND_TYPES.SEARCH)
+				
+				if (isSearchCommand(command)) {
 					realTimeSearch(command);
-				else if (Parser.determineCommandType(command) == Common.COMMAND_TYPES.REMOVE) {
-					String content = removeCommandTypeString(command);
-					if (!content.matches("\\s*")) {
-						if (!content.matches("\\s*\\d+.*"))
-							realTimeSearch("search" + content);
-					}
+				} else if (isValidIndexCommand(command)) {
+					realTimeCommandExecution(command);
 				}
-				if (isRealTimeSearch && !command.contains("search")
-						&& !command.contains("remove")&&!command.contains("rm")) {
+			}
+			
+			/**
+			 * Check whether this command is valid for real time search
+			 * @param command current content in the command line
+			 */
+			private void checkValid(String command) {
+				if (isInvalidRealTimeCommand(command)) {
 					isRealTimeSearch = false;
 					executeShowCommand();
 				}
 			}
 			
-			private boolean checkRemoveIndex(String command) {
+			// Indicate if this is an invalid real time command and currently
+			// under real time searched
+			private boolean isValidIndexCommand(String command) {
+				return isRemoveCommand(command) || isRecoverCommand(command)
+						|| isMarkCommand(command) || isUnmarkCommand(command)
+						|| isCompleteCommand(command)
+						|| isIncompleteCommand(command);
+			}
+
+			private boolean isInvalidRealTimeCommand(String command) {
+				return isRealTimeSearch && !isSearchCommand(command)
+						&& !isValidIndexCommand(command);
+			}
+
+			private void realTimeCommandExecution(String command) {
+				String content = Common.removeFirstWord(command);
+
+				if (!content.matches("\\s*") && !content.matches("\\s*\\d+.*")) {
+						realTimeSearch("search " + content);
+				}
+			}
+			
+			// Indicator whether this is a remove command
+			private boolean isRemoveCommand(String command) {
+				return Parser.determineCommandType(command) == Common.COMMAND_TYPES.REMOVE;
+			}
+			
+			// Indicator whether this is a recover command
+			private boolean isRecoverCommand(String command){
+				return Parser.determineCommandType(command) == Common.COMMAND_TYPES.RECOVER;
+			}
+			
+			// Indicator whether this is a mark command
+			private boolean isMarkCommand(String command){
+				return Parser.determineCommandType(command) == Common.COMMAND_TYPES.MARK;
+			}
+			
+			// Indicator whether this is an unmark command
+			private boolean isUnmarkCommand(String command){
+				return Parser.determineCommandType(command) == Common.COMMAND_TYPES.UNMARK;
+			}
+			
+			// Indicator whether this is a complete command
+			private boolean isCompleteCommand(String command){
+				return Parser.determineCommandType(command) == Common.COMMAND_TYPES.COMPLETE;
+			}
+			
+			// Indicator whether this is an incomplete command
+			private boolean isIncompleteCommand(String command){
+				return Parser.determineCommandType(command) == Common.COMMAND_TYPES.INCOMPLETE;
+			}
+			
+			// Indicator whether this is a search command
+			private boolean isSearchCommand(String command) {
+				return Parser.determineCommandType(command) == Common.COMMAND_TYPES.SEARCH;
+			}
+			
+			/**
+			 * This function check whether this command is an index command
+			 * 
+			 * @param command
+			 *            content of the command line
+			 * @return true if this command works with indices, vice versa
+			 */
+			private boolean isIndexCommand(String command) {
 				String content = Common.removeFirstWord(command);
 				String[] splitContent = Common.splitBySpace(content);
+				String checkedIndex = splitContent[0];
 				try {
-					Integer.valueOf(splitContent[0]);
+					checkIndex(checkedIndex);
 					return true;
 				} catch (NumberFormatException e) {
 					return false;
 				}
 			}
-
+			
+			// Process checking the index
+			private void checkIndex(String checkedIndex) throws NumberFormatException {
+				if(checkedIndex.contains(Common.HYPHEN)){
+					checkRangeIndex(checkedIndex);
+				} else{
+					Integer.valueOf(checkedIndex);
+				}
+			}
+			
+			// Process checking specifically for the range of indices
+			private void checkRangeIndex(String rangeIndex) throws NumberFormatException{
+				String[] splitContent = rangeIndex.split(Common.HYPHEN);
+				if(splitContent.length != 2)
+					throw new NumberFormatException("Invalid range for index");
+				Integer.parseInt(splitContent[0]);
+				Integer.parseInt(splitContent[1]);
+			}
+			
+			/**
+			 * Setup the real time feedback or suggestion to users
+			 * 
+			 * @param command
+			 *            content of the command line
+			 */
 			private void realTimeFeedback(String command) {
-
 				if (Parser.checkEmptyCommand(command)) {
 					view.setFeedback(Common.MESSAGE_REQUEST_COMMAND);
 				} else {
-					Common.COMMAND_TYPES commandType = Parser
-							.determineCommandType(command);
-					if (commandType == Common.COMMAND_TYPES.INVALID) {
-						view.setFeedback(command);
+					updateFeedback(command);
+				}
+			}
+			
+			/**
+			 * Update the real time feedback according to type of the command
+			 * 
+			 * @param command
+			 *            content of the command line
+			 */
+			private void updateFeedback(String command) {
+				Common.COMMAND_TYPES commandType = Parser
+						.determineCommandType(command);
+				switch (commandType) {
+				case ADD:
+					view.setFeedback(Common.MESSAGE_ADD_TIP);
+					break;
+				case EDIT:
+					view.setFeedback(Common.MESSAGE_EDIT_TIP);
+					break;
+				case REMOVE:
+					if (isIndexCommand(command)) {
+						view.setFeedback(Common.MESSAGE_REMOVE_INDEX_TIP);
 					} else {
-						switch (commandType) {
-						case ADD:
-							view.setFeedback(Common.MESSAGE_ADD_TIP);
-							break;
-						case EDIT:
-							view.setFeedback(Common.MESSAGE_EDIT_TIP);
-							break;
-						case REMOVE:
-							if (checkRemoveIndex(command))
-								view.setFeedback(Common.MESSAGE_REMOVE_INDEX_TIP);
-							else
-								view.setFeedback(Common.MESSAGE_REMOVE_INFO_TIP);
-							break;
-						case RECOVER:
-							view.setFeedback(Common.MESSAGE_RECOVER_TIP);
-							break;
-						case SEARCH:
-							view.setFeedback(Common.MESSAGE_SEARCH_TIP);
-							break;
-						case SHOW_ALL:
-							view.setFeedback(Common.MESSAGE_SHOW_ALL_TIP);
-							break;
-						case UNDO:
-							view.setFeedback(Common.MESSAGE_UNDO_TIP);
-							break;
-						case REDO:
-							view.setFeedback(Common.MESSAGE_REDO_TIP);
-							break;
-						case MARK:
-							view.setFeedback(Common.MESSAGE_MARK_TIP);
-							break;
-						case UNMARK:
-							view.setFeedback(Common.MESSAGE_UNMARK_TIP);
-							break;
-						case COMPLETE:
-							view.setFeedback(Common.MESSAGE_COMPLETE_TIP);
-							break;
-						case INCOMPLETE:
-							view.setFeedback(Common.MESSAGE_INCOMPLETE_TIP);
-							break;
-						case TODAY:
-							view.setFeedback(Common.MESSAGE_TODAY_TIP);
-							break;
-						case CLEAR_ALL:
-							view.setFeedback(Common.MESSAGE_CLEAR_ALL_TIP);
-							break;
-						case HELP:
-							view.setFeedback(Common.MESSAGE_HELP_TIP);
-							break;
-						case SYNC:
-							view.setFeedback(Common.MESSAGE_SYNC_TIP);
-							break;
-						case SETTINGS:
-							view.setFeedback(Common.MESSAGE_SETTINGS_TIP);
-							break;
-						case EXIT:
-							view.setFeedback(Common.MESSAGE_EXIT_TIP);
-							break;
-						}
+						view.setFeedback(Common.MESSAGE_REMOVE_INFO_TIP);
 					}
+					break;
+				case RECOVER:
+					view.setFeedback(Common.MESSAGE_RECOVER_TIP);
+					break;
+				case SEARCH:
+					view.setFeedback(Common.MESSAGE_SEARCH_TIP);
+					break;
+				case SHOW_ALL:
+					view.setFeedback(Common.MESSAGE_SHOW_ALL_TIP);
+					break;
+				case UNDO:
+					view.setFeedback(Common.MESSAGE_UNDO_TIP);
+					break;
+				case REDO:
+					view.setFeedback(Common.MESSAGE_REDO_TIP);
+					break;
+				case MARK:
+					view.setFeedback(Common.MESSAGE_MARK_TIP);
+					break;
+				case UNMARK:
+					view.setFeedback(Common.MESSAGE_UNMARK_TIP);
+					break;
+				case COMPLETE:
+					view.setFeedback(Common.MESSAGE_COMPLETE_TIP);
+					break;
+				case INCOMPLETE:
+					view.setFeedback(Common.MESSAGE_INCOMPLETE_TIP);
+					break;
+				case TODAY:
+					view.setFeedback(Common.MESSAGE_TODAY_TIP);
+					break;
+				case CLEAR_ALL:
+					view.setFeedback(Common.MESSAGE_CLEAR_ALL_TIP);
+					break;
+				case HELP:
+					view.setFeedback(Common.MESSAGE_HELP_TIP);
+					break;
+				case SYNC:
+					view.setFeedback(Common.MESSAGE_SYNC_TIP);
+					break;
+				case SETTINGS:
+					view.setFeedback(Common.MESSAGE_SETTINGS_TIP);
+					break;
+				case EXIT:
+					view.setFeedback(Common.MESSAGE_EXIT_TIP);
+					break;
+				case INVALID:
+					view.setFeedback(command);
+					break;
 				}
 			}
 		});
 	}
-
-	private void handleKeyPressEvent() {
+	
+	/**
+	 * Setup handling key events executed in the interface
+	 */
+	private void handleKeyEvent() {
+		setupHotkeys();
+		setupKeyBindingsForCommandLine();
+	}
+	
+	// Setup key bindings for the command line
+	private void setupKeyBindingsForCommandLine() {
+		InputMap map = view.txt.getInputMap();
+		addKeyBindingForExecution(map);
+		addKeyBindingForUndo(map);
+		addKeyBindingForRedo(map);
+		addKeyBidningForHelp(map);
+	}
+	
+	// Setup the hot keys in the application
+	private void setupHotkeys() {
 		view.generalBase.setOnKeyPressed(new EventHandler<KeyEvent>() {
-			public void handle(KeyEvent e) {
-				if (Common.undo_hot_key.match(e)) {
+			public void handle(KeyEvent keyEvent) {
+				if (Common.undo_hot_key.match(keyEvent)) {
 					isRealTimeSearch = false;
 					String feedback = executeCommand("undo");
 					updateFeedback(feedback);
-				} else if (Common.redo_hot_key.match(e)) {
+				} else if (Common.redo_hot_key.match(keyEvent)) {
 					isRealTimeSearch = false;
 					String feedback = executeCommand("redo");
 					updateFeedback(feedback);
-				} else if (e.getCode() == KeyCode.F1) {
+				} else if (keyEvent.getCode() == KeyCode.F1) {
 					isRealTimeSearch = false;
 					String feedback = executeCommand("help");
 					updateFeedback(feedback);
 				}
 			}
 		});
-
+	}
+	
+	/*
+	 * Key binding for ENTER
+	 */
+	private void addKeyBindingForExecution(InputMap map) {
 		Action enterAction = new AbstractAction() {
 			@Override
 			public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -234,13 +442,18 @@ public class Control extends Application {
 				});
 			}
 		};
+		
 		// Get KeyStroke for enter key
 		KeyStroke enterKey = KeyStroke.getKeyStroke(
 				com.sun.glass.events.KeyEvent.VK_ENTER, 0);
 		// Override enter for a pane
-		InputMap map = view.txt.getInputMap();
 		map.put(enterKey, enterAction);
-
+	}
+	
+	/*
+	 *  Key binding for Ctrl + Z
+	 */
+	private void addKeyBindingForUndo(InputMap map) {
 		Action undoAction = new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -258,7 +471,12 @@ public class Control extends Application {
 				com.sun.glass.events.KeyEvent.VK_Z,
 				java.awt.event.InputEvent.CTRL_DOWN_MASK);
 		map.put(undoKey, undoAction);
-
+	}	
+	
+	/*
+	 * Key binding for Ctrl + Y
+	 */
+	private void addKeyBindingForRedo(InputMap map) {
 		Action redoAction = new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -276,9 +494,13 @@ public class Control extends Application {
 				com.sun.glass.events.KeyEvent.VK_Y,
 				java.awt.event.InputEvent.CTRL_DOWN_MASK);
 		map.put(redoKey, redoAction);
-
+	}
+	
+	/*
+	 * Key binding for F1
+	 */
+	private void addKeyBidningForHelp(InputMap map) {
 		Action helpAction = new AbstractAction() {
-
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				Platform.runLater(new Runnable() {
@@ -295,12 +517,17 @@ public class Control extends Application {
 				com.sun.glass.events.KeyEvent.VK_F1, 0);
 		map.put(helpKey, helpAction);
 	}
-	
+
+	/*
+	 * Add the listener for the Preferences MenuItem in the PopupMenu in system
+	 * tray of the application
+	 */
 	private void addListenerForPreferences(){
-		view.getSettingsItem().addActionListener(createPreferencesListener());
+		view.getSettingsItem().addActionListener(createPreferencesListenerInSystemTray());
 	}
 	
-	private ActionListener createPreferencesListener() {
+	// Create the specific ActionListener
+	private ActionListener createPreferencesListenerInSystemTray() {
 		return new ActionListener() {
 			@Override
 			public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -317,15 +544,15 @@ public class Control extends Application {
 		};
 	}
 	
-	private String removeCommandTypeString(String command) {
-		String commandTypeStr = Common.getFirstWord(command);
-		return command.substring(commandTypeStr.length());
-	}
-
+	/**
+	 * Update the feedback in the interface according to the types of feedback
+	 * 
+	 * @param feedback
+	 *            the specific feedback
+	 */
 	private void updateFeedback(String feedback) {
 		if (successfulExecution(feedback)) {
-			view.txt.setText("");
-			view.txt.setCaretPosition(0);
+			clearCommandLine();
 		}
 		view.emptyFeedback(0);
 		view.setFeedbackStyle(0, feedback, view.getDefaultColor());
