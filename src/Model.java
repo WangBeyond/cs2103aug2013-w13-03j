@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -29,6 +30,7 @@ public class Model {
 	private ObservableList<Task> complete;
 	private ObservableList<Task> trash;
 	
+	
 	/*
 	 * List of searched tasks in corresponding tabs
 	 */
@@ -41,6 +43,8 @@ public class Model {
 	 */
 	private ObservableList<String> removedIdDuringSync;
 	
+	private ArrayList<Task> undoTaskBuffer;
+	
 	/*
 	 * Default constructor
 	 */
@@ -52,6 +56,7 @@ public class Model {
 		searchComplete = FXCollections.observableArrayList();
 		searchTrash = FXCollections.observableArrayList();
 		removedIdDuringSync = FXCollections.observableArrayList();
+		undoTaskBuffer = new ArrayList<Task>();
 		displayRemaining = true;
 		themeMode = Common.DAY_MODE;
 		colourScheme = Common.DAY_MODE;
@@ -113,6 +118,10 @@ public class Model {
 
 	public ObservableList<Task> getSearchTrashList() {
 		return searchTrash;
+	}
+	
+	public ArrayList<Task> getUndoTaskBuffer(){
+		return undoTaskBuffer;
 	}
 	
 	/******************************** GET or MODIFY the index IDs of deleted-during-sync tasks ******************/

@@ -1,4 +1,7 @@
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.ArrayList;
 
@@ -117,7 +120,8 @@ abstract class TwoWayCommand extends Command {
 	}
 
 	public abstract String undo();
-
+	public abstract String redo();
+	
 	/**
 	 * This function is used to set the current indexes as indexes after search
 	 * or original ones.
@@ -234,8 +238,8 @@ class AddCommand extends TwoWayCommand {
 	private String startDateString;
 	private String endDateString;
 	private boolean isImptTask;
-	private String repeatingType;
-	private String processedRepeatingType;	
+
+	private String repeatingType;	
 	private Task task;
 
 	public AddCommand(String[] parsedUserCommand, Model model, int tabIndex) throws IllegalArgumentException {
@@ -253,7 +257,6 @@ class AddCommand extends TwoWayCommand {
 	public String execute() {
 		task = new Task();
 		task.setWorkInfo(workInfo);
-		processedRepeatingType = repeatingType;
 		
 		boolean isRepetitive = !repeatingType.equals(Common.NULL);
 		boolean hasStartDate = !startDateString.equals(Common.NULL);
@@ -295,7 +298,7 @@ class AddCommand extends TwoWayCommand {
 			splitRepeatingInfo();
 		}
 		checkInvalidDates(isRepetitive, hasStartDate, hasEndDate, 
-				task.getStartDate(), task.getEndDate(), processedRepeatingType);
+				task.getStartDate(), task.getEndDate(), repeatingType);
 		
 		setTag();
 		if (isRepetitive) {
@@ -313,43 +316,56 @@ class AddCommand extends TwoWayCommand {
 	public String undo() {
 		int index = model.getIndexFromPending(task);
 		model.removeTaskFromPendingNoTrash(index);
-		Common.sortList(model.getPendingList());
 		assert model.getTaskFromPending(index).equals(task);
+		if(task.getStatus() == Task.Status.UNCHANGED)
+			model.getUndoTaskBuffer().add(task);
 		return Common.MESSAGE_SUCCESSFUL_UNDO;
+	}
+	
+	public String redo(){
+		model.addTaskToPending(task);
+		task.setStatus(Task.Status.NEWLY_ADDED);
+		for(int i = 0; i < model.getUndoTaskBuffer().size(); i++){
+			if(model.getUndoTaskBuffer().get(i) == task)
+				task.setStatus(Task.Status.UNCHANGED);
+		}
+		
+		Common.sortList(model.getPendingList());
+		return Common.MESSAGE_SUCCESSFUL_REDO;
 	}
 	
 	private void splitRepeatingInfo() {
 		String pattern = "(.*)(\\s+)(\\d+)(\\s+times?.*)";
-		if(processedRepeatingType.matches(pattern)) {
-			int num = Integer.valueOf(processedRepeatingType.replaceAll(pattern,"$3"));
+		if(repeatingType.matches(pattern)) {
+			int num = Integer.valueOf(repeatingType.replaceAll(pattern,"$3"));
 			task.setNumOccurrences(num);
-			processedRepeatingType = processedRepeatingType.replaceAll(pattern, "$1");
+			repeatingType = repeatingType.replaceAll(pattern, "$1");
 
 		} else 
 			task.setNumOccurrences(0);
 		String regex = "(every\\s*1?\\s*)(day|week|month|year)(\\s?)";
 		String frequentDayRegex = "(every\\s*1?\\s*)(monday|tuesday|wednesday|thursday|friday|saturday|sunday)(\\s?)";
 		String dayRegex = "(every)\\s*(\\d+)\\s*(mondays?|tuesdays?|wednesdays?|thursdays?|fridays?|saturdays?|sundays?)";
-		if(processedRepeatingType.matches(regex)) {
-			processedRepeatingType = processedRepeatingType.replaceAll(regex,"$2");
-				if(processedRepeatingType.equals("day"))
-					processedRepeatingType = "daily"; 
+		if(repeatingType.matches(regex)) {
+			repeatingType = repeatingType.replaceAll(regex,"$2");
+				if(repeatingType.equals("day"))
+					repeatingType = "daily"; 
 				else	
-					processedRepeatingType = repeatingType+"ly";
-		} else if (processedRepeatingType.matches(frequentDayRegex)) {
-			processedRepeatingType = "weekly";
-		} else if(processedRepeatingType.matches("every\\s*\\d+\\s*(days?|weeks?|months?|years?)")) {
-			processedRepeatingType = processedRepeatingType.replaceAll("\\s+", "");
-		} else if(processedRepeatingType.matches(dayRegex)){
-			processedRepeatingType = processedRepeatingType.replaceAll(dayRegex, "$1$2weeks");
+					repeatingType = repeatingType+"ly";
+		} else if (repeatingType.matches(frequentDayRegex)) {
+			repeatingType = "weekly";
+		} else if(repeatingType.matches("every\\s*\\d+\\s*(days?|weeks?|months?|years?)")) {
+			repeatingType = repeatingType.replaceAll("\\s+", "");
+		} else if(repeatingType.matches(dayRegex)){
+			repeatingType = repeatingType.replaceAll(dayRegex, "$1$2weeks");
 		}
 	}
 	
 	private void setTag(){
 		if (tag.equals(Common.NULL) || tag.equals(Common.HASH_TAG)) {
-				task.setTag(new Tag(Common.HYPHEN, processedRepeatingType));
+				task.setTag(new Tag(Common.HYPHEN, repeatingType));
 		} else {
-				task.setTag(new Tag(tag, processedRepeatingType));
+				task.setTag(new Tag(tag, repeatingType));
 		}
 	}
 }
@@ -367,9 +383,10 @@ class EditCommand extends TwoWayCommand {
 	String endDateString;
 	boolean hasImptTaskToggle;
 	String repeatingType;
-	Task targetTask;
+	Task modifiedTask;
 	Task originalTask;
-
+	Task targetTask;
+	
 	public EditCommand(String[] parsedUserCommand, Model model, int tabIndex) {
 		super(model, tabIndex);
 		assert parsedUserCommand != null;
@@ -388,7 +405,7 @@ class EditCommand extends TwoWayCommand {
 		if (convertIndex(index - 1) == INVALID) {
 			return Common.MESSAGE_INDEX_OUT_OF_BOUNDS;
 		}
-		targetTask = modifiedList.get(convertIndex(index - 1));
+		modifiedTask = modifiedList.get(convertIndex(index - 1));
 		setOriginalTask();
 		
 		CustomDate startDate, endDate;
@@ -399,18 +416,18 @@ class EditCommand extends TwoWayCommand {
 		boolean hasEndDateKey = !endDateString.equals(Common.NULL);
 		
 		if (!hasRepetitiveKey && !hasWorkInfoKey) {
-			repeatingType = targetTask.getTag().getRepetition();
+			repeatingType = modifiedTask.getTag().getRepetition();
 		}
 		if (hasStartDateKey) {
 			startDate = new CustomDate(startDateString);
 		} else {
-			startDate = targetTask.getStartDate();
+			startDate = modifiedTask.getStartDate();
 		}
 		if (hasEndDateKey) {
 			endDate = new CustomDate(endDateString);
 			updateTimeForEndDate(startDate, endDate);
 		} else {
-			endDate = targetTask.getEndDate();
+			endDate = modifiedTask.getEndDate();
 		}
 		
 		boolean isRepetitive = !repeatingType.equals(Common.NULL);
@@ -421,22 +438,22 @@ class EditCommand extends TwoWayCommand {
 		checkInvalidDates(isRepetitive, hasStartDate, hasEndDate, startDate, endDate, repeatingType);
 		
 		if (hasWorkInfoKey) {
-			targetTask.setWorkInfo(workInfo);
+			modifiedTask.setWorkInfo(workInfo);
 		}
 		if (hasStartDate && hasEndDate) {
-			targetTask.setStartDate(startDate);
-			targetTask.setEndDate(endDate);
+			modifiedTask.setStartDate(startDate);
+			modifiedTask.setEndDate(endDate);
 		} else if(hasStartDate){
-			targetTask.setStartDate(startDate);
+			modifiedTask.setStartDate(startDate);
 			
 			CustomDate cd = new CustomDate();
-			cd.setYear(targetTask.getStartDate().getYear());
-			cd.setMonth(targetTask.getStartDate().getMonth());
-			cd.setDate(targetTask.getStartDate().getDate());
+			cd.setYear(modifiedTask.getStartDate().getYear());
+			cd.setMonth(modifiedTask.getStartDate().getMonth());
+			cd.setDate(modifiedTask.getStartDate().getDate());
 			cd.setHour(23);
 			cd.setMinute(59);
 			
-			targetTask.setEndDate(cd);
+			modifiedTask.setEndDate(cd);
 		} else if(hasEndDate){
 			CustomDate cur = new CustomDate();
 			cur.setHour(0);
@@ -444,59 +461,75 @@ class EditCommand extends TwoWayCommand {
 			if(endDate.beforeCurrentTime()){
 				return "Invalid as end time is before current time";
 			} else {
-				targetTask.setStartDate(cur);
-				targetTask.setEndDate(endDate);
-				updateTimeForEndDate(targetTask.getStartDate(), endDate);
+				modifiedTask.setStartDate(cur);
+				modifiedTask.setEndDate(endDate);
+				updateTimeForEndDate(modifiedTask.getStartDate(), endDate);
 			}
 		} 
 		setTag();
 		if (isRepetitive) {
-			targetTask.updateDateForRepetitiveTask();
+			modifiedTask.updateDateForRepetitiveTask();
 		}
 		
 		if (hasImptTaskToggle) {
-			targetTask.setIsImportant(!targetTask.getIsImportant());
+			modifiedTask.setIsImportant(!modifiedTask.getIsImportant());
 		}
-
-		targetTask.updateLatestModifiedDate();
+		
+		setTargetTask();
+		
+		modifiedTask.updateLatestModifiedDate();
 		Common.sortList(modifiedList);
 		return Common.MESSAGE_SUCCESSFUL_EDIT;
 	}
 	
 	private void setTag() {
 		if (tag != Common.NULL) {
-			targetTask.setTag(new Tag(tag, repeatingType));
+			modifiedTask.setTag(new Tag(tag, repeatingType));
 			if (tag.equals(Common.HASH_TAG)) {
-				targetTask.getTag().setTag(Common.HYPHEN);
+				modifiedTask.getTag().setTag(Common.HYPHEN);
 			}
 		} else {
-			targetTask.setTag(new Tag(targetTask.getTag().getTag(), repeatingType));
+			modifiedTask.setTag(new Tag(modifiedTask.getTag().getTag(), repeatingType));
 		}
 	}
 	
 	private void setOriginalTask() {
 		originalTask = new Task();
-		originalTask.setIsImportant(targetTask.getIsImportant());
-		originalTask.setStartDate(targetTask.getStartDate());
-		originalTask.setEndDate(targetTask.getEndDate());
-		originalTask.setStartDateString(targetTask.getStartDateString());
-		originalTask.setEndDateString(targetTask.getEndDateString());
-		originalTask.setWorkInfo(targetTask.getWorkInfo());
-		originalTask.setTag(targetTask.getTag());
-		originalTask.setIndexId(targetTask.getIndexId());
-		originalTask.setLatestModifiedDate(targetTask.getLatestModifiedDate());
-		originalTask.setOccurrence(targetTask.getNumOccurrences(), targetTask.getCurrentOccurrence());
+		originalTask.setIsImportant(modifiedTask.getIsImportant());
+		originalTask.setStartDate(modifiedTask.getStartDate());
+		originalTask.setEndDate(modifiedTask.getEndDate());
+		originalTask.setStartDateString(modifiedTask.getStartDateString());
+		originalTask.setEndDateString(modifiedTask.getEndDateString());
+		originalTask.setWorkInfo(modifiedTask.getWorkInfo());
+		originalTask.setTag(modifiedTask.getTag());
+		originalTask.setIndexId(modifiedTask.getIndexId());
+		originalTask.setLatestModifiedDate(modifiedTask.getLatestModifiedDate());
+		originalTask.setOccurrence(modifiedTask.getNumOccurrences(), modifiedTask.getCurrentOccurrence());
+	}
+	
+	private void setTargetTask(){
+		targetTask = new Task();
+		targetTask.setIsImportant(modifiedTask.getIsImportant());
+		targetTask.setStartDate(modifiedTask.getStartDate());
+		targetTask.setEndDate(modifiedTask.getEndDate());
+		targetTask.setStartDateString(modifiedTask.getStartDateString());
+		targetTask.setEndDateString(modifiedTask.getEndDateString());
+		targetTask.setWorkInfo(modifiedTask.getWorkInfo());
+		targetTask.setTag(modifiedTask.getTag());
+		targetTask.setIndexId(modifiedTask.getIndexId());
+		targetTask.setLatestModifiedDate(modifiedTask.getLatestModifiedDate());
+		targetTask.setOccurrence(modifiedTask.getNumOccurrences(), modifiedTask.getCurrentOccurrence());
 	}
 	
 	private void splitRepeatingInfo() {
 		String pattern = "(.*)(\\s+)(\\d+)(\\s+times?.*)";
 		if(repeatingType.matches(pattern)) {
 			int num = Integer.valueOf(repeatingType.replaceAll(pattern,"$3"));
-			targetTask.setNumOccurrences(num);
+			modifiedTask.setNumOccurrences(num);
 			repeatingType = repeatingType.replaceAll(pattern, "$1");
 
 		} else 
-			targetTask.setNumOccurrences(0);
+			modifiedTask.setNumOccurrences(0);
 		String regex = "(every\\s*1?\\s*)(day|week|month|year)(\\s?)";
 		String frequentDayRegex = "(every\\s*1?\\s*)(monday|tuesday|wednesday|thursday|friday|saturday|sunday)(\\s?)";
 		String dayRegex = "(every)\\s*(\\d+)\\s*(mondays?|tuesdays?|wednesdays?|thursdays?|fridays?|saturdays?|sundays?)";
@@ -516,19 +549,35 @@ class EditCommand extends TwoWayCommand {
 	}
 
 	public String undo() {
-		targetTask.setIsImportant(originalTask.getIsImportant());
-		targetTask.setStartDate(originalTask.getStartDate());
-		targetTask.setEndDate(originalTask.getEndDate());
-		targetTask.setStartDateString(originalTask.getStartDateString());
-		targetTask.setEndDateString(originalTask.getEndDateString());
-		targetTask.setWorkInfo(originalTask.getWorkInfo());
-		targetTask.setTag(originalTask.getTag());
-		targetTask.setIndexId(originalTask.getIndexId());
-		targetTask.setLatestModifiedDate(originalTask.getLatestModifiedDate());
-		targetTask.setOccurrence(originalTask.getNumOccurrences(), originalTask.getCurrentOccurrence());
+		modifiedTask.setIsImportant(originalTask.getIsImportant());
+		modifiedTask.setStartDate(originalTask.getStartDate());
+		modifiedTask.setEndDate(originalTask.getEndDate());
+		modifiedTask.setStartDateString(originalTask.getStartDateString());
+		modifiedTask.setEndDateString(originalTask.getEndDateString());
+		modifiedTask.setWorkInfo(originalTask.getWorkInfo());
+		modifiedTask.setTag(originalTask.getTag());
+		modifiedTask.setIndexId(originalTask.getIndexId());
+		modifiedTask.setLatestModifiedDate(originalTask.getLatestModifiedDate());
+		modifiedTask.setOccurrence(originalTask.getNumOccurrences(), originalTask.getCurrentOccurrence());
 		Common.sortList(modifiedList);
 
 		return Common.MESSAGE_SUCCESSFUL_UNDO;
+	}
+	
+	public String redo() {
+		modifiedTask.setIsImportant(targetTask.getIsImportant());
+		modifiedTask.setStartDate(targetTask.getStartDate());
+		modifiedTask.setEndDate(targetTask.getEndDate());
+		modifiedTask.setStartDateString(targetTask.getStartDateString());
+		modifiedTask.setEndDateString(targetTask.getEndDateString());
+		modifiedTask.setWorkInfo(targetTask.getWorkInfo());
+		modifiedTask.setTag(targetTask.getTag());
+		modifiedTask.setIndexId(targetTask.getIndexId());
+		modifiedTask.setLatestModifiedDate(targetTask.getLatestModifiedDate());
+		modifiedTask.setOccurrence(targetTask.getNumOccurrences(), targetTask.getCurrentOccurrence());
+		Common.sortList(modifiedList);
+		
+		return Common.MESSAGE_SUCCESSFUL_REDO;
 	}
 }
 
@@ -597,6 +646,13 @@ class RemoveCommand extends IndexCommand {
 		Common.sortList(modifiedList);
 
 		return Common.MESSAGE_SUCCESSFUL_UNDO;
+	}
+	
+	public String redo(){
+		processRemove();
+		sortInvolvedLists();
+
+		return Common.MESSAGE_SUCCESSFUL_REDO;
 	}
 }
 
@@ -668,6 +724,11 @@ class ClearAllCommand extends IndexCommand {
 		Common.sortList(model.getTrashList());
 
 		return Common.MESSAGE_SUCCESSFUL_UNDO;
+	}
+	
+	public String redo(){
+		processClear();
+		return Common.MESSAGE_SUCCESSFUL_REDO;
 	}
 }
 
@@ -742,6 +803,13 @@ class CompleteCommand extends IndexCommand {
 		Common.sortList(model.getCompleteList());
 
 		return Common.MESSAGE_SUCCESSFUL_UNDO;
+	}
+	
+	public String redo(){
+		processComplete();
+		retrieveIndexesAfterProcessing();
+
+		return Common.MESSAGE_SUCCESSFUL_REDO;
 	}
 }
 
@@ -821,6 +889,13 @@ class IncompleteCommand extends IndexCommand {
 
 		return Common.MESSAGE_SUCCESSFUL_UNDO;
 	}
+	
+	public String redo(){
+		processIncomplete();
+		retrieveIndexesAfterProcessing();
+		
+		return Common.MESSAGE_SUCCESSFUL_REDO;
+	}
 }
 
 /**
@@ -899,6 +974,13 @@ class RecoverCommand extends IndexCommand {
 
 		return Common.MESSAGE_SUCCESSFUL_UNDO;
 	}
+	
+	public String redo(){
+		processRecover();
+		retrieveIndexesAfterProcessing();
+		
+		return Common.MESSAGE_SUCCESSFUL_REDO;
+	}
 }
 
 /**
@@ -938,6 +1020,16 @@ class MarkCommand extends IndexCommand {
 		}
 		return Common.MESSAGE_SUCCESSFUL_UNDO;
 	}
+	
+	public String redo(){
+		for (int i = 0; i < indexCount; i++) {
+			int markIndex = convertIndex(indexList[i] - 1);
+			Task targetTask = modifiedList.get(markIndex);
+			targetTask.setIsImportant(true);
+		}
+
+		return Common.MESSAGE_SUCCESSFUL_REDO;
+	}
 }
 
 /**
@@ -976,6 +1068,16 @@ class UnmarkCommand extends IndexCommand {
 			targetTask.setIsImportant(true);
 		}
 		return Common.MESSAGE_SUCCESSFUL_UNDO;
+	}
+	
+	public String redo(){
+		for (int i = 0; i < indexCount; i++) {
+			int unmarkIndex = convertIndex(indexList[i] - 1);
+			Task targetTask = modifiedList.get(unmarkIndex);
+			targetTask.setIsImportant(false);
+		}
+
+		return Common.MESSAGE_SUCCESSFUL_REDO;
 	}
 }
 
@@ -1405,29 +1507,6 @@ class SearchCommand extends Command {
 
 /**
  * 
- * Class Today Command
- * 
- */
-class TodayCommand extends Command {
-	View view;
-	boolean isRealTimeSearch;
-	
-	public TodayCommand(Model model, View view, boolean isRealTimeSearch) {
-		super(model, view.getTabIndex());
-		this.view = view;
-		this.isRealTimeSearch = isRealTimeSearch;
-	}
-
-	public String execute() {
-		Command s = new SearchCommand(new String[] { "null", "null", "null",
-				"today", "false" }, model, view, isRealTimeSearch);
-		TwoWayCommand.setIndexType(TwoWayCommand.SHOWN);
-		return s.execute();
-	}
-}
-
-/**
- * 
  * Class ShowAllCommand
  * 
  */
@@ -1523,23 +1602,45 @@ class SyncCommand extends Command implements Runnable {
 			password = model.getPassword();
 		}
 	      t = new Thread(this, "Sync Thread");
-	      System.out.println("Child thread: " + t);
+	      
 	      t.start(); // Start the thread
 	}
 	
-	public void  run(){
-		isRunning = true;
-		view.setSyncProgressVisible(true);
-		execute();
-		//view.emptyFeedback(0);
-		//view.setFeedbackStyle(0, feedback, view.getDefaultColor());
-		view.setSyncProgressVisible(false);
-		isRunning = false;
-		model.clearSyncInfo();
-		try {
-			taskFile.storeToFile();
-		} catch (IOException io) {
-			System.out.println(io.getMessage());
+	private boolean checkInternetAccess(){
+            try {
+                //make a URL to a known source
+                URL url = new URL("http://www.google.com");
+
+                //open a connection to that source
+                HttpURLConnection urlConnect = (HttpURLConnection)url.openConnection();
+
+                //trying to retrieve data from the source. If there
+                //is no connection, this line will fail
+                Object objData = urlConnect.getContent();
+
+            } catch (UnknownHostException e) {
+                return false;
+            } catch (IOException e) {
+                return false;
+            }
+            return true;
+    }
+	
+	public void run() {
+		if (checkInternetAccess()) {
+			isRunning = true;
+			view.setSyncProgressVisible(true);
+			execute();
+			view.setSyncProgressVisible(false);
+			isRunning = false;
+			model.clearSyncInfo();
+			try {
+				taskFile.storeToFile();
+			} catch (IOException io) {
+				System.out.println(io.getMessage());
+			}
+		} else {
+			view.showNoInternetConnection();
 		}
 	}
 	

@@ -116,6 +116,7 @@ public class View implements HotkeyListener {
 	private double dragAnchorX;
 	private double dragAnchorY;
 	private ProgressIndicator syncProgress;
+	private ImageView netAccessIndicator;
 	private Color defaultColor;
 	public JTextPane txt;
 	public ArrayList<Text> feedbackList = new ArrayList<Text>();
@@ -137,6 +138,7 @@ public class View implements HotkeyListener {
 
 	Model model;
 	Storage settingStore;
+
 
 	/**
 	 * This is the constructor for class View. It will create the content in the
@@ -565,7 +567,7 @@ public class View implements HotkeyListener {
 				}
 			};
 			title.setImage(new Image(getClass().getResourceAsStream("iDo.png")));
-			txt.setStyledDocument(new CustomStyledDocumentForDayMode());
+			txt.setStyledDocument(new CustomStyledDocument());
 			defaultColor = ColourPalette.fxWHITE;
 			
 			if(model.getColourScheme().equals(Common.NIGHT_MODE))
@@ -587,7 +589,7 @@ public class View implements HotkeyListener {
 					}
 				}
 			};
-			txt.setStyledDocument(new CustomStyledDocumentForNightMode());
+			txt.setStyledDocument(new CustomStyledDocument());
 			title.setImage(new Image(getClass().getResourceAsStream(
 					"iDoNight.png")));
 			defaultColor = ColourPalette.fxNEAR_WHITE;
@@ -675,22 +677,38 @@ public class View implements HotkeyListener {
 
 		title = createTitle();
 		syncProgress = new ProgressIndicator();
+		Image netAcess = new Image(getClass().getResourceAsStream("redCross.png"), 25, 25, true, true);
+		netAccessIndicator = new ImageView(netAcess);
+		netAccessIndicator.setVisible(false);
 		setSyncProgressVisible(false);
 		
 		HBox buttons = createModifyingButtons();
 
-		setupLayout(title, syncProgress, buttons);
+		setupLayout(netAccessIndicator, buttons);
 	}
 
 	public void setSyncProgressVisible(final boolean isVisible) {
 		Platform.runLater(new Runnable() {
-			
 			@Override
 			public void run() {
-				// TODO Auto-generated method stub
 				syncProgress.setVisible(isVisible);
 			}
 		});	
+	}
+	
+	public void showNoInternetConnection(){
+		netAccessIndicator.setVisible(true);
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				FadeTransition fade = new FadeTransition(Duration.millis(10000),
+						netAccessIndicator);
+				fade.setFromValue(1.0);
+				fade.setToValue(0.0);
+				fade.play();
+			}
+		});
+	
 	}
 
 	private void setDraggable() {
@@ -716,18 +734,20 @@ public class View implements HotkeyListener {
 		});
 	}
 
-	private void setupLayout(ImageView title, ProgressIndicator syncIndicator,
-			HBox buttons) {
+	private void setupLayout(ImageView netAcessIndicator, HBox buttons) {
 		syncProgress.setMinSize(25, 25);
 		syncProgress.setMaxSize(25, 25);
 
-		top.getChildren().addAll(title, syncIndicator, buttons);
+		StackPane pane = new StackPane();
+		pane.getChildren().addAll(netAcessIndicator, syncProgress);
+		
+		top.getChildren().addAll(title, pane, buttons);
 		AnchorPane.setLeftAnchor(title, 10.0);
 		AnchorPane.setTopAnchor(buttons, 25.0); 
 		AnchorPane.setTopAnchor(title, 30.0);
 		AnchorPane.setRightAnchor(buttons, 5.0);
-		AnchorPane.setRightAnchor(syncIndicator, 305.0);
-		AnchorPane.setBottomAnchor(syncIndicator, -28.0);
+		AnchorPane.setRightAnchor(pane, 305.0);
+		AnchorPane.setBottomAnchor(pane, -28.0);
 	}
 
 	private ImageView createTitle() {
@@ -1553,7 +1573,7 @@ public class View implements HotkeyListener {
 	}
 }
 
-class CustomStyledDocumentForDayMode extends DefaultStyledDocument {
+class CustomStyledDocument extends DefaultStyledDocument {
 
 	public void insertString(int offset, String str, AttributeSet a)
 			throws BadLocationException {
@@ -1601,68 +1621,6 @@ class CustomStyledDocumentForDayMode extends DefaultStyledDocument {
 						.length(), View.colourSchemeCommandLine[6], false);
 				break;
 			case Common.INDEX_REPEATING:
-				setCharacterAttributes(info.getStartIndex(), info.getInfo()
-						.length(), View.colourSchemeCommandLine[7], false);
-				break;
-			case Common.INDEX_INDEX_INFO:
-				setCharacterAttributes(info.getStartIndex(), info.getInfo()
-						.length(), View.colourSchemeCommandLine[8], false);
-				break;
-			}
-
-		}
-	}
-};
-
-class CustomStyledDocumentForNightMode extends DefaultStyledDocument {
-
-	public void insertString(int offset, String str, AttributeSet a)
-			throws BadLocationException {
-		super.insertString(offset, str, a);
-
-		setColor();
-	}
-
-	public void remove(int offs, int len) throws BadLocationException {
-		super.remove(offs, len);
-		setColor();
-	}
-	
-	private void setColor() throws BadLocationException {
-		String text = getText(0, getLength());
-		ArrayList<InfoWithIndex> infoList = Parser.parseForView(text);
-		for (int i = 0; i < infoList.size(); i++) {
-			InfoWithIndex info = infoList.get(i);
-			switch (info.getInfoType()) {
-			case Common.INDEX_TYPING_INFO:
-				setCharacterAttributes(info.getStartIndex(), info.getInfo()
-						.length(), View.colourSchemeCommandLine[0], false);
-				break;
-			case Common.INDEX_COMMAND_TYPE:
-				setCharacterAttributes(info.getStartIndex(), info.getInfo()
-						.length(), View.colourSchemeCommandLine[1], false);
-				break;
-			case Common.INDEX_WORK_INFO:
-				setCharacterAttributes(info.getStartIndex(), info.getInfo()
-						.length(), View.colourSchemeCommandLine[2], false);
-				break;
-			case Common.INDEX_TAG :
-				setCharacterAttributes(info.getStartIndex(), info.getInfo()
-						.length(), View.colourSchemeCommandLine[3], false);
-				break;
-			case Common.INDEX_START_DATE:
-				setCharacterAttributes(info.getStartIndex(), info.getInfo()
-						.length(), View.colourSchemeCommandLine[4], false);
-				break;
-			case Common.INDEX_END_DATE:
-				setCharacterAttributes(info.getStartIndex(), info.getInfo()
-						.length(), View.colourSchemeCommandLine[5], false);
-				break;
-			case Common.INDEX_IS_IMPT:
-				setCharacterAttributes(info.getStartIndex(), info.getInfo()
-						.length(), View.colourSchemeCommandLine[6], false);
-				break;
-			case Common.INDEX_REPEATING :
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[7], false);
 				break;

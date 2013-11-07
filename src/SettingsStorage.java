@@ -27,7 +27,6 @@ public class SettingsStorage extends Storage {
 	
 	private String dir;
 	public SettingsStorage(String fileName, Model model) {
-
 		createDir();
 		dir = findUserDocDir() + FOLDERNAME + "/" + fileName;
 		xmlFile = new File(dir);
