@@ -34,6 +34,8 @@ import com.melloware.jintellitype.HotkeyListener;
 import com.melloware.jintellitype.JIntellitype;
 
 import javafx.animation.FadeTransition;
+import javafx.animation.PauseTransition;
+import javafx.animation.SequentialTransition;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -701,11 +703,15 @@ public class View implements HotkeyListener {
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
-				FadeTransition fade = new FadeTransition(Duration.millis(10000),
+				FadeTransition appear = new FadeTransition(Duration.millis(100), netAccessIndicator);
+				appear.setFromValue(1.0);
+				appear.setToValue(1.0);
+				FadeTransition fade = new FadeTransition(Duration.millis(2000),
 						netAccessIndicator);
 				fade.setFromValue(1.0);
 				fade.setToValue(0.0);
-				fade.play();
+				SequentialTransition seq = new SequentialTransition(appear, new PauseTransition(Duration.millis(4000)), fade);
+				seq.play();
 			}
 		});
 	
