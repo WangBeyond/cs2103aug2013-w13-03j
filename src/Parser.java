@@ -114,7 +114,7 @@ public class Parser {
 	 * @return the array of infos necessary for each command
 	 */
 	public static String[] parseCommand(String userCommand,
-			Common.COMMAND_TYPES commandType, Model model, View view) {
+			Common.COMMAND_TYPES commandType, Model model, int tabIndex) {
 		String content = Common.removeFirstWord(userCommand);
 		content = removeUnneededSpaces(content);
 		if (commandType == Common.COMMAND_TYPES.ADD)
@@ -123,13 +123,13 @@ public class Parser {
 			return parseCommandWithInfo(content, Common.COMMAND_TYPES.SEARCH);
 		else if (commandType == Common.COMMAND_TYPES.EDIT)
 			return parseEditCommand(content);
-		else if (commandType == Common.COMMAND_TYPES.REMOVE)
-			return parseRemoveCommand(content, view, model);
 		else if (commandType == Common.COMMAND_TYPES.COMPLETE
 				|| commandType == Common.COMMAND_TYPES.INCOMPLETE
 				|| commandType == Common.COMMAND_TYPES.MARK
-				|| commandType == Common.COMMAND_TYPES.UNMARK || commandType == Common.COMMAND_TYPES.RECOVER)
-			return parseCommandWithIndex(content);
+				|| commandType == Common.COMMAND_TYPES.UNMARK
+				|| commandType == Common.COMMAND_TYPES.RECOVER
+				|| commandType == Common.COMMAND_TYPES.REMOVE)
+			return parseIndexCommand(content, tabIndex, model);
 		else if (commandType == Common.COMMAND_TYPES.SYNC){
 			return parseSyncCommand(content);
 		} else
@@ -245,12 +245,11 @@ public class Parser {
 		return parsedCommand;
 	}
 
-	private static String[] parseRemoveCommand(String content, View view, Model model) {
+	private static String[] parseIndexCommand(String content, int tabIndex, Model model) {
 		try {
 			return parseCommandWithIndex(content);
 		} catch (Exception e) {
 			ObservableList<Task> modifiedList;
-			int tabIndex = view.tabPane.getSelectionModel().getSelectedIndex();
 			if (tabIndex == Common.PENDING_TAB) {
 				modifiedList = model.getSearchPendingList();
 			} else if (tabIndex == Common.COMPLETE_TAB) {
@@ -343,7 +342,7 @@ public class Parser {
 		
 		infoList.add(new InfoWithIndex(commandTypeStr, 0, Common.INDEX_COMMAND_TYPE));
 		try {
-			String[] result = parseCommand(command, commandType, model, view);
+			String[] result = parseCommand(command, commandType, model, 0);
 			// Add the commandType first
 
 			if (commandType == Common.COMMAND_TYPES.EDIT) {

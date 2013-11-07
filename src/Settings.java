@@ -104,7 +104,7 @@ public class Settings {
 		}
 		if (model.getColourScheme() != null)
 			colourSchemes.setValue(model.getColourScheme());
-		if (model.getAutoSync() == true) {
+		if (model.hasAutoSync() == true) {
 			autoSync.setSelected(true);
 		} else {
 			manualSync.setSelected(true);
@@ -229,7 +229,7 @@ public class Settings {
 				.toggleGroup(toggleGroup).selected(true).build();
 		manualSync = RadioButtonBuilder.create().text("Manual sync")
 				.toggleGroup(toggleGroup).build();
-		if (model.getAutoSync() == true) {
+		if (model.hasAutoSync() == true) {
 			autoSync.setSelected(true);
 		} else {
 			manualSync.setSelected(true);

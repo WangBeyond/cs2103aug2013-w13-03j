@@ -61,7 +61,7 @@ public class SettingsStorage extends Storage {
 		account.addContent(new Element(DISPLAY_REMAINING).setText(model.getDisplayRemaining()==true? Common.TRUE : Common.FALSE));
 		account.addContent(new Element(THEMEMODE).setText(model.getThemeMode()));
 		account.addContent(new Element(COLOR_SCHEME).setText(model.getColourScheme()));
-		account.addContent(new Element(AUTO_SYNC).setText(model.getAutoSync() == true? Common.TRUE : Common.FALSE));
+		account.addContent(new Element(AUTO_SYNC).setText(model.hasAutoSync() == true? Common.TRUE : Common.FALSE));
 		account.addContent(new Element(SYNC_PERIOD).setText(String.valueOf(model.getSyncPeriod())));
 		XMLOutputter xmlOutput = new XMLOutputter();
 		xmlOutput.setFormat(Format.getPrettyFormat());
@@ -107,7 +107,7 @@ public class SettingsStorage extends Storage {
 			} else {
 				account.getChild(COLOR_SCHEME).setText("Default day mode");
 			}
-			account.getChild(AUTO_SYNC).setText(model.getAutoSync() == true? Common.TRUE : Common.FALSE);
+			account.getChild(AUTO_SYNC).setText(model.hasAutoSync() == true? Common.TRUE : Common.FALSE);
 			account.getChild(SYNC_PERIOD).setText(String.valueOf(model.getSyncPeriod()));
 			XMLOutputter xmlOutput = new XMLOutputter();
 			xmlOutput.setFormat(Format.getPrettyFormat());

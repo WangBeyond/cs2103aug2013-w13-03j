@@ -276,11 +276,11 @@ public class Task implements Comparable<Task> {
 	}
 
 	/********************************* GET Value Functions ***********************************/
-	public boolean getIsLastOverdue() {
+	public boolean isLastOverdueTask() {
 		return rowStatus.get().getIsLastOverdue();
 	}
 
-	public boolean getIsImportant() {
+	public boolean isImportantTask() {
 		return rowStatus.get().getIsImportant();
 	}
 	
