@@ -1655,7 +1655,7 @@ class SyncCommand extends Command implements Runnable {
 		} catch(Exception e){
 			view.setSyncProgressVisible(false);
 			e.printStackTrace();
-			feedback = "haha";	//TODO: change feedback
+			feedback = "There is currently some problem in syncing.";
 			return feedback;
 		}
 	}
