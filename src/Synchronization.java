@@ -133,6 +133,7 @@ public class Synchronization  {
 
 		// add tasks locally which have been added on GCal
 		addEventsLocally(eventEntry, model); 
+		model.getUndoTaskBuffer().clear();
 		return Common.MESSAGE_SYNC_SUCCESSFUL;
 	}
 
@@ -611,7 +612,18 @@ public class Synchronization  {
 				deletedTasks.get(i).setStatus(Task.Status.UNCHANGED);
 			}
 		}
+		
+		for(int i = 0; i < model.getUndoTaskBuffer().size(); i++){
+			for (int j = 0; j < entries.size(); j++) {
+				if (model.getUndoTaskBuffer().get(i).getIndexId()
+						.equals(entries.get(j).getId())) {
+					tobeDelete.add(entries.get(j));
+					break;
+				}
+			}
+		}
 		deleteEvents(service, tobeDelete, feedUrl);
+		
 	}
 
 	private void deleteTasksLocally(List<CalendarEventEntry> entries,
@@ -637,6 +649,8 @@ public class Synchronization  {
 		for (int i = 0; i < pendingList.size(); i++) {
 			taskIds.add(pendingList.get(i).getIndexId());
 		}
+		
+		
 		System.out.println(taskIds.size());
 		taskIds.addAll(model.getRemovedIdDuringSync());
 		System.out.println(taskIds.size());

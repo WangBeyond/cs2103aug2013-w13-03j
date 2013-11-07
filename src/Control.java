@@ -41,7 +41,6 @@ public class Control extends Application {
 	static boolean isRealTimeSearch = false;
 	static final boolean SEARCHED = true;
 	static final boolean SHOWN = false;
-	private Timer syncTimer;
 	//period for auto sync (in minute)
 	private int syncPeriod = 1;
 
@@ -460,6 +459,10 @@ public class Control extends Application {
 	}
 
 	private String executeUndoCommand() throws IOException {
+		if (syncThread != null && syncThread.isRunning()){
+			return "Cannot undo during process of synchronization";
+		}
+		
 		if (commandHistory.isUndoable()) {
 			executeShowCommand();
 			TwoWayCommand undoCommand = commandHistory.getPrevCommandForUndo();
@@ -471,13 +474,17 @@ public class Control extends Application {
 	}
 
 	private String executeRedoCommand() throws IOException {
+		if (syncThread != null && syncThread.isRunning()){
+			return "Cannot redo during process of synchronization";
+		}
+		
 		if (commandHistory.isRedoable()) {
 			if (commandHistory.isAfterSearch()) {
 				TwoWayCommand.setIndexType(TwoWayCommand.SEARCHED);
 			}
 			executeShowCommand();
 			TwoWayCommand redoCommand = commandHistory.getPrevCommandForRedo();
-			redoCommand.execute();
+			redoCommand.redo();
 			taskFile.storeToFile();
 			return Common.MESSAGE_SUCCESSFUL_REDO;
 		} else
@@ -492,8 +499,7 @@ public class Control extends Application {
 	}
 
 	private String executeTodayCommand(boolean isRealTimeSearch) {
-		Command s = new TodayCommand(modelHandler, view, isRealTimeSearch);
-		return s.execute();
+		return executeCommand("search today");
 	}
 
 	private String executeClearCommand() throws IOException {
@@ -659,6 +665,10 @@ public class Control extends Application {
 	private String executeExitCommand() {
 		int tabIndex = view.getTabIndex();
 		Command s = new ExitCommand(modelHandler, tabIndex);
+		if(syncThread != null && syncThread.isRunning()){
+			return "Cannot exit during process of synchronization";
+		}
+		
 		return s.execute();
 	}
 

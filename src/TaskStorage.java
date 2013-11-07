@@ -36,6 +36,7 @@ public class TaskStorage extends Storage {
 	private static final String PENDING = "pending";
 	private static final String COMPLETE = "complete";
 	private static final  String TRASH = "trash";
+	private static final String UNDO_BUFFER = "undo_buffer";
 
 	
 	public TaskStorage(String fileName, Model model) {
@@ -57,12 +58,16 @@ public class TaskStorage extends Storage {
 		Element pending = new Element(PENDING);
 		Element complete = new Element(COMPLETE);
 		Element trash = new Element(TRASH);
+		Element undoBuffer = new Element(UNDO_BUFFER);
+		
 		pending = addTasksToXMLFile(pending, PENDING, model.getPendingList());
 		complete = addTasksToXMLFile(complete, COMPLETE, model.getCompleteList());
 		trash = addTasksToXMLFile(trash, TRASH, model.getTrashList());
+		undoBuffer = addTasksToXMLFile(undoBuffer, UNDO_BUFFER, model.getUndoTaskBuffer());
 		doc.getRootElement().getChildren().add(pending);
 		doc.getRootElement().getChildren().add(complete);
 		doc.getRootElement().getChildren().add(trash);
+		doc.getRootElement().getChildren().add(undoBuffer);
 		XMLOutputter xmlOutput = new XMLOutputter();
 		xmlOutput.setFormat(Format.getPrettyFormat());
 		xmlOutput.output(doc, new FileWriter(xmlFile));
@@ -86,9 +91,11 @@ public class TaskStorage extends Storage {
 			Element pending = rootNode.getChild(PENDING);
 			Element trash = rootNode.getChild(TRASH);
 			Element complete = rootNode.getChild(COMPLETE);
+			Element undoBuffer = rootNode.getChild(UNDO_BUFFER);
 			addTasksToModel(pending, PENDING);
 			addTasksToModel(complete, COMPLETE);
 			addTasksToModel(trash, TRASH);
+			addTasksToModel(undoBuffer, UNDO_BUFFER);
 		} catch (IOException io) {
 			throw io;
 		  } catch (JDOMException jdomex) {
@@ -148,6 +155,9 @@ public class TaskStorage extends Storage {
             case TRASH:
                     model.addTaskToTrash(newTask);
                     break;
+            case UNDO_BUFFER:
+            		model.getUndoTaskBuffer().add(newTask);
+            		break;
             }
 		}
 	}
@@ -160,7 +170,7 @@ public class TaskStorage extends Storage {
 	 * @return
 	 */
 	private Element addTasksToXMLFile(Element element, String taskType,
-			ObservableList<Task> taskList) {
+			List<Task> taskList) {
 		for (int i = 0; i < taskList.size(); i++) {
 			Task targetTask = taskList.get(i);
 			Element newTask = new Element(taskType+""+i);
