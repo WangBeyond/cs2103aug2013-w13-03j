@@ -557,27 +557,39 @@ public class Control extends Application {
 		view.emptyFeedback(0);
 		view.setFeedbackStyle(0, feedback, view.getDefaultColor());
 	}
-
-	/***************************************** execution part ********************************************/
+	/******************************************************* EXECUTION SECTION *************************************************************/
+	/**
+	 * This function is the main function for executing all command inputs from
+	 * users
+	 * 
+	 * @param userCommand
+	 *            the command input from the user
+	 * @return the corresponding feedback according to the command
+	 */
 	private String executeCommand(String userCommand) {
 		boolean isEmptyCommand = Parser.checkEmptyCommand(userCommand);
 		if (isEmptyCommand) {
 			return Common.MESSAGE_EMPTY_COMMAND;
 		}
+		
 		try {
-			Common.COMMAND_TYPES commandType = Parser
-					.determineCommandType(userCommand);
-
-			String[] parsedUserCommand = Parser.parseCommand(userCommand,
-					commandType, modelHandler, view);
-
-			return executeCommandCorrespondingType(parsedUserCommand,
-					commandType);
+			Common.COMMAND_TYPES commandType = Parser.determineCommandType(userCommand);
+			String[] parsedUserCommand = Parser.parseCommand(userCommand, commandType, model, view.getTabIndex());
+			return executeCommandCorrespondingType(parsedUserCommand, commandType);
 		} catch (Exception e) {
-			return e.getMessage();
+			return e.getMessage(); // the corresponding error message
 		}
 	}
-
+	
+	/**
+	 * This function is used to execute according to each specific command
+	 * 
+	 * @param parsedUserCommand
+	 *            the parsed command array
+	 * @param commandType
+	 *            type of command
+	 * @return the corresponding feedback
+	 */
 	private String executeCommandCorrespondingType(String[] parsedUserCommand,
 			Common.COMMAND_TYPES commandType) throws IllegalArgumentException,
 			IOException {
@@ -615,7 +627,7 @@ public class Control extends Application {
 		case HELP:
 			return executeHelpCommand();
 		case SYNC:
-			return executeSyncCommand(parsedUserCommand);
+			return executeSyncCommand();
 		case EXIT:
 			return executeExitCommand();
 		case INVALID:
@@ -624,77 +636,109 @@ public class Control extends Application {
 			throw new Error("Unrecognised command type.");
 		}
 	}
-
-	private void realTimeSearch(String command) {
+	
+	/**
+	 * Start real time search from the specific search Command
+	 * 
+	 * @param searchCommand
+	 *            the input search command
+	 */
+	private void realTimeSearch(String searchCommand) {
 		isRealTimeSearch = true;
-		if (command.trim().equals("search"))
+		boolean hasOnlySearchCommandType = searchCommand.trim().equals("search") || searchCommand.trim().equals("find");
+		if (hasOnlySearchCommandType) {
 			executeShowCommand();
-		else {
-			executeCommand(command);
+		} else {
+			executeCommand(searchCommand);
 		}
 	}
-
+	
+	/**
+	 * ADD command execution
+	 */
 	private String executeAddCommand(String[] parsedUserCommand)
 			throws IOException {
 		int tabIndex = view.getTabIndex();
-		Command s = new AddCommand(parsedUserCommand, modelHandler, tabIndex);
-		String feedback = s.execute();
+		
+		Command addCommand = new AddCommand(parsedUserCommand, model, tabIndex);
+		String feedback = addCommand.execute();
+		
 		if (feedback.equals(Common.MESSAGE_SUCCESSFUL_ADD)) {
-			commandHistory.updateCommand((TwoWayCommand) s);
-			taskFile.storeToFile();
-			view.setTab(0);
+			commandHistory.updateCommand((TwoWayCommand) addCommand);
+			storeTask();
+			view.setTab(Common.PENDING_TAB);
 			executeShowCommand();
 		}
 		return feedback;
 	}
-
-	private String executeEditCommand(String[] parsedUserCommand)
-			throws IOException {
+	
+	/*
+	 * Store task info into storage file
+	 */
+	private void storeTask() throws IOException {
+		taskFile.storeToFile();
+	}
+	
+	/**
+	 * EDIT command execution
+	 */
+	private String executeEditCommand(String[] parsedUserCommand) throws IOException {
 		boolean isAfterSearch = TwoWayCommand.listedIndexType;
 		int tabIndex = view.getTabIndex();
-		Command s = new EditCommand(parsedUserCommand, modelHandler, tabIndex);
-		String feedback = s.execute();
+		
+		Command editCommand = new EditCommand(parsedUserCommand, model, tabIndex);
+		String feedback = editCommand.execute();
+		
 		if (feedback.equals(Common.MESSAGE_SUCCESSFUL_EDIT)) {
-			commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
-			taskFile.storeToFile();
+			commandHistory.updateCommand((TwoWayCommand) editCommand, isAfterSearch);
+			storeTask();
 			executeShowCommand();
 		}
 		return feedback;
 	}
-
-	private String executeRemoveCommand(String[] parsedUserCommand)
-			throws IOException {
+	
+	/**
+	 * REMOVE command execution
+	 */
+	private String executeRemoveCommand(String[] parsedUserCommand) throws IOException {
 		boolean isAfterSearch = TwoWayCommand.listedIndexType;
 		int tabIndex = view.getTabIndex();
-		Command s = new RemoveCommand(parsedUserCommand, modelHandler, tabIndex);
-		String feedback = s.execute();
+		
+		Command removeCommand = new RemoveCommand(parsedUserCommand, model, tabIndex);
+		String feedback = removeCommand.execute();
+		
 		if (feedback.equals(Common.MESSAGE_SUCCESSFUL_REMOVE)) {
-			commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
-			taskFile.storeToFile();
-			// syncFile.storeToFile();
+			commandHistory.updateCommand((TwoWayCommand) removeCommand, isAfterSearch);
+			storeTask();
 			executeShowCommand();
 		}
 		return feedback;
 	}
-
+	
+	/**
+	 * UNDO command execution
+	 */
 	private String executeUndoCommand() throws IOException {
-		if (syncThread != null && syncThread.isRunning()){
-			return "Cannot undo during process of synchronization";
+		if (isUnderSyncingProcess()){
+			return MESSAGE_UNDO_RESTRICTION;
 		}
 		
 		if (commandHistory.isUndoable()) {
 			executeShowCommand();
 			TwoWayCommand undoCommand = commandHistory.getPrevCommandForUndo();
 			String feedback = undoCommand.undo();
-			taskFile.storeToFile();
+			storeTask();
 			return feedback;
-		} else
-			return Common.MESSAGE_INVALID_UNDO;
+		} 
+		return Common.MESSAGE_INVALID_UNDO;
 	}
-
+	
+	/**
+	 * REDO command execution
+	 */
 	private String executeRedoCommand() throws IOException {
-		if (syncThread != null && syncThread.isRunning()){
-			return "Cannot redo during process of synchronization";
+		if (isUnderSyncingProcess()){
+			return MESSAGE_REDO_RESTRICTION;
 		}
 		
 		if (commandHistory.isRedoable()) {
@@ -704,197 +748,269 @@ public class Control extends Application {
 			executeShowCommand();
 			TwoWayCommand redoCommand = commandHistory.getPrevCommandForRedo();
 			redoCommand.redo();
-			taskFile.storeToFile();
+			storeTask();
 			return Common.MESSAGE_SUCCESSFUL_REDO;
-		} else
-			return Common.MESSAGE_INVALID_REDO;
+		} 
+		return Common.MESSAGE_INVALID_REDO;
 	}
-
+	
+	/**
+	 * SEARCH command execution
+	 */
 	private String executeSearchCommand(String[] parsedUserCommand,
 			boolean isRealTimeSearch) {
-		Command s = new SearchCommand(parsedUserCommand, modelHandler, view,
+		Command searchCommand = new SearchCommand(parsedUserCommand, model, view,
 				isRealTimeSearch);
-		return s.execute();
+		return searchCommand.execute();
 	}
-
+	
+	/**
+	 * TODAY command execution
+	 */
 	private String executeTodayCommand(boolean isRealTimeSearch) {
 		return executeCommand("search today");
 	}
-
+	
+	/**
+	 * CLEAR command execution
+	 */
 	private String executeClearCommand() throws IOException {
 		boolean isAfterSearch = TwoWayCommand.listedIndexType;
 		int tabIndex = view.getTabIndex();
-		Command s = new ClearAllCommand(modelHandler, tabIndex);
-		String feedback = s.execute();
+		
+		Command clearCommand = new ClearAllCommand(model, tabIndex);
+		String feedback = clearCommand.execute();
+		
 		if (feedback.equals(Common.MESSAGE_SUCCESSFUL_CLEAR_ALL)) {
-			commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
-			taskFile.storeToFile();
+			commandHistory.updateCommand((TwoWayCommand) clearCommand, isAfterSearch);
+			storeTask();
 			executeShowCommand();
 		}
 		return feedback;
 	}
-
+	
+	/**
+	 * COMPLETE command execution
+	 */
 	private String executeCompleteCommand(String[] parsedUserCommand)
 			throws IOException {
 		boolean isAfterSearch = TwoWayCommand.listedIndexType;
 		int tabIndex = view.getTabIndex();
-		Command s = new CompleteCommand(parsedUserCommand, modelHandler,
-				tabIndex);
-		String feedback = s.execute();
+		
+		Command completeCommand = new CompleteCommand(parsedUserCommand, model, tabIndex);
+		String feedback = completeCommand.execute();
 
 		if (feedback.equals(Common.MESSAGE_SUCCESSFUL_COMPLETE)) {
-			commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
-			taskFile.storeToFile();
+			commandHistory.updateCommand((TwoWayCommand) completeCommand, isAfterSearch);
+			storeTask();
 			executeShowCommand();
 		}
 		return feedback;
 	}
-
+	
+	/**
+	 * INCOMPLETE command execution
+	 */
 	private String executeIncompleteCommand(String[] parsedUserCommand)
 			throws IOException {
 		boolean isAfterSearch = TwoWayCommand.listedIndexType;
 		int tabIndex = view.getTabIndex();
-		Command s = new IncompleteCommand(parsedUserCommand, modelHandler,
-				tabIndex);
-		String feedback = s.execute();
+		
+		Command incompleteCommand = new IncompleteCommand(parsedUserCommand, model, tabIndex);
+		String feedback = incompleteCommand.execute();
 
 		if (feedback.equals(Common.MESSAGE_SUCCESSFUL_INCOMPLETE)) {
-			commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
-			taskFile.storeToFile();
+			commandHistory.updateCommand((TwoWayCommand) incompleteCommand, isAfterSearch);
+			storeTask();
 			executeShowCommand();
 		}
 		return feedback;
 	}
 	
+	/**
+	 * RECOVER command execution
+	 */
 	private String executeRecoverCommand(String[] parsedUserCommand) throws IOException{
 		boolean isAfterSearch = TwoWayCommand.listedIndexType;
 		int tabIndex = view.getTabIndex();
-		Command s = new RecoverCommand(parsedUserCommand, modelHandler, tabIndex);
-		String feedback = s.execute();
+		
+		Command recoverCommand = new RecoverCommand(parsedUserCommand, model, tabIndex);
+		String feedback = recoverCommand.execute();
 		
 		if(feedback.equals(Common.MESSAGE_SUCCESSFUL_RECOVER)){
-			commandHistory.updateCommand((TwoWayCommand)s, isAfterSearch);
-			taskFile.storeToFile();
+			commandHistory.updateCommand((TwoWayCommand)recoverCommand, isAfterSearch);
+			storeTask();
 			executeShowCommand();
 		}
-		
 		return feedback;
 	}
-
+	
+	/**
+	 * MARK command execution
+	 */
 	private String executeMarkCommand(String[] parsedUserCommand)
 			throws IOException {
 		boolean isAfterSearch = TwoWayCommand.listedIndexType;
 		int tabIndex = view.getTabIndex();
-		Command s = new MarkCommand(parsedUserCommand, modelHandler, tabIndex);
-		String feedback = s.execute();
+		
+		Command markCommand = new MarkCommand(parsedUserCommand, model, tabIndex);
+		String feedback = markCommand.execute();
 
 		if (feedback.equals(Common.MESSAGE_SUCCESSFUL_MARK)) {
-			commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
-			taskFile.storeToFile();
+			commandHistory.updateCommand((TwoWayCommand) markCommand, isAfterSearch);
+			storeTask();
 			executeShowCommand();
 		}
 		return feedback;
 	}
-
+	
+	/**
+	 * UNMARK command execution
+	 */
 	private String executeUnmarkCommand(String[] parsedUserCommand)
 			throws IOException {
 		boolean isAfterSearch = TwoWayCommand.listedIndexType;
 		int tabIndex = view.getTabIndex();
-		Command s = new UnmarkCommand(parsedUserCommand, modelHandler, tabIndex);
-		String feedback = s.execute();
+		
+		Command unmarkCommand = new UnmarkCommand(parsedUserCommand, model, tabIndex);
+		String feedback = unmarkCommand.execute();
 
 		if (feedback.equals(Common.MESSAGE_SUCCESSFUL_UNMARK)) {
-			commandHistory.updateCommand((TwoWayCommand) s, isAfterSearch);
-			taskFile.storeToFile();
+			commandHistory.updateCommand((TwoWayCommand) unmarkCommand, isAfterSearch);
+			storeTask();
 			executeShowCommand();
 		}
 		return feedback;
 	}
 	
+	/**
+	 * HELP command execution
+	 */
 	private String executeHelpCommand() {
-		Command s = new HelpCommand(modelHandler, view);
-		return s.execute();
+		Command helpCommand = new HelpCommand(model, view);
+		return helpCommand.execute();
 	}
-
+	
+	/**
+	 * SETTINGS command execution
+	 */
 	private String executeSettingsCommand(String[] parsedUserCommand) throws IOException{
-		String oldTheme = modelHandler.getThemeMode();
-		boolean oldAutoSync = modelHandler.getAutoSync();
+		String previousTheme = model.getThemeMode();
 		if(syncTimer != null)
 			syncTimer.cancel();
-		Command s = new SettingsCommand(modelHandler, view, parsedUserCommand);
-		String feedback = s.execute();
+		
+		Command settingsCommand = new SettingsCommand(model, view, parsedUserCommand);
+		String feedback = settingsCommand.execute();
+		
 		if (feedback.equals(Common.MESSAGE_SUCCESSFUL_SETTINGS)) {
-			settingStore.storeToFile();
-			if(!oldTheme.equals(modelHandler.getThemeMode()))
-					view.customizeGUI();
-			view.setColourScheme(modelHandler.getColourScheme());
-			if(oldAutoSync != modelHandler.getAutoSync()) {
-					autoSync();
-			}
-			CustomDate.setDisplayRemaining(modelHandler.doDisplayRemaining());
-			CustomDate.updateCurrentDate();
-			handleListener();
-			Platform.runLater(new Runnable() {
-
-				@Override
-				public void run() {
-					updateList(modelHandler.getPendingList());
-					updateList(modelHandler.getCompleteList());
-					updateList(modelHandler.getTrashList());
-				}
-			});
-
+			settingStore.updateToFile();
+			updateGUI(previousTheme);
+			initializeAutoSync();
+			updateTimeFormat();
 		}
 		return feedback;
 	}
 	
-	private void autoSync( ) {
+	/*
+	 * Update the time format display after changing settings
+	 */
+	private void updateTimeFormat() {
+		CustomDate.setDisplayRemaining(model.doDisplayRemaining());
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				updateAllTasks();
+			}
+		});
+	}
+		
+	/*
+	 * Update the interface including theme mode and color scheme after changing settings
+	 */
+	private void updateGUI(String previousTheme) {
+		boolean hasThemeChanged = !previousTheme.equals(model.getThemeMode());
+		if(hasThemeChanged)
+				view.customizeGUI();
+		view.setColourScheme(model.getColourScheme());
+		setupChangeListener();
+	}
+	
+	/*
+	 * Reset the sync timer each time after changing settings or at the start when open application
+	 */
+	private void setupAutoSyncTimer() {
 		syncTimer = new Timer();
 		syncTimer.schedule(new TimerTask() {
 			@Override
 			public void run() {
-				if (modelHandler.getAutoSync() == true) {
-					String[] nullContent = new String[1];
-					new SyncCommand(nullContent, modelHandler, sync, view, taskFile);
-				} else {
-					this.cancel();
-				}
+					new SyncCommand(model, sync, view, taskFile);
 			}
-		}, 0, modelHandler.getSyncPeriod() * Common.MINUTE_IN_MILLIS);
+		}, 0, model.getSyncPeriod() * Common.MINUTE_IN_MILLIS);
 	}
-
-	private String executeSyncCommand(String[] parsedUserCommand)
-			throws IOException {
+	
+	/**
+	 * SYNC command execution
+	 */
+	private String executeSyncCommand() throws IOException {
 		// Check whether there is already a sync thread
-		if (syncThread == null || !syncThread.isRunning())
-			syncThread = new SyncCommand(parsedUserCommand, modelHandler, sync, view,
+		if (!isUnderSyncingProcess())
+			syncThread = new SyncCommand(model, sync, view,
 					taskFile);
 
-		// String feedback = s.execute();
-		String feedback = syncThread.getFeedback();
-		if (feedback == null){
-			feedback = Common.MESSAGE_REQUEST_COMMAND;
-		}
-		view.txt.setText("");
-		view.txt.setCaretPosition(0);
-		return feedback;
+		clearCommandLine();
+		return Common.MESSAGE_REQUEST_COMMAND;
 	}
 
+	private void clearCommandLine() {
+		view.txt.setText("");
+	}
+	
+	/**
+	 * EXIT command execution
+	 */
 	private String executeExitCommand() {
 		int tabIndex = view.getTabIndex();
-		Command s = new ExitCommand(modelHandler, tabIndex);
-		if(syncThread != null && syncThread.isRunning()){
-			return "Cannot exit during process of synchronization";
+		Command exitCommand = new ExitCommand(model, tabIndex);
+		if(isUnderSyncingProcess()){
+			return MESSAGE_EXIT_RESTRICTION;
 		}
 		
-		return s.execute();
+		return exitCommand.execute();
 	}
-
+	
+	// Indicator whether the application is under syncing process
+	private boolean isUnderSyncingProcess() {
+		return syncThread != null && syncThread.isRunning();
+	}
+	
+	/**
+	 * SHOW command execution
+	 */
 	private String executeShowCommand() {
-		Command showCommand = new ShowAllCommand(modelHandler, view);
+		Command showCommand = new ShowAllCommand(model, view);
+		int tab = view.getTabIndex();
+		updateOverdueLineForSpecificTab(tab);
+		
 		return showCommand.execute();
 	}
-
+	
+	/**
+	 * Update the last overdue task in a specific tab
+	 * 
+	 * @param tab
+	 *            the given tab
+	 */
+	private void updateOverdueLineForSpecificTab(int tab) {
+		if(tab == Common.PENDING_TAB){
+			updateOverdueLine(model.getPendingList());
+		} else if(tab == Common.COMPLETE_TAB){
+			updateOverdueLine(model.getCompleteList());
+		} else if(tab == Common.TRASH_TAB){
+			updateOverdueLine(model.getTrashList());
+		}
+	}
+	
+	// Check whether the feedback is a signal of successful execution
 	private boolean successfulExecution(String feedback) {
 		return feedback.equals(Common.MESSAGE_NO_RESULTS)
 				|| feedback.equals(Common.MESSAGE_SUCCESSFUL_REMOVE)
@@ -914,48 +1030,92 @@ public class Control extends Application {
 				|| feedback.equals(Common.MESSAGE_SUCCESSFUL_SETTINGS)
 				|| feedback.equals(Common.MESSAGE_SYNC_SUCCESSFUL);
 	}
-
-	private void loadUpdateTimer() {
-		Timer t = new Timer();
-		t.schedule(new TimerTask() {
+	
+	/**
+	 * Initialize the auto sync and update timer 
+	 */
+	private void loadTimer() {
+		initializeUpdateTimer();
+		initializeAutoSync();
+	}
+	
+	// Setup the update timer for task every 1 minute
+	private void initializeUpdateTimer() {
+		Timer updateTimer = new Timer();
+		updateTimer.schedule(new TimerTask() {
 			@Override
 			public void run() {
-				CustomDate.updateCurrentDate();
-				updateList(modelHandler.getPendingList());
-				updateList(modelHandler.getCompleteList());
-				updateList(modelHandler.getTrashList());
-				displayMessage();
+				updateAllTasks();
+				checkDisplayMessages();
 			}
 		}, 0, Common.MINUTE_IN_MILLIS);
-		
-		if(modelHandler.getAutoSync())
-			autoSync();
 	}
-
-	private void displayMessage() {
-		ObservableList<Task> list = modelHandler.getPendingList();
+	
+	// Setup the auto sync timer with assigned period
+	private void initializeAutoSync() {
+		if(model.hasAutoSync()){
+			setupAutoSyncTimer();
+		}
+	}
+	
+	/**
+	 * This function checks which tasks in pending list need to be reminded
+	 */
+	private void checkDisplayMessages() {
+		ObservableList<Task> list = model.getPendingList();
 		for (int i = 0; i < list.size(); i++) {
-			if (list.get(i).getIsImportant() == true) {
-				int remainingTimeForStartDate = list.get(i).getStartDate().getRemainingTime();
-				int remainingTimeForEndDate = list.get(i).getEndDate().getRemainingTime();
-				if (remainingTimeForStartDate <= 60 && remainingTimeForStartDate > 0 && remainingTimeForStartDate % 15 == 0) {
-					view.trayIcon.displayMessage("Reminder", "Task \""
-							+ list.get(i).getWorkInfo()
-							+ "\"  will begin after the next "
-							+ remainingTimeForStartDate + " minutes",
-							MessageType.INFO);
-				} else if (remainingTimeForEndDate <= 60 && remainingTimeForEndDate > 0 && remainingTimeForEndDate % 15 == 0) {
-					view.trayIcon.displayMessage("Reminder",
-							"Task \""
-									+ list.get(i).getWorkInfo()
-									+ "\" will end after the next con cac "
-									+ remainingTimeForStartDate + " minutes",
-							MessageType.INFO);
-				}
+			if (list.get(i).isImportantTask()) {
+				displayMessageForImportantTask(list.get(i));
 			}
 		}
 	}
-
+	
+	// Check whether a task should be reminded
+	private void displayMessageForImportantTask(Task task) {
+		int remainingTimeForStartDate = task.getStartDate().getRemainingTime();
+		int remainingTimeForEndDate = task.getEndDate().getRemainingTime();
+		if (isTimeForReminding(remainingTimeForStartDate)) {
+			displayMessageForStartDate(task.getWorkInfo(),remainingTimeForStartDate);
+		} else if (isTimeForReminding(remainingTimeForEndDate)) {
+			displayMessageForEndDate(task.getWorkInfo(), remainingTimeForEndDate);
+		}
+	}
+	
+	// Indicator that the remaining time is valid to be reminded
+	private boolean isTimeForReminding(int remainingTime) {
+		return remainingTime <= 60 && remainingTime > 0 && remainingTime % 15 == 0;
+	}
+	
+	// Reminded a task as the task is about to end
+	private void displayMessageForEndDate(String taskInfo,
+			int remainingTimeForEndDate) {
+		view.trayIcon.displayMessage("Reminder", String.format(POPUP_MESSAGE_END_DATE,  taskInfo, remainingTimeForEndDate),
+				MessageType.INFO);
+	}
+	
+	// Reminded a task as the task is about to start
+	private void displayMessageForStartDate(String taskInfo,
+			int remainingTimeForStartDate) {
+		view.trayIcon.displayMessage("Reminder", String.format(POPUP_MESSAGE_START_DATE, taskInfo, remainingTimeForStartDate),
+				MessageType.INFO);
+	}
+	
+	// Update the time of all tasks currently in the application
+	private void updateAllTasks() {
+		CustomDate.updateCurrentDate();
+		updateList(model.getPendingList());
+		updateList(model.getCompleteList());
+		updateList(model.getTrashList());
+	}
+	
+	/**
+	 * This function updates the string displays for dates of all tasks in the
+	 * given list. If this is a recurring task and falls behind the current time,
+	 * the time will be updated
+	 * 
+	 * @param list
+	 *            the given list
+	 */
 	private static void updateList(ObservableList<Task> list) {
 		for (int i = 0; i < list.size(); i++) {
 			list.get(i).updateDateString();
@@ -965,14 +1125,21 @@ public class Control extends Application {
 		}
 		Common.sortList(list);
 	}
-
+	
+	/**
+	 * Update the last overdue task in a given list
+	 * 
+	 * @param list
+	 *            the given list
+	 */
 	public static void updateOverdueLine(ObservableList<Task> list) {
-		boolean hasLastOverdue = false;
+		boolean hasLastOverdueTask = false;
 		for (int i = list.size() - 1; i >= 0; i--) {
 			list.get(i).setIsLastOverdue(false);
-			if (!hasLastOverdue && list.get(i).isOverdueTask()) {
+			boolean isLastOverdue = !hasLastOverdueTask && list.get(i).isOverdueTask();
+			if (isLastOverdue) {
 				list.get(i).setIsLastOverdue(true);
-				hasLastOverdue = true;
+				hasLastOverdueTask = true;
 			}
 		}
 	}
