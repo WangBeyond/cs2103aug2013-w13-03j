@@ -60,6 +60,7 @@ public class Model {
 		displayRemaining = true;
 		themeMode = Common.DAY_MODE;
 		colourScheme = Common.DAY_MODE;
+		syncPeriod = 1;
 	}
 	
 	/**************************************** TASK Section **********************************/
@@ -271,6 +272,8 @@ public class Model {
 	private String colourScheme;
 	// Indicator whether to auto sync or not
 	private boolean isAutoSync;
+	// Period of syncing if enabling auto sync
+	private int syncPeriod;
 	
 	/*********************************** GET functions ****************************************/
 	public boolean doDisplayRemaining(){
@@ -300,6 +303,10 @@ public class Model {
 		return password;
 	}
 	
+	public int getSyncPeriod(){
+		return syncPeriod;
+	}
+	
 	/***************************************** SET functions ********************************************/
 	public void setThemeMode(String themeMode){
 		this.themeMode = themeMode;
@@ -323,5 +330,9 @@ public class Model {
 	
 	public void setPassword(String password){
 		this.password = password;
+	}
+	
+	public void setSyncPeriod(int syncPeriod){
+		this.syncPeriod = syncPeriod;
 	}
 }

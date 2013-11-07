@@ -5,8 +5,6 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.ArrayList;
 
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -1627,7 +1625,7 @@ class SyncCommand extends Command implements Runnable {
 
                 //trying to retrieve data from the source. If there
                 //is no connection, this line will fail
-                Object objData = urlConnect.getContent();
+                urlConnect.getContent();
 
             } catch (UnknownHostException e) {
                 return false;
