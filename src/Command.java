@@ -1497,7 +1497,7 @@ class SearchCommand extends Command {
 		for (int i = 0; i < list.size(); i++) {
 			String searchedWorkInfo = list.get(i).getWorkInfo().toLowerCase();
 			String tag = list.get(i).getTag().getTag().toLowerCase().substring(1);
-			if (searchedWorkInfo.contains(workInfo.toLowerCase()) || (!tag.equals("") && workInfo.toLowerCase().contains(tag))) {
+			if (searchedWorkInfo.contains(workInfo.toLowerCase()) || (!tag.equals("") && tag.contains(workInfo.toLowerCase()))) {
 				result.add(list.get(i));
 			}
 		}
