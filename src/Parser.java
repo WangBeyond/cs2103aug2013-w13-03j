@@ -396,7 +396,7 @@ public class Parser {
 						infoList.add(ci);
 					}
 				}
-				infoList = addInUselessInfo(infoList, command);
+				infoList = addInTypingInfo(infoList, command);
 			} else { // Consider command with index, just add the part except
 						// commandType,
 						// but if the commandType is invalid, just add them as
@@ -545,7 +545,7 @@ public class Parser {
 	 * @param command
 	 * @return complete infoList
 	 */
-	private static ArrayList<InfoWithIndex> addInUselessInfo(
+	private static ArrayList<InfoWithIndex> addInTypingInfo(
 			ArrayList<InfoWithIndex> infoList, String command) {
 		Collections.sort(infoList);
 		int keyInfoCount = infoList.size();

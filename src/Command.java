@@ -1131,14 +1131,14 @@ class SearchCommand extends Command {
 			tempSearchList.add(searchList.get(i));
 		}
 		
-		searchList.clear();
+		/*searchList.clear();
 		
 		isFirstTimeSearch = true;
 		if (searchForDateKey()) {
 			processSearch();
 		} 
 		
-		searchList = mergeLists(tempSearchList, searchList);
+		searchList = mergeLists(tempSearchList, searchList);*/
 		if (!isRealTimeSearch && searchList.isEmpty()) {
 			return Common.MESSAGE_NO_RESULTS;
 		}
@@ -1335,25 +1335,25 @@ class SearchCommand extends Command {
 
 	private boolean searchForDateKey() {
 		String[] splittedWorkInfo = Common.splitBySpace(workInfo);
-		String lastWords1, lastWords2;
+		String lastTwoWords, lastWord;
 		if (splittedWorkInfo.length >= 1) {
 				if(splittedWorkInfo.length == 1)
-					lastWords1 = "";
+					lastTwoWords = "";
 				else
-					lastWords1 = splittedWorkInfo[splittedWorkInfo.length - 2] + " "
+					lastTwoWords = splittedWorkInfo[splittedWorkInfo.length - 2] + " "
 							+ splittedWorkInfo[splittedWorkInfo.length - 1];
-				lastWords2 = splittedWorkInfo[splittedWorkInfo.length - 1];
+				lastWord = splittedWorkInfo[splittedWorkInfo.length - 1];
 				if(splittedWorkInfo.length == 1)
-					lastWords1 = lastWords2;
+					lastTwoWords = lastWord;
 			if (startDateString == Common.NULL) {
-				if (doesArrayWeaklyContain(Common.startDateKeys, lastWords1, lastWords2)) {
+				if (doesArrayWeaklyContain(Common.startDateKeys, lastTwoWords, lastWord)) {
 					startDateString = HAVING_START_DATE;
 					return true;
 				}
 			}
 
 			if (endDateString == Common.NULL) {
-				if (doesArrayWeaklyContain(Common.endDateKeys, lastWords1, lastWords2)) {
+				if (doesArrayWeaklyContain(Common.endDateKeys, lastTwoWords, lastWord)) {
 					endDateString = HAVING_END_DATE;
 					return true;
 				}
@@ -1365,6 +1365,17 @@ class SearchCommand extends Command {
 
 	private boolean doesArrayWeaklyContain(String[] array, String wordInfo1, String wordInfo2) {
 		for (String str : array) {
+			if (str.equals(wordInfo1.toLowerCase())){
+				int lastIndex = workInfo.lastIndexOf(wordInfo1);
+				workInfo = workInfo.substring(0, lastIndex).trim();
+				return true;
+			}
+			if(str.equals(wordInfo2.toLowerCase())){
+				int lastIndex = workInfo.lastIndexOf(wordInfo2);
+				workInfo = workInfo.substring(0, lastIndex).trim();
+				return true;
+			}
+			/*
 			if (str.indexOf(wordInfo1.toLowerCase()) == 0){
 				int lastIndex = workInfo.lastIndexOf(wordInfo1);
 				workInfo = workInfo.substring(0, lastIndex).trim();
@@ -1374,7 +1385,7 @@ class SearchCommand extends Command {
 				int lastIndex = workInfo.lastIndexOf(wordInfo2);
 				workInfo = workInfo.substring(0, lastIndex).trim();
 				return true;
-			}
+			}*/
 		}
 		return false;
 	}
