@@ -181,7 +181,7 @@ public class TaskStorage extends Storage {
 			newTask.addContent(new Element(END_DATE).setText((CustomDate.convertString(targetTask.getEndDate()))));
 			newTask.addContent(new Element(TAG).setText((targetTask.getTag().getTag())));
 			newTask.addContent(new Element(REPETITION).setText((targetTask.getTag().getRepetition())));
-			newTask.addContent(new Element(IS_IMPORTANT).setText(((targetTask.getIsImportant() == true ? Common.TRUE : Common.FALSE))));
+			newTask.addContent(new Element(IS_IMPORTANT).setText(((targetTask.isImportantTask() == true ? Common.TRUE : Common.FALSE))));
 			newTask.addContent(new Element(INDEX_IN_LIST).setText((targetTask.getIndexInList()+"")));
 			newTask.addContent(new Element(MODIFIED_DATE).setText((CustomDate.convertString(targetTask.getLatestModifiedDate()) +":"+ targetTask.getLatestModifiedDate().getSecond())));
 			newTask.addContent(new Element(CURRENT_OCCURRENCE).setText((targetTask.getCurrentOccurrence()+"")));

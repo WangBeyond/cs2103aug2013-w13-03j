@@ -291,7 +291,7 @@ public class Model {
 	public boolean getDisplayRemaining() {
 		return displayRemaining;
 	}
-	public boolean getAutoSync() {
+	public boolean hasAutoSync() {
 		return isAutoSync;
 	}
 	

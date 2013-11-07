@@ -470,7 +470,7 @@ class EditCommand extends TwoWayCommand {
 		}
 		
 		if (hasImptTaskToggle) {
-			modifiedTask.setIsImportant(!modifiedTask.getIsImportant());
+			modifiedTask.setIsImportant(!modifiedTask.isImportantTask());
 		}
 		
 		setTargetTask();
@@ -493,7 +493,7 @@ class EditCommand extends TwoWayCommand {
 	
 	private void setOriginalTask() {
 		originalTask = new Task();
-		originalTask.setIsImportant(modifiedTask.getIsImportant());
+		originalTask.setIsImportant(modifiedTask.isImportantTask());
 		originalTask.setStartDate(modifiedTask.getStartDate());
 		originalTask.setEndDate(modifiedTask.getEndDate());
 		originalTask.setStartDateString(modifiedTask.getStartDateString());
@@ -507,7 +507,7 @@ class EditCommand extends TwoWayCommand {
 	
 	private void setTargetTask(){
 		targetTask = new Task();
-		targetTask.setIsImportant(modifiedTask.getIsImportant());
+		targetTask.setIsImportant(modifiedTask.isImportantTask());
 		targetTask.setStartDate(modifiedTask.getStartDate());
 		targetTask.setEndDate(modifiedTask.getEndDate());
 		targetTask.setStartDateString(modifiedTask.getStartDateString());
@@ -547,7 +547,7 @@ class EditCommand extends TwoWayCommand {
 	}
 
 	public String undo() {
-		modifiedTask.setIsImportant(originalTask.getIsImportant());
+		modifiedTask.setIsImportant(originalTask.isImportantTask());
 		modifiedTask.setStartDate(originalTask.getStartDate());
 		modifiedTask.setEndDate(originalTask.getEndDate());
 		modifiedTask.setStartDateString(originalTask.getStartDateString());
@@ -563,7 +563,7 @@ class EditCommand extends TwoWayCommand {
 	}
 	
 	public String redo() {
-		modifiedTask.setIsImportant(targetTask.getIsImportant());
+		modifiedTask.setIsImportant(targetTask.isImportantTask());
 		modifiedTask.setStartDate(targetTask.getStartDate());
 		modifiedTask.setEndDate(targetTask.getEndDate());
 		modifiedTask.setStartDateString(targetTask.getStartDateString());
@@ -1402,7 +1402,7 @@ class SearchCommand extends Command {
 			ObservableList<Task> list) {
 		ObservableList<Task> result = FXCollections.observableArrayList();
 		for (int i = 0; i < list.size(); i++) {
-			if (list.get(i).getIsImportant()) {
+			if (list.get(i).isImportantTask()) {
 				result.add(list.get(i));
 			}
 		}
@@ -1532,13 +1532,10 @@ class ShowAllCommand extends Command {
 		int tabIndex = view.getTabIndex();
 		if (tabIndex == Common.PENDING_TAB) {
 			view.taskPendingList.setItems(model.getPendingList());
-			Control.updateOverdueLine(model.getPendingList());
 		} else if (tabIndex == Common.COMPLETE_TAB) {
 			view.taskCompleteList.setItems(model.getCompleteList());
-			Control.updateOverdueLine(model.getCompleteList());
 		} else {
 			view.taskTrashList.setItems(model.getTrashList());
-			Control.updateOverdueLine(model.getTrashList());
 		}
 		return Common.MESSAGE_SUCCESSFUL_SHOW_ALL;
 	}
@@ -1597,19 +1594,11 @@ class SyncCommand extends Command implements Runnable {
 	View view;
 	Storage taskFile;
 	Thread t;
-	public SyncCommand(String[] parsedUserCommand, Model model, Synchronization sync, View view, Storage taskFile) {
+	public SyncCommand(Model model, Synchronization sync, View view, Storage taskFile) {
 		super(model);
 		this.sync = sync;
 		this.view = view;
-		int size = parsedUserCommand.length;
 		this.taskFile = taskFile;
-		if(size == 2){
-			username = parsedUserCommand[0];
-			password = parsedUserCommand[1];
-		} else if(size == 1){
-			username = model.getUsername();
-			password = model.getPassword();
-		}
 	      t = new Thread(this, "Sync Thread");
 	      
 	      t.start(); // Start the thread

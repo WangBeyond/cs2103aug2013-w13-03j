@@ -178,7 +178,7 @@ public class Synchronization  {
 							.getEndDate().returnInRecurringFormat(), task
 							.getTag().getRepetition(), null,
 							task.getNumOccurrences(), task.getTag()
-									.getInterval(), task.getIsImportant(),
+									.getInterval(), task.isImportantTask(),
 							feedUrl);
 				} else {
 					if (task.getStartDate() != null
@@ -186,7 +186,7 @@ public class Synchronization  {
 															// end date
 						e = createSingleEvent(service, task.getWorkInfo(),
 								task.getStartDate(), task.getEndDate(),
-								task.getIsImportant(), feedUrl);
+								task.isImportantTask(), feedUrl);
 					} else if (task.getStartDate() == null
 							&& task.getEndDate() == null) {// no start date and
 															// no end date
@@ -198,7 +198,7 @@ public class Synchronization  {
 								cd.returnInRecurringFormat().substring(0, 8),
 								cd1.returnInRecurringFormat().substring(0, 8),
 								"daily", null, 0, task.getTag().getInterval(),
-								task.getIsImportant(), feedUrl);
+								task.isImportantTask(), feedUrl);
 					} else {
 						throw new Error("date format error");
 					}
@@ -321,7 +321,7 @@ public class Synchronization  {
 									rec.setValue(recurData);
 									entries.get(j).setRecurrence(rec);
 								}
-								if (pendingList.get(i).getIsImportant() == true) {
+								if (pendingList.get(i).isImportantTask() == true) {
 									setReminder(entries.get(j));
 								}
 								toBeUpdatedOnGCal.add(entries.get(j));
