@@ -1,3 +1,4 @@
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -41,8 +42,6 @@ public class Settings {
 
 	private static Settings oneSettingsPage;
 	private Model model;
-	private Storage settingStore;
-
 	private Stage settingsStage;
 	private Scene settingsScene;
 	private GridPane grid;
@@ -65,6 +64,7 @@ public class Settings {
 	private Text invalidUsername;
 	private Text invalidPassword;
 	private Text differentPassword;
+	private Stage parentStage;
 
 	private Settings(Model model) {
 		initializeKeyVariables(model);
@@ -146,11 +146,11 @@ public class Settings {
 	}
 
 	private void showErrorTexts(String checkUsernamePassword){
-		if (checkUsernamePassword == null){
+		if (checkUsernamePassword.equals(Control.CALL_NORMAL_SETTINGS)){
 			invalidUsername.setVisible(false);
 			invalidPassword.setVisible(false);
 			differentPassword.setVisible(false);
-		} else if (checkUsernamePassword.equals(Common.MESSAGE_SYNC_INVALID_USERNAME_PASSWORD)){
+		} else if (checkUsernamePassword.equals(Control.CALL_SETTINGS_FROM_SYNC)){
 			invalidUsername.setVisible(true);
 			invalidPassword.setVisible(true);
 			differentPassword.setVisible(false);

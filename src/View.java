@@ -180,9 +180,9 @@ public class View implements HotkeyListener {
 		initializeKeyVariables(model, primaryStage);
 		setupGlobalHotkey();
 		setupMainGUI();
-		setupPopupWindows();
 		showLoginPage();
 		setupScene();
+		setupPopupWindows();
 		showInitialMessage();
 	}
 
@@ -2075,7 +2075,7 @@ public class View implements HotkeyListener {
 	 * Hide the application. If system tray is not supported, the application
 	 * will termintate instead.
 	 */
-	private void hide() {
+	public void hide() {
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {

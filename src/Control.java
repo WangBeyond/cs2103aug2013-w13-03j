@@ -29,6 +29,9 @@ import javafx.stage.Stage;
  *
  */
 public class Control extends Application {
+	public static final String CALL_NORMAL_SETTINGS = "Normal settings";
+	public static final String CALL_SETTINGS_FROM_SYNC = "Settings from sync";
+	
 	// Restriction message from executing specific commands during process of synchronization
 	private static final String MESSAGE_UNDO_RESTRICTION = "Cannot undo during process of synchronization";
 	private static final String MESSAGE_REDO_RESTRICTION = "Cannot redo during process of synchronization";
@@ -59,6 +62,7 @@ public class Control extends Application {
 	// Timer for auto sync
 	private Timer syncTimer;
 	
+	
 	/**
 	 * Main Function of the application
 	 * @param args
@@ -77,7 +81,7 @@ public class Control extends Application {
 	/**
 	 * Load the data from storage files
 	 */
-	public void loadData() {
+	private void loadData() {
 		try {
 			loadTask();
 			loadSettings();
@@ -584,7 +588,6 @@ public class Control extends Application {
 					@Override
 					public void run() {
 						isRealTimeSearch = false;
-						view.stage.toBack();
 						String feedback = executeCommand("settings");
 						updateFeedback(feedback);
 					}
@@ -672,7 +675,7 @@ public class Control extends Application {
 		case UNMARK:
 			return executeUnmarkCommand(parsedUserCommand);
 		case SETTINGS:
-			return executeSettingsCommand(parsedUserCommand);
+			return executeSettingsCommand(parsedUserCommand, CALL_NORMAL_SETTINGS);
 		case HELP:
 			return executeHelpCommand();
 		case SYNC:
@@ -943,12 +946,13 @@ public class Control extends Application {
 	/**
 	 * SETTINGS command execution
 	 */
-	private String executeSettingsCommand(String[] parsedUserCommand) throws IOException{
+	private String executeSettingsCommand(String[] parsedUserCommand, String origin) throws IOException{
+		view.stage.hide();
 		String previousTheme = model.getThemeMode();
 		if(syncTimer != null)
 			syncTimer.cancel();
 		
-		Command settingsCommand = new SettingsCommand(model, view, parsedUserCommand);
+		Command settingsCommand = new SettingsCommand(model, view, parsedUserCommand, origin);
 		String feedback = settingsCommand.execute();
 		
 		if (feedback.equals(Common.MESSAGE_SUCCESSFUL_SETTINGS)) {
@@ -957,6 +961,8 @@ public class Control extends Application {
 			initializeAutoSync();
 			updateTimeFormat();
 		}
+		view.stage.toFront();
+		view.stage.show();
 		return feedback;
 	}
 	
@@ -992,13 +998,24 @@ public class Control extends Application {
 		syncTimer.schedule(new TimerTask() {
 			@Override
 			public void run() {
-					SyncCommand autoSync = new SyncCommand(model, sync, view, taskFile);
-					String autoSyncFeedback = autoSync.getFeedback();
-					if (autoSyncFeedback.equals(Common.MESSAGE_SYNC_INVALID_USERNAME_PASSWORD)){
-						syncTimer.cancel();
-						//TODO: open the settings panel
-						System.out.println("cancelled");
+				Platform.runLater(new Runnable() {
+					@Override
+					public void run() {
+						try {
+							syncThread = new SyncCommand(model, sync, view,
+									taskFile);
+							if (syncThread.feedback != null
+									&& syncThread.feedback
+											.equals(Common.MESSAGE_SYNC_INVALID_USERNAME_PASSWORD)) {
+								executeSettingsCommand(null,
+										CALL_SETTINGS_FROM_SYNC);
+							}
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
 					}
+				});
+
 			}
 		}, 0, model.getSyncPeriod() * Common.MINUTE_IN_MILLIS);
 	}
@@ -1011,11 +1028,9 @@ public class Control extends Application {
 		if (!isUnderSyncingProcess()){
 			syncThread = new SyncCommand(model, sync, view,
 					taskFile);
-		}
-		
-		String feedback = syncThread.getFeedback();
-		if (feedback.equals(Common.MESSAGE_SYNC_INVALID_USERNAME_PASSWORD)){
-			view.showSettingsPage(feedback);
+			if(syncThread.feedback != null && syncThread.feedback.equals(Common.MESSAGE_SYNC_INVALID_USERNAME_PASSWORD)){
+				executeSettingsCommand(null, CALL_SETTINGS_FROM_SYNC);
+			}
 		}
 		
 		clearCommandLine();
