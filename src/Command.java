@@ -1599,9 +1599,10 @@ class SyncCommand extends Command implements Runnable {
 		this.sync = sync;
 		this.view = view;
 		this.taskFile = taskFile;
-	      t = new Thread(this, "Sync Thread");
-	      
-	      t.start(); // Start the thread
+		username = model.getUsername();
+		password = model.getPassword();
+	    t = new Thread(this, "Sync Thread"); 
+	    t.start(); // Start the thread
 	}
 	
 	private boolean checkInternetAccess(){
