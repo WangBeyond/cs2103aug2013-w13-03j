@@ -447,3 +447,9 @@
 .progress-indicator{
 	-fx-progress-color: rgb(132, 225, 132);
 }
+
+/*************************************Error text***************************************/
+#error_text{
+	-fx-font: 14px Verdana;
+	-fx-fill: orangered;
+}

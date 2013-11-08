@@ -2,7 +2,9 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+
 import java.io.IOException;
+
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -24,6 +26,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -59,6 +62,9 @@ public class Settings {
 	private ComboBox<String> colourSchemes;
 	private TextField syncPeriodTextfield;
 	private ImageView bgImage;
+	private Text invalidUsername;
+	private Text invalidPassword;
+	private Text differentPassword;
 
 	private Settings(Model model) {
 		initializeKeyVariables(model);
@@ -86,6 +92,8 @@ public class Settings {
 		googleAccountTextfield.setText(model.getUsername());
 		pwBox.setText(model.getPassword());
 		pwRetypeBox.setText(model.getPassword());
+		showErrorTexts(checkUsernamePassword);
+		
 		if (model.doDisplayRemaining())
 			remaining.setSelected(true);
 		else
@@ -137,7 +145,24 @@ public class Settings {
 		setupSyncPeriod();
 	}
 
+	private void showErrorTexts(String checkUsernamePassword){
+		if (checkUsernamePassword == null){
+			invalidUsername.setVisible(false);
+			invalidPassword.setVisible(false);
+			differentPassword.setVisible(false);
+		} else if (checkUsernamePassword.equals(Common.MESSAGE_SYNC_INVALID_USERNAME_PASSWORD)){
+			invalidUsername.setVisible(true);
+			invalidPassword.setVisible(true);
+			differentPassword.setVisible(false);
+		} else if (checkUsernamePassword.equals("Passwords do not match!")){
+			invalidUsername.setVisible(false);
+			invalidPassword.setVisible(false);
+			differentPassword.setVisible(true);
+		}
+	}
+	
 	private void setupTextfields() {
+		setupErrorTexts();
 		Label googleAccount = new Label("Google account:");
 		grid.add(googleAccount, 0, 1);
 		googleAccountTextfield = new TextField();
@@ -158,6 +183,24 @@ public class Settings {
 		grid.add(pwRetypeBox, 1, 3);
 	}
 
+	private void setupErrorTexts(){
+		invalidUsername = new Text("Account may be invalid.");
+		invalidPassword = new Text("Password may be invalid.");
+		differentPassword = new Text("Passwords do not match!");
+		
+		invalidUsername.setVisible(false);
+		invalidPassword.setVisible(false);
+		differentPassword.setVisible(false);
+		
+		invalidUsername.setId("error_text");
+		invalidPassword.setId("error_text");
+		differentPassword.setId("error_text");
+		
+		grid.add(invalidUsername, 2, 1);
+		grid.add(invalidPassword, 2, 2);
+		grid.add(differentPassword, 2, 3);
+	}
+	
 	private void setupColourScheme() {
 		Label colourScheme = new Label("Colour scheme:");
 		grid.add(colourScheme, 0, 7);
@@ -234,6 +277,7 @@ public class Settings {
 		Label syncPeriod = new Label("Sync period: ");
 		grid.add(syncPeriod, 0, 8);
 		syncPeriodTextfield = new TextField();
+		syncPeriodTextfield.setId("input");
 		syncPeriodTextfield.textProperty().addListener(new ChangeListener<String>() {
 		    @Override
 		    public void changed(ObservableValue<? extends String> observable,
@@ -329,7 +373,7 @@ public class Settings {
 				successfulChange = STORE_SUCCESSFUL;
 			} else {
 				pwRetypeBox.clear();
-				pwRetypeBox.setPromptText("Passwords do not match!");
+				showErrorTexts("Passwords do not match!");
 				return successfulChange;
 			}
 		}

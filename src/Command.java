@@ -4,6 +4,10 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -1595,6 +1599,7 @@ class SyncCommand extends Command implements Runnable {
 	View view;
 	Storage taskFile;
 	Thread t;
+	
 	public SyncCommand(Model model, Synchronization sync, View view, Storage taskFile) {
 		super(model);
 		this.sync = sync;
@@ -1602,14 +1607,18 @@ class SyncCommand extends Command implements Runnable {
 		this.taskFile = taskFile;
 		username = model.getUsername();
 		password = model.getPassword();
-	    t = new Thread(this, "Sync Thread");
+		
+	    t = new Thread(this, "Sync Thread");  
+	  
 	    t.start(); // Start the thread
-	     
+
 	    try{
 	  	  t.join();
 	    } catch (InterruptedException e){
 	  	  System.out.println("Failed to join back to main thread.");
+	
 	    }
+		
 	}
 	
 	private boolean checkInternetAccess(){
@@ -1632,11 +1641,16 @@ class SyncCommand extends Command implements Runnable {
             return true;
     }
 	
+	
+
 	public void run() {
 		if (checkInternetAccess()) {
 			isRunning = true;
 			view.setSyncProgressVisible(true);
 			feedback = execute();
+			if (feedback.equals(Common.MESSAGE_SYNC_INVALID_USERNAME_PASSWORD)){
+				t.interrupt();
+			}
 			view.setSyncProgressVisible(false);
 			isRunning = false;
 			model.clearSyncInfo();
@@ -1649,7 +1663,7 @@ class SyncCommand extends Command implements Runnable {
 			view.showNoInternetConnection();
 		}
 	}
-	
+
 	@Override
 	public String execute() {
 		try{
