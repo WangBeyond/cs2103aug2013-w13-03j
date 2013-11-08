@@ -109,7 +109,7 @@ public class Login {
 		root.getChildren().add(buttons);
 		loginScene = new Scene(root, 415.5, 315);
 		loginScene.getStylesheets().addAll(
-				getClass().getResource("customize.css").toExternalForm());
+				getClass().getResource("dayCustomization.css").toExternalForm());
 		loginStage.setScene(loginScene);
 	}
 	
