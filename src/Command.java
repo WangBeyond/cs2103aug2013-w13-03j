@@ -9,6 +9,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 
+import com.google.gdata.util.AuthenticationException;
+
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -1101,7 +1104,6 @@ class SearchCommand extends Command {
 	View view;
 	ObservableList<Task> initialList;
 	ObservableList<Task> searchList;
-	ObservableList<Task> tempSearchList;
 	CustomDate startDate, endDate;
 	boolean isFirstTimeSearch;
 	boolean isRealTimeSearch;
@@ -1120,7 +1122,6 @@ class SearchCommand extends Command {
 		splitRepeatingInfo();
 		initialList = getModifiedList(tabIndex);
 		searchList = FXCollections.observableArrayList();
-		tempSearchList = FXCollections.observableArrayList();
 		
 		isFirstTimeSearch = true;
 	}
@@ -1128,19 +1129,6 @@ class SearchCommand extends Command {
 	public String execute() {
 		processSearch();
 		
-		// Store the current searchList to tempSearchList
-		for (int i = 0; i < searchList.size(); i++) {
-			tempSearchList.add(searchList.get(i));
-		}
-		
-		/*searchList.clear();
-		
-		isFirstTimeSearch = true;
-		if (searchForDateKey()) {
-			processSearch();
-		} 
-		
-		searchList = mergeLists(tempSearchList, searchList);*/
 		if (!isRealTimeSearch && searchList.isEmpty()) {
 			return Common.MESSAGE_NO_RESULTS;
 		}
@@ -1157,43 +1145,6 @@ class SearchCommand extends Command {
 			view.taskTrashList.setItems(model.getSearchTrashList());
 		}
 		return Common.MESSAGE_SUCCESSFUL_SEARCH;
-	}
-
-	private ObservableList<Task> mergeLists(ObservableList<Task> list1,
-			ObservableList<Task> list2) {
-		FXCollections.sort(list1);
-		FXCollections.sort(list2);
-		ObservableList<Task> mergedList = FXCollections.observableArrayList();
-		int index1 = 0;
-		int index2 = 0;
-		while (index1 < list1.size() && index2 < list2.size()) {
-			if (list1.get(index1).compareTo(list2.get(index2)) > 0) {
-				mergedList.add(list2.get(index2));
-				index2++;
-			} else if (list1.get(index1).compareTo(list2.get(index2)) < 0) {
-				mergedList.add(list1.get(index1));
-				index1++;
-			} else if (list1.get(index1).compareTo(list2.get(index2)) == 0) {
-				if (list1.get(index1).equals(list2.get(index2))) {
-					mergedList.add(list1.get(index1));
-					index1++;
-					index2++;
-				} else {
-					mergedList.add(list1.get(index1));
-					mergedList.add(list2.get(index2));
-					index1++;
-					index2++;
-				}
-			}
-		}
-		if (index1 >= list1.size()) {
-			for (int i = index2; i < list2.size(); i++)
-				mergedList.add(list2.get(i));
-		} else {
-			for (int i = index1; i < list1.size(); i++)
-				mergedList.add(list1.get(i));
-		}
-		return mergedList;
 	}
 
 	public void processSearch() {
@@ -1235,47 +1186,33 @@ class SearchCommand extends Command {
 		}
 	}
 	
-	private void processStartDate(){
+	private void processStartDate() {
 		if (!startDateString.equals(Common.NULL)) {
-			if (startDateString.equals(HAVING_START_DATE)) {
-				if (isFirstTimeSearch) {
-					searchList = searchHavingStartDate(initialList);
-				} else {
-					searchList = searchHavingStartDate(searchList);
-				}
+			startDate = new CustomDate(startDateString);
+			if (isFirstTimeSearch) {
+				searchList = searchStartDate(initialList, startDate);
 			} else {
-				startDate = new CustomDate(startDateString);
-				if (isFirstTimeSearch) {
-					searchList = searchStartDate(initialList, startDate);
-				} else {
-					searchList = searchStartDate(searchList, startDate);
-				}
+				searchList = searchStartDate(searchList, startDate);
 			}
-			isFirstTimeSearch = false;
 		}
+		isFirstTimeSearch = false;
 	}
 	
-	private void processEndDate(){
+	
+	private void processEndDate() {
 		if (!endDateString.equals(Common.NULL)) {
-			if (endDateString.equals(HAVING_END_DATE)) {
-				if (isFirstTimeSearch) {
-					searchList = searchHavingEndDate(initialList);
-				} else {
-					searchList = searchHavingEndDate(searchList);
-				}
-			} else {
-				endDate = new CustomDate(endDateString);
-				if (startDate != null && endDate.hasIndicatedDate() == false) {
-					endDate.setYear(startDate.getYear());
-					endDate.setMonth(startDate.getMonth());
-					endDate.setDate(startDate.getDate());
-				}
-				if (isFirstTimeSearch) {
-					searchList = searchEndDate(initialList, endDate);
-				} else {
-					searchList = searchEndDate(searchList, endDate);
-				}
+			endDate = new CustomDate(endDateString);
+			if (startDate != null && endDate.hasIndicatedDate() == false) {
+				endDate.setYear(startDate.getYear());
+				endDate.setMonth(startDate.getMonth());
+				endDate.setDate(startDate.getDate());
 			}
+			if (isFirstTimeSearch) {
+				searchList = searchEndDate(initialList, endDate);
+			} else {
+				searchList = searchEndDate(searchList, endDate);
+			}
+
 			isFirstTimeSearch = false;
 		}
 	}
@@ -1332,64 +1269,6 @@ class SearchCommand extends Command {
 			}
 			isFirstTimeSearch = false;
 		}
-	}
-	
-
-	private boolean searchForDateKey() {
-		String[] splittedWorkInfo = Common.splitBySpace(workInfo);
-		String lastTwoWords, lastWord;
-		if (splittedWorkInfo.length >= 1) {
-				if(splittedWorkInfo.length == 1)
-					lastTwoWords = "";
-				else
-					lastTwoWords = splittedWorkInfo[splittedWorkInfo.length - 2] + " "
-							+ splittedWorkInfo[splittedWorkInfo.length - 1];
-				lastWord = splittedWorkInfo[splittedWorkInfo.length - 1];
-				if(splittedWorkInfo.length == 1)
-					lastTwoWords = lastWord;
-			if (startDateString == Common.NULL) {
-				if (doesArrayWeaklyContain(Common.startDateKeys, lastTwoWords, lastWord)) {
-					startDateString = HAVING_START_DATE;
-					return true;
-				}
-			}
-
-			if (endDateString == Common.NULL) {
-				if (doesArrayWeaklyContain(Common.endDateKeys, lastTwoWords, lastWord)) {
-					endDateString = HAVING_END_DATE;
-					return true;
-				}
-			}
-		}
-		
-		return false;
-	}
-
-	private boolean doesArrayWeaklyContain(String[] array, String wordInfo1, String wordInfo2) {
-		for (String str : array) {
-			if (str.equals(wordInfo1.toLowerCase())){
-				int lastIndex = workInfo.lastIndexOf(wordInfo1);
-				workInfo = workInfo.substring(0, lastIndex).trim();
-				return true;
-			}
-			if(str.equals(wordInfo2.toLowerCase())){
-				int lastIndex = workInfo.lastIndexOf(wordInfo2);
-				workInfo = workInfo.substring(0, lastIndex).trim();
-				return true;
-			}
-			/*
-			if (str.indexOf(wordInfo1.toLowerCase()) == 0){
-				int lastIndex = workInfo.lastIndexOf(wordInfo1);
-				workInfo = workInfo.substring(0, lastIndex).trim();
-				return true;
-			}
-			if(str.indexOf(wordInfo2.toLowerCase()) == 0){
-				int lastIndex = workInfo.lastIndexOf(wordInfo2);
-				workInfo = workInfo.substring(0, lastIndex).trim();
-				return true;
-			}*/
-		}
-		return false;
 	}
 	
 	private static ObservableList<Task> searchOccurrenceNum(ObservableList<Task> list, int occurNum) {
@@ -1484,26 +1363,6 @@ class SearchCommand extends Command {
 		return result;
 	}
 
-	private static ObservableList<Task> searchHavingStartDate(
-			ObservableList<Task> list) {
-		ObservableList<Task> result = FXCollections.observableArrayList();
-		for (int i = 0; i < list.size(); i++) {
-			if (list.get(i).getStartDate() != null)
-				result.add(list.get(i));
-		}
-		return result;
-	}
-
-	private static ObservableList<Task> searchHavingEndDate(
-			ObservableList<Task> list) {
-		ObservableList<Task> result = FXCollections.observableArrayList();
-		for (int i = 0; i < list.size(); i++) {
-			if (list.get(i).getEndDate() != null)
-				result.add(list.get(i));
-		}
-		return result;
-	}
-
 	private static ObservableList<Task> searchWorkInfo(
 			ObservableList<Task> list, String workInfo) {
 		ObservableList<Task> result = FXCollections.observableArrayList();
@@ -1571,14 +1430,16 @@ class HelpCommand extends Command {
  */
 class SettingsCommand extends Command {
 	View view;
+	String origin;
 
-	public SettingsCommand(Model model, View view, String[] parsedUserCommand) {
+	public SettingsCommand(Model model, View view, String[] parsedUserCommand, String origin) {
 		super(model, view.getTabIndex());
 		this.view = view;
+		this.origin = origin;
 	}
 
 	public String execute() {
-		view.showSettingsPage(null);
+		view.showSettingsPage(origin);
 		return Common.MESSAGE_SUCCESSFUL_SETTINGS;
 	}
 }
@@ -1592,7 +1453,6 @@ class SyncCommand extends Command implements Runnable {
 	String username = null;
 	String password = null;
 	String feedback = null;
-	boolean isValidUserPass = true;
 	boolean isRunning = false;
 	
 	Synchronization sync;
@@ -1607,32 +1467,33 @@ class SyncCommand extends Command implements Runnable {
 		this.taskFile = taskFile;
 		username = model.getUsername();
 		password = model.getPassword();
-		
-	    t = new Thread(this, "Sync Thread");  
-	  
-	    t.start(); // Start the thread
-
-	    try{
-	  	  t.join();
-	    } catch (InterruptedException e){
-	  	  System.out.println("Failed to join back to main thread.");
-	
-	    }
-		
+		if(checkInternetAccess()){
+			try {
+				if(!sync.isValid || !username.equals(sync.username) || !password.equals(sync.password)){
+					sync.setUsernameAndPassword(username, password);
+					sync.initService();
+				}
+				sync.isValid = true;
+				t = new Thread(this, "Sync Thread");
+				t.start(); 
+			} catch (AuthenticationException e) {
+				feedback = Common.MESSAGE_SYNC_INVALID_USERNAME_PASSWORD;
+				sync.isValid = false;
+			}
+		} else {
+			view.showNoInternetConnection();
+		}
 	}
 	
 	private boolean checkInternetAccess(){
             try {
                 //make a URL to a known source
                 URL url = new URL("http://www.google.com");
-
                 //open a connection to that source
                 HttpURLConnection urlConnect = (HttpURLConnection)url.openConnection();
-
                 //trying to retrieve data from the source. If there
                 //is no connection, this line will fail
                 urlConnect.getContent();
-
             } catch (UnknownHostException e) {
                 return false;
             } catch (IOException e) {
@@ -1644,13 +1505,9 @@ class SyncCommand extends Command implements Runnable {
 	
 
 	public void run() {
-		if (checkInternetAccess()) {
 			isRunning = true;
 			view.setSyncProgressVisible(true);
-			feedback = execute();
-			if (feedback.equals(Common.MESSAGE_SYNC_INVALID_USERNAME_PASSWORD)){
-				t.interrupt();
-			}
+			execute();
 			view.setSyncProgressVisible(false);
 			isRunning = false;
 			model.clearSyncInfo();
@@ -1659,29 +1516,24 @@ class SyncCommand extends Command implements Runnable {
 			} catch (IOException io) {
 				System.out.println(io.getMessage());
 			}
-		} else {
-			view.showNoInternetConnection();
-		}
 	}
 
 	@Override
 	public String execute() {
 		try{
-			view.setSyncProgressVisible(true);
-			sync.setUsernameAndPassword(username, password);
-			feedback = sync.execute();
+			sync.execute();
 			Common.sortList(model.getPendingList());
-			return feedback;
 		} catch(Exception e){
-			view.setSyncProgressVisible(false);
-			e.printStackTrace();
-			feedback = "There is currently some problem in syncing.";
-			return feedback;
+			if(e instanceof AuthenticationException){
+				Platform.runLater(new Runnable() {
+					@Override
+					public void run() {
+						view.showSettingsPage(Common.MESSAGE_SYNC_INVALID_USERNAME_PASSWORD);
+					}
+				});
+			}
 		}
-	}
-	
-	public String getFeedback() {
-		return feedback;
+		return null;
 	}
 	
 	public boolean isRunning() {

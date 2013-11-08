@@ -198,7 +198,7 @@ public class Help{
 	
 	private Image getFirstHelpImage(){
 		Image firstHelpImage;
-		if (model.getThemeMode().equals("day")){
+		if (model.getThemeMode().equals(Common.DAY_MODE)){
 			firstHelpImage = new Image(getClass().getResourceAsStream("helpPage1.png"));
 		} else {
 			firstHelpImage = new Image(getClass().getResourceAsStream("helpNightPage1.png"));
@@ -208,7 +208,7 @@ public class Help{
 	
 	private Image getSecondHelpImage(){
 		Image secondHelpImage;
-		if (model.getThemeMode().equals("day")){
+		if (model.getThemeMode().equals(Common.DAY_MODE)){
 			secondHelpImage = new Image(getClass().getResourceAsStream("helpPage2.png"));	
 		} else{
 			secondHelpImage = new Image(getClass().getResourceAsStream("helpNightPage2.png"));	

@@ -41,7 +41,7 @@ public class Synchronization  {
 	/* use username and password to login */
 	String username = null;
 	String password = null;
-
+	boolean isValid = false;
 	/* model */
 	Model model;
 
@@ -84,12 +84,6 @@ public class Synchronization  {
 	 * @return feedback
 	 */
 	public String execute() {
-		try {
-			initService();
-		} catch (AuthenticationException e) {
-			return Common.MESSAGE_SYNC_INVALID_USERNAME_PASSWORD;
-		}
-
 		try {
 			eventFeedUrl = formEventFeedUrl(service);
 		} catch (IOException | ServiceException e) {
@@ -137,14 +131,11 @@ public class Synchronization  {
 		return Common.MESSAGE_SYNC_SUCCESSFUL;
 	}
 
-	private void initService() throws AuthenticationException {
+	public void initService() throws AuthenticationException {
 		// create a new service
 		service = new CalendarService(SERVICE_NAME);
-
 		// authenticate using ClientLogin
-		System.out.println(username + " " + password);
 		service.setUserCredentials(username, password);
-		System.out.println("system initialized.");
 	}
 
 	URL formEventFeedUrl(CalendarService service) throws ServiceException,
