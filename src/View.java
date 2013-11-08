@@ -1,5 +1,6 @@
 import java.awt.AWTException;
 import java.awt.BorderLayout;
+import java.awt.FontFormatException;
 import java.awt.GraphicsEnvironment;
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
@@ -9,11 +10,14 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyListener;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
@@ -83,19 +87,26 @@ import javafx.stage.StageStyle;
 import javafx.util.Callback;
 import javafx.util.Duration;
 
+/**
+ * 
+ * This class provides the main graphic user interface for the application
+ * 
+ */
 public class View implements HotkeyListener {
-
-	// Small windows that View class may show
+	private static final double MIN_HEIGHT = 70.0;
+	private static final double MAX_HEIGHT = 540.0;
+	private static final Logger logger = Logger.getLogger("View");
+	private static final String GMAIL_ACCOUNT_SUFFIX = "@gmail.com";
+	private static final String UNLOGIN_WELCOME_MESSAGE = "Welcome to iDo!";
+	private static final String BRIGHT_COLOUR_THEME = "Bright";
+	private static final String GOLDFISH_COLOUR_THEME = "Goldfish";
+	// Sub windows apart from the main window
 	private Help helpPage;
 	private Settings settingsPage;
 	private Login loginPage;
-	
-	// Command Line for user to input command
-	public TextField commandLine;
-	// Instant feedback
-	public Text feedback;
+
 	// Button to expand or collapse window
-	public Button showOrHide;
+	public Button expandOrCollapse;
 	// Tab Pane to contain 3 tables
 	public TabPane tabPane;
 	// Menu shown when clicking on icon in tray
@@ -104,41 +115,57 @@ public class View implements HotkeyListener {
 	public TableView<Task> taskPendingList;
 	public TableView<Task> taskCompleteList;
 	public TableView<Task> taskTrashList;
-	
+	// The image for the title of the application
 	private ImageView title;
-	private Scene scene;
-	private BorderPane root;
-	public StackPane generalBase;
+
+	// The actual window
 	public Stage stage;
-	private JScrollPane scrollPane;
-	private SwingNode textField;
-	private ChangeListener<Boolean> caretListener;
+	// Scene controlling how the user see in the window
+	private Scene scene;
+	// The main groups that scene will show to user
+	private BorderPane subRoot;
+	public StackPane mainRoot;
+
+	// The command line
+	private JTextPane commandLine; // this node is in Swing
+	private SwingNode textField; // we will use this custom class to display a
+									// Swing node in JavaFX environment
+	private ChangeListener<Boolean> caretColourListenerForCommandLine;
+
+	// The current position of the mouse relatively to the stage
 	private double dragAnchorX;
 	private double dragAnchorY;
-	private ProgressIndicator syncProgress;
-	private ImageView netAccessIndicator;
-	private Color defaultColor;
-	public JTextPane txt;
-	public ArrayList<Text> feedbackList = new ArrayList<Text>();
-	public HBox feedbacks;
-	private static Color[] colourScheme;
-	public static AttributeSet[] colourSchemeCommandLine;
 
-	// private HBox multiColorCommand;
+	// Sync progress indicator
+	private ProgressIndicator syncProgress;
+	// No internet access indicator
+	private ImageView netAccessIndicator;
+	// The default color for display in the application
+	private Color defaultColor;
+
+	// Feedback text in the application
+	private ArrayList<Text> feedbackList = new ArrayList<Text>();
+
+	// The list of colours in a specific colour scheme for feedback and command
+	// line
+	private static Color[] colourScheme;
+	protected static AttributeSet[] colourSchemeCommandLine;
+
+	// Vertical scroll bar for 3 tables in each corresponding tab
 	private ScrollBar pendingBar;
 	private ScrollBar completeBar;
 	private ScrollBar trashBar;
-	// The 3 sections
-	private VBox bottom;
-	private HBox center;
+
+	// The 3 separate sections in the main window
 	private AnchorPane top;
+	private HBox center;
+	private VBox bottom;
 
 	// Icon in the system tray
-	TrayIcon trayIcon;
+	private TrayIcon trayIcon;
 
-	Model model;
-	Storage settingStore;
-
+	// The model of settings and task info
+	private Model model;
 
 	/**
 	 * This is the constructor for class View. It will create the content in the
@@ -149,62 +176,93 @@ public class View implements HotkeyListener {
 	 * @param primaryStage
 	 *            main stage of the GUI
 	 */
-	public View(final Model model, final Stage primaryStage,
-			Storage settingStore) {	
-		
-		loadAllLibraries();	
-		initializeKeyVariables(model, primaryStage, settingStore);
+	public View(final Model model, final Stage primaryStage) {
+		initializeKeyVariables(model, primaryStage);
+		setupGlobalHotkey();
 		setupMainGUI();
-		
 		setupPopupWindows();
 		showLoginPage();
-		
 		setupScene();
 		showInitialMessage();
 	}
-	
-	private void loadAllLibraries(){
+
+	// Get the reference to tray icon of the application
+	public TrayIcon getTrayIcon() {
+		return trayIcon;
+	}
+
+	// Get the reference to the command line of the application
+	public JTextPane getCommandLine() {
+		return commandLine;
+	}
+
+	/**
+	 * This function is used to setup the global hotkey for the application User
+	 * can use the assigned hot key to open the application any time while it is
+	 * hidden in the system tray
+	 */
+	private void setupGlobalHotkey() {
 		loadLibrary();
 		checkIntellitype();
 		initGlobalHotKey();
 	}
-	
-	private void initializeKeyVariables(Model model, Stage primaryStage, 
-			Storage settingStore){
+
+	/**
+	 * Initialize the key variables in the View class
+	 * 
+	 * @param model
+	 *            the infos of task and setting that will be shown to the user
+	 * @param primaryStage
+	 *            the main window of the application
+	 */
+	private void initializeKeyVariables(Model model, Stage primaryStage) {
 		stage = primaryStage;
 		this.model = model;
-		this.settingStore = settingStore;
 	}
-	
-	private void setupMainGUI(){
+
+	/**
+	 * This function is the main function to setup all the important nodes in
+	 * the interface
+	 */
+	private void setupMainGUI() {
 		setupStage();
-		hideInSystemTray();
+		setupSystemTray();
 		Platform.setImplicitExit(false);
 		createContent();
-		setDraggable();
+		setupDraggable();
 		setupShortcuts();
 	}
-	
-	private void setupPopupWindows(){
+
+	/**
+	 * This function is used to to setup the popup windows appearing when user
+	 * type some specific commands. These popup windows comprise help window and
+	 * setting window.
+	 */
+	private void setupPopupWindows() {
 		setupHelpPage();
 		setupSettingsPage();
 	}
-	
-	public void toFrontSettingsStage(){
-		settingsPage.getSettingsStage().toFront();
-	}
-	
+
+	/**
+	 * This function is used to show the initial message when the user first
+	 * open the application. The message will be different according to whether
+	 * the user has indicated Google account yet.
+	 */
 	private void showInitialMessage() {
-		if (model.getUsername() != null)
-			setFeedbackStyle(
-					0,
-					String.format(Common.WELCOME_MESSAGE,
-							model.getUsername().replace("@gmail.com", "")),
+		if (model.getUsername() != null && !model.getUsername().equals("")) {
+			setFeedbackStyle(0, String.format(Common.WELCOME_MESSAGE, model
+					.getUsername().replace(GMAIL_ACCOUNT_SUFFIX, "")),
 					defaultColor);
-		else
-			setFeedbackStyle(0, "Welcome to iDo!", defaultColor);
+		} else {
+			setFeedbackStyle(0, UNLOGIN_WELCOME_MESSAGE, defaultColor);
+		}
 	}
 
+	/**
+	 * This function will show the login page for the user to input his Google
+	 * account when he first uses the application. The user can choose to input
+	 * his Google account or not.
+	 */
 	private void showLoginPage() {
 		if (checkFirstTimeLogin()) {
 			loginPage = Login.getInstanceLogin(model);
@@ -212,17 +270,19 @@ public class View implements HotkeyListener {
 		}
 	}
 
+	// Check whether this is the first time user uses the application
 	private boolean checkFirstTimeLogin() {
 		return model.getUsername() == null;
 	}
 
+	// Setup the content of help window
 	private void setupHelpPage() {
 		helpPage = Help.getInstanceHelp(model);
 	}
 
+	// Process opening the help window
 	public void showHelpPage() {
 		Platform.runLater(new Runnable() {
-
 			@Override
 			public void run() {
 				helpPage.showHelpPage();
@@ -231,64 +291,33 @@ public class View implements HotkeyListener {
 
 	}
 
+	// Setup the content of settings window
 	private void setupSettingsPage() {
-		settingsPage = Settings.getInstanceSettings(model, settingStore);
+		settingsPage = Settings.getInstanceSettings(model);
 	}
 
+	// Process opening the settings window
 	public void showSettingsPage() {
 		settingsPage.showSettingsPage();
 	}
 
+	/**
+	 * This function is used to setup the scroll bars for all tables in the
+	 * application
+	 */
 	private void setupScrollBar() {
-		for (Node n : taskPendingList.lookupAll(".scroll-bar")) {
-			if (n instanceof ScrollBar) {
-				pendingBar = (ScrollBar) n;
-				if (pendingBar.getOrientation() == Orientation.VERTICAL)
-					break;
-			}
-		}
+		pendingBar = lookUpVerticalScrollBar(taskPendingList);
+		completeBar = lookUpVerticalScrollBar(taskCompleteList);
+		trashBar = lookUpVerticalScrollBar(taskTrashList);
 
-		for (Node n : taskCompleteList.lookupAll(".scroll-bar")) {
-			if (n instanceof ScrollBar) {
-				completeBar = (ScrollBar) n;
-				if (completeBar.getOrientation() == Orientation.VERTICAL)
-					break;
-			}
-		}
+		InputMap map = commandLine.getInputMap();
+		setupScrollUpKeyForCommandLine(map);
+		setupScrollDownKeyForCommandLine(map);
+	}
 
-		for (Node n : taskTrashList.lookupAll(".scroll-bar")) {
-			if (n instanceof ScrollBar) {
-				trashBar = (ScrollBar) n;
-				if (trashBar.getOrientation() == Orientation.VERTICAL)
-					break;
-			}
-		}
-
-		InputMap map = txt.getInputMap();
-		KeyStroke scrollUpKey = KeyStroke.getKeyStroke(
-				com.sun.glass.events.KeyEvent.VK_UP, 0);
-		Action scrollUpAction = new AbstractAction() {
-			@Override
-			public void actionPerformed(java.awt.event.ActionEvent e) {
-				Platform.runLater(new Runnable() {
-					@Override
-					public void run() {
-						if (getTabIndex() == 0
-								&& pendingBar.getValue() > pendingBar.getMin())
-							pendingBar.setValue(pendingBar.getValue() - 0.2 );
-						else if (getTabIndex() == 1
-								&& completeBar.getValue() > completeBar
-										.getMin())
-							completeBar.setValue(completeBar.getValue() - 0.2);
-						else if (getTabIndex() == 2
-								&& trashBar.getValue() > trashBar.getMin())
-							trashBar.setValue(trashBar.getValue() - 0.2);
-					}
-				});
-			}
-		};
-		map.put(scrollUpKey, scrollUpAction);
-
+	// Setup scroll down key
+	@SuppressWarnings("serial")
+	private void setupScrollDownKeyForCommandLine(InputMap map) {
 		KeyStroke scrollDownKey = KeyStroke.getKeyStroke(
 				com.sun.glass.events.KeyEvent.VK_DOWN, 0);
 		Action scrollDownAction = new AbstractAction() {
@@ -297,16 +326,7 @@ public class View implements HotkeyListener {
 				Platform.runLater(new Runnable() {
 					@Override
 					public void run() {
-						if (getTabIndex() == 0
-								&& pendingBar.getValue() < pendingBar.getMax())
-							pendingBar.setValue(pendingBar.getValue() + 0.2);
-						else if (getTabIndex() == 1
-								&& completeBar.getValue() < completeBar
-										.getMax())
-							completeBar.setValue(completeBar.getValue() + 0.2);
-						else if (getTabIndex() == 2
-								&& trashBar.getValue() < trashBar.getMax())
-							trashBar.setValue(trashBar.getValue() + 0.2);
+						processScrollingDown();
 					}
 				});
 			}
@@ -314,117 +334,109 @@ public class View implements HotkeyListener {
 		map.put(scrollDownKey, scrollDownAction);
 	}
 
-	private void setupShortcuts() {
-		root.setOnKeyPressed(new EventHandler<KeyEvent>() {
-			public void handle(KeyEvent e) {
-				if (Common.changeTab.match(e)) {
-					int index = tabPane.getSelectionModel().getSelectedIndex();
-					if (index != 2)
-						tabPane.getSelectionModel().selectNext();
-					else
-						tabPane.getSelectionModel().selectFirst();
-				}
-				if (Common.collapseWindow.match(e)) {
-					collapseAnimation();
-				} else if (Common.expandWindow.match(e)) {
-					expandAnimation();
-				} else if (Common.hideWindow.match(e)) {
-					hide();
-				} else if (e.getCode() == KeyCode.BACK_SPACE) {
-					textField.temp = 1;
-					textField.setJDialogOnTop();
-					txt.requestFocus();
-					int pos = txt.getCaretPosition();
-					if (pos > 0) {
-						txt.setText(txt.getText().substring(0, pos - 1)
-								+ txt.getText().substring(pos));
-						txt.setCaretPosition(pos - 1);
-					}
-				} else if (e.getCode() == KeyCode.UP) {
-					if (getTabIndex() == 0
-							&& pendingBar.getValue() > pendingBar.getMin())
-						pendingBar.setValue(pendingBar.getValue() - 0.2);
-					else if (getTabIndex() == 1
-							&& completeBar.getValue() > completeBar.getMin())
-						completeBar.setValue(completeBar.getValue() - 0.2);
-					else if (getTabIndex() == 2
-							&& trashBar.getValue() > trashBar.getMin())
-						trashBar.setValue(trashBar.getValue() - 0.2);
-				} else if (e.getCode() == KeyCode.DOWN) {
-					if (getTabIndex() == 0
-							&& pendingBar.getValue() < pendingBar.getMax())
-						pendingBar.setValue(pendingBar.getValue() + 0.2);
-					else if (getTabIndex() == 1
-							&& completeBar.getValue() < completeBar.getMax())
-						completeBar.setValue(completeBar.getValue() + 0.2);
-					else if (getTabIndex() == 2
-							&& trashBar.getValue() < trashBar.getMax())
-						trashBar.setValue(trashBar.getValue() + 0.2);
-				} else if (e.getCode() == KeyCode.RIGHT) {
-					textField.temp = 1;
-					textField.setJDialogOnTop();
-					txt.requestFocus();
-					int pos = txt.getCaretPosition();
-					if (pos != txt.getText().length())
-						txt.setCaretPosition(pos + 1);
-				} else if (e.getCode() == KeyCode.LEFT) {
-					textField.temp = 1;
-					textField.setJDialogOnTop();
-					txt.requestFocus();
-					int pos = txt.getCaretPosition();
-					if (pos != 0)
-						txt.setCaretPosition(pos - 1);
-				} else {
-					textField.temp = 1;
-					textField.setJDialogOnTop();
-					txt.requestFocus();
-					if (e.getCode() != KeyCode.ENTER) {
+	// Get the corresponding scroll bar from the given tab index
+	private ScrollBar getScrollBar(int tab) {
+		if (tab == Common.PENDING_TAB) {
+			return pendingBar;
+		} else if (tab == Common.COMPLETE_TAB) {
+			return completeBar;
+		} else if (tab == Common.TRASH_TAB) {
+			return trashBar;
+		}
+		return null;
+	}
 
-						int pos = txt.getCaretPosition();
-						txt.setText(txt.getText().substring(0, pos)
-								+ e.getText() + txt.getText().substring(pos));
-						if (pos != txt.getText().length())
-							txt.setCaretPosition(pos + 1);
-					}
-				}
-			}
-		});
-
-		stage.focusedProperty().addListener(new ChangeListener<Boolean>() {
-			public void changed(ObservableValue<? extends Boolean> ov,
-					Boolean oldVal, Boolean newVal) {
-				if (newVal.booleanValue() == true) {
-					root.requestFocus();
-				}
-			}
-		});
-		/* Get KeyStroke for Ctrl+Tab key */
-		InputMap map = txt.getInputMap();
-		txt.setFocusTraversalKeysEnabled(false);
-		KeyStroke changeTabKey = KeyStroke.getKeyStroke(
-				com.sun.glass.events.KeyEvent.VK_TAB,
-				java.awt.event.InputEvent.CTRL_DOWN_MASK);
-		Action changeTabAction = new AbstractAction() {
+	// Setup scroll up key
+	@SuppressWarnings("serial")
+	private void setupScrollUpKeyForCommandLine(InputMap map) {
+		KeyStroke scrollUpKey = KeyStroke.getKeyStroke(
+				com.sun.glass.events.KeyEvent.VK_UP, 0);
+		Action scrollUpAction = new AbstractAction() {
 			@Override
 			public void actionPerformed(java.awt.event.ActionEvent e) {
 				Platform.runLater(new Runnable() {
-
 					@Override
 					public void run() {
-						int index = tabPane.getSelectionModel()
-								.getSelectedIndex();
-						if (index != 2)
-							tabPane.getSelectionModel().selectNext();
-						else
-							tabPane.getSelectionModel().selectFirst();
+						processScrollingUp();
 					}
 				});
 			}
 		};
+		map.put(scrollUpKey, scrollUpAction);
+	}
 
-		map.put(changeTabKey, changeTabAction);
-
-		txt.addKeyListener(new KeyListener() {
+	// Look up for the reference to the vertical scroll bar from the given
+	// TableView object
+	private ScrollBar lookUpVerticalScrollBar(TableView<Task> list) {
+		for (Node n : list.lookupAll(".scroll-bar")) {
+			if (n instanceof ScrollBar) {
+				ScrollBar temp = (ScrollBar) n;
+				if (temp.getOrientation() == Orientation.VERTICAL)
+					return temp;
+			}
+		}
+		return null;
+	}
+	
+	/**
+	 * Process scrolling down the table
+	 */
+	private void processScrollingDown() {
+		ScrollBar modifiedScrollBar = getScrollBar(getTabIndex());
+		boolean isAtMaxHeight = modifiedScrollBar.getValue() >= modifiedScrollBar
+				.getMax();
+		if (!isAtMaxHeight) {
+			modifiedScrollBar.setValue(modifiedScrollBar.getValue() + 0.2);
+		}
+	}
+	
+	/**
+	 * Process scrolling up the table
+	 */
+	private void processScrollingUp() {
+		ScrollBar modifiedScrollBar = getScrollBar(getTabIndex());
+		boolean isAtMinHeight = modifiedScrollBar.getValue() <= modifiedScrollBar
+				.getMin();
+		if (!isAtMinHeight) {
+			modifiedScrollBar.setValue(modifiedScrollBar.getValue() - 0.2);
+		}
+	}
+	
+	/**
+	 * Setup the shorcuts in the application
+	 */
+	private void setupShortcuts() {
+		setupStageFocusProperty();
+		setupShortcutForJavaFXNodes();
+		setupShortcutsForCommandLine();
+	}
+	
+	/**
+	 * Setup the stage focus listener for the main window. When the main window is focused, it will automatically focus on the subRoot node.
+	 */
+	private void setupStageFocusProperty() {
+		stage.focusedProperty().addListener(new ChangeListener<Boolean>() {
+			public void changed(ObservableValue<? extends Boolean> ov,
+					Boolean oldVal, Boolean newVal) {
+				boolean isFocused = newVal.booleanValue() == true;
+				if (isFocused) {
+					subRoot.requestFocus();
+				}
+			}
+		});
+	}
+	
+	// Setup shortcut for the command line
+	private void setupShortcutsForCommandLine() {
+		InputMap map = commandLine.getInputMap();
+		commandLine.setFocusTraversalKeysEnabled(false);
+		setupChangeTabShortcutForCommandLine(map);
+		setupOtherKeyShortcutsForCommandLine();
+	}
+	
+	// Setup all shortcuts apart from the change tab shortcuts for the command line
+	private void setupOtherKeyShortcutsForCommandLine() {
+		commandLine.addKeyListener(new KeyListener() {
 			@Override
 			public void keyTyped(java.awt.event.KeyEvent e) {
 			}
@@ -432,189 +444,493 @@ public class View implements HotkeyListener {
 			@Override
 			public void keyReleased(java.awt.event.KeyEvent e) {
 			}
-
+			
+			/**
+			 * Setup the event handling when certain keys are pressed
+			 */
 			@Override
 			public void keyPressed(java.awt.event.KeyEvent e) {
-				if ((e.getKeyCode() == java.awt.event.KeyEvent.VK_UP)
-						&& e.isControlDown()) {
-					Platform.runLater(new Runnable() {
-
-						@Override
-						public void run() {
-
-							collapseAnimation();
-						}
-					});
-
-				} else if ((e.getKeyCode() == java.awt.event.KeyEvent.VK_DOWN)
-						&& e.isControlDown()) {
-					Platform.runLater(new Runnable() {
-
-						@Override
-						public void run() {
-
-							expandAnimation();
-						}
-					});
-
-				} else if ((e.getKeyCode() == java.awt.event.KeyEvent.VK_H
-						&& e.isControlDown() && e.isShiftDown())) {
-					Platform.runLater(new Runnable() {
-
-						@Override
-						public void run() {
-							hide();
-						}
-					});
+				boolean isCollapseShortcut = (e.getKeyCode() == java.awt.event.KeyEvent.VK_UP)
+						&& e.isControlDown();
+				boolean isExpandShortcut = (e.getKeyCode() == java.awt.event.KeyEvent.VK_DOWN)
+						&& e.isControlDown();
+				boolean isHideShortcut = (e.getKeyCode() == java.awt.event.KeyEvent.VK_H
+						&& e.isControlDown() && e.isShiftDown());
+				if (isCollapseShortcut) {
+					setupCollapseShortuctForCommandLine();
+				} else if (isExpandShortcut) {
+					setupExpandShortcutForCommandLine();
+				} else if (isHideShortcut) {
+					setupHideShortcutForCommandLine();
 				}
-
+			}
+			
+			// Setup hide shortcut for command line
+			private void setupHideShortcutForCommandLine() {
+				Platform.runLater(new Runnable() {
+					@Override
+					public void run() {
+						hide();
+					}
+				});
+			}
+			
+			// Setup the expand shortcut for command line
+			private void setupExpandShortcutForCommandLine() {
+				Platform.runLater(new Runnable() {
+					@Override
+					public void run() {
+						expandAnimation();
+					}
+				});
+			}
+			
+			// Setup the collapse shortcut for command line
+			private void setupCollapseShortuctForCommandLine() {
+				Platform.runLater(new Runnable() {
+					@Override
+					public void run() {
+						collapseAnimation();
+					}
+				});
 			}
 		});
 	}
+	
+	/**
+	 * Set change tab shortcut for the command line
+	 * @param map the input map of key bindings for command line
+	 */
+	@SuppressWarnings("serial")
+	private void setupChangeTabShortcutForCommandLine(InputMap map) {
+		KeyStroke changeTabKey = KeyStroke.getKeyStroke(
+				com.sun.glass.events.KeyEvent.VK_TAB,
+				java.awt.event.InputEvent.CTRL_DOWN_MASK);
+		Action changeTabAction = new AbstractAction() {
+			@Override
+			public void actionPerformed(java.awt.event.ActionEvent e) {
+				Platform.runLater(new Runnable() {
+					@Override
+					public void run() {
+						processChangingTab();
+					}
+				});
+			}
+		};
 
+		map.put(changeTabKey, changeTabAction);
+	}
+	
+	// Set up the shortcuts for all JavaFX nodes apart from the Swing command line
+	private void setupShortcutForJavaFXNodes() {
+		subRoot.setOnKeyPressed(new EventHandler<KeyEvent>() {
+			public void handle(KeyEvent keyEvent) {
+				setupChangeTabShortcut(keyEvent);
+				if (Common.collapseWindow.match(keyEvent)) {
+					collapseAnimation();
+				} else if (Common.expandWindow.match(keyEvent)) {
+					expandAnimation();
+				} else if (Common.hideWindow.match(keyEvent)) {
+					hide();
+				} else if (keyEvent.getCode() == KeyCode.BACK_SPACE) {
+					setupBackspaceShortcut();
+				} else if (keyEvent.getCode() == KeyCode.UP) {
+					setupUpShortcut();
+				} else if (keyEvent.getCode() == KeyCode.DOWN) {
+					setupDownShortcut();
+				} else if (keyEvent.getCode() == KeyCode.RIGHT) {
+					setupRightShortcut();
+				} else if (keyEvent.getCode() == KeyCode.LEFT) {
+					setupLeftShortuct();
+				} else {
+					setupOtherKeyCharactersShortcut(keyEvent);
+				}
+			}
+			
+			// Set focus on command line
+			private void setFocusOnCommandLine() {
+				textField.setKeyEvent(true);
+				textField.setCommandLineOnTop();
+				commandLine.requestFocus();
+			}
+			
+			// Set LEFT ARROW shortcut. Focus on the command line and move the caret to the left by 1 character
+			private void setupLeftShortuct() {
+				setFocusOnCommandLine();
+				int pos = commandLine.getCaretPosition();
+				boolean isAtTheStart = pos == 0;
+				if (!isAtTheStart) {
+					commandLine.setCaretPosition(pos - 1);
+				}
+			}
+			
+			// Set RIGHT ARROW shortcut. Focus on the commandline and move the caret to the right by 1 character
+			private void setupRightShortcut() {
+				setFocusOnCommandLine();
+				int pos = commandLine.getCaretPosition();
+				boolean isAtTheEnd = pos == commandLine.getText().length();
+				if (!isAtTheEnd) {
+					commandLine.setCaretPosition(pos + 1);
+				}
+			}
+			
+			// Set DOWN ARROW shortcut. Scroll down the table
+			private void setupDownShortcut() {
+				processScrollingDown();
+			}
+			
+			// Set UP ARROW shortcut. Scroll up the table
+			private void setupUpShortcut() {
+				processScrollingUp();
+			}
+			
+			// Set backspace shortcut. Focus on the command line and delete the latest character
+			private void setupBackspaceShortcut() {
+				setFocusOnCommandLine();
+				int pos = commandLine.getCaretPosition();
+				boolean isAtTheStart = pos == 0;
+				if (!isAtTheStart) {
+					commandLine.setText(commandLine.getText().substring(0,
+							pos - 1)
+							+ commandLine.getText().substring(pos));
+					commandLine.setCaretPosition(pos - 1);
+				}
+			}
+			
+			// Set change tab shortcut
+			private void setupChangeTabShortcut(KeyEvent e) {
+				if (Common.changeTab.match(e)) {
+					processChangingTab();
+				}
+			}
+			
+			// Set other key characters shortcut apart from all listed keys
+			private void setupOtherKeyCharactersShortcut(KeyEvent e) {
+				setFocusOnCommandLine();
+				if (e.getCode() != KeyCode.ENTER) {
+					int pos = commandLine.getCaretPosition();
+					commandLine.setText(commandLine.getText().substring(0, pos)
+							+ e.getText()
+							+ commandLine.getText().substring(pos));
+					if (pos != commandLine.getText().length())
+						commandLine.setCaretPosition(pos + 1);
+				}
+			}
+		});
+	}
+	
+	/**
+	 * Process the action of changing tab in the tab pane
+	 */
+	private void processChangingTab() {
+		int tabIndex = getTabIndex();
+		if (tabIndex != Common.TRASH_TAB) {
+			tabPane.getSelectionModel().selectNext();
+		} else {
+			tabPane.getSelectionModel().selectFirst();
+		}
+	}
+	
+	/**
+	 * Create the whole content to be displayed in the interface
+	 */
 	private void createContent() {
-		createTopSection();
-		createCenterSection();
-		createBottomSection();
-		txt = new JTextPane();
-		txt.setAutoscrolls(false);
+		createSubRoot();
+		createCommandLine();
 
-		setFont(txt);
+		mainRoot = new StackPane();
+		mainRoot.getChildren().addAll(textField, subRoot);
+	}
+	
+	/**
+	 * Create the command line for the application with multi color text
+	 */
+	private void createCommandLine() {
+		commandLine = new JTextPane();
+		commandLine.setAutoscrolls(false);
+		setFont();
+		// Create panel
 		JPanel noWrapPanel = new JPanel(new BorderLayout());
-		noWrapPanel.add(txt);
-		scrollPane = new JScrollPane(noWrapPanel);
+		noWrapPanel.add(commandLine);
+		// Create scroll pane
+		JScrollPane scrollPane = new JScrollPane(noWrapPanel);
 		scrollPane
 				.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		scrollPane
 				.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
 		scrollPane.setBorder(null);
-
+		// Create the SwingNode custom class to represent a Swing node in JavaFX
 		textField = new SwingNode(stage, scrollPane);
 		textField.setTranslateX(36);
 		textField.setTranslateY(-93);
-
-		generalBase = new StackPane();
-		root = BorderPaneBuilder.create().top(top).center(center)
-				.bottom(bottom).build();
-		generalBase.getChildren().addAll(textField, root);
 	}
-
-	private void setFont(JTextPane txt) {
-		MutableAttributeSet attrs = txt.getInputAttributes();
-		java.awt.Font customFont = new java.awt.Font("Calibri",
-				java.awt.Font.PLAIN, 17);
+	
+	/**
+	 * Create the group containing all display nodes in the application except for the command line
+	 */
+	private void createSubRoot() {
+		createTopSection();
+		createCenterSection();
+		createBottomSection();
+		subRoot = BorderPaneBuilder.create().top(top).center(center)
+				.bottom(bottom).build();
+	}
+	
+	/**
+	 * Setup font for the command line
+	 */
+	private void setFont() {
+		MutableAttributeSet attrs = commandLine.getInputAttributes();
+		java.awt.Font customFont = getDefaultFont();
 		try {
-			InputStream myFont = new BufferedInputStream(new FileInputStream(
-					"resources/fonts/ubuntub.ttf"));
-			customFont = java.awt.Font.createFont(java.awt.Font.TRUETYPE_FONT,
-					myFont);
-			customFont = customFont.deriveFont(java.awt.Font.PLAIN, 16);
-			GraphicsEnvironment ge = GraphicsEnvironment
-					.getLocalGraphicsEnvironment();
-			ge.registerFont(customFont);
+			customFont = loadCustomFont();
+			registerFont(customFont);
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.log(Level.INFO, "Cannot read font");
 		}
+		updateCustomFont(attrs, customFont);
+	}
+	
+	// Update the new custom font for the application
+	private void updateCustomFont(MutableAttributeSet attrs,
+			java.awt.Font customFont) {
 		StyleConstants.setFontFamily(attrs, customFont.getFamily());
 		StyleConstants.setFontSize(attrs, customFont.getSize());
-		StyledDocument doc = txt.getStyledDocument();
+		StyledDocument doc = commandLine.getStyledDocument();
 		doc.setCharacterAttributes(0, doc.getLength() + 1, attrs, false);
 	}
-
+	
+	// Register the font to the system
+	private void registerFont(java.awt.Font customFont) {
+		GraphicsEnvironment ge = GraphicsEnvironment
+				.getLocalGraphicsEnvironment();
+		ge.registerFont(customFont);
+	}
+	
+	
+	// Load the custom font
+	private java.awt.Font loadCustomFont() throws FileNotFoundException,
+			FontFormatException, IOException {
+		java.awt.Font temp;
+		InputStream myFont = new BufferedInputStream(new FileInputStream(
+				"resources/fonts/ubuntub.ttf"));
+		temp = java.awt.Font.createFont(java.awt.Font.TRUETYPE_FONT, myFont);
+		temp = temp.deriveFont(java.awt.Font.PLAIN, 16);
+		return temp;
+	}
+	
+	/**
+	 * Get the default font in the application
+	 * @return the default font
+	 */
+	private java.awt.Font getDefaultFont() {
+		return new java.awt.Font("Calibri", java.awt.Font.PLAIN, 17);
+	}
+	
+	/**
+	 * Setup the main window of the application
+	 */
 	private void setupStage() {
 		stage.setWidth(760);
 		stage.setHeight(540);
-		Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
-		stage.setX((primaryScreenBounds.getWidth() - stage.getWidth()) / 2);
-		stage.setY((primaryScreenBounds.getHeight() - stage.getHeight()) / 2);
+		setInitialPosition();
 		stage.initStyle(StageStyle.UNDECORATED);
 		stage.setTitle("iDo");
+		setIcon();
+	}
+	
+	/**
+	 * Set the icon for the application
+	 */
+	private void setIcon() {	
 		stage.getIcons().add(
 				new Image(getClass().getResource("iDo_traybar.png")
 						.toExternalForm()));
 	}
-
+	
+	/**
+	 * Set the initial position of the stage when the user first opens the application
+	 */
+	private void setInitialPosition() {
+		Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
+		stage.setX((primaryScreenBounds.getWidth() - stage.getWidth()) / 2);
+		stage.setY((primaryScreenBounds.getHeight() - stage.getHeight()) / 2);
+	}
+	
+	/**
+	 * Setup the scene to be shown in the main stage i.e main window
+	 */
 	private void setupScene() {
 		stage.setHeight(70.0);
-		scene = new Scene(generalBase);
+		scene = new Scene(mainRoot);
 		customizeGUI();
 		stage.setScene(scene);
 		stage.show();
-		removeTopAndCenter();
-		showOrHide.setId("larger");
-		txt.requestFocus();
-		txt.setCaretPosition(txt.getText().length());
+		setInitialState();
 		setupScrollBar();
 	}
-
+	
+	/**
+	 * Set the initial state of the application as collapsed state
+	 */
+	private void setInitialState() {
+		removeTopAndCenter();
+		expandOrCollapse.setId("larger");
+		commandLine.requestFocus();
+		commandLine.setCaretPosition(commandLine.getText().length());
+	}
+	
+	// Customize the interface of the application
 	public void customizeGUI() {
-		if (caretListener != null)
-			stage.focusedProperty().removeListener(caretListener);
-
-		scene.getStylesheets().clear();
+		clearPreviousCustomization();
+		setupNewCustomization();
+	}
+	
+	/**
+	 * Setup new customization for the application depending on the chosen mode
+	 */
+	private void setupNewCustomization() {
 		if (model.getThemeMode().equals(Common.DAY_MODE)) {
-			scene.getStylesheets().addAll(
-					getClass().getResource("customize.css").toExternalForm());
-			txt.setBackground(ColourPalette.WHITE);
-			caretListener = new ChangeListener<Boolean>() {
-				public void changed(ObservableValue<? extends Boolean> ov,
-						Boolean oldValue, Boolean newValue) {
-					if (newValue.booleanValue() == false) {
-						txt.setCaretColor(ColourPalette.BLACK);
-					} else {
-						txt.setCaretColor(ColourPalette.caretColour);
-					}
-				}
-			};
-			title.setImage(new Image(getClass().getResourceAsStream("iDo.png")));
-			txt.setStyledDocument(new CustomStyledDocument());
-			defaultColor = ColourPalette.fxWHITE;
-			
-			if(model.getColourScheme().equals(Common.NIGHT_MODE))
-			model.setColourScheme(Common.DAY_MODE);
-
-			setColourScheme(model.getColourScheme());
-			stage.focusedProperty().addListener(caretListener);
+			setStyleSheetForDayMode();
+			setCaretColourListenerForDayMode();
+			setTitleForDayMode();
+			setColourSchemeForDayMode();
 		} else {
-			scene.getStylesheets().addAll(
-					getClass().getResource("customize2.css").toExternalForm());
-			txt.setBackground(ColourPalette.cmdBackgroundColour);
-			caretListener = new ChangeListener<Boolean>() {
-				public void changed(ObservableValue<? extends Boolean> ov,
-						Boolean oldValue, Boolean newValue) {
-					if (newValue.booleanValue() == false) {
-						txt.setCaretColor(ColourPalette.WHITE);
-					} else {
-						txt.setCaretColor(ColourPalette.caretColour);
-					}
-				}
-			};
-			txt.setStyledDocument(new CustomStyledDocument());
-			title.setImage(new Image(getClass().getResourceAsStream(
-					"iDoNight.png")));
-			defaultColor = ColourPalette.fxNEAR_WHITE;
-			
-			if(model.getColourScheme().equals(Common.DAY_MODE))
-			model.setColourScheme(Common.NIGHT_MODE);
+			setStyleSheetForNightMode();
+			setCaretColourListenerForNightMode();
+			setTitleForNightMode();
+			setColourSchemeForNightMode();
 
-			setColourScheme(model.getColourScheme());
-			stage.focusedProperty().addListener(caretListener);
 		}
 	}
-
+	
+	/**
+	 * Set title for night mode
+	 */
+	private void setTitleForNightMode() {
+		title.setImage(new Image(getClass().getResourceAsStream("iDoNight.png")));
+	}
+	
+	/**
+	 * Set title for day mode
+	 */
+	private void setTitleForDayMode() {
+		title.setImage(new Image(getClass().getResourceAsStream("iDo.png")));
+	}
+	
+	/**
+	 * Set caret colour listener for night mode
+	 */
+	private void setCaretColourListenerForNightMode() {
+		caretColourListenerForCommandLine = new ChangeListener<Boolean>() {
+			public void changed(ObservableValue<? extends Boolean> ov,
+					Boolean oldValue, Boolean newValue) {
+				boolean isFocused = newValue;
+				if (!isFocused) {
+					commandLine.setCaretColor(ColourPalette.WHITE);
+				} else {
+					commandLine.setCaretColor(ColourPalette.caretColour);
+				}
+			}
+		};
+		stage.focusedProperty().addListener(caretColourListenerForCommandLine);
+	}
+	
+	/**
+	 * Set caret colour listener for day mode
+	 */
+	private void setCaretColourListenerForDayMode() {
+		caretColourListenerForCommandLine = new ChangeListener<Boolean>() {
+			public void changed(ObservableValue<? extends Boolean> ov,
+					Boolean oldValue, Boolean newValue) {
+				boolean isFocused = newValue;
+				if (!isFocused) {
+					commandLine.setCaretColor(ColourPalette.BLACK);
+				} else {
+					commandLine.setCaretColor(ColourPalette.caretColour);
+				}
+			}
+		};
+		stage.focusedProperty().addListener(caretColourListenerForCommandLine);
+	}
+	
+	/** 
+	 * Set style sheet for night mode
+	 */
+	private void setStyleSheetForNightMode() {
+		scene.getStylesheets().addAll(
+				getClass().getResource("nightCustomization.css")
+						.toExternalForm());
+	}
+	
+	/**
+	 * Set style sheet for day mode
+	 */
+	private void setStyleSheetForDayMode() {
+		scene.getStylesheets()
+				.addAll(getClass().getResource("dayCustomization.css")
+						.toExternalForm());
+	}
+	
+	/**
+	 * Change the colour scheme for night mode
+	 */
+	private void setColourSchemeForNightMode() {
+		commandLine.setBackground(ColourPalette.cmdBackgroundColour);
+		commandLine.setStyledDocument(new CustomStyledDocument());
+		defaultColor = ColourPalette.fxNEAR_WHITE;
+		if (model.getColourScheme().equals(Common.DAY_MODE)) {
+			model.setColourScheme(Common.NIGHT_MODE);
+		}
+		setColourScheme(model.getColourScheme());
+	}
+	
+	/**
+	 * Change the colour scheme for day mode
+	 */
+	private void setColourSchemeForDayMode() {
+		commandLine.setBackground(ColourPalette.WHITE);
+		commandLine.setStyledDocument(new CustomStyledDocument());
+		defaultColor = ColourPalette.fxWHITE;
+		if (model.getColourScheme().equals(Common.NIGHT_MODE)) {
+			model.setColourScheme(Common.DAY_MODE);
+		}
+		setColourScheme(model.getColourScheme());
+	}
+	
+	/**
+	 * Clear previous customization of the application to prepare for new customization
+	 */
+	private void clearPreviousCustomization() {
+		if (caretColourListenerForCommandLine != null) {
+			stage.focusedProperty().removeListener(
+					caretColourListenerForCommandLine);
+		}
+		scene.getStylesheets().clear();
+	}
+	
+	// Get the default color in the application
 	public Color getDefaultColor() {
 		return defaultColor;
 	}
-
+	
+	/**
+	 * Create the BOTTOM section
+	 */
 	private void createBottomSection() {
 		bottom = new VBox();
 		bottom.setSpacing(5);
 		bottom.setPadding(new Insets(0, 0, 5, 44));
 
-		HBox upperPart = new HBox();
-		upperPart = createUpperPartInBottom();
+		HBox upperPart = createUpperPartInBottomSection();
+		HBox lowerPart = createLowerPartInBottomSection();
 
-		feedbacks = new HBox();
+		bottom.getChildren().addAll(upperPart, lowerPart);
+	}
+	
+	// Create the lower part in BOTTOM section comprising the list of feedback elements
+	private HBox createLowerPartInBottomSection() {
+		HBox feedbacks = new HBox();
 		feedbacks.setSpacing(10);
 		feedbackList.clear();
 		for (int i = 0; i < 10; i++) {
@@ -623,42 +939,60 @@ public class View implements HotkeyListener {
 			feedbackList.add(feedbackPiece);
 			feedbacks.getChildren().add(feedbackList.get(i));
 		}
-
-		bottom.getChildren().addAll(upperPart, feedbacks);
+		return feedbacks;
 	}
-
-	private HBox createUpperPartInBottom() {
+	
+	// Create the upper part in BOTTOM section
+	private HBox createUpperPartInBottomSection() {
 		HBox temp = new HBox();
 		temp.setSpacing(10);
-		commandLine = new TextField();
-		commandLine.setPrefWidth(630);
-		commandLine.opacityProperty().set(0.0);
-
-		showOrHide = new Button();
-		showOrHide.setPrefSize(30, 30);
-		showOrHide.setId("smaller");
-		hookUpEventForShowOrHide();
-		temp.getChildren().addAll(commandLine, showOrHide);
+		TextField invisibleCommandLine = createOverlayTextfield();
+		setupExpandOrCollapseButton();
+		temp.getChildren().addAll(invisibleCommandLine, expandOrCollapse);
 
 		return temp;
 	}
 
+	/**
+	 * Create the expand or collapse button
+	 */
+	private void setupExpandOrCollapseButton() {
+		expandOrCollapse = new Button();
+		expandOrCollapse.setPrefSize(30, 30);
+		expandOrCollapse.setId("smaller");
+		hookUpEventForExpandOrCollapse();
+	}
+
+	// Create the overlay text field behind the actual text field
+	private TextField createOverlayTextfield() {
+		TextField invisibleCommandLine = new TextField();
+		invisibleCommandLine.setPrefWidth(630);
+		invisibleCommandLine.opacityProperty().set(0.0);
+		return invisibleCommandLine;
+	}
+
+	/**
+	 * Create the CENTER section
+	 */
 	private void createCenterSection() {
 		createTabPane();
 		center = HBoxBuilder.create().padding(new Insets(0, 44, 0, 44))
 				.children(tabPane).build();
 	}
 
+	/**
+	 * Create the tab pane where content in the tabs will reside in
+	 */
 	private void createTabPane() {
-		taskPendingList = new TableView<Task>();
-		createTable(taskPendingList, model.getPendingList());
+		createPendingTable();
+		createCompleteTable();
+		createTrashTable();
+		createTabs();
+		setTabChangeListener();
+	}
 
-		taskCompleteList = new TableView<Task>();
-		createTable(taskCompleteList, model.getCompleteList());
-
-		taskTrashList = new TableView<Task>();
-		createTable(taskTrashList, model.getTrashList());
-
+	// Create the tabs containing the 3 tables
+	private void createTabs() {
 		tabPane = new TabPane();
 		Tab pending = TabBuilder.create().content(taskPendingList)
 				.text("PENDING").closable(false).build();
@@ -666,62 +1000,105 @@ public class View implements HotkeyListener {
 				.text("COMPLETE").closable(false).build();
 		Tab trash = TabBuilder.create().content(taskTrashList).text("TRASH")
 				.closable(false).build();
-
 		tabPane.getTabs().addAll(pending, complete, trash);
-		setTabChangeListener();
 	}
 
+	// Create the table showing trash tasks
+	private void createTrashTable() {
+		taskTrashList = new TableView<Task>();
+		createTable(taskTrashList, model.getTrashList());
+	}
+
+	// Create the table showing completed tasks
+	private void createCompleteTable() {
+		taskCompleteList = new TableView<Task>();
+		createTable(taskCompleteList, model.getCompleteList());
+	}
+
+	// Create the table showing pending tasks
+	private void createPendingTable() {
+		taskPendingList = new TableView<Task>();
+		createTable(taskPendingList, model.getPendingList());
+	}
+
+	/**
+	 * Create the TOP section in the application
+	 */
 	private void createTopSection() {
 		top = new AnchorPane();
 		top.setPadding(new Insets(-15, 15, -30, 44));
 
 		title = createTitle();
-		syncProgress = new ProgressIndicator();
-		Image netAcess = new Image(getClass().getResourceAsStream("redCross.png"), 25, 25, true, true);
-		netAccessIndicator = new ImageView(netAcess);
-		netAccessIndicator.setVisible(false);
-		setSyncProgressVisible(false);
-		
-		HBox buttons = createModifyingButtons();
+		createSyncProgressIndicator();
+		createInternetAccessIndicator();
+		HBox systemButtons = createSystemButtons();
 
-		setupLayout(netAccessIndicator, buttons);
+		setupTopLayout(netAccessIndicator, systemButtons);
 	}
 
+	// Create the indicator whether there is currently internet connection or
+	// not
+	private void createInternetAccessIndicator() {
+		Image netAcess = new Image(getClass().getResourceAsStream(
+				"redCross.png"), 25, 25, true, true);
+		netAccessIndicator = new ImageView(netAcess);
+		netAccessIndicator.setVisible(false);
+	}
+
+	// Create the indicator whether the application is under syncing progress or
+	// not
+	private void createSyncProgressIndicator() {
+		syncProgress = new ProgressIndicator();
+		setSyncProgressVisible(false);
+	}
+
+	/**
+	 * Set the visibility of the sync progress
+	 * 
+	 * @param isVisible
+	 *            indicator whether to show or not
+	 */
 	public void setSyncProgressVisible(final boolean isVisible) {
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
 				syncProgress.setVisible(isVisible);
 			}
-		});	
+		});
 	}
-	
-	public void showNoInternetConnection(){
+
+	/**
+	 * Show the signal that there is currently no internet connection The signal
+	 * will start to fade out after 2 seconds
+	 */
+	public void showNoInternetConnection() {
 		netAccessIndicator.setVisible(true);
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
-				FadeTransition appear = new FadeTransition(Duration.millis(100), netAccessIndicator);
-				appear.setFromValue(1.0);
-				appear.setToValue(1.0);
-				FadeTransition fade = new FadeTransition(Duration.millis(2000),
-						netAccessIndicator);
-				fade.setFromValue(1.0);
-				fade.setToValue(0.0);
-				SequentialTransition seq = new SequentialTransition(appear, new PauseTransition(Duration.millis(4000)), fade);
+				FadeTransition fadeIn = new FadeTransition(
+						Duration.millis(100), netAccessIndicator);
+				fadeIn.setFromValue(1.0);
+				fadeIn.setToValue(1.0);
+				FadeTransition fadeOut = new FadeTransition(Duration
+						.millis(2000), netAccessIndicator);
+				fadeOut.setFromValue(1.0);
+				fadeOut.setToValue(0.0);
+				SequentialTransition seq = new SequentialTransition(fadeIn,
+						new PauseTransition(Duration.millis(4000)), fadeOut);
 				seq.play();
 			}
 		});
-	
 	}
 
-	private void setDraggable() {
+	/**
+	 * Setup the functionality to drag the window
+	 */
+	private void setupDraggable() {
 		// Get the position of the mouse in the stage
-		root.setOnMousePressed(new EventHandler<MouseEvent>() {
+		subRoot.setOnMousePressed(new EventHandler<MouseEvent>() {
 			@Override
 			public void handle(MouseEvent me) {
-				if (me.getScreenX() < stage.getX())
-					System.out.println("bleble");	//TODO: what is this
 				dragAnchorX = me.getScreenX() - stage.getX();
 				dragAnchorY = me.getScreenY() - stage.getY();
 			}
@@ -729,7 +1106,7 @@ public class View implements HotkeyListener {
 
 		// Moving with the stage with the mouse at constant position relative to
 		// the stage
-		root.setOnMouseDragged(new EventHandler<MouseEvent>() {
+		subRoot.setOnMouseDragged(new EventHandler<MouseEvent>() {
 			@Override
 			public void handle(MouseEvent me) {
 				stage.setX(me.getScreenX() - dragAnchorX);
@@ -738,22 +1115,40 @@ public class View implements HotkeyListener {
 		});
 	}
 
-	private void setupLayout(ImageView netAcessIndicator, HBox buttons) {
+	/**
+	 * Setup the layout in the top section
+	 * 
+	 * @param netAcessIndicator
+	 *            the indicator whether there is internect access or not
+	 * @param systemButtons
+	 *            the buttons functioning the application
+	 */
+	private void setupTopLayout(ImageView netAcessIndicator, HBox systemButtons) {
 		syncProgress.setMinSize(25, 25);
 		syncProgress.setMaxSize(25, 25);
 
-		StackPane pane = new StackPane();
-		pane.getChildren().addAll(netAcessIndicator, syncProgress);
-		
-		top.getChildren().addAll(title, pane, buttons);
-		AnchorPane.setLeftAnchor(title, 10.0);
-		AnchorPane.setTopAnchor(buttons, 25.0); 
-		AnchorPane.setTopAnchor(title, 30.0);
-		AnchorPane.setRightAnchor(buttons, 5.0);
-		AnchorPane.setRightAnchor(pane, 305.0);
-		AnchorPane.setBottomAnchor(pane, -28.0);
+		StackPane indicatorPane = new StackPane();
+		indicatorPane.getChildren().addAll(netAcessIndicator, syncProgress);
+
+		top.getChildren().addAll(title, indicatorPane, systemButtons);
+		setAnchor(systemButtons, indicatorPane);
 	}
 
+	// Set the anchor of the nodes in the top section
+	private void setAnchor(HBox buttons, StackPane indicatorPane) {
+		AnchorPane.setLeftAnchor(title, 10.0);
+		AnchorPane.setTopAnchor(buttons, 25.0);
+		AnchorPane.setTopAnchor(title, 30.0);
+		AnchorPane.setRightAnchor(buttons, 5.0);
+		AnchorPane.setRightAnchor(indicatorPane, 305.0);
+		AnchorPane.setBottomAnchor(indicatorPane, -28.0);
+	}
+
+	/**
+	 * Create the image title to be shown in the application
+	 * 
+	 * @return the created title image
+	 */
 	private ImageView createTitle() {
 		ImageView title = new ImageView();
 		title.setFitWidth(110);
@@ -763,7 +1158,13 @@ public class View implements HotkeyListener {
 		return title;
 	}
 
-	private HBox createModifyingButtons() {
+	/**
+	 * This function is used to create the system buttons in the application
+	 * including the exit and minimize ones.
+	 * 
+	 * @return the horizontal box containing these 2 buttons
+	 */
+	private HBox createSystemButtons() {
 		Button minimizeButton = createMinimizeButton();
 		Button closeButton = createExitButton();
 
@@ -775,6 +1176,11 @@ public class View implements HotkeyListener {
 		return hb;
 	}
 
+	/**
+	 * Create the minimize button in the application
+	 * 
+	 * @return the created button
+	 */
 	private Button createMinimizeButton() {
 		Button targetButton = new Button("");
 		targetButton.setPrefSize(20, 20);
@@ -787,6 +1193,11 @@ public class View implements HotkeyListener {
 		return targetButton;
 	}
 
+	/**
+	 * Create the exit button in the application
+	 * 
+	 * @return the created button
+	 */
 	private Button createExitButton() {
 		Button targetButton = new Button("");
 		targetButton.setPrefSize(20, 20);
@@ -800,31 +1211,28 @@ public class View implements HotkeyListener {
 		return targetButton;
 	}
 
+	/**
+	 * This function is used to create the table in the center section.
+	 * 
+	 * @param taskList
+	 *            the table to be created
+	 * @param list
+	 *            the list of tasks for the table to view
+	 */
 	public void createTable(TableView<Task> taskList, ObservableList<Task> list) {
 		taskList.setItems(list);
 		taskList.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-		final Text emptyTableSign = new Text(
-				"There is currently no task in this tab");
-		emptyTableSign.setFont(new Font(15));
-		emptyTableSign.getStyleClass().add("text");
-		taskList.setPlaceholder(emptyTableSign);
-		final TableColumn<Task, String> indexColumn = createIndexColumn();
-		final TableColumn<Task, String> occurrenceColumn = createOccurrenceColumn();
-		final TableColumn<Task, String> taskInfoColumn = createTaskInfoColumn();
-		final TableColumn<Task, Tag> tagColumn = createTagColumn();
-		final TableColumn<Task, String> startDateColumn = createStartDateColumn();
-		final TableColumn<Task, String> endDateColumn = createEndDateColumn();
-		final TableColumn<Task, RowStatus> rowStatusColumn = createRowStatusColumn();
+		setEmptyTableMessage(taskList);
 
 		final ObservableList<TableColumn<Task, ?>> columns = taskList
 				.getColumns();
-		columns.add(indexColumn);
-		columns.add(occurrenceColumn);
-		columns.add(taskInfoColumn);
-		columns.add(startDateColumn);
-		columns.add(endDateColumn);
-		columns.add(tagColumn);
-		columns.add(rowStatusColumn);
+		final TableColumn<Task, String> indexColumn = addIndexColumn(columns);
+		final TableColumn<Task, String> occurrenceColumn = addOccurrenceColumn(columns);
+		final TableColumn<Task, String> taskInfoColumn = addTaskInfoColumn(columns);
+		final TableColumn<Task, String> startDateColumn = addStartDateColumn(columns);
+		final TableColumn<Task, String> endDateColumn = addEndDateColumn(columns);
+		final TableColumn<Task, Tag> tagColumn = addTagColumn(columns);
+		final TableColumn<Task, RowStatus> rowStatusColumn = addRowStatusColumn(columns);
 		columns.addListener(new ListChangeListener<TableColumn<Task, ?>>() {
 			@Override
 			public void onChanged(Change<? extends TableColumn<Task, ?>> change) {
@@ -843,24 +1251,107 @@ public class View implements HotkeyListener {
 		});
 	}
 
-	private TableColumn<Task, RowStatus> createRowStatusColumn() {
-		TableColumn<Task, RowStatus> tempColumn = TableColumnBuilder
-				.<Task, RowStatus> create().resizable(false).visible(true)
-				.text("").prefWidth(1).build();
-		setupRowStatusProperty(tempColumn);
-		setupRowStatusUpdateFormat(tempColumn);
-		return tempColumn;
+	// Add row status column
+	private TableColumn<Task, RowStatus> addRowStatusColumn(
+			final ObservableList<TableColumn<Task, ?>> columns) {
+		final TableColumn<Task, RowStatus> rowStatusColumn = createRowStatusColumn();
+		columns.add(rowStatusColumn);
+		return rowStatusColumn;
 	}
 
-	private void setupRowStatusProperty(TableColumn<Task, RowStatus> tempColumn) {
-		tempColumn
+	// Add tag column
+	private TableColumn<Task, Tag> addTagColumn(
+			final ObservableList<TableColumn<Task, ?>> columns) {
+		final TableColumn<Task, Tag> tagColumn = createTagColumn();
+		columns.add(tagColumn);
+		return tagColumn;
+	}
+
+	// Add end date column
+	private TableColumn<Task, String> addEndDateColumn(
+			final ObservableList<TableColumn<Task, ?>> columns) {
+		final TableColumn<Task, String> endDateColumn = createEndDateColumn();
+		columns.add(endDateColumn);
+		return endDateColumn;
+	}
+
+	// Add start date column
+	private TableColumn<Task, String> addStartDateColumn(
+			final ObservableList<TableColumn<Task, ?>> columns) {
+		final TableColumn<Task, String> startDateColumn = createStartDateColumn();
+		columns.add(startDateColumn);
+		return startDateColumn;
+	}
+
+	// Add task info column
+	private TableColumn<Task, String> addTaskInfoColumn(
+			final ObservableList<TableColumn<Task, ?>> columns) {
+		final TableColumn<Task, String> taskInfoColumn = createTaskInfoColumn();
+		columns.add(taskInfoColumn);
+		return taskInfoColumn;
+	}
+
+	// Add occurrence column
+	private TableColumn<Task, String> addOccurrenceColumn(
+			final ObservableList<TableColumn<Task, ?>> columns) {
+		final TableColumn<Task, String> occurrenceColumn = createOccurrenceColumn();
+		columns.add(occurrenceColumn);
+		return occurrenceColumn;
+	}
+
+	// Add index column
+	private TableColumn<Task, String> addIndexColumn(
+			final ObservableList<TableColumn<Task, ?>> columns) {
+		final TableColumn<Task, String> indexColumn = createIndexColumn();
+		columns.add(indexColumn);
+		return indexColumn;
+	}
+
+	// Set the text display when the table is empty
+	private void setEmptyTableMessage(TableView<Task> taskList) {
+		final Text emptyTableSign = new Text(
+				"There is currently no task in this tab");
+		emptyTableSign.getStyleClass().add("text");
+		taskList.setPlaceholder(emptyTableSign);
+	}
+
+	/**
+	 * Create the row status column
+	 * 
+	 * @return the created column
+	 */
+	private TableColumn<Task, RowStatus> createRowStatusColumn() {
+		TableColumn<Task, RowStatus> rowStatusColumn = TableColumnBuilder
+				.<Task, RowStatus> create().resizable(false).visible(true)
+				.text("").prefWidth(1).build();
+		setupRowStatusProperty(rowStatusColumn);
+		setupRowStatusUpdateFormat(rowStatusColumn);
+		return rowStatusColumn;
+	}
+
+	/**
+	 * Link up the content of each cell with the rowStatus property in Task
+	 * class
+	 * 
+	 * @param rowStatusColumn
+	 *            the linked column
+	 */
+	private void setupRowStatusProperty(
+			TableColumn<Task, RowStatus> rowStatusColumn) {
+		rowStatusColumn
 				.setCellValueFactory(new PropertyValueFactory<Task, RowStatus>(
 						"rowStatus"));
 	}
 
+	/**
+	 * Setup how to display the content in the column
+	 * 
+	 * @param rowStatusColumn
+	 *            the modified column
+	 */
 	private void setupRowStatusUpdateFormat(
-			TableColumn<Task, RowStatus> tempColumn) {
-		tempColumn
+			TableColumn<Task, RowStatus> rowStatusColumn) {
+		rowStatusColumn
 				.setCellFactory(new Callback<TableColumn<Task, RowStatus>, TableCell<Task, RowStatus>>() {
 
 					@Override
@@ -876,6 +1367,7 @@ public class View implements HotkeyListener {
 								}
 							}
 
+							// Clear the style of the row status
 							private void clearStyle() {
 								getTableRow().getStyleClass().removeAll(
 										"table-row-cell", "unimportant",
@@ -885,39 +1377,72 @@ public class View implements HotkeyListener {
 
 							}
 
+							// Set the style for the row status
 							private void setStyle(RowStatus rowStatus) {
-								Task t = (Task) getTableRow().getItem();
 								boolean isLastOverdue = rowStatus
 										.getIsLastOverdue();
 								boolean isOdd = getTableRow().getIndex() % 2 != 0;
 								boolean isImportant = rowStatus
 										.getIsImportant();
+								checkIsLastOverdue(isLastOverdue, isOdd,
+										isImportant);
+							}
+
+							// Check for last overdue task
+							private void checkIsLastOverdue(
+									boolean isLastOverdue, boolean isOdd,
+									boolean isImportant) {
 								if (isLastOverdue) {
-									if (isImportant) {
-										getTableRow().getStyleClass().add(
-												"important-last");
-									} else {
-										if (isOdd) {
-											getTableRow().getStyleClass().add(
-													"unimportant-odd-last");
-										} else {
-											getTableRow().getStyleClass().add(
-													"unimportant-last");
-										}
-									}
+									checkIsImportantForLastOverdueTask(isOdd,
+											isImportant);
 								} else {
-									if (isImportant) {
-										getTableRow().getStyleClass().add(
-												"important");
-									} else {
-										if (isOdd) {
-											getTableRow().getStyleClass().add(
-													"unimportant-odd");
-										} else {
-											getTableRow().getStyleClass().add(
-													"unimportant");
-										}
-									}
+									checkIsImportantForNormalTask(isOdd,
+											isImportant);
+								}
+							}
+
+							// Check for important task of non last overdue task
+							private void checkIsImportantForNormalTask(
+									boolean isOdd, boolean isImportant) {
+								if (isImportant) {
+									getTableRow().getStyleClass().add(
+											"important");
+								} else {
+									checkIsOddForLastOverdueTask(isOdd);
+								}
+							}
+
+							// Check for odd task of last overdue task
+							private void checkIsOddForLastOverdueTask(
+									boolean isOdd) {
+								if (isOdd) {
+									getTableRow().getStyleClass().add(
+											"unimportant-odd");
+								} else {
+									getTableRow().getStyleClass().add(
+											"unimportant");
+								}
+							}
+
+							// Check for important task of last overdue task
+							private void checkIsImportantForLastOverdueTask(
+									boolean isOdd, boolean isImportant) {
+								if (isImportant) {
+									getTableRow().getStyleClass().add(
+											"important-last");
+								} else {
+									checkIsOddForNormalTask(isOdd);
+								}
+							}
+
+							// Check for odd task of non last overdue task
+							private void checkIsOddForNormalTask(boolean isOdd) {
+								if (isOdd) {
+									getTableRow().getStyleClass().add(
+											"unimportant-odd-last");
+								} else {
+									getTableRow().getStyleClass().add(
+											"unimportant-last");
 								}
 							}
 						};
@@ -926,18 +1451,30 @@ public class View implements HotkeyListener {
 				});
 	}
 
+	/**
+	 * Create the index column
+	 * 
+	 * @return the created column
+	 */
 	private TableColumn<Task, String> createIndexColumn() {
-		TableColumn<Task, String> tempColumn = TableColumnBuilder
+		TableColumn<Task, String> indexColumn = TableColumnBuilder
 				.<Task, String> create().resizable(false).visible(true)
 				.text("").prefWidth(28).sortable(false).resizable(false)
 				.build();
-		setupEndDateProperty(tempColumn);
-		setupIndexUpdateFormat(tempColumn);
-		return tempColumn;
+		setupEndDateProperty(indexColumn); // no specific property as index
+											// column does not depend on Task
+		setupIndexUpdateFormat(indexColumn);
+		return indexColumn;
 	}
 
-	private void setupIndexUpdateFormat(TableColumn<Task, String> tempColumn) {
-		tempColumn
+	/**
+	 * Setup how to display the content in the column
+	 * 
+	 * @param indexColumn
+	 *            the modified column
+	 */
+	private void setupIndexUpdateFormat(TableColumn<Task, String> indexColumn) {
+		indexColumn
 				.setCellFactory(new Callback<TableColumn<Task, String>, TableCell<Task, String>>() {
 
 					@Override
@@ -957,26 +1494,45 @@ public class View implements HotkeyListener {
 				});
 	}
 
+	/**
+	 * Create the occurrence column
+	 * 
+	 * @return the created column
+	 */
 	private TableColumn<Task, String> createOccurrenceColumn() {
-		TableColumn<Task, String> tempColumn = TableColumnBuilder
+		TableColumn<Task, String> occurrenceColumn = TableColumnBuilder
 				.<Task, String> create().resizable(false).visible(true)
 				.text("").prefWidth(28).sortable(false).resizable(false)
 				.build();
-		setupOccurrenceProperty(tempColumn);
-		setupOccurrenceUpdateFormat(tempColumn);
-		return tempColumn;
+		setupOccurrenceProperty(occurrenceColumn);
+		setupOccurrenceUpdateFormat(occurrenceColumn);
+		return occurrenceColumn;
 	}
 
-	private void setupOccurrenceProperty(TableColumn<Task, String> tempColumn) {
-		tempColumn.setCellValueFactory(new PropertyValueFactory<Task, String>(
-				"occurrence"));
+	/**
+	 * Link up the content of each cell with the occurrence property in Task
+	 * class
+	 * 
+	 * @param occurrenceColumn
+	 *            the linked column
+	 */
+	private void setupOccurrenceProperty(
+			TableColumn<Task, String> occurrenceColumn) {
+		occurrenceColumn
+				.setCellValueFactory(new PropertyValueFactory<Task, String>(
+						"occurrence"));
 	}
 
+	/**
+	 * Setup how to display the content of the property
+	 * 
+	 * @param occurrenceColumn
+	 *            the modified column
+	 */
 	private void setupOccurrenceUpdateFormat(
-			final TableColumn<Task, String> tempColumn) {
-		tempColumn
+			final TableColumn<Task, String> occurrenceColumn) {
+		occurrenceColumn
 				.setCellFactory(new Callback<TableColumn<Task, String>, TableCell<Task, String>>() {
-
 					@Override
 					public TableCell<Task, String> call(
 							TableColumn<Task, String> param) {
@@ -987,11 +1543,9 @@ public class View implements HotkeyListener {
 							public void updateItem(String item, boolean empty) {
 								if (item != null) {
 									text = new Text(item);
-									// text.wrappingWidthProperty().bind(tempColumn.widthProperty());
 									text.setFill(Color.DARKCYAN);
 									text.setFont(Font.font("Verdana", 10));
 									setGraphic(text);
-
 								}
 							}
 						};
@@ -1001,24 +1555,43 @@ public class View implements HotkeyListener {
 				});
 	}
 
+	/**
+	 * Create the end date column
+	 * 
+	 * @return the created column
+	 */
 	private TableColumn<Task, String> createEndDateColumn() {
-		TableColumn<Task, String> tempColumn = TableColumnBuilder
+		TableColumn<Task, String> endDateColumn = TableColumnBuilder
 				.<Task, String> create().resizable(false).text("End")
 				.sortable(false).resizable(false).prefWidth(110).build();
 
-		setupEndDateProperty(tempColumn);
-		setupEndDateUpdateFormat(tempColumn);
+		setupEndDateProperty(endDateColumn);
+		setupEndDateUpdateFormat(endDateColumn);
 
-		return tempColumn;
+		return endDateColumn;
 	}
 
-	private void setupEndDateProperty(TableColumn<Task, String> tempColumn) {
-		tempColumn.setCellValueFactory(new PropertyValueFactory<Task, String>(
-				"endDateString"));
+	/**
+	 * Link up the content of each cell with the endDateString property in Task
+	 * class
+	 * 
+	 * @param endDateColumn
+	 */
+	private void setupEndDateProperty(TableColumn<Task, String> endDateColumn) {
+		endDateColumn
+				.setCellValueFactory(new PropertyValueFactory<Task, String>(
+						"endDateString"));
 	}
 
-	private void setupEndDateUpdateFormat(TableColumn<Task, String> tempColumn) {
-		tempColumn
+	/**
+	 * Setup how to display the content of the property
+	 * 
+	 * @param endDateColumn
+	 *            the modified column
+	 */
+	private void setupEndDateUpdateFormat(
+			TableColumn<Task, String> endDateColumn) {
+		endDateColumn
 				.setCellFactory(new Callback<TableColumn<Task, String>, TableCell<Task, String>>() {
 
 					@Override
@@ -1028,12 +1601,6 @@ public class View implements HotkeyListener {
 							@Override
 							public void updateItem(String item, boolean empty) {
 								if (item != null) {
-									if (item.equals("OVERDUE")) {
-										setId("overdue");
-									} else {
-										setId("empty");
-									}
-
 									setText(item);
 								}
 							}
@@ -1044,24 +1611,45 @@ public class View implements HotkeyListener {
 				});
 	}
 
+	/**
+	 * Create the start date column
+	 * 
+	 * @return the created column
+	 */
 	private TableColumn<Task, String> createStartDateColumn() {
-		TableColumn<Task, String> tempColumn = TableColumnBuilder
+		TableColumn<Task, String> startDateColumn = TableColumnBuilder
 				.<Task, String> create().resizable(false).text("Start")
 				.prefWidth(110).resizable(false).sortable(false).build();
 
-		setupStartDateProperty(tempColumn);
-		setupStartDateUpdateFormat(tempColumn);
+		setupStartDateProperty(startDateColumn);
+		setupStartDateUpdateFormat(startDateColumn);
 
-		return tempColumn;
+		return startDateColumn;
 	}
 
-	private void setupStartDateProperty(TableColumn<Task, String> tempColumn) {
-		tempColumn.setCellValueFactory(new PropertyValueFactory<Task, String>(
-				"startDateString"));
+	/**
+	 * Link up the content of each cell with the startDateString property in
+	 * Task class
+	 * 
+	 * @param startDateColumn
+	 *            the linked column
+	 */
+	private void setupStartDateProperty(
+			TableColumn<Task, String> startDateColumn) {
+		startDateColumn
+				.setCellValueFactory(new PropertyValueFactory<Task, String>(
+						"startDateString"));
 	}
 
-	private void setupStartDateUpdateFormat(TableColumn<Task, String> tempColumn) {
-		tempColumn
+	/**
+	 * Setup how to display the content of the property
+	 * 
+	 * @param startDateColumn
+	 *            the modified column
+	 */
+	private void setupStartDateUpdateFormat(
+			TableColumn<Task, String> startDateColumn) {
+		startDateColumn
 				.setCellFactory(new Callback<TableColumn<Task, String>, TableCell<Task, String>>() {
 
 					@Override
@@ -1079,24 +1667,42 @@ public class View implements HotkeyListener {
 				});
 	}
 
+	/**
+	 * Create the tag column containing the info of recurring period and
+	 * category tag
+	 * 
+	 * @return the created column
+	 */
 	private TableColumn<Task, Tag> createTagColumn() {
-		TableColumn<Task, Tag> tempColumn = TableColumnBuilder
+		TableColumn<Task, Tag> tagColumn = TableColumnBuilder
 				.<Task, Tag> create().resizable(false).text("Tag")
 				.sortable(false).resizable(false).prefWidth(110).build();
 
-		setupTagProperty(tempColumn);
-		setupTagUpdateFormat(tempColumn);
+		setupTagProperty(tagColumn);
+		setupTagUpdateFormat(tagColumn);
 
-		return tempColumn;
+		return tagColumn;
 	}
 
-	private void setupTagProperty(TableColumn<Task, Tag> tempColumn) {
-		tempColumn.setCellValueFactory(new PropertyValueFactory<Task, Tag>(
-				"tag"));
+	/**
+	 * Link up the content of each cell with the tag property in Task class
+	 * 
+	 * @param tagColumn
+	 *            the linked column
+	 */
+	private void setupTagProperty(TableColumn<Task, Tag> tagColumn) {
+		tagColumn
+				.setCellValueFactory(new PropertyValueFactory<Task, Tag>("tag"));
 	}
 
-	private void setupTagUpdateFormat(final TableColumn<Task, Tag> tempColumn) {
-		tempColumn
+	/**
+	 * Setup how to display the content of the property
+	 * 
+	 * @param tagColumn
+	 *            the modifed column
+	 */
+	private void setupTagUpdateFormat(final TableColumn<Task, Tag> tagColumn) {
+		tagColumn
 				.setCellFactory(new Callback<TableColumn<Task, Tag>, TableCell<Task, Tag>>() {
 
 					@Override
@@ -1107,32 +1713,74 @@ public class View implements HotkeyListener {
 
 							public void updateItem(Tag item, boolean empty) {
 								if (item != null) {
-									if (item.getRepetition()
-											.equals(Common.NULL)) {
-										if (item.getTag().equals("-"))
-											text = new Text("             -");
-										else {
-											text = new Text(appendTab(item
-													.getTag()));
-										}
-									} else
-										text = new Text((item.getTag().equals(
-												"-") ? "" : appendTab(item
-												.getTag()) + "\n")
-												+ appendTab("#"
-														+ item.getRepetition()));
+									boolean isRepetitiveTask = !item
+											.getRepetition()
+											.equals(Common.NULL);
+									boolean hasTag = !item.getTag().equals("-");
+									checkRepetitiveTag(item, isRepetitiveTask,
+											hasTag);
 									text.getStyleClass().add("text");
 									text.wrappingWidthProperty().bind(
-											tempColumn.widthProperty());
+											tagColumn.widthProperty());
 									setGraphic(text);
 								}
 							}
 
-							private String appendTab(String info) {
-								if (info.length() < 8)
+							// Check for repetitive tag
+							private void checkRepetitiveTag(Tag item,
+									boolean isRepetitiveTask, boolean hasTag) {
+								if (!isRepetitiveTask) {
+									checkCategoryTagForNormalTask(item, hasTag);
+								} else {
+									checkCategoryTagForRecurringTask(item,
+											hasTag);
+								}
+							}
+
+							// Check for category tag of recurring task
+							private void checkCategoryTagForRecurringTask(
+									Tag item, boolean hasTag) {
+								if (!hasTag) {
+									text = new Text(""
+											+ appendSpaceForAlignment("#"
+													+ item.getRepetition()));
+								} else {
+									text = new Text(
+											appendSpaceForAlignment(item
+													.getTag())
+													+ "\n"
+													+ appendSpaceForAlignment("#"
+															+ item.getRepetition()));
+								}
+							}
+
+							// Check for category tag of normal task
+							private void checkCategoryTagForNormalTask(
+									Tag item, boolean hasTag) {
+								if (!hasTag) {
+									text = new Text(
+											appendSpaceForAlignment("-"));
+								} else {
+									text = new Text(
+											appendSpaceForAlignment(item
+													.getTag()));
+								}
+							}
+
+							// Append space for alignment according to the
+							// content of the info
+							private String appendSpaceForAlignment(String info) {
+								if (info.equals("-")) {
+									return "             " + info;
+								}
+
+								if (info.length() < 10) {
 									return "\t" + info;
-								else
+								} else if (info.length() < 12) {
+									return "    " + info;
+								} else {
 									return info;
+								}
 							}
 						};
 						tc.setAlignment(Pos.TOP_CENTER);
@@ -1141,25 +1789,44 @@ public class View implements HotkeyListener {
 				});
 	}
 
+	/**
+	 * Create the column displaying task info
+	 * 
+	 * @return the created column
+	 */
 	private TableColumn<Task, String> createTaskInfoColumn() {
-		TableColumn<Task, String> tempColumn = TableColumnBuilder
+		TableColumn<Task, String> taskInfoColumn = TableColumnBuilder
 				.<Task, String> create().resizable(false).text("Task")
 				.sortable(false).prefWidth(300).build();
 
-		setupTaskInfoProperty(tempColumn);
-		setupTaskInfoUpdateFormat(tempColumn);
+		setupTaskInfoProperty(taskInfoColumn);
+		setupTaskInfoUpdateFormat(taskInfoColumn);
 
-		return tempColumn;
+		return taskInfoColumn;
 	}
 
-	private void setupTaskInfoProperty(TableColumn<Task, String> tempColumn) {
-		tempColumn.setCellValueFactory(new PropertyValueFactory<Task, String>(
-				"workInfo"));
+	/**
+	 * Link up the content of each cell with the task info property in Task
+	 * class
+	 * 
+	 * @param taskInfoColumn
+	 *            the linked column
+	 */
+	private void setupTaskInfoProperty(TableColumn<Task, String> taskInfoColumn) {
+		taskInfoColumn
+				.setCellValueFactory(new PropertyValueFactory<Task, String>(
+						"workInfo"));
 	}
 
+	/**
+	 * Setup how to display the content of the property
+	 * 
+	 * @param taskInfoColumn
+	 *            the modified column
+	 */
 	private void setupTaskInfoUpdateFormat(
-			final TableColumn<Task, String> tempColumn) {
-		tempColumn
+			final TableColumn<Task, String> taskInfoColumn) {
+		taskInfoColumn
 				.setCellFactory(new Callback<TableColumn<Task, String>, TableCell<Task, String>>() {
 
 					@Override
@@ -1174,7 +1841,7 @@ public class View implements HotkeyListener {
 									text = new Text(item);
 									text.getStyleClass().add("text");
 									text.wrappingWidthProperty().bind(
-											tempColumn.widthProperty());
+											taskInfoColumn.widthProperty());
 									setGraphic(text);
 								}
 							}
@@ -1185,47 +1852,63 @@ public class View implements HotkeyListener {
 				});
 	}
 
-	private void hookUpEventForShowOrHide() {
-		showOrHide.setOnAction(new EventHandler<ActionEvent>() {
+	/**
+	 * Setup the event for the expandOrCollapse button
+	 */
+	private void hookUpEventForExpandOrCollapse() {
+		expandOrCollapse.setOnAction(new EventHandler<ActionEvent>() {
 			public void handle(ActionEvent e) {
-				if (stage.getHeight() == 540) {
+				if (stage.getHeight() == MAX_HEIGHT) {
 					collapseAnimation();
-				} else if (stage.getHeight() == 70) {
+				} else if (stage.getHeight() == MIN_HEIGHT) {
 					expandAnimation();
 				}
 			}
 		});
 	}
 
+	// Remove the top and center section when the user collapses the window
 	private void removeTopAndCenter() {
-		root.setTop(null);
-		root.setCenter(null);
+		subRoot.setTop(null);
+		subRoot.setCenter(null);
 	}
 
+	/**
+	 * Process the collapse animation of the window
+	 */
 	private void collapseAnimation() {
 		removeTopAndCenter();
-		showOrHide.setId("larger");
-		stage.setMinHeight(70.0);
+		expandOrCollapse.setId("larger");
+
+		stage.setMinHeight(MIN_HEIGHT);
 		Timer animTimer = new Timer();
 		animTimer.schedule(new TimerTask() {
 			@Override
 			public void run() {
-				if (stage.getHeight() > 70.0) {
-					double i = stage.getHeight() - 10.0;
-					stage.setMaxHeight(i);
-					stage.setHeight(i);
+				if (stage.getHeight() > MIN_HEIGHT) {
+					decrementHeight();
 				} else {
 					this.cancel();
 				}
 			}
+
+			// Decrement the height of the window in each phase of the timer
+			private void decrementHeight() {
+				double i = stage.getHeight() - 10.0;
+				stage.setMaxHeight(i);
+				stage.setHeight(i);
+			}
 		}, 0, 5);
 	}
 
+	/**
+	 * Process the expand animation of the window
+	 */
 	private void expandAnimation() {
 		Timer animTimer = new Timer();
-		root.setTop(top);
-		showOrHide.setId("smaller");
-		stage.setMaxHeight(540.0);
+		subRoot.setTop(top);
+		expandOrCollapse.setId("smaller");
+		stage.setMaxHeight(MAX_HEIGHT);
 		animTimer.schedule(new TimerTask() {
 			@Override
 			public void run() {
@@ -1233,52 +1916,82 @@ public class View implements HotkeyListener {
 					setCenterWithFadeTransition();
 				}
 
-				if (stage.getHeight() < 540.0) {
-					double i = stage.getHeight() + 10.0;
-					stage.setMinHeight(i);
-					stage.setHeight(i);
+				if (stage.getHeight() < MAX_HEIGHT) {
+					incrementHeight();
 				} else {
 					this.cancel();
 				}
 			}
+
+			// Increment the height of the window in each phase of the timer
+			private void incrementHeight() {
+				double i = stage.getHeight() + 10.0;
+				stage.setMinHeight(i);
+				stage.setHeight(i);
+			}
 		}, 0, 5);
 	}
 
+	/**
+	 * Set the transition of fade in for the center section when user expands
+	 * the application
+	 */
 	private void setCenterWithFadeTransition() {
 		Platform.runLater(new Runnable() {
 			public void run() {
-				root.setCenter(center);
-				FadeTransition fade = new FadeTransition(Duration.millis(500),
-						center);
-				fade.setFromValue(0.0);
-				fade.setToValue(1.0);
-				fade.play();
+				subRoot.setCenter(center);
+				FadeTransition fadeIn = new FadeTransition(
+						Duration.millis(500), center);
+				fadeIn.setFromValue(0.0);
+				fadeIn.setToValue(1.0);
+				fadeIn.play();
 			}
 		});
 	}
 
-	private void hideInSystemTray() {
+	/**
+	 * Setup the functionality of hiding in system tray for application
+	 */
+	private void setupSystemTray() {
 		if (SystemTray.isSupported()) {
-			SystemTray tray = SystemTray.getSystemTray();
 			java.awt.Image iconImage = getIconImage();
-
 			popupMenu = createPopupMenu();
 			createTrayIcon(iconImage, popupMenu);
-
-			try {
-				tray.add(trayIcon);
-			} catch (AWTException e) {
-				System.err.println(e);
-			}
+			createSystemTray();
 		}
 	}
 
+	/**
+	 * Register the tray icon in system tray
+	 */
+	private void createSystemTray() {
+		SystemTray tray = SystemTray.getSystemTray();
+		try {
+			tray.add(trayIcon);
+		} catch (AWTException e) {
+			logger.log(Level.INFO, e.getMessage());
+		}
+	}
+
+	/**
+	 * Create the tray icon in the system tray
+	 * 
+	 * @param iconImage
+	 *            the image icon
+	 * @param popupMenu
+	 *            the pop up menu showing up when right click on the icon
+	 */
 	private void createTrayIcon(java.awt.Image iconImage, PopupMenu popupMenu) {
 		trayIcon = new TrayIcon(iconImage, "iDo", popupMenu);
 		trayIcon.setImageAutoSize(true);
 		trayIcon.addActionListener(createShowListener());
 	}
 
+	/**
+	 * Create the pop up menu in the system tray
+	 * 
+	 * @return the created pop up menu
+	 */
 	private PopupMenu createPopupMenu() {
 		final PopupMenu popup = new PopupMenu();
 
@@ -1289,7 +2002,7 @@ public class View implements HotkeyListener {
 		popup.addSeparator();
 
 		MenuItem settingsItem = new MenuItem("Preferences");
-		
+
 		popup.add(settingsItem);
 
 		MenuItem closeItem = new MenuItem("Exit");
@@ -1298,11 +2011,21 @@ public class View implements HotkeyListener {
 
 		return popup;
 	}
-	
-	public MenuItem getSettingsItem(){
+
+	/**
+	 * Get the Settings MenuItem in the pop up menu
+	 * 
+	 * @return the requested menu item
+	 */
+	public MenuItem getSettingsItemInPopupMenu() {
 		return popupMenu.getItem(2);
 	}
 
+	/**
+	 * Setup the ActionListener when the user chooses "Show" in the pop up menu
+	 * 
+	 * @return the requested ActionListener object
+	 */
 	private ActionListener createShowListener() {
 		return new ActionListener() {
 			@Override
@@ -1318,6 +2041,11 @@ public class View implements HotkeyListener {
 		};
 	}
 
+	/**
+	 * Setup the ActionListener when the user chooses "Exit" in the pop up menu
+	 * 
+	 * @return the request ActionListner object
+	 */
 	private ActionListener createExitListener() {
 		return new ActionListener() {
 			@Override
@@ -1328,6 +2056,9 @@ public class View implements HotkeyListener {
 		};
 	}
 
+	/**
+	 * Load the icon image for system tray
+	 */
 	private java.awt.Image getIconImage() {
 		try {
 			java.awt.Image image = ImageIO.read(getClass().getResource(
@@ -1340,6 +2071,10 @@ public class View implements HotkeyListener {
 		}
 	}
 
+	/**
+	 * Hide the application. If system tray is not supported, the application
+	 * will termintate instead.
+	 */
 	private void hide() {
 		Platform.runLater(new Runnable() {
 			@Override
@@ -1354,10 +2089,14 @@ public class View implements HotkeyListener {
 		});
 	}
 
+	// Load the native library
 	private void loadLibrary() {
 		System.loadLibrary("JIntellitype");
 	}
 
+	/**
+	 * Process of checking existing instance before initialization
+	 */
 	private void checkIntellitype() {
 		// first check to see if an instance of this application is already
 		// running, use the name of the window title of this JFrame for checking
@@ -1372,6 +2111,9 @@ public class View implements HotkeyListener {
 		}
 	}
 
+	/**
+	 * Initialize the Global Hot key feature
+	 */
 	private void initGlobalHotKey() {
 		try {
 			// initialize JIntellitype with the frame so all windows commands
@@ -1381,12 +2123,16 @@ public class View implements HotkeyListener {
 			JIntellitype.getInstance().registerHotKey(90,
 					JIntellitype.MOD_CONTROL + JIntellitype.MOD_SHIFT, 'D');
 		} catch (RuntimeException ex) {
-			System.out
-					.println("Either you are not on Windows, "
-							+ "or there is a problem with the JIntellitype library!");
+			logger.log(
+					Level.INFO,
+					"Either you are not on Windows, or there is a problem with the JIntellitype library!");
 		}
 	}
 
+	/**
+	 * Setup the processed action when press the global hot key
+	 */
+	@Override
 	public void onHotKey(int keyIdentifier) {
 		Platform.runLater(new Runnable() {
 			@Override
@@ -1397,11 +2143,19 @@ public class View implements HotkeyListener {
 		});
 	}
 
+	/**
+	 * Setup the listener when user changes tab. It will clear all search
+	 * results back to the original list
+	 */
 	private void setTabChangeListener() {
 		tabPane.getSelectionModel().selectedIndexProperty()
 				.addListener(new ChangeListener<Number>() {
 					public void changed(ObservableValue<? extends Number> ov,
 							Number oldValue, Number newValue) {
+						clearSearchLists();
+					}
+
+					private void clearSearchLists() {
 						TwoWayCommand.setIndexType(TwoWayCommand.SHOWN);
 						taskPendingList.setItems(model.getPendingList());
 						taskCompleteList.setItems(model.getCompleteList());
@@ -1410,31 +2164,28 @@ public class View implements HotkeyListener {
 				});
 	}
 
+	// Set the view to a specific tab
 	public void setTab(int tabIndex) {
 		tabPane.getSelectionModel().select(tabIndex);
 	}
 
 	/**
-	 * set the real-time multicolor feedback to remind some misuse or give some
-	 * suggestion
+	 * This function is the main function to set the real-time multicolor
+	 * feedback
 	 * 
-	 * @param feedback
+	 * @param requestFeedback
+	 *            the request of feedback from the application. Depending on the
+	 *            request, this function will give different feedbacks.
 	 */
-	void setFeedback(String feedback) {
+	void setFeedback(String requestFeedback) {
 		emptyFeedback(0);
-		switch (feedback) {
+		switch (requestFeedback) {
 		case Common.MESSAGE_ADD_TIP:
-			setFeedbackStyle(0, "add", colourScheme[0]);
-			setFeedbackStyle(1, "<workflow>", colourScheme[1]);
-			setFeedbackStyle(2, "<start tim"
-					+ "e>", colourScheme[2]);
-			setFeedbackStyle(3, "<end time>", colourScheme[3]);
-			setFeedbackStyle(4, "<importance *>", colourScheme[4]);
-			setFeedbackStyle(5, "<#tag>", colourScheme[5]);
-			emptyFeedback(6);
+			setFeedbackStyle(0, "<add>", colourScheme[0]);
+			setFeedbackWithTaskInfos();
 			break;
 		case Common.MESSAGE_EDIT_TIP:
-			setFeedbackStyle(0, "edit", colourScheme[0]);
+			setFeedbackStyle(0, "<edit>", colourScheme[0]);
 			setFeedbackStyle(1, "<index>", colourScheme[6]);
 			setFeedbackStyle(2, "<workflow>", colourScheme[1]);
 			setFeedbackStyle(3, "<start time>", colourScheme[2]);
@@ -1443,34 +2194,25 @@ public class View implements HotkeyListener {
 			setFeedbackStyle(6, "<#tag>", colourScheme[5]);
 			emptyFeedback(7);
 			break;
-		case Common.MESSAGE_RECOVER_TIP:
-			setFeedbackStyle(0, "recover", colourScheme[0]);
-			setFeedbackStyle(1, "<index1> <index2> <index3> ...",
-					colourScheme[6]);
-			emptyFeedback(2);
+		case Common.MESSAGE_RECOVER_INDEX_TIP:
+			setFeedbackStyle(0, "<recover>", colourScheme[0]);
+			setFeedbackWithTaskIndices();
+			break;
+		case Common.MESSAGE_RECOVER_INFO_TIP:
+			setFeedbackStyle(0, "<recover>", colourScheme[0]);
+			setFeedbackWithTaskInfos();
 			break;
 		case Common.MESSAGE_REMOVE_INDEX_TIP:
-			setFeedbackStyle(0, "remove", colourScheme[0]);
-			setFeedbackStyle(1, "<index>", colourScheme[6]);
-			emptyFeedback(2);
+			setFeedbackStyle(0, "<remove>", colourScheme[0]);
+			setFeedbackWithTaskIndices();
 			break;
 		case Common.MESSAGE_REMOVE_INFO_TIP:
-			setFeedbackStyle(0, "remove", colourScheme[0]);
-			setFeedbackStyle(1, "<workflow>", colourScheme[1]);
-			setFeedbackStyle(2, "<start time>", colourScheme[2]);
-			setFeedbackStyle(3, "<end time>", colourScheme[3]);
-			setFeedbackStyle(4, "<importance *>", colourScheme[4]);
-			setFeedbackStyle(5, "<#tag>", colourScheme[5]);
-			emptyFeedback(6);
+			setFeedbackStyle(0, "<remove>", colourScheme[0]);
+			setFeedbackWithTaskInfos();
 			break;
 		case Common.MESSAGE_SEARCH_TIP:
-			setFeedbackStyle(0, "search", colourScheme[0]);
-			setFeedbackStyle(1, "<workflow>", colourScheme[1]);
-			setFeedbackStyle(2, "<start time>", colourScheme[2]);
-			setFeedbackStyle(3, "<end time>", colourScheme[3]);
-			setFeedbackStyle(4, "<importance *>", colourScheme[4]);
-			setFeedbackStyle(5, "<#tag>", colourScheme[5]);
-			emptyFeedback(6);
+			setFeedbackStyle(0, "<search>", colourScheme[0]);
+			setFeedbackWithTaskInfos();
 			break;
 		case Common.MESSAGE_UNDO_TIP:
 			setFeedbackStyle(0, "<undo>", colourScheme[0]);
@@ -1496,33 +2238,41 @@ public class View implements HotkeyListener {
 			setFeedbackStyle(0, "<exit>", colourScheme[0]);
 			emptyFeedback(1);
 			break;
-		case Common.MESSAGE_MARK_TIP:
+		case Common.MESSAGE_MARK_INDEX_TIP:
 			setFeedbackStyle(0, "<mark>", colourScheme[0]);
-			setFeedbackStyle(1, "<index1> <index2> <index3> ...",
-					colourScheme[6]);
-			emptyFeedback(2);
+			setFeedbackWithTaskIndices();
 			break;
-		case Common.MESSAGE_UNMARK_TIP:
+		case Common.MESSAGE_MARK_INFO_TIP:
+			setFeedbackStyle(0, "<mark>", colourScheme[0]);
+			setFeedbackWithTaskInfos();
+			break;
+		case Common.MESSAGE_UNMARK_INDEX_TIP:
 			setFeedbackStyle(0, "<unmark>", colourScheme[0]);
-			setFeedbackStyle(1, "<index1> <index2> <index3> ...",
-					colourScheme[6]);
-			emptyFeedback(2);
+			setFeedbackWithTaskIndices();
 			break;
-		case Common.MESSAGE_COMPLETE_TIP:
+		case Common.MESSAGE_UNMARK_INFO_TIP:
+			setFeedbackStyle(0, "<unmark>", colourScheme[0]);
+			setFeedbackWithTaskInfos();
+			break;
+		case Common.MESSAGE_COMPLETE_INDEX_TIP:
 			setFeedbackStyle(0, "<complete/done>", colourScheme[0]);
-			setFeedbackStyle(1, "<index1> <index2> <index3> ...",
-					colourScheme[6]);
-			emptyFeedback(2);
+			setFeedbackWithTaskIndices();
 			break;
-		case Common.MESSAGE_INCOMPLETE_TIP:
+		case Common.MESSAGE_COMPLETE_INFO_TIP:
+			setFeedbackStyle(0, "<complete/done>", colourScheme[0]);
+			setFeedbackWithTaskInfos();
+			break;
+		case Common.MESSAGE_INCOMPLETE_INDEX_TIP:
 			setFeedbackStyle(0, "<incomplete/undone>", colourScheme[0]);
-			setFeedbackStyle(1, "<index1> <index2> <index3> ...",
-					colourScheme[6]);
-			emptyFeedback(2);
+			setFeedbackWithTaskIndices();
+			break;
+		case Common.MESSAGE_INCOMPLETE_INFO_TIP:
+			setFeedbackStyle(0, "<incomplete/undone>", colourScheme[0]);
+			setFeedbackWithTaskInfos();
 			break;
 		default:
 			emptyFeedback(0);
-			ArrayList<String> availCommands = getAvailCommandNum(feedback
+			ArrayList<String> availCommands = getAvailCommands(requestFeedback
 					.trim());
 			for (int i = 0; i < availCommands.size(); i++) {
 				setFeedbackStyle(i + 1, availCommands.get(i), colourScheme[0]);
@@ -1534,57 +2284,134 @@ public class View implements HotkeyListener {
 		}
 	}
 
-	ArrayList<String> getAvailCommandNum(String feedback) {
+	/**
+	 * Append the content of feedback with available index
+	 */
+	private void setFeedbackWithTaskIndices() {
+		setFeedbackStyle(1, "<index1> <index2> <index3> ...", colourScheme[6]);
+		emptyFeedback(2);
+	}
+
+	/**
+	 * Append the content of feedback with available task info
+	 */
+	private void setFeedbackWithTaskInfos() {
+		setFeedbackStyle(1, "<workflow>", colourScheme[1]);
+		setFeedbackStyle(2, "<start time>", colourScheme[2]);
+		setFeedbackStyle(3, "<end time>", colourScheme[3]);
+		setFeedbackStyle(4, "<importance *>", colourScheme[4]);
+		setFeedbackStyle(5, "<#tag>", colourScheme[5]);
+		emptyFeedback(6);
+	}
+
+	/**
+	 * Get the list of possible commands by processing the input command from
+	 * user
+	 * 
+	 * @param inputCommand
+	 *            the command input from the user
+	 * @return the list of possible commands
+	 */
+	ArrayList<String> getAvailCommands(String inputCommand) {
 		ArrayList<String> availCommands = new ArrayList<String>();
 		for (int i = 0; i < Common.COMMAND_TYPES_STR.length; i++) {
 			String command = Common.COMMAND_TYPES_STR[i];
-			if (command.indexOf(feedback) == 0 && !command.equals(feedback))
+			boolean hasCommand = command.indexOf(inputCommand) == 0
+					&& !command.equals(inputCommand);
+			if (hasCommand) {
 				availCommands.add(command);
+			}
 		}
 		return availCommands;
 	}
 
+	/**
+	 * Set the colour scheme for iDo
+	 * 
+	 * @param colourOption
+	 *            the chosen colour option
+	 */
 	public void setColourScheme(String colourOption) {
-		colourScheme = ColourPalette.defaultScheme;
-		colourSchemeCommandLine = ColourPalette.defaultDaySchemeSwing;
+		chooseDayScheme();
+
 		if (colourOption.equals(Common.DAY_MODE)) {
-			colourScheme = ColourPalette.defaultScheme;
-			colourSchemeCommandLine = ColourPalette.defaultDaySchemeSwing;
+			chooseDayScheme();
 		} else if (colourOption.equals(Common.NIGHT_MODE)) {
-			colourScheme = ColourPalette.defaultNightScheme;
-			colourSchemeCommandLine = ColourPalette.defaultNightSchemeSwing;
-		} else if (colourOption.equals("Goldfish")) {
-			colourScheme = ColourPalette.goldfishScheme;
-			colourSchemeCommandLine = ColourPalette.goldfishSchemeSwing;
-		} else if (colourOption.equals("Bright")) {
-			colourScheme = ColourPalette.brightScheme;
-			colourSchemeCommandLine = ColourPalette.brightSchemeSwing;
+			chooseNightScheme();
+		} else if (colourOption.equals(GOLDFISH_COLOUR_THEME)) {
+			chooseGoldfishScheme();
+		} else if (colourOption.equals(BRIGHT_COLOUR_THEME)) {
+			chooseBrightScheme();
 		}
 	}
 
+	/*
+	 * Choose the "Bright" scheme for the application
+	 */
+	private void chooseBrightScheme() {
+		colourScheme = ColourPalette.brightScheme;
+		colourSchemeCommandLine = ColourPalette.brightSchemeSwing;
+	}
+
+	/*
+	 * Choose the "Goldfish" scheme for the application
+	 */
+	private void chooseGoldfishScheme() {
+		colourScheme = ColourPalette.goldfishScheme;
+		colourSchemeCommandLine = ColourPalette.goldfishSchemeSwing;
+	}
+
+	/*
+	 * Choose the "Default night" scheme for the application
+	 */
+	private void chooseNightScheme() {
+		colourScheme = ColourPalette.defaultNightScheme;
+		colourSchemeCommandLine = ColourPalette.defaultNightSchemeSwing;
+	}
+
+	/*
+	 * Choose the "Default day" scheme for the application
+	 */
+	private void chooseDayScheme() {
+		colourScheme = ColourPalette.defaultScheme;
+		colourSchemeCommandLine = ColourPalette.defaultDaySchemeSwing;
+	}
+
+	// Set the content and color for a feedback element with given index
 	public void setFeedbackStyle(int index, String text, Color color) {
 		feedbackList.get(index).setText(text);
 		feedbackList.get(index).setFill(color);
 	}
 
+	// Empty the feedback list
 	public void emptyFeedback(int startIndex) {
-		for (int i = startIndex; i < feedbackList.size(); i++)
+		for (int i = startIndex; i < feedbackList.size(); i++) {
 			feedbackList.get(i).setText("");
+		}
 	}
 
+	// Get the current tab index that the user is viewing
 	public int getTabIndex() {
 		return tabPane.getSelectionModel().getSelectedIndex();
 	}
 }
 
+/**
+ * 
+ * This class defines the style in the command line How the command line has
+ * multi color depends on this class
+ * 
+ */
+@SuppressWarnings("serial")
 class CustomStyledDocument extends DefaultStyledDocument {
-
+	@Override
 	public void insertString(int offset, String str, AttributeSet a)
 			throws BadLocationException {
 		super.insertString(offset, str, a);
 		setColor();
 	}
 
+	@Override
 	public void remove(int offs, int len) throws BadLocationException {
 		super.remove(offs, len);
 		setColor();
@@ -1600,7 +2427,7 @@ class CustomStyledDocument extends DefaultStyledDocument {
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[0], false);
 				break;
-			case Common.INDEX_COMMAND_TYPE :
+			case Common.INDEX_COMMAND_TYPE:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[1], false);
 				break;
@@ -1620,7 +2447,7 @@ class CustomStyledDocument extends DefaultStyledDocument {
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[5], false);
 				break;
-			case Common.INDEX_IS_IMPT :
+			case Common.INDEX_IS_IMPT:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[6], false);
 				break;
