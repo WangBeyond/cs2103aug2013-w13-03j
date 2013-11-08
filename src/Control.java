@@ -111,7 +111,7 @@ public class Control extends Application {
 	 *            the main window of the application
 	 */
 	private void loadGUI(Stage primaryStage) {
-		view = new View(model, primaryStage, settingStore);
+		view = new View(model, primaryStage);
 		addListenerForPreferences();
 		handleEventForCommandLine();
 		updateLastOverdueTasks();
@@ -150,7 +150,7 @@ public class Control extends Application {
 	 * Setup the change listener in the command line
 	 */
 	private void setupChangeListener() {
-		view.txt.getDocument().addDocumentListener(new DocumentListener() {
+		view.getCommandLine().getDocument().addDocumentListener(new DocumentListener() {
 			@Override
 			public void removeUpdate(DocumentEvent e) {
 				realTimeUpdate();
@@ -170,7 +170,7 @@ public class Control extends Application {
 			 * Real time update in the interface due to changes in the content of command line
 			 */
 			private void realTimeUpdate() {
-				String command = view.txt.getText();
+				String command = view.getCommandLine().getText();
 				update(command);
 				checkValid(command);
 			}
@@ -328,14 +328,10 @@ public class Control extends Application {
 					view.setFeedback(Common.MESSAGE_EDIT_TIP);
 					break;
 				case REMOVE:
-					if (isIndexCommand(command)) {
-						view.setFeedback(Common.MESSAGE_REMOVE_INDEX_TIP);
-					} else {
-						view.setFeedback(Common.MESSAGE_REMOVE_INFO_TIP);
-					}
+					setFeedbackForRemoveCommand(command);
 					break;
 				case RECOVER:
-					view.setFeedback(Common.MESSAGE_RECOVER_TIP);
+					setFeedbackForRecoverCommand(command);
 					break;
 				case SEARCH:
 					view.setFeedback(Common.MESSAGE_SEARCH_TIP);
@@ -350,16 +346,16 @@ public class Control extends Application {
 					view.setFeedback(Common.MESSAGE_REDO_TIP);
 					break;
 				case MARK:
-					view.setFeedback(Common.MESSAGE_MARK_TIP);
+					setFeedbackForMarkCommand(command);
 					break;
 				case UNMARK:
-					view.setFeedback(Common.MESSAGE_UNMARK_TIP);
+					setFeedbackForUnmarkCommand(command);
 					break;
 				case COMPLETE:
-					view.setFeedback(Common.MESSAGE_COMPLETE_TIP);
+					setFeedbackForCompleteCommand(command);
 					break;
 				case INCOMPLETE:
-					view.setFeedback(Common.MESSAGE_INCOMPLETE_TIP);
+					setFeedbackForIncompleteCommand(command);
 					break;
 				case TODAY:
 					view.setFeedback(Common.MESSAGE_TODAY_TIP);
@@ -384,6 +380,54 @@ public class Control extends Application {
 					break;
 				}
 			}
+
+			private void setFeedbackForIncompleteCommand(String command) {
+				if (isIndexCommand(command)) {
+					view.setFeedback(Common.MESSAGE_INCOMPLETE_INDEX_TIP);
+				} else {
+					view.setFeedback(Common.MESSAGE_INCOMPLETE_INFO_TIP);
+				}
+			}
+
+			private void setFeedbackForCompleteCommand(String command) {
+				if (isIndexCommand(command)) {
+					view.setFeedback(Common.MESSAGE_COMPLETE_INDEX_TIP);
+				} else {
+					view.setFeedback(Common.MESSAGE_INCOMPLETE_INFO_TIP);
+				}
+			}
+
+			private void setFeedbackForUnmarkCommand(String command) {
+				if (isIndexCommand(command)) {
+					view.setFeedback(Common.MESSAGE_UNMARK_INDEX_TIP);
+				} else {
+					view.setFeedback(Common.MESSAGE_UNMARK_INFO_TIP);
+				}
+			}
+
+			private void setFeedbackForMarkCommand(String command) {
+				if (isIndexCommand(command)) {
+					view.setFeedback(Common.MESSAGE_MARK_INDEX_TIP);
+				} else {
+					view.setFeedback(Common.MESSAGE_MARK_INFO_TIP);
+				}
+			}
+
+			private void setFeedbackForRecoverCommand(String command) {
+				if (isIndexCommand(command)) {
+					view.setFeedback(Common.MESSAGE_RECOVER_INDEX_TIP);
+				} else {
+					view.setFeedback(Common.MESSAGE_RECOVER_INFO_TIP);
+				}
+			}
+
+			private void setFeedbackForRemoveCommand(String command) {
+				if (isIndexCommand(command)) {
+					view.setFeedback(Common.MESSAGE_REMOVE_INDEX_TIP);
+				} else {
+					view.setFeedback(Common.MESSAGE_REMOVE_INFO_TIP);
+				}
+			}
 		});
 	}
 	
@@ -397,7 +441,7 @@ public class Control extends Application {
 	
 	// Setup key bindings for the command line
 	private void setupKeyBindingsForCommandLine() {
-		InputMap map = view.txt.getInputMap();
+		InputMap map = view.getCommandLine().getInputMap();
 		addKeyBindingForExecution(map);
 		addKeyBindingForUndo(map);
 		addKeyBindingForRedo(map);
@@ -406,7 +450,7 @@ public class Control extends Application {
 	
 	// Setup the hot keys in the application
 	private void setupHotkeys() {
-		view.generalBase.setOnKeyPressed(new EventHandler<KeyEvent>() {
+		view.mainRoot.setOnKeyPressed(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent keyEvent) {
 				if (Common.undo_hot_key.match(keyEvent)) {
 					isRealTimeSearch = false;
@@ -428,6 +472,7 @@ public class Control extends Application {
 	/*
 	 * Key binding for ENTER
 	 */
+	@SuppressWarnings("serial")
 	private void addKeyBindingForExecution(InputMap map) {
 		Action enterAction = new AbstractAction() {
 			@Override
@@ -436,7 +481,7 @@ public class Control extends Application {
 					@Override
 					public void run() {
 						isRealTimeSearch = false;
-						String feedback = executeCommand(view.txt.getText());
+						String feedback = executeCommand(view.getCommandLine().getText());
 						updateFeedback(feedback);
 					}
 				});
@@ -453,6 +498,7 @@ public class Control extends Application {
 	/*
 	 *  Key binding for Ctrl + Z
 	 */
+	@SuppressWarnings("serial")
 	private void addKeyBindingForUndo(InputMap map) {
 		Action undoAction = new AbstractAction() {
 			@Override
@@ -476,6 +522,7 @@ public class Control extends Application {
 	/*
 	 * Key binding for Ctrl + Y
 	 */
+	@SuppressWarnings("serial")
 	private void addKeyBindingForRedo(InputMap map) {
 		Action redoAction = new AbstractAction() {
 			@Override
@@ -499,6 +546,7 @@ public class Control extends Application {
 	/*
 	 * Key binding for F1
 	 */
+	@SuppressWarnings("serial")
 	private void addKeyBidningForHelp(InputMap map) {
 		Action helpAction = new AbstractAction() {
 			@Override
@@ -523,7 +571,7 @@ public class Control extends Application {
 	 * tray of the application
 	 */
 	private void addListenerForPreferences(){
-		view.getSettingsItem().addActionListener(createPreferencesListenerInSystemTray());
+		view.getSettingsItemInPopupMenu().addActionListener(createPreferencesListenerInSystemTray());
 	}
 	
 	// Create the specific ActionListener
@@ -962,7 +1010,7 @@ public class Control extends Application {
 	}
 
 	private void clearCommandLine() {
-		view.txt.setText("");
+		view.getCommandLine().setText("");
 	}
 	
 	/**
@@ -1089,14 +1137,14 @@ public class Control extends Application {
 	// Reminded a task as the task is about to end
 	private void displayMessageForEndDate(String taskInfo,
 			int remainingTimeForEndDate) {
-		view.trayIcon.displayMessage("Reminder", String.format(POPUP_MESSAGE_END_DATE,  taskInfo, remainingTimeForEndDate),
+		view.getTrayIcon().displayMessage("Reminder", String.format(POPUP_MESSAGE_END_DATE,  taskInfo, remainingTimeForEndDate),
 				MessageType.INFO);
 	}
 	
 	// Reminded a task as the task is about to start
 	private void displayMessageForStartDate(String taskInfo,
 			int remainingTimeForStartDate) {
-		view.trayIcon.displayMessage("Reminder", String.format(POPUP_MESSAGE_START_DATE, taskInfo, remainingTimeForStartDate),
+		view.getTrayIcon().displayMessage("Reminder", String.format(POPUP_MESSAGE_START_DATE, taskInfo, remainingTimeForStartDate),
 				MessageType.INFO);
 	}
 	
