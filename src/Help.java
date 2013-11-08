@@ -86,7 +86,7 @@ public class Help{
 		root.getChildren().add(buttons);
 		helpScene = new Scene(root, 600, 730);
 		helpScene.getStylesheets().addAll(
-				getClass().getResource("customize.css").toExternalForm());
+				getClass().getResource("dayCustomization.css").toExternalForm());
 		helpStage.setScene(helpScene);
 	}
 	
