@@ -482,6 +482,7 @@ public class Control extends Application {
 					public void run() {
 						isRealTimeSearch = false;
 						String feedback = executeCommand(view.getCommandLine().getText());
+						System.out.println("feedback: " + feedback);
 						updateFeedback(feedback);
 					}
 				});
@@ -991,7 +992,13 @@ public class Control extends Application {
 		syncTimer.schedule(new TimerTask() {
 			@Override
 			public void run() {
-					new SyncCommand(model, sync, view, taskFile);
+					SyncCommand autoSync = new SyncCommand(model, sync, view, taskFile);
+					String autoSyncFeedback = autoSync.getFeedback();
+					if (autoSyncFeedback.equals(Common.MESSAGE_SYNC_INVALID_USERNAME_PASSWORD)){
+						syncTimer.cancel();
+						//TODO: open the settings panel
+						System.out.println("cancelled");
+					}
 			}
 		}, 0, model.getSyncPeriod() * Common.MINUTE_IN_MILLIS);
 	}
@@ -1008,7 +1015,6 @@ public class Control extends Application {
 		
 		String feedback = syncThread.getFeedback();
 		if (feedback.equals(Common.MESSAGE_SYNC_INVALID_USERNAME_PASSWORD)){
-			System.out.println("entered here");
 			view.showSettingsPage(feedback);
 		}
 		

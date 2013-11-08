@@ -142,6 +142,7 @@ public class Synchronization  {
 		service = new CalendarService(SERVICE_NAME);
 
 		// authenticate using ClientLogin
+		System.out.println(username + " " + password);
 		service.setUserCredentials(username, password);
 		System.out.println("system initialized.");
 	}
