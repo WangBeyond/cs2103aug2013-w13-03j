@@ -46,7 +46,7 @@ public class SwingNode extends Region {
     JDialog jDialog;
     Component comp;
     Stage stage;
-    int temp;
+    private boolean isKeyEvent;
     ChangeListener<Number> changeListenerH;
     ChangeListener<Bounds> changeListenerBIL;
     ChangeListener<Number> changeListenerW;
@@ -60,7 +60,11 @@ public class SwingNode extends Region {
     	
     }
     
-    public void setJDialogOnTop(){
+    public void setKeyEvent(boolean isKeyEvent){
+    	this.isKeyEvent = isKeyEvent;
+    }
+    
+    public void setCommandLineOnTop(){
     	SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
@@ -181,7 +185,7 @@ public class SwingNode extends Region {
                     public void run() {
                         setSwingComponentAlwaysOnTop(newValue.booleanValue());
                        if(newValue.booleanValue() == false){
-                    	   if(temp != 1){
+                    	   if(!isKeyEvent){
                     		   PointerInfo a = MouseInfo.getPointerInfo();
                     		   Point b = a.getLocation();
                     		   double x = b.getX();
@@ -197,7 +201,7 @@ public class SwingNode extends Region {
                     		   	
                     	   }
                        }
-                       temp = 0;
+                       isKeyEvent = false;
                     }
                 });
                

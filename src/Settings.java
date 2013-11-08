@@ -2,11 +2,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-
 import java.io.IOException;
-import java.util.Timer;
-import java.util.TimerTask;
-
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -23,9 +19,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyCodeCombination;
-import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
@@ -67,8 +60,8 @@ public class Settings {
 	private TextField syncPeriodTextfield;
 	private ImageView bgImage;
 
-	private Settings(Model model, Storage settingStore) {
-		initializeKeyVariables(model, settingStore);
+	private Settings(Model model) {
+		initializeKeyVariables(model);
 	
 		setupStage();
 		setupContent();
@@ -82,9 +75,9 @@ public class Settings {
 		return settingsStage;
 	}
 
-	public static Settings getInstanceSettings(Model model, Storage settingStore) {
+	public static Settings getInstanceSettings(Model model) {
 		if (oneSettingsPage == null) {
-			oneSettingsPage = new Settings(model, settingStore);
+			oneSettingsPage = new Settings(model);
 		}
 		return oneSettingsPage;
 	}
@@ -113,22 +106,21 @@ public class Settings {
 		settingsScene.getStylesheets().clear();
 		if (model.getThemeMode().equals(Common.DAY_MODE)) {
 			settingsScene.getStylesheets().addAll(
-					getClass().getResource("customize.css").toExternalForm());
+					getClass().getResource("dayCustomization.css").toExternalForm());
 			bgImage.setImage(new Image(getClass().getResourceAsStream(
 					"settings.png")));
 
 		} else {
 			settingsScene.getStylesheets().addAll(
-					getClass().getResource("customize2.css").toExternalForm());
+					getClass().getResource("nightCustomization.css").toExternalForm());
 			bgImage.setImage(new Image(getClass().getResourceAsStream(
 					"settingsNight.png")));
 		}
 		settingsStage.showAndWait();
 	}
 
-	private void initializeKeyVariables(Model model, Storage settingStore){
+	private void initializeKeyVariables(Model model){
 		this.model = model;
-		this.settingStore = settingStore;
 	}
 	
 	private void setupContent() {
@@ -284,7 +276,7 @@ public class Settings {
 		root.getChildren().add(buttons);
 		settingsScene = new Scene(root, Color.rgb(70, 70, 70));
 		settingsScene.getStylesheets().addAll(
-				getClass().getResource("customize.css").toExternalForm());
+				getClass().getResource("dayCustomization.css").toExternalForm());
 		settingsStage.setScene(settingsScene);
 	}
 
