@@ -360,11 +360,6 @@ public class Settings {
 		model.setSyncPeriod(Integer.parseInt(syncPeriodTextfield.getText()));
 		successfulChange = STORE_SUCCESSFUL;
 		
-		try {
-			settingStore.updateToFile();
-		} catch (IOException io) {
-			successfulChange = STORE_FAIL;
-		}
 		return successfulChange;
 	}
 
