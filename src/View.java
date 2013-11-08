@@ -297,8 +297,8 @@ public class View implements HotkeyListener {
 	}
 
 	// Process opening the settings window
-	public void showSettingsPage() {
-		settingsPage.showSettingsPage();
+	public void showSettingsPage(String checkUsernamePassword) {
+		settingsPage.showSettingsPage(checkUsernamePassword);
 	}
 
 	/**

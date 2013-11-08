@@ -1574,7 +1574,7 @@ class SettingsCommand extends Command {
 	}
 
 	public String execute() {
-		view.showSettingsPage();
+		view.showSettingsPage(null);
 		return Common.MESSAGE_SUCCESSFUL_SETTINGS;
 	}
 }
@@ -1588,6 +1588,7 @@ class SyncCommand extends Command implements Runnable {
 	String username = null;
 	String password = null;
 	String feedback = null;
+	boolean isValidUserPass = true;
 	boolean isRunning = false;
 	
 	Synchronization sync;
@@ -1599,9 +1600,15 @@ class SyncCommand extends Command implements Runnable {
 		this.sync = sync;
 		this.view = view;
 		this.taskFile = taskFile;
-	      t = new Thread(this, "Sync Thread");
+	    t = new Thread(this, "Sync Thread");
 	      
-	      t.start(); // Start the thread
+	    t.start(); // Start the thread
+	     
+	    try{
+	  	  t.join();
+	    } catch (InterruptedException e){
+	  	  System.out.println("Failed to join back to main thread.");
+	    }
 	}
 	
 	private boolean checkInternetAccess(){
@@ -1628,7 +1635,7 @@ class SyncCommand extends Command implements Runnable {
 		if (checkInternetAccess()) {
 			isRunning = true;
 			view.setSyncProgressVisible(true);
-			execute();
+			feedback = execute();
 			view.setSyncProgressVisible(false);
 			isRunning = false;
 			model.clearSyncInfo();

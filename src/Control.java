@@ -1001,10 +1001,17 @@ public class Control extends Application {
 	 */
 	private String executeSyncCommand() throws IOException {
 		// Check whether there is already a sync thread
-		if (!isUnderSyncingProcess())
+		if (!isUnderSyncingProcess()){
 			syncThread = new SyncCommand(model, sync, view,
 					taskFile);
-
+		}
+		
+		String feedback = syncThread.getFeedback();
+		if (feedback.equals(Common.MESSAGE_SYNC_INVALID_USERNAME_PASSWORD)){
+			System.out.println("entered here");
+			view.showSettingsPage(feedback);
+		}
+		
 		clearCommandLine();
 		return Common.MESSAGE_REQUEST_COMMAND;
 	}

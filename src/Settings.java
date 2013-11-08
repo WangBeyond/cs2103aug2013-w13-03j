@@ -82,7 +82,7 @@ public class Settings {
 		return oneSettingsPage;
 	}
 
-	public void showSettingsPage() {
+	public void showSettingsPage(String checkUsernamePassword) {
 		googleAccountTextfield.setText(model.getUsername());
 		pwBox.setText(model.getPassword());
 		pwRetypeBox.setText(model.getPassword());
