@@ -38,7 +38,6 @@ public class Parser {
 	private static final int INVALID = -1;
 	
 	private static Model model;
-	private static View view;
 
 	/**
 	 * This function is used to determine the command type of the command input

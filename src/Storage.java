@@ -9,6 +9,8 @@ public abstract class Storage {
 	protected Model model;
 	protected File xmlFile;
 	
+	/*********************abastract methods which need to be implemented****************/
+	
 	public void loadFromFile() throws IOException {
 		
 	};
@@ -20,6 +22,9 @@ public abstract class Storage {
 	public void updateToFile() throws IOException {
 		
 	};
+	
+	
+	/*********************create files or check file existence*****************************/
 	
 	/**
 	 * create the directory of iDo folder in user's documents folder
