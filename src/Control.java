@@ -675,7 +675,7 @@ public class Control extends Application {
 		case UNMARK:
 			return executeUnmarkCommand(parsedUserCommand);
 		case SETTINGS:
-			return executeSettingsCommand(parsedUserCommand, CALL_NORMAL_SETTINGS);
+			return executeSettingsCommand(CALL_NORMAL_SETTINGS);
 		case HELP:
 			return executeHelpCommand();
 		case SYNC:
@@ -946,13 +946,13 @@ public class Control extends Application {
 	/**
 	 * SETTINGS command execution
 	 */
-	private String executeSettingsCommand(String[] parsedUserCommand, String origin) throws IOException{
+	private String executeSettingsCommand(String origin) throws IOException{
 		view.stage.hide();
 		String previousTheme = model.getThemeMode();
 		if(syncTimer != null)
 			syncTimer.cancel();
 		
-		Command settingsCommand = new SettingsCommand(model, view, parsedUserCommand, origin);
+		Command settingsCommand = new SettingsCommand(model, view, origin);
 		String feedback = settingsCommand.execute();
 		
 		if (feedback.equals(Common.MESSAGE_SUCCESSFUL_SETTINGS)) {
@@ -1007,7 +1007,7 @@ public class Control extends Application {
 							if (syncThread.feedback != null
 									&& syncThread.feedback
 											.equals(Common.MESSAGE_SYNC_INVALID_USERNAME_PASSWORD)) {
-								executeSettingsCommand(null,
+								executeSettingsCommand(
 										CALL_SETTINGS_FROM_SYNC);
 							}
 						} catch (IOException e) {
@@ -1029,7 +1029,7 @@ public class Control extends Application {
 			syncThread = new SyncCommand(model, sync, view,
 					taskFile);
 			if(syncThread.feedback != null && syncThread.feedback.equals(Common.MESSAGE_SYNC_INVALID_USERNAME_PASSWORD)){
-				executeSettingsCommand(null, CALL_SETTINGS_FROM_SYNC);
+				executeSettingsCommand(CALL_SETTINGS_FROM_SYNC);
 			}
 		}
 		
