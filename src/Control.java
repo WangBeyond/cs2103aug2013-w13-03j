@@ -1148,8 +1148,8 @@ public class Control extends Application {
 	
 	// Check whether a task should be reminded
 	private void displayMessageForImportantTask(Task task) {
-		int remainingTimeForStartDate = task.getStartDate().getRemainingTime();
-		int remainingTimeForEndDate = task.getEndDate().getRemainingTime();
+		int remainingTimeForStartDate = 9;
+		int remainingTimeForEndDate = 0;
 		if (isTimeForReminding(remainingTimeForStartDate)) {
 			displayMessageForStartDate(task.getWorkInfo(),remainingTimeForStartDate);
 		} else if (isTimeForReminding(remainingTimeForEndDate)) {
