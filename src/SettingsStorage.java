@@ -36,26 +36,30 @@ public class SettingsStorage extends Storage {
         //Security.insertProviderAt(new BouncyCastleProvider(), 1);
 	}
 	
-	/************************** store and load account information  **************************/
+	
+	/************************** store account information  **************************/
 	
 	@Override
 	/**
 	 * Store account information to XML file of setting storage
 	 */
 	public void storeToFile() throws IOException {
+		//Initialize the elements
 		Element root = new Element(ROOT);
 		Document doc = new Document(root);
 		Element account = new Element(ACCOUNT);
 		doc.getRootElement().getChildren().add(account);
-		String encryptedPassword;
-		try{
-			encryptedPassword = encryptString(model.getPassword());
-			System.out.println("store: "+model.getPassword()+"->"+encryptedPassword);
-		}catch(Exception e) {
-			System.out.println(ENCRYPTION_FAIL);
-			System.out.println("store: "+e.getMessage());
-			encryptedPassword = model.getPassword();
-		}
+		String encryptedPassword = encryptPassword(model.getPassword());
+		System.out.println("store: "+model.getPassword()+"->"+encryptedPassword);
+		account = recordSettings(account, encryptedPassword);
+		//Output to XML file
+		XMLOutputter xmlOutput = new XMLOutputter();
+		xmlOutput.setFormat(Format.getPrettyFormat());
+		xmlOutput.output(doc, new FileWriter(dir));
+		System.out.println("Setting saved");
+	}
+	
+	private Element recordSettings(Element account, String encryptedPassword) {
 		account.addContent(new Element(USERNAME).setText(model.getUsername()));
 		account.addContent(new Element(PASSWORD).setText(encryptedPassword));
 		account.addContent(new Element(DISPLAY_REMAINING).setText(model.getDisplayRemaining()==true? Common.TRUE : Common.FALSE));
@@ -63,11 +67,11 @@ public class SettingsStorage extends Storage {
 		account.addContent(new Element(COLOR_SCHEME).setText(model.getColourScheme()));
 		account.addContent(new Element(AUTO_SYNC).setText(model.hasAutoSync() == true? Common.TRUE : Common.FALSE));
 		account.addContent(new Element(SYNC_PERIOD).setText(String.valueOf(model.getSyncPeriod())));
-		XMLOutputter xmlOutput = new XMLOutputter();
-		xmlOutput.setFormat(Format.getPrettyFormat());
-		xmlOutput.output(doc, new FileWriter(dir));
-		System.out.println("Setting saved");
+		return account;
 	}
+	
+	
+	/*****************************update account information **************************/
 	
 	@Override
 	/**
@@ -76,50 +80,48 @@ public class SettingsStorage extends Storage {
 	public void updateToFile() throws IOException{
 		 
 		  try {	 
+			 //initialize the XML file builder
 			SAXBuilder builder = new SAXBuilder();
 			File xmlFile = new File(dir);
-	 
 			Document doc = (Document) builder.build(xmlFile);
 			Element rootNode = doc.getRootElement();
 			Element account = rootNode.getChild(ACCOUNT);
-			if (model.getUsername() != null) {
-				account.getChild(USERNAME).setText(model.getUsername());				
-			}
-			String encryptedPassword;
-			try{
-				encryptedPassword = encryptString( model.getPassword());
-				System.out.println("update: "+model.getPassword()+"->"+encryptedPassword);
-			}catch(Exception e) {
-				
-				System.out.println(ENCRYPTION_FAIL);
-				System.out.println("update: "+e.getMessage());
-				encryptedPassword = model.getPassword();
-			}
-			if (model.getPassword() != null) {
-				account.getChild(PASSWORD).setText(encryptedPassword);			
-			}
-			account.getChild(DISPLAY_REMAINING).setText(model.getDisplayRemaining() == true? Common.TRUE : Common.FALSE);
-			if (model.getThemeMode()!=null) {
-				account.getChild(THEMEMODE).setText(model.getThemeMode());	
-			}
-			if (model.getColourScheme() != null) {
-				account.getChild(COLOR_SCHEME).setText(model.getColourScheme());
-			} else {
-				account.getChild(COLOR_SCHEME).setText("Default day mode");
-			}
-			account.getChild(AUTO_SYNC).setText(model.hasAutoSync() == true? Common.TRUE : Common.FALSE);
-			account.getChild(SYNC_PERIOD).setText(String.valueOf(model.getSyncPeriod()));
+			account = updateInfo(account);
+			//Output to XML file
 			XMLOutputter xmlOutput = new XMLOutputter();
 			xmlOutput.setFormat(Format.getPrettyFormat());
 			xmlOutput.output(doc, new FileWriter(dir));
-	 
-			// xmlOutput.output(doc, System.out);
-	 
 			System.out.println("File updated!");
 		  } catch (JDOMException e) {
 			e.printStackTrace();
 		  }
 	}
+	
+	
+	private Element updateInfo(Element account) {
+		if (model.getUsername() != null) {
+			account.getChild(USERNAME).setText(model.getUsername());				
+		}
+		String encryptedPassword = encryptPassword(model.getPassword());
+		if (model.getPassword() != null) {
+			account.getChild(PASSWORD).setText(encryptedPassword);			
+		}
+		account.getChild(DISPLAY_REMAINING).setText(model.getDisplayRemaining() == true? Common.TRUE : Common.FALSE);
+		if (model.getThemeMode()!=null) {
+			account.getChild(THEMEMODE).setText(model.getThemeMode());	
+		}
+		if (model.getColourScheme() != null) {
+			account.getChild(COLOR_SCHEME).setText(model.getColourScheme());
+		} else {
+			account.getChild(COLOR_SCHEME).setText("Default day mode");
+		}
+		account.getChild(AUTO_SYNC).setText(model.hasAutoSync() == true? Common.TRUE : Common.FALSE);
+		account.getChild(SYNC_PERIOD).setText(String.valueOf(model.getSyncPeriod()));
+		return account;
+	}
+	
+	
+	/*****************************load account information************************************/
 	
 	@Override
 	/**
@@ -129,45 +131,80 @@ public class SettingsStorage extends Storage {
 		 
 		SAXBuilder builder = new SAXBuilder();
 		  try {
-			Document doc = (Document) builder.build(xmlFile);
-			Element rootNode = doc.getRootElement();
-			Element account = rootNode.getChild(ACCOUNT);
-			Element username = account.getChild(USERNAME);
-			Element password = account.getChild(PASSWORD);
-			Element displayRemaining  = account.getChild(DISPLAY_REMAINING);
-			Element themeMode = account.getChild(THEMEMODE);
-			Element colourScheme = account.getChild(COLOR_SCHEME);
-			Element autoSync = account.getChild(AUTO_SYNC);
-			Element syncPeriod = account.getChild(SYNC_PERIOD);
-			
-			if (username == null) {
-				System.out.println("no account info");
-			} else {
-				String decryptedPassword = password.getText();
-				if(password.getText() != null) {
-					try{
-						decryptedPassword = decryptString(password.getText());
-						System.out.println("retrieve: "+password.getText()+"->"+decryptedPassword);
-					}catch(Exception e) {
-						e.printStackTrace();
-						System.out.println(ENCRYPTION_FAIL);
-						decryptedPassword = password.getText();
-					}
+				Document doc = (Document) builder.build(xmlFile);
+				//Retrieve the elements from XML file
+				Element rootNode = doc.getRootElement();
+				Element account = rootNode.getChild(ACCOUNT);
+				Element username = account.getChild(USERNAME);
+				Element password = account.getChild(PASSWORD);
+				Element displayRemaining  = account.getChild(DISPLAY_REMAINING);
+				Element themeMode = account.getChild(THEMEMODE);
+				Element colourScheme = account.getChild(COLOR_SCHEME);
+				Element autoSync = account.getChild(AUTO_SYNC);
+				Element syncPeriod = account.getChild(SYNC_PERIOD);
+				String decryptedPassword= decryptPassword(password.getText());
+				//copy the info of elements to the model
+				if (username.getText() != null) {
+					model.setUsername(username.getText());
 				}
-				model.setUsername(username.getText());
-				model.setPassword(decryptedPassword);
-				model.setDisplayRemaining(displayRemaining.getText().equals(Common.TRUE) ? true : false);
-				model.setThemeMode(themeMode.getText());
-				model.setColourScheme(colourScheme.getText());
-				model.setAutoSync(autoSync.getText().equals(Common.TRUE) ? true : false);
-				model.setSyncPeriod(Integer.valueOf(syncPeriod.getText()));
-			}			
+				if (decryptedPassword != null) {
+					model.setPassword(decryptedPassword);
+				}
+				if (displayRemaining.getText() != null) {
+					model.setDisplayRemaining(displayRemaining.getText().equals(Common.TRUE) ? true : false);
+				}
+				if (themeMode.getText() != null) {
+					model.setThemeMode(themeMode.getText());
+				}
+				if (colourScheme.getText() != null) {
+					model.setColourScheme(colourScheme.getText());
+				}
+				if (autoSync.getText() != null) {
+					model.setAutoSync(autoSync.getText().equals(Common.TRUE) ? true : false);
+				}
+				if (syncPeriod.getText() != null) {
+					model.setSyncPeriod(Integer.valueOf(syncPeriod.getText()));
+				}			
 		  } catch (JDOMException jdomex) {
 			System.out.println(jdomex.getMessage());
 		  }
 	}
 
+	
 	/***************** encryption and decryption *************************/
+	
+	private String encryptPassword(String password) {
+		String encryptedPassword;
+		if(model.getPassword()!=null) {
+			try{
+				encryptedPassword = encryptString(password);
+			}
+			catch(Exception e) {
+				encryptedPassword = null;
+				System.out.println(ENCRYPTION_FAIL);
+				System.out.println("store: "+e.getMessage());
+			}
+		} else {
+			encryptedPassword = null;
+		}
+		return encryptedPassword;
+	}
+	
+	private String decryptPassword(String encryptedPassword) {
+		String decryptedPassword = encryptedPassword;
+		if(encryptedPassword != null) {
+			try{
+				decryptedPassword = decryptString(encryptedPassword);
+				System.out.println("retrieve: "+encryptedPassword+"->"+decryptedPassword);
+			}catch(Exception e) {
+				e.printStackTrace();
+				System.out.println(ENCRYPTION_FAIL);
+				decryptedPassword = null;
+			}
+		}
+		return decryptedPassword;
+	}
+	
 	public String encryptString(String plainText) throws Exception {
 		return new Encryptor(encryptAlgo).encrypt(plainText);
 
