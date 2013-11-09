@@ -1,4 +1,6 @@
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import java.util.Collections;
 import java.util.Vector;
@@ -38,6 +40,7 @@ public class Parser {
 	private static final int INVALID = -1;
 	
 	private static Model model;
+	private static Logger log = Logger.getLogger("ParserStorage");
 
 	/**
 	 * This function is used to determine the command type of the command input
@@ -312,125 +315,8 @@ public class Parser {
 		for (int i = startPoint; i <= endPoint; i++)
 			indexList.add(String.valueOf(i));
 	}
-
-	/**
-	 * This method is used to parse the command when any key event occurs and
-	 * highlight the command to indicate the understanding of the command by the
-	 * program to user to assist user to type more exact command in real-time
-	 * before the user presses Enter
-	 * 
-	 * @param command
-	 */
-	static ArrayList<InfoWithIndex> parseForView(String command) {
-		ArrayList<InfoWithIndex> infoList = new ArrayList<InfoWithIndex>();
-		Common.COMMAND_TYPES commandType;
-		String commandTypeStr;
-
-		commandType = determineCommandType(command);
-		if (commandType == Common.COMMAND_TYPES.INVALID) {
-			infoList.add(new InfoWithIndex(command, 0, Common.INDEX_TYPING_INFO));
-			return infoList;
-		}
-		
-		int indexCommand = command.indexOf(Common.getFirstWord(command));
-		commandTypeStr = completeWithSpace(Common.getFirstWord(command), command, indexCommand);
-		while(indexCommand != 0){
-			commandTypeStr = (command.charAt(indexCommand) == '\t' ? "\t" : " ") + commandTypeStr;
-			indexCommand--;
-		}
-		
-		infoList.add(new InfoWithIndex(commandTypeStr, 0, Common.INDEX_COMMAND_TYPE));
-		try {
-			String[] result = parseCommand(command, commandType, model, 0);
-			// Add the commandType first
-
-			if (commandType == Common.COMMAND_TYPES.EDIT) {
-				String index = result[0];
-				String indexWithSpace = completeWithSpace(index, command,
-						command.indexOf(index));
-				InfoWithIndex indexInfo = new InfoWithIndex(indexWithSpace,
-						command.indexOf(index), Common.INDEX_INDEX_INFO);
-				infoList.add(indexInfo);
-				for (int i = 0; i < result.length - 1; i++)
-					result[i] = result[i + 1];
-				result[result.length - 1] = Common.NULL;
-			}
-
-			// First consider command with info
-			if (commandType == Common.COMMAND_TYPES.ADD
-					|| commandType == Common.COMMAND_TYPES.SEARCH
-					|| commandType == Common.COMMAND_TYPES.EDIT) {
-				for (int infoIndex = 0; infoIndex < result.length; infoIndex++) {
-					String info = result[infoIndex];
-					// append the preposition or date keys with date info
-					if (infoIndex == Common.INDEX_START_DATE && info != Common.NULL)
-						info = appendWithDateKey(info, command, START_DATE);
-					if (infoIndex == Common.INDEX_END_DATE && info != Common.NULL)
-						info = appendWithDateKey(info, command, END_DATE);
-					// Add * if command has
-					if (infoIndex == Common.INDEX_IS_IMPT && info == Common.TRUE) {
-						String markStr = completeWithSpace(Common.IMPT_MARK, command,
-								command.indexOf(Common.IMPT_MARK));
-						InfoWithIndex imptInfo = new InfoWithIndex(markStr,
-								command.indexOf(Common.IMPT_MARK), Common.INDEX_IS_IMPT);
-						infoList.add(imptInfo);
-					}
-					if (command.contains(info)) {
-						// To get the index of workflow, we need to get rid of
-						// the commandType string first,
-						// otherwise some mistakes make occur: eg: add ad will
-						// return workflow index 1
-						int startIndex;
-						if (infoIndex == Common.INDEX_WORK_INFO) {
-							String temp = command.substring(commandTypeStr
-									.length());
-							startIndex = temp.indexOf(info)
-									+ commandTypeStr.length();
-						} else
-							startIndex = command.indexOf(info);
-						info = completeWithSpace(info, command, startIndex);
-						InfoWithIndex ci = new InfoWithIndex(info, startIndex,
-								infoIndex);
-						infoList.add(ci);
-					}
-				}
-				infoList = addInTypingInfo(infoList, command);
-			} else { // Consider command with index, just add the part except
-						// commandType,
-						// but if the commandType is invalid, just add them as
-						// uselessInfo
-				int beginIndex = commandTypeStr.length();
-				if (commandType != Common.COMMAND_TYPES.INVALID
-						&& commandType.equals(Common.COMMAND_TYPES.REMOVE)
-						|| commandType.equals(Common.COMMAND_TYPES.COMPLETE)
-						|| commandType.equals(Common.COMMAND_TYPES.INCOMPLETE)
-						|| commandType.equals(Common.COMMAND_TYPES.MARK)
-						|| commandType.equals(Common.COMMAND_TYPES.UNMARK) || commandType.equals(Common.COMMAND_TYPES.RECOVER)) {
-					infoList.add(new InfoWithIndex(command
-							.substring(beginIndex), beginIndex,
-							Common.INDEX_INDEX_INFO));
-				} else {
-					infoList.add(new InfoWithIndex(command
-							.substring(beginIndex), beginIndex,
-							Common.INDEX_TYPING_INFO));
-				}
-
-			}
-			return infoList;
-		} catch (Exception e) {
-			infoList.clear();
-			infoList.add(new InfoWithIndex(commandTypeStr, 0, Common.INDEX_COMMAND_TYPE));
-			String remainingInfo = Common.removeFirstWord(command);
-			if (e.getMessage()!=null && e.getMessage().equals(Common.NO_EDITING_INFO))
-				infoList.add(new InfoWithIndex(remainingInfo, commandTypeStr
-						.length(), Common.INDEX_INDEX_INFO));
-			else
-				infoList.add(new InfoWithIndex(remainingInfo, commandTypeStr.length(),
-						Common.INDEX_TYPING_INFO));
-			return infoList;
-		}
-	}
-
+	
+	
 	/**
 	 * This method is used to check a command string for valid date and remove
 	 * the valid date from this command string. If the command string contains
@@ -493,7 +379,140 @@ public class Parser {
 			return new String[] { commandString, dateString };
 	}
 
+
+	/**
+	 * This method is used to parse the command when any key event occurs and
+	 * highlight the command to indicate the understanding of the command by the
+	 * program to user to assist user to type more exact command in real-time
+	 * before the user presses Enter
+	 * 
+	 * @param command
+	 */
+	static ArrayList<InfoWithIndex> parseForView(String command) {
+		ArrayList<InfoWithIndex> infoList = new ArrayList<InfoWithIndex>();
+		Common.COMMAND_TYPES commandType;
+		String commandTypeStr;
+
+		commandType = determineCommandType(command);
+		if (commandType == Common.COMMAND_TYPES.INVALID) {
+			infoList.add(new InfoWithIndex(command, 0, Common.INDEX_TYPING_INFO));
+			return infoList;
+		}
+		int indexOfCommandType = command.indexOf(Common.getFirstWord(command));
+		commandTypeStr = completeWithSpace(Common.getFirstWord(command), command, indexOfCommandType);
+		while(indexOfCommandType != 0){
+			commandTypeStr = (command.charAt(indexOfCommandType) == '\t' ? "\t" : " ") + commandTypeStr;
+			indexOfCommandType--;
+		}
+		infoList.add(new InfoWithIndex(commandTypeStr, 0, Common.INDEX_COMMAND_TYPE));
+		try {
+			String[] result = parseCommand(command, commandType, model, 0);
+			infoList = appendIndexInfo(result, infoList, command, commandType);
+			infoList = decomposeCommand(result, infoList, command, commandType, commandTypeStr);
+			return infoList;
+		} catch (Exception e) {
+			infoList = handleTypingCommand(e, infoList,command, commandTypeStr);
+			return infoList;
+		}
+	}
+	
+
 	/*********************** some methods used for parseForView ***********************************************/
+	
+	private static ArrayList<InfoWithIndex> handleTypingCommand(Exception e, ArrayList<InfoWithIndex> infoList, String command, String commandTypeStr) {
+		infoList.clear();
+		infoList.add(new InfoWithIndex(commandTypeStr, 0, Common.INDEX_COMMAND_TYPE));
+		String remainingInfo = Common.removeFirstWord(command);
+		if (e.getMessage()!=null && e.getMessage().equals(Common.NO_EDITING_INFO))
+			infoList.add(new InfoWithIndex(remainingInfo, commandTypeStr
+					.length(), Common.INDEX_INDEX_INFO));
+		else
+			infoList.add(new InfoWithIndex(remainingInfo, commandTypeStr.length(),
+					Common.INDEX_TYPING_INFO));
+		return infoList;
+	}
+
+	private static ArrayList<InfoWithIndex> decomposeCommand(String[] result, ArrayList<InfoWithIndex> infoList, String command, Common.COMMAND_TYPES commandType, String commandTypeStr) {
+		// First consider command with info
+		if (commandType == Common.COMMAND_TYPES.ADD
+				|| commandType == Common.COMMAND_TYPES.SEARCH
+				|| commandType == Common.COMMAND_TYPES.EDIT) {
+			infoList = decomposeInfoCommand(result, infoList, command, commandTypeStr);
+			infoList = addInTypingInfo(infoList, command);
+		} else {
+			int beginIndex = commandTypeStr.length();
+			if (commandType.equals(Common.COMMAND_TYPES.REMOVE)
+					|| commandType.equals(Common.COMMAND_TYPES.COMPLETE)
+					|| commandType.equals(Common.COMMAND_TYPES.INCOMPLETE)
+					|| commandType.equals(Common.COMMAND_TYPES.MARK)
+					|| commandType.equals(Common.COMMAND_TYPES.UNMARK) || commandType.equals(Common.COMMAND_TYPES.RECOVER)) {
+				infoList.add(new InfoWithIndex(command
+						.substring(beginIndex), beginIndex,
+						Common.INDEX_INDEX_INFO));
+			} else if(commandType == Common.COMMAND_TYPES.INVALID){
+				infoList.add(new InfoWithIndex(command
+						.substring(beginIndex), beginIndex,
+						Common.INDEX_TYPING_INFO));
+			} else {
+				log.log(Level.WARNING, "Inexisting command type");
+			}
+		}
+		return infoList;
+	}
+	
+	private static ArrayList<InfoWithIndex> decomposeInfoCommand(String[] result, ArrayList<InfoWithIndex> infoList, String command, String commandTypeStr) {
+		for (int infoIndex = 0; infoIndex < result.length; infoIndex++) {
+			String info = result[infoIndex];
+			// append the preposition or date keys with date info
+			if (infoIndex == Common.INDEX_START_DATE && info != Common.NULL)
+				info = appendWithDateKey(info, command, START_DATE);
+			if (infoIndex == Common.INDEX_END_DATE && info != Common.NULL)
+				info = appendWithDateKey(info, command, END_DATE);
+			// Add * if command has
+			if (infoIndex == Common.INDEX_IS_IMPT && info == Common.TRUE) {
+				String markStr = completeWithSpace(Common.IMPT_MARK, command,
+						command.indexOf(Common.IMPT_MARK));
+				InfoWithIndex imptInfo = new InfoWithIndex(markStr,
+						command.indexOf(Common.IMPT_MARK), Common.INDEX_IS_IMPT);
+				infoList.add(imptInfo);
+			}
+			if (command.contains(info)) {
+				// To get the index of workflow, we need to get rid of
+				// the commandType string first,
+				// otherwise some mistakes make occur: eg: add ad will
+				// return workflow index 1
+				int startIndex;
+				if (infoIndex == Common.INDEX_WORK_INFO) {
+					String temp = command.substring(commandTypeStr
+							.length());
+					startIndex = temp.indexOf(info)
+							+ commandTypeStr.length();
+				} else
+					startIndex = command.indexOf(info);
+				info = completeWithSpace(info, command, startIndex);
+				InfoWithIndex ci = new InfoWithIndex(info, startIndex,
+						infoIndex);
+				infoList.add(ci);
+			}
+		}
+		return infoList;
+	}
+	
+	private static ArrayList<InfoWithIndex> appendIndexInfo(String[] result, ArrayList<InfoWithIndex> infoList, String command, Common.COMMAND_TYPES commandType) {
+		if (commandType == Common.COMMAND_TYPES.EDIT) {
+			String index = result[0];
+			String indexWithSpace = completeWithSpace(index, command,
+					command.indexOf(index));
+			InfoWithIndex indexInfo = new InfoWithIndex(indexWithSpace,
+					command.indexOf(index), Common.INDEX_INDEX_INFO);
+			infoList.add(indexInfo);
+			for (int i = 0; i < result.length - 1; i++)
+				result[i] = result[i + 1];
+			result[result.length - 1] = Common.NULL;
+		}
+		return infoList;
+	}
+	
 
 	/**
 	 * append the date with its front preposition like start from or so on
