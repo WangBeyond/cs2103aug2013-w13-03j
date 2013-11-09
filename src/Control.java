@@ -32,16 +32,6 @@ public class Control extends Application {
 	public static final String CALL_NORMAL_SETTINGS = "Normal settings";
 	public static final String CALL_SETTINGS_FROM_SYNC = "Settings from sync";
 	
-	// Restriction message from executing specific commands during process of synchronization
-	private static final String MESSAGE_UNDO_RESTRICTION = "Cannot undo during process of synchronization";
-	private static final String MESSAGE_REDO_RESTRICTION = "Cannot redo during process of synchronization";
-	private static final String MESSAGE_EXIT_RESTRICTION = "Cannot exit during process of synchronization";
-	// Display message in system tray
-	private static final String POPUP_MESSAGE_START_DATE = "Task \"%1$s\" will begin after the next %2$s minutes";
-	private static final String POPUP_MESSAGE_END_DATE = "Task \"%1$s\" will end after the next %2$s minutes";
-	// Filename for storage
-	private static final String TASK_FILENAME = "task_storage.xml";
-	private static final String SETTING_FILENAME = "setting_storage.xml";
 	// Logging object
 	private static Logger logger = Logger.getLogger("Control");
 	
@@ -95,7 +85,7 @@ public class Control extends Application {
 	 * Load the settings data
 	 */
 	private void loadSettings() throws IOException {
-		settingStore = new SettingsStorage(SETTING_FILENAME, model);
+		settingStore = new SettingsStorage(Common.SETTING_FILENAME, model);
 		settingStore.loadFromFile();
 	}
 
@@ -103,7 +93,7 @@ public class Control extends Application {
 	 * Load the task data
 	 */
 	private void loadTask() throws IOException {
-		taskFile = new TaskStorage(TASK_FILENAME, model);
+		taskFile = new TaskStorage(Common.TASK_FILENAME, model);
 		taskFile.loadFromFile();
 	}
 	
@@ -772,7 +762,7 @@ public class Control extends Application {
 	 */
 	private String executeUndoCommand() throws IOException {
 		if (isUnderSyncingProcess()){
-			return MESSAGE_UNDO_RESTRICTION;
+			return Common.MESSAGE_UNDO_RESTRICTION;
 		}
 		
 		if (commandHistory.isUndoable()) {
@@ -790,7 +780,7 @@ public class Control extends Application {
 	 */
 	private String executeRedoCommand() throws IOException {
 		if (isUnderSyncingProcess()){
-			return MESSAGE_REDO_RESTRICTION;
+			return Common.MESSAGE_REDO_RESTRICTION;
 		}
 		
 		if (commandHistory.isRedoable()) {
@@ -1048,7 +1038,7 @@ public class Control extends Application {
 		int tabIndex = view.getTabIndex();
 		Command exitCommand = new ExitCommand(model, tabIndex);
 		if(isUnderSyncingProcess()){
-			return MESSAGE_EXIT_RESTRICTION;
+			return Common.MESSAGE_EXIT_RESTRICTION;
 		}
 		
 		return exitCommand.execute();
@@ -1165,14 +1155,14 @@ public class Control extends Application {
 	// Reminded a task as the task is about to end
 	private void displayMessageForEndDate(String taskInfo,
 			int remainingTimeForEndDate) {
-		view.getTrayIcon().displayMessage("Reminder", String.format(POPUP_MESSAGE_END_DATE,  taskInfo, remainingTimeForEndDate),
+		view.getTrayIcon().displayMessage("Reminder", String.format(Common.POPUP_MESSAGE_END_DATE,  taskInfo, remainingTimeForEndDate),
 				MessageType.INFO);
 	}
 	
 	// Reminded a task as the task is about to start
 	private void displayMessageForStartDate(String taskInfo,
 			int remainingTimeForStartDate) {
-		view.getTrayIcon().displayMessage("Reminder", String.format(POPUP_MESSAGE_START_DATE, taskInfo, remainingTimeForStartDate),
+		view.getTrayIcon().displayMessage("Reminder", String.format(Common.POPUP_MESSAGE_START_DATE, taskInfo, remainingTimeForStartDate),
 				MessageType.INFO);
 	}
 	

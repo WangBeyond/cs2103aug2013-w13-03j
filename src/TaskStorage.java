@@ -3,8 +3,8 @@ import java.io.IOException;
 import java.io.FileWriter;
 import java.lang.String;
 import java.util.List;
-
-import javafx.collections.ObservableList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -14,7 +14,6 @@ import org.jdom2.input.SAXBuilder;
 import org.jdom2.JDOMException;
 
 public class TaskStorage extends Storage {
-	
 	private static final String INDEXID = "indexID";
 	private static final String WORK_INFO ="workInfo";
 	private static final String START_DATE = "startDate";
@@ -38,6 +37,7 @@ public class TaskStorage extends Storage {
 	private static final  String TRASH = "trash";
 	private static final String UNDO_BUFFER = "undo_buffer";
 
+	private static Logger log = Logger.getLogger("TaskStorage");
 	
 	public TaskStorage(String fileName, Model model) {
 		createDir();
@@ -74,7 +74,7 @@ public class TaskStorage extends Storage {
 		XMLOutputter xmlOutput = new XMLOutputter();
 		xmlOutput.setFormat(Format.getPrettyFormat());
 		xmlOutput.output(doc, new FileWriter(xmlFile));
-		System.out.println("data saved");
+		log.log(Level.INFO, "Data saved.");
 	}
 	
 	@Override
@@ -103,7 +103,7 @@ public class TaskStorage extends Storage {
 		} catch (IOException io) {
 			throw io;
 		  } catch (JDOMException jdomex) {
-			System.out.println(jdomex.getMessage());
+			log.log(Level.WARNING, jdomex.getMessage());
 		  }
 	}
 

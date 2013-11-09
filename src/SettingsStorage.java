@@ -2,6 +2,9 @@ import java.io.IOException;
 import java.io.FileWriter;
 import java.lang.String;
 import java.io.File;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import sun.misc.*;
 //import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.jdom2.Document;
@@ -26,6 +29,7 @@ public class SettingsStorage extends Storage {
 	private static final String AUTO_SYNC = "autoSync";
 	private static final String SYNC_PERIOD = "syncPeriod";
 	
+	private static Logger log = Logger.getLogger("SettingStorage");
 	private String dir;
 	public SettingsStorage(String fileName, Model model) {
 		createDir();
@@ -56,7 +60,7 @@ public class SettingsStorage extends Storage {
 		XMLOutputter xmlOutput = new XMLOutputter();
 		xmlOutput.setFormat(Format.getPrettyFormat());
 		xmlOutput.output(doc, new FileWriter(dir));
-		System.out.println("Setting saved");
+		log.log(Level.INFO, "Setting saved");
 	}
 	
 	private Element recordSettings(Element account, String encryptedPassword) {
@@ -91,9 +95,9 @@ public class SettingsStorage extends Storage {
 			XMLOutputter xmlOutput = new XMLOutputter();
 			xmlOutput.setFormat(Format.getPrettyFormat());
 			xmlOutput.output(doc, new FileWriter(dir));
-			System.out.println("File updated!");
+			log.log(Level.INFO, "File updated!");
 		  } catch (JDOMException e) {
-			e.printStackTrace();
+			log.log(Level.WARNING, e.getMessage());
 		  }
 	}
 	
@@ -166,7 +170,7 @@ public class SettingsStorage extends Storage {
 					model.setSyncPeriod(Integer.valueOf(syncPeriod.getText()));
 				}			
 		  } catch (JDOMException jdomex) {
-			System.out.println(jdomex.getMessage());
+			  log.log(Level.WARNING, jdomex.getMessage());
 		  }
 	}
 
@@ -181,8 +185,8 @@ public class SettingsStorage extends Storage {
 			}
 			catch(Exception e) {
 				encryptedPassword = null;
-				System.out.println(ENCRYPTION_FAIL);
-				System.out.println("store: "+e.getMessage());
+				log.log(Level.WARNING, ENCRYPTION_FAIL);
+				log.log(Level.WARNING, "store: "+e.getMessage());
 			}
 		} else {
 			encryptedPassword = null;
@@ -195,10 +199,10 @@ public class SettingsStorage extends Storage {
 		if(encryptedPassword != null) {
 			try{
 				decryptedPassword = decryptString(encryptedPassword);
-				System.out.println("retrieve: "+encryptedPassword+"->"+decryptedPassword);
+				log.log(Level.INFO, "retrieve: "+encryptedPassword+"->"+decryptedPassword);
 			}catch(Exception e) {
 				e.printStackTrace();
-				System.out.println(ENCRYPTION_FAIL);
+				log.log(Level.WARNING, ENCRYPTION_FAIL);
 				decryptedPassword = null;
 			}
 		}
