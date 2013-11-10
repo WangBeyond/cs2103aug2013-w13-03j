@@ -21,20 +21,18 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
+//@author A0100927M
 /**
  * 
  * This class provides the main graphic user interface for the Login panel.
  * 
  */
-//@Ko Wan Ling A0100927M
 public class Login {
-	public static final String MESSAGE_PASSWORDS_MATCH_FAIL = "Passwords do not match!";
-	
+
 	private static final boolean STORE_SUCCESSFUL = true;
 	private static final boolean STORE_FAIL = false;
 	
 	private final KeyCombination saveInput = new KeyCodeCombination(KeyCode.ENTER);
-	private final KeyCombination cancelLogin = new KeyCodeCombination(KeyCode.ESCAPE);
 	
 	private static Login oneLoginPage;
 	private Model model;
@@ -50,6 +48,7 @@ public class Login {
 	private PasswordField pwBox;
 	private PasswordField pwRetypeBox;
 	
+
 	/**
 	 * This is the constructor for class Login. 
 	 * 
@@ -138,7 +137,7 @@ public class Login {
 	private void setupShortcuts(){
 		root.setOnKeyPressed(new EventHandler<KeyEvent>(){
 			public void handle(KeyEvent e) {
-				if (cancelLogin.match(e)) {
+				if (Common.esc.match(e)) {
 					loginStage.close();
 				} else if (saveInput.match(e)){
 					if (storeUserInfo()){
@@ -273,9 +272,10 @@ public class Login {
 		return loginBg;
 	}
 	
+	//@author A0105667B
 	/************************** stores user info from Login ****************************/
 	/**
-	 * This sets up the login image as the background of the stage
+	 * This stores the user information from user input textfields
 	 * 
 	 * @return boolean
 	 *            determines if the storing of user info was successful
@@ -292,7 +292,7 @@ public class Login {
 				return STORE_SUCCESSFUL;
 			} else {
 				pwRetypeBox.clear();
-				pwRetypeBox.setPromptText(MESSAGE_PASSWORDS_MATCH_FAIL);
+				pwRetypeBox.setPromptText(Common.MESSAGE_PASSWORDS_MATCH_FAIL);
 			}
 		}
 		return STORE_FAIL;

@@ -4,12 +4,12 @@ import javax.swing.text.StyleContext;
 
 import javafx.scene.paint.Color;
 
+//@author A0100927M
 /**
  * 
  * This class provides static colours for the GUI in View.
  * 
  */
-//@Ko Wan Ling A0100927M
 public class ColourPalette {
 	
 	/********************************* Colours for javafx **************************************/
