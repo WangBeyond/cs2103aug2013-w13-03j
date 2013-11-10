@@ -136,7 +136,7 @@ public class Common {
 	static final int TRASH_TAB = 2;
 	
 	/******************************index of command info ***************************************/
-	static final int INDEX_TYPING_INFO = -2;
+	static final int INDEX_REDUNDANT_INFO = -2;
 	static final int INDEX_COMMAND_TYPE = -1;
 	static final int INDEX_WORK_INFO = 0;
 	static final int INDEX_TAG = 1;

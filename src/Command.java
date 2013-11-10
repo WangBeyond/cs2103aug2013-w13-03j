@@ -1760,8 +1760,8 @@ class SearchCommand extends Command {
 			} else {
 				searchList = searchStartDate(searchList, startDate);
 			}
+			isFirstTimeSearch = false;
 		}
-		isFirstTimeSearch = false;
 	}
 	
 	// Process searching for end date
@@ -1791,6 +1791,7 @@ class SearchCommand extends Command {
 			} else {
 				searchList = searchImportantTask(searchList);
 			}
+			isFirstTimeSearch = false;
 		}
 	}
 	
