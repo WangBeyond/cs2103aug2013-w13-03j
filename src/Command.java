@@ -172,6 +172,7 @@ public abstract class Command {
 		}
 	}
 	
+	//@author A0105667B
 	// Set the type of repetition
 		protected String setRepeatingType(String repeatingType) {
 			if(repeatingType.matches(FREQUENT_RECURRING_REGEX)) {
@@ -193,7 +194,7 @@ public abstract class Command {
 		}
 }
 
-
+//@author A0098077N
 /****************************************************************************************
  * Abstract class TwoWayCommand extended from class Command to support undo and redo	*
  *																						*
@@ -218,6 +219,7 @@ abstract class TwoWayCommand extends Command {
 	// Abstract function redoing command to be implemented in extended classes
 	public abstract String redo();
 	
+	//@author A0105667B
 	/**
 	 * This function is used to set the current indexes as indexes after search
 	 * or original ones.
@@ -293,6 +295,7 @@ abstract class TwoWayCommand extends Command {
 	}
 }
 
+//@author A0098077N
 /************************************************************************************************************
  * Abstract class IndexCommand extended from class TwoWayCommand to work more specifically on indices		*
  *																											*
@@ -384,7 +387,7 @@ abstract class IndexCommand extends TwoWayCommand{
 	}
 }
 
-
+//@author A0105523U
 /********************************subclass of TwoWayCommand*************************************************/
 /**
  * 
@@ -555,6 +558,7 @@ class AddCommand extends TwoWayCommand {
 		return Common.MESSAGE_SUCCESSFUL_REDO;
 	}
 	
+	//@author A0105667B
 	/**
 	 * This function is used to split the recurring info from the command From
 	 * this function, we can determine the number of occurrences and type of
@@ -930,8 +934,8 @@ class EditCommand extends TwoWayCommand {
 	}
 }
 
-/*****************************Subclass of IndexCommnad************************************************/
-
+/*****************************Subclass of IndexCommand************************************************/
+//@author A0105667B
 /**
  * Class RemoveCommand. This class executes a command to remove a list of given indices by the user.
  * 
@@ -1658,8 +1662,8 @@ class UnmarkCommand extends IndexCommand {
 	}
 }
 
-//@author A0105667B
-/**********************************Subclass of Commnand**********************************************/
+
+/**********************************Subclass of Command**********************************************/
 
 /**
  * 
@@ -2064,7 +2068,7 @@ class SearchCommand extends Command {
 	 * work info
 	 * 
 	 * @param list
-	 *            the searched lsit
+	 *            the searched list
 	 * @param workInfo
 	 *            the requested work info
 	 * @return the result list
@@ -2197,8 +2201,8 @@ class SettingsCommand extends Command {
 	}
 }
 
-//TODO: zijian's part?
-//@author A0105523
+
+//@author A0105523U
 /**
  * 
  * Class SyncCommand. This class executes command to sync with the Google Calendar in a concurrent thread.
@@ -2364,6 +2368,7 @@ class SyncCommand extends Command implements Runnable {
 	}
 }
 
+//@author A0098077N
 /**
  * 
  * Class ExitCommand. This class executes command to exit the application
