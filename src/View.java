@@ -2423,7 +2423,7 @@ class CustomStyledDocument extends DefaultStyledDocument {
 		for (int i = 0; i < infoList.size(); i++) {
 			InfoWithIndex info = infoList.get(i);
 			switch (info.getInfoType()) {
-			case Common.INDEX_TYPING_INFO:
+			case Common.INDEX_REDUNDANT_INFO:
 				setCharacterAttributes(info.getStartIndex(), info.getInfo()
 						.length(), View.colourSchemeCommandLine[0], false);
 				break;
