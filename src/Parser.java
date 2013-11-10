@@ -44,7 +44,8 @@ public class Parser {
 	private static Model model;
 	// Logger of Parser class
 	private static Logger log = Logger.getLogger("ParserStorage");
-
+	
+	//@author A0105523U
 	/**
 	 * This function is used to determine the command type of the command input
 	 * from the user
@@ -106,7 +107,8 @@ public class Parser {
 	public static boolean checkEmptyCommand(String userCommand) {
 		return userCommand.trim().equals("");
 	}
-
+	
+	//@author A0098077N
 	/**
 	 * This method is used to parse from a string of command input into a string
 	 * array of necessary info for a specific command
@@ -217,7 +219,8 @@ public class Parser {
 		}
 		return modifiedIndex;
 	}
-
+	
+	//@author A0105523U
 	/*******************************************************************************************************************/
 	/**
 	 * This method is used to parse from content of an ADD or SEARCH command to
@@ -379,6 +382,7 @@ public class Parser {
 		return commandString;
 	}
 	
+	//@author A0105667B
 	/**
 	 * This function is used to parse all command working with indices such as
 	 * MARK, COMPLETE or REMOVE
@@ -419,7 +423,8 @@ public class Parser {
 		
 		return parseCommandWithIndex(indexRange);
 	}
-
+	
+	//@author A0098077N
 	/**
 	 * This method is used to parse content of commands filled with indexes to
 	 * necessary infos
@@ -436,6 +441,7 @@ public class Parser {
 		splittedUserCommand = indexList.toArray(new String[0]);
 		return splittedUserCommand;
 	}
+	
 	
 	/**
 	 * This function is the main function to parse the indices into the array
@@ -505,7 +511,7 @@ public class Parser {
 		}
 	}
 	
-	
+	//@author A0105523U
 	/**
 	 * This method is used to check a command string for valid date and remove
 	 * the valid date from this command string. If the command string contains
@@ -586,7 +592,7 @@ public class Parser {
 		return temp.substring(0, keyIndex).trim();
 	}
 
-
+	//@author A0105667B
 	/**
 	 * This method is used to parse the command when any key event occurs and
 	 * highlight the command to indicate the understanding of the command by the
@@ -983,7 +989,8 @@ public class Parser {
 		}
 		return repeatingKey;
 	}
-
+	
+	//@author A0105523U
 	/**
 	 * Checks whether a string is a valid date or not.
 	 * 
@@ -1176,7 +1183,7 @@ public class Parser {
 		return result.trim();
 	}
 
-
+	
 	/******************************** Determine COMMAND_TYPES Section ***************************************************************/
 
 	private static boolean isAddCommand(String commandTypeString) {
@@ -1277,6 +1284,7 @@ public class Parser {
 	}
 }
 
+//@author A0105667B
 /**
  * Class infoWithIndex is assisting parseForView to install the information of
  * parsed command and reflects on commandLine and feedback
