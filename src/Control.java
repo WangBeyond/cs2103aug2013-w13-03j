@@ -757,6 +757,7 @@ public class Control extends Application {
 		return feedback;
 	}
 	
+	//@author A0100927M
 	/**
 	 * UNDO command execution
 	 */
@@ -796,6 +797,7 @@ public class Control extends Application {
 		return Common.MESSAGE_INVALID_REDO;
 	}
 	
+	//@author A0105667B
 	/**
 	 * SEARCH command execution
 	 */
@@ -813,7 +815,7 @@ public class Control extends Application {
 		return executeCommand("search today");
 	}
 	
-	
+	//@author A0100927M
 	/**
 	 * CLEAR command execution
 	 */
@@ -870,6 +872,7 @@ public class Control extends Application {
 		return feedback;
 	}
 	
+	//@author A0098077N
 	/**
 	 * RECOVER command execution
 	 */
@@ -888,6 +891,7 @@ public class Control extends Application {
 		return feedback;
 	}
 	
+	//@author A0100927M
 	/**
 	 * MARK command execution
 	 */
@@ -957,6 +961,7 @@ public class Control extends Application {
 		return feedback;
 	}
 	
+	//@author A0098077N
 	/*
 	 * Update the time format display after changing settings
 	 */
