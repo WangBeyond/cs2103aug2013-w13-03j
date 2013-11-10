@@ -284,6 +284,10 @@ public class Task implements Comparable<Task> {
 		return rowStatus.get().getIsImportant();
 	}
 	
+	public boolean isFloatingTask(){
+		return getStartDate() == null && getEndDate() == null;
+	}
+	
 	public RowStatus getRowStatus(){
 		return rowStatus.get();
 	}
