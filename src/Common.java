@@ -5,7 +5,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 
-
+//@author A0105667B
 public class Common {
 	/***********************************Command Types **************************************************/
 	static enum COMMAND_TYPES {
@@ -66,6 +66,7 @@ public class Common {
 	static final String INVALID_INDEX = "Invalid index";
 	static final String INVALID_RANGE_END_SMALLER = "Invalid range as end point is smaller than start point";
 	static final String INVALID_RANGE = "Invalid Range";
+	static final String MESSAGE_PASSWORDS_MATCH_FAIL = "Passwords do not match!";
 	//Tip message
 	static final String MESSAGE_ADD_TIP = "Tip for ADD command";
 	static final String MESSAGE_EDIT_TIP = "Tip for EDIT command";

@@ -2,6 +2,12 @@ import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+//@author A0100927M
+/**
+ * 
+ * History class: This class stores and retrieves past commands.
+ * 
+ */
 class History {
 	private static Logger log = Logger.getLogger("History");
 	private Stack<TwoWayCommand> prevCommandsForUndo;
@@ -10,6 +16,9 @@ class History {
 	private boolean redoable;
 	private boolean isOperatedAfterSearch;
 
+	/**
+	 * This is the constructor for class History. 
+	 */
 	public History() {
 		prevCommandsForUndo = new Stack<TwoWayCommand>();
 		prevCommandsForRedo = new Stack<TwoWayCommand>();
@@ -18,30 +27,21 @@ class History {
 		isOperatedAfterSearch = false;
 	}
 
+	/************************ GET Functions **********************************/
 	public boolean isUndoable() {
 		return undoable;
-	}
-
-	public void setUndoable(boolean undoable) {
-		this.undoable = undoable;
-	}
-
-	public void setRedoable(boolean redoable) {
-		this.redoable = redoable;
 	}
 	
 	public boolean isRedoable() {
 		return redoable;
 	}
 	
-	public void setIsAfterSearch(boolean isAfter) {
-		isOperatedAfterSearch = isAfter;
-	}
-	
+	//@author A0105667B
 	public boolean isAfterSearch() {
 		return isOperatedAfterSearch;
 	}
 	
+	//@author A0100927M
 	public TwoWayCommand getPrevCommandForUndo() {
 		assert undoable == true;
 		TwoWayCommand previousCommand = prevCommandsForUndo.pop();
@@ -65,7 +65,24 @@ class History {
 		}
 		return previousCommand;
 	}
+	
+	/************************ SET Functions **********************************/
+	public void setUndoable(boolean undoable) {
+		this.undoable = undoable;
+	}
 
+	public void setRedoable(boolean redoable) {
+		this.redoable = redoable;
+	}
+	
+	//@author A0105667B
+	public void setIsAfterSearch(boolean isAfter) {
+		isOperatedAfterSearch = isAfter;
+	}
+
+	//@author A0100927M
+	/************************ UPDATE Functions **********************************/
+	// update with most recent TwoWayCommand without prior searching
 	public void updateCommand(TwoWayCommand newCommand) {
 		prevCommandsForUndo.push(newCommand);
 		if (!prevCommandsForRedo.empty()){
@@ -76,6 +93,8 @@ class History {
 		redoable = false;
 	}
 	
+	//@author A0105667B
+	// update with most recent TwoWayCommand with prior searching
 	public void updateCommand(TwoWayCommand newCommand,boolean isAfter) {
 		prevCommandsForUndo.push(newCommand);
 		if (!prevCommandsForRedo.empty()){

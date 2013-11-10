@@ -17,17 +17,16 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
+//@author A0100927M
 /**
  * 
  * This class provides the main graphic user interface for the Help panel.
  * 
  */
-//@Ko Wan Ling A0100927M
 public class Help{
 	private static Logger log = Logger.getLogger("Help");
 	private final KeyCombination nextPage = new KeyCodeCombination(KeyCode.RIGHT, KeyCombination.CONTROL_DOWN);
 	private final KeyCombination backPage = new KeyCodeCombination(KeyCode.LEFT, KeyCombination.CONTROL_DOWN);
-	private final KeyCombination esc = new KeyCodeCombination(KeyCode.ESCAPE);
 	
 	private static Help oneHelpPage;
 	public Model model;
@@ -129,7 +128,7 @@ public class Help{
 				} else if (backPage.match(e)){
 					log.log(Level.INFO, "Pressing ctrl + left...");
 					changeToFirstPage();
-				} else if (esc.match(e)){
+				} else if (Common.esc.match(e)){
 					log.log(Level.INFO, "Pressing esc for help page...");
 					helpStage.close();
 				}
