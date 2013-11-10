@@ -162,6 +162,7 @@ public class Model {
 		}
 	}
 
+	//@author A0100927M
 	/********************************** GET the index from given task ******************************/
 	public int getIndexFromPending(Task task) {
 		return pending.indexOf(task);
@@ -229,6 +230,7 @@ public class Model {
 		}
 	}
 
+	//@author A0100927M
 	/***************************** REMOVE a task with indicated index permanently, not moving to trash *******************/
 	public void removeTaskFromPendingNoTrash(int index) {
 		try {
@@ -284,6 +286,7 @@ public class Model {
 		return themeMode;
 	}
 	
+	//@author A0100927M
 	public String getColourScheme(){
 		return colourScheme;
 	}
@@ -320,6 +323,7 @@ public class Model {
 		this.isAutoSync = isAutoSync;
 	}
 
+	//@author A0100927M
 	public void setColourScheme(String colourScheme){
 		this.colourScheme = colourScheme;
 	}
