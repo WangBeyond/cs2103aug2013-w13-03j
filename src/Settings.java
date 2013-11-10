@@ -66,6 +66,7 @@ public class Settings {
 	private Text invalidPassword;
 	private Text differentPassword;
 
+	//@author A0100927M
 	/**
 	 * This is the constructor for class Settings. 
 	 * 
@@ -229,17 +230,11 @@ public class Settings {
 	 */
 	private void showErrorTexts(String checkUsernamePassword){
 		if (checkUsernamePassword.equals(Control.CALL_NORMAL_SETTINGS)){
-			invalidUsername.setVisible(false);
-			invalidPassword.setVisible(false);
-			differentPassword.setVisible(false);
+			showNormalSettings();
 		} else if (checkUsernamePassword.equals(Control.CALL_SETTINGS_FROM_SYNC)){
-			invalidUsername.setVisible(true);
-			invalidPassword.setVisible(true);
-			differentPassword.setVisible(false);
+			showErrorInvalidAccountPassword();
 		} else if (checkUsernamePassword.equals(Common.MESSAGE_PASSWORDS_MATCH_FAIL)){
-			invalidUsername.setVisible(false);
-			invalidPassword.setVisible(false);
-			differentPassword.setVisible(true);
+			showErrorDifferentPasswords();
 		}
 	}
 	
@@ -291,8 +286,29 @@ public class Settings {
 		}
 		syncPeriodTextfield.setText(String.valueOf(model.getSyncPeriod()));
 	}
-			
+	
 	//@author A0100927M
+	// shows normal settings, i.e without error messages
+	private void showNormalSettings(){
+		invalidUsername.setVisible(false);
+		invalidPassword.setVisible(false);
+		differentPassword.setVisible(false);
+	}
+	
+	// shows error message for invalid account or password
+	private void showErrorInvalidAccountPassword(){
+		invalidUsername.setVisible(true);
+		invalidPassword.setVisible(true);
+		differentPassword.setVisible(false);
+	}
+	
+	// shows error message for non-matching passwords
+	private void showErrorDifferentPasswords(){
+		invalidUsername.setVisible(false);
+		invalidPassword.setVisible(false);
+		differentPassword.setVisible(true);
+	}
+	
 	/************************** sets up individual content fields ****************************/
 	// set up the grid
 	private void setupGrid(){
