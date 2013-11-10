@@ -17,6 +17,12 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
+/**
+ * 
+ * This class provides the main graphic user interface for the Help panel.
+ * 
+ */
+//@Ko Wan Ling A0100927M
 public class Help{
 	private static Logger log = Logger.getLogger("Help");
 	private final KeyCombination nextPage = new KeyCodeCombination(KeyCode.RIGHT, KeyCombination.CONTROL_DOWN);
@@ -37,6 +43,12 @@ public class Help{
 	private double dragAnchorX;
 	private double dragAnchorY;
 	
+	/**
+	 * This is the constructor for class Help. 
+	 * 
+	 * @param model
+	 *            model of lists of tasks
+	 */
 	private Help(Model model){	
 		initializeModel(model);
 		setupInitialStage();	
@@ -45,7 +57,13 @@ public class Help{
 		setupDraggable();
 	}
 	
-	/************************** public methods ****************************/
+	/**
+	 * This creates one instance of Help
+	 * 
+	 * @param model
+	 *            model of lists of tasks
+	 * @return the instance of Help
+	 */
 	public static Help getInstanceHelp(Model model){
 		if (oneHelpPage == null){
 			oneHelpPage = new Help(model);
@@ -53,16 +71,24 @@ public class Help{
 		return oneHelpPage;
 	}
 	
+	// shows the Help page at page 1
 	public void showHelpPage(){
 		changeToFirstPage();
 		helpStage.show();
 	}
 	
-	/************************** private methods ****************************/
+	/************************** sets up general GUI of Help ****************************/
+	/**
+	 * This initializes the model of lists of tasks
+	 * 
+	 * @param model
+	 *            model of lists of tasks
+	 */
 	private void initializeModel(Model model){
 		this.model = model;
 	}
 	
+	// set up the stage for the Help page
 	private void setupInitialStage(){
 		helpPage = new ImageView();
 		buttons = new Group();
@@ -80,6 +106,8 @@ public class Help{
 		setupButtons();
 		changeToFirstPage();
 	}
+	
+	// create the scene of the stage
 	private void setupScene(){
 		root = new Group();
 		root.getChildren().add(helpPage);
@@ -90,6 +118,7 @@ public class Help{
 		helpStage.setScene(helpScene);
 	}
 	
+	// create shortcut keys for Help page
 	private void setupShortcuts(){
 		root.setOnKeyPressed(new EventHandler<KeyEvent>(){
 			public void handle(KeyEvent e) {
@@ -108,6 +137,7 @@ public class Help{
 		});
 	}
 	
+	// set up draggable
 	private void setupDraggable() {
 		root.setOnMousePressed(new EventHandler<MouseEvent>() {
 			@Override
@@ -126,6 +156,7 @@ public class Help{
 		});
 	}
 	
+	// set up all buttons on help page
 	private void setupButtons() {
 		setupBackButton();
 		setupNextButton();
@@ -137,6 +168,8 @@ public class Help{
 		buttons.setLayoutY(25);
 	}
 	
+	/************************** changes display image of Help ****************************/
+	// changes the image shown on Help page to page 1
 	private void changeToFirstPage(){
 		setupImage(getFirstHelpImage());
 		nextButton.setVisible(true);
@@ -145,6 +178,7 @@ public class Help{
 		backButton.setDisable(true);
 	}
 	
+	// changes the image shown on Help page to page 2
 	private void changeToSecondPage(){
 		setupImage(getSecondHelpImage());
 		backButton.setVisible(true);
@@ -153,6 +187,54 @@ public class Help{
 		nextButton.setDisable(true);
 	}
 	
+	/**
+	 * This sets up the help image as the background of the stage
+	 * 
+	 * @param helpImage
+	 *            images of the Help background
+	 */
+	private void setupImage(Image helpImage){
+		helpPage.setImage(helpImage);
+		helpPage.setFitWidth(600);
+		helpPage.setPreserveRatio(true);
+		helpPage.setSmooth(true);
+		helpPage.setCache(true);
+	}
+	
+	/**
+	 * Get function of page 1 Help image
+	 * 
+	 * @return firstHelpImage
+	 *            image page 1 of Help
+	 */
+	private Image getFirstHelpImage(){
+		Image firstHelpImage;
+		if (model.getThemeMode().equals(Common.DAY_MODE)){
+			firstHelpImage = new Image(getClass().getResourceAsStream("helpPage1.png"));
+		} else {
+			firstHelpImage = new Image(getClass().getResourceAsStream("helpNightPage1.png"));
+		}
+		return firstHelpImage;
+	}
+	
+	/**
+	 * Get function of page 2 Help image
+	 * 
+	 * @return secondHelpImage
+	 *            image page 2 of Help
+	 */
+	private Image getSecondHelpImage(){
+		Image secondHelpImage;
+		if (model.getThemeMode().equals(Common.DAY_MODE)){
+			secondHelpImage = new Image(getClass().getResourceAsStream("helpPage2.png"));	
+		} else{
+			secondHelpImage = new Image(getClass().getResourceAsStream("helpNightPage2.png"));	
+		}
+		return secondHelpImage;
+	}
+	
+	/************************** sets up the individual Buttons ****************************/
+	// sets up Button to go from page 1 to 2
 	private void setupNextButton() {
 		nextButton = new Button("");
 		nextButton.setId("next");
@@ -164,6 +246,7 @@ public class Help{
 		});
 	}
 	
+	// sets up Button to go from page 2 to 1
 	private void setupBackButton() {
 		backButton = new Button("");
 		backButton.setId("back");
@@ -175,6 +258,7 @@ public class Help{
 		});
 	}
 	
+	// sets up Exit Button to exit Help
 	private void setupExitButton() {
 		exitButton = new Button("");
 		exitButton.setId("close_help");
@@ -187,32 +271,5 @@ public class Help{
 			}
 		});
 	}	
-
-	private void setupImage(Image helpImage){
-		helpPage.setImage(helpImage);
-		helpPage.setFitWidth(600);
-		helpPage.setPreserveRatio(true);
-		helpPage.setSmooth(true);
-		helpPage.setCache(true);
-	}
 	
-	private Image getFirstHelpImage(){
-		Image firstHelpImage;
-		if (model.getThemeMode().equals(Common.DAY_MODE)){
-			firstHelpImage = new Image(getClass().getResourceAsStream("helpPage1.png"));
-		} else {
-			firstHelpImage = new Image(getClass().getResourceAsStream("helpNightPage1.png"));
-		}
-		return firstHelpImage;
-	}
-	
-	private Image getSecondHelpImage(){
-		Image secondHelpImage;
-		if (model.getThemeMode().equals(Common.DAY_MODE)){
-			secondHelpImage = new Image(getClass().getResourceAsStream("helpPage2.png"));	
-		} else{
-			secondHelpImage = new Image(getClass().getResourceAsStream("helpNightPage2.png"));	
-		}
-		return secondHelpImage;
-	}
 }
