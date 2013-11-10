@@ -2211,7 +2211,7 @@ class SettingsCommand extends Command {
 class SyncCommand extends Command implements Runnable {
 	// Username of Google Account
 	private String username = null;
-	// Password of Goolge Account
+	// Password of Google Account
 	private String password = null;
 	// Feedback from the sync
 	private String feedback = null;
