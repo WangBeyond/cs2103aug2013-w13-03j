@@ -298,9 +298,9 @@ abstract class TwoWayCommand extends Command {
  ************************************************************************************************************/
 abstract class IndexCommand extends TwoWayCommand{
 	// The list of indices which the command will work on
-	int[] indexList;
+	protected int[] indexList;
 	// The number of indices
-	int indexCount;
+	protected int indexCount;
 	
 	public IndexCommand(Model model, int tabIndex){
 		super(model, tabIndex);
@@ -383,6 +383,8 @@ abstract class IndexCommand extends TwoWayCommand{
 	}
 }
 
+
+/********************************subclass of TwoWayCommand*************************************************/
 /**
  * 
  * Class AddCommand. This command create a new task for the user, the new task will be created in the pending list
@@ -921,13 +923,15 @@ class EditCommand extends TwoWayCommand {
 	}
 }
 
+/*****************************Subclass of IndexCommnad************************************************/
+
 /**
  * Class RemoveCommand. This class executes a command to remove a list of given indices by the user.
  * 
  */
 class RemoveCommand extends IndexCommand {
 	// List of removed tasks
-	ArrayList<Task> removedTaskInfo;
+	private ArrayList<Task> removedTaskInfo;
 	
 	/**
 	 * Constructor of this class
@@ -1028,9 +1032,9 @@ class RemoveCommand extends IndexCommand {
  */
 class ClearAllCommand extends IndexCommand {
 	// List of tasks which will be cleared
-	Task[] clearedTasks;
+	private Task[] clearedTasks;
 	// List of original tasks in trash
-	Task[] originalTrashTasks;
+	private Task[] originalTrashTasks;
 	
 	/**
 	 * Constructor
@@ -1157,9 +1161,9 @@ class ClearAllCommand extends IndexCommand {
  */
 class CompleteCommand extends IndexCommand {
 	// List of tasks to complete
-	Task[] toCompleteTasks;
+	private Task[] toCompleteTasks;
 	// Indices of these tasks in the complete list
-	int[] indexInCompleteList;
+	private int[] indexInCompleteList;
 	
 	/**
 	 * Constructor of this class
@@ -1270,9 +1274,9 @@ class CompleteCommand extends IndexCommand {
  */
 class IncompleteCommand extends IndexCommand {
 	// List of tasks to be incompleted
-	Task[] toIncompleteTasks;
+	private Task[] toIncompleteTasks;
 	// Indices of these tasks in pending list
-	int[] indexInIncompleteList;
+	private int[] indexInIncompleteList;
 
 	/**
 	 * Constructor of this class
@@ -1386,9 +1390,9 @@ class IncompleteCommand extends IndexCommand {
  */
 class RecoverCommand extends IndexCommand {
 	// List of tasks to be recovered
-	Task[] toRecoverTasks;
+	private Task[] toRecoverTasks;
 	// Indices of these tasks in the pending list
-	int[] indexInPendingList;
+	private int[] indexInPendingList;
 
 	/**
 	 * Constructor of this class
@@ -1626,6 +1630,9 @@ class UnmarkCommand extends IndexCommand {
 	}
 }
 
+
+/**********************************Subclass of Commnand**********************************************/
+
 /**
  * 
  * Class SearchCommand. This class executes command to search for list of tasks with required infos.
@@ -1633,31 +1640,31 @@ class UnmarkCommand extends IndexCommand {
  */
 class SearchCommand extends Command {
 	// The searched work info
-	String workInfo;
+	private String workInfo;
 	// The searched tag
-	String tag;
+	private String tag;
 	// The searched start date string
-	String startDateString;
+	private String startDateString;
 	// The searched end date string
-	String endDateString;
+	private String endDateString;
 	// The searched repeating type
-	String repeatingType;
-	int numOccurrences = 0;
-	int currentOccurrence;
+	private String repeatingType;
+	private int numOccurrences = 0;
+	private int currentOccurrence;
 	// Search for important task
-	String isImpt;
+	private String isImpt;
 	// The main interface of the application
-	View view;
+	private View view;
 	// The initial list for searching
-	ObservableList<Task> initialList;
+	private ObservableList<Task> initialList;
 	// The latest list of searched results
-	ObservableList<Task> searchList;
+	private ObservableList<Task> searchList;
 	// The searched start and end dates
-	CustomDate startDate, endDate;
+	private CustomDate startDate, endDate;
 	// Indicator if this is the first field searched
-	boolean isFirstTimeSearch;
+	private boolean isFirstTimeSearch;
 	// Indicator if this is currently under real time search
-	boolean isRealTimeSearch;
+	private boolean isRealTimeSearch;
 	
 	/**
 	 * 
@@ -2056,7 +2063,7 @@ class SearchCommand extends Command {
  */
 class ShowAllCommand extends Command {
 	// The main interface of the application
-	View view;
+	private View view;
 	
 	/**
 	 * Constructor
@@ -2101,7 +2108,7 @@ class ShowAllCommand extends Command {
  */
 class HelpCommand extends Command {
 	// The main interface of the application
-	View view;
+	private View view;
 	
 	/**
 	 * Constructor of this class
@@ -2132,9 +2139,9 @@ class HelpCommand extends Command {
  */
 class SettingsCommand extends Command {
 	// Main interface of the application
-	View view;
+	private View view;
 	// Indicator what calls the settings command
-	String origin;
+	private String origin;
 	
 	/**
 	 * Constructor of this class
@@ -2168,21 +2175,21 @@ class SettingsCommand extends Command {
  */
 class SyncCommand extends Command implements Runnable {
 	// Username of Google Account
-	String username = null;
+	private String username = null;
 	// Password of Goolge Account
-	String password = null;
+	private String password = null;
 	// Feedback from the sync
-	String feedback = null;
+	private String feedback = null;
 	// Indicator whether it is under syncing process
-	boolean isRunning = false;
+	private boolean isRunning = false;
 	// The sync class
-	Synchronization sync;
+	private Synchronization sync;
 	// Main interface
-	View view;
+	private View view;
 	// The storage file of tasks
-	Storage taskFile;
+	private Storage taskFile;
 	// The thread that will run the syncing process
-	Thread syncingThread;
+	private Thread syncingThread;
 	
 	/**
 	 * Constructor of this class
@@ -2319,6 +2326,10 @@ class SyncCommand extends Command implements Runnable {
 	// Check whether it is currently under syncing process or not
 	public boolean isRunning() {
 		return isRunning;
+	}
+	
+	public String getFeedback() {
+		return feedback;
 	}
 }
 

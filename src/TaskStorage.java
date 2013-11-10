@@ -106,6 +106,7 @@ public class TaskStorage extends Storage {
 			log.log(Level.WARNING, jdomex.getMessage());
 		  }
 	}
+	
 
 /**********************************Generate tasks from XML file and add them to model **************************/
 	

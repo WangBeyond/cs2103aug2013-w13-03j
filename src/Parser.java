@@ -120,7 +120,7 @@ public class Parser {
 	public static String[] parseCommand(String userCommand,
 			Common.COMMAND_TYPES commandType, Model model, int tabIndex) {
 		String content = Common.removeFirstWord(userCommand);
-		content = removeUnneededSpaces(content);
+		content = Common.removeUnneededSpaces(content);
 		
 		if (isAddCommandType(commandType)) {
 			return parseCommandWithInfo(content, Common.COMMAND_TYPES.ADD);
@@ -602,13 +602,11 @@ public class Parser {
 		ArrayList<InfoWithIndex> infoList = new ArrayList<InfoWithIndex>();
 		Common.COMMAND_TYPES commandType;
 		String commandTypeStr;
-
 		commandType = determineCommandType(command);
 		if (commandType == Common.COMMAND_TYPES.INVALID) {
 			infoList.add(new InfoWithIndex(command, 0, Common.INDEX_REDUNDANT_INFO));
 			return infoList;
-		}
-		
+		}	
 		commandTypeStr = appendCommandTypeInfo(command, infoList);
 		try {
 			String[] result = parseCommand(command, commandType, model, 0);
@@ -728,31 +726,29 @@ public class Parser {
 			String commandTypeStr) {
 		for (int infoIndex = 0; infoIndex < parsedCommand.length; infoIndex++) {
 			String info = parsedCommand[infoIndex];
-			// append the preposition or date keys with date info
 			info = appendDateKeyForStartDate(command, infoIndex, info);
 			info = appendDateKeyForEndDate(command, infoIndex, info);
-			// Add * if command is has
 			appendAsteriskForImportantTask(infoList, command, infoIndex, info);
-			if (command.contains(info)) {
-				// To get the index of workflow, we need to get rid of
-				// the commandType string first,
-				// otherwise some mistakes make occur: eg: add ad will
-				// return workflow index 1
-				int startIndex;
-				if (infoIndex == Common.INDEX_WORK_INFO) {
-					String temp = command.substring(commandTypeStr
-							.length());
-					startIndex = temp.indexOf(info)
-							+ commandTypeStr.length();
-				} else
-					startIndex = command.indexOf(info);
-				info = completeWithSpace(info, command, startIndex);
-				InfoWithIndex ci = new InfoWithIndex(info, startIndex,
-						infoIndex);
-				infoList.add(ci);
-			}
+			appendInfoToList(infoList, command, commandTypeStr, infoIndex, info);
 		}
 		return infoList;
+	}
+	
+	private static void appendInfoToList(ArrayList<InfoWithIndex> infoList, String command, String commandTypeStr, int infoIndex, String info) {
+		if (command.contains(info)) {
+			int startIndex;
+			if (infoIndex == Common.INDEX_WORK_INFO) {
+				String temp = command.substring(commandTypeStr
+						.length());
+				startIndex = temp.indexOf(info)
+						+ commandTypeStr.length();
+			} else
+				startIndex = command.indexOf(info);
+			info = completeWithSpace(info, command, startIndex);
+			InfoWithIndex ci = new InfoWithIndex(info, startIndex,
+					infoIndex);
+			infoList.add(ci);
+		}
 	}
 	
 	// Add the important info in the list of infos for viewing
@@ -849,11 +845,11 @@ public class Parser {
 	private static String addKeyWord(String date, String command,
 			int dateTypeIndicator, int startIndex, String dateWithPreposition,
 			int secondSpaceIndex, int firstSpaceIndex) {
-		boolean containsKeyWordForStartDate = doesArrayContain(
+		boolean containsKeyWordForStartDate = Common.doesArrayContain(
 				dateTypeIndicator == START_DATE ? Common.startDateKeys
 						: Common.endDateKeys, command.substring(
 						firstSpaceIndex + 1, startIndex));
-		boolean containsKeyWordForEndDate = doesArrayContain(
+		boolean containsKeyWordForEndDate = Common.doesArrayContain(
 				dateTypeIndicator == START_DATE ? Common.startDateKeys
 						: Common.endDateKeys, command.substring(
 						secondSpaceIndex + 1, startIndex));
@@ -943,22 +939,7 @@ public class Parser {
 		return info;
 	}
 
-	/**
-	 * Justify does the array contain one specific string
-	 * 
-	 * @param array
-	 * @param element
-	 * @return boolean result
-	 */
-	private static boolean doesArrayContain(String[] array, String element) {
-		element = element.trim();
-		for (int i = 0; i < array.length; i++){
-			if (array[i].equals(element)){
-				return true;
-			}
-		}
-		return false;
-	}
+
 
 	/************************** assisting methods for parseCommandWithInfo ****************************************/
 
@@ -1011,7 +992,7 @@ public class Parser {
 	 * @return number of words in the date string if the string contains a date;
 	 *         otherwise, returns INVALID(-1).
 	 */
-	static int isValidDate(String dateString) {
+	private static int isValidDate(String dateString) {
 		CustomDate dateTester = new CustomDate();
 		String[] dateStringArray = Common.splitBySpace(dateString);
 		int length = getMaximumLengthForProcessing(dateStringArray);
@@ -1194,34 +1175,18 @@ public class Parser {
 		}
 		return result.trim();
 	}
-	
-	/**
-	 * This function removes all unneeded spaces between words in a string,
-	 * which means there will be only 1 space between words
-	 * 
-	 * @param content
-	 *            content of the String
-	 * @return the after-processed string
-	 */
-	private static String removeUnneededSpaces(String content) {
-		String[] words = Common.splitBySpace(content);
-		String result = "";
-		for (int i = 0; i < words.length; i++){
-			result += words[i] + " ";
-		}
-
-		return result.trim();
-	}
 
 
 	/******************************** Determine COMMAND_TYPES Section ***************************************************************/
 
 	private static boolean isAddCommand(String commandTypeString) {
-		return commandTypeString.equalsIgnoreCase("add");
+		return commandTypeString.equalsIgnoreCase("add")
+				||commandTypeString.equalsIgnoreCase("insert");
 	}
 
 	private static boolean isEditCommand(String commandTypeString) {
 		boolean isEdit = commandTypeString.equalsIgnoreCase("edit")
+				|| commandTypeString.equalsIgnoreCase("set")
 				|| commandTypeString.equalsIgnoreCase("modify")
 				|| commandTypeString.equalsIgnoreCase("mod");
 		return isEdit;
@@ -1261,6 +1226,7 @@ public class Parser {
 	private static boolean isShowAllCommand(String commandTypeString) {
 		boolean isShowAll = commandTypeString.equalsIgnoreCase("all")
 				|| commandTypeString.equalsIgnoreCase("show")
+				|| commandTypeString.equalsIgnoreCase("display")
 				|| commandTypeString.equalsIgnoreCase("list")
 				|| commandTypeString.equalsIgnoreCase("ls");
 		return isShowAll;
@@ -1283,11 +1249,15 @@ public class Parser {
 	}
 
 	private static boolean isMarkCommand(String commandTypeString) {
-		return commandTypeString.equalsIgnoreCase("mark");
+		boolean isMark = commandTypeString.equalsIgnoreCase("mark") 
+				||commandTypeString.equalsIgnoreCase("hightlight") ;
+		return isMark;
 	}
 
 	private static boolean isUnmarkCommand(String commandTypeString) {
-		return commandTypeString.equalsIgnoreCase("unmark");
+		boolean isUnMark = commandTypeString.equalsIgnoreCase("unmark") 
+				||commandTypeString.equalsIgnoreCase("unhightlight") ;
+		return isUnMark;
 	}
 
 	private static boolean isSettingsCommand(String commandTypeString) {
@@ -1303,7 +1273,7 @@ public class Parser {
 	}
 
 	private static boolean isExitCommand(String commandTypeString) {
-		return commandTypeString.equalsIgnoreCase("exit");
+		return commandTypeString.equalsIgnoreCase("exit") || commandTypeString.equalsIgnoreCase("end");
 	}
 }
 

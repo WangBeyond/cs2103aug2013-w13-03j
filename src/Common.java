@@ -12,17 +12,16 @@ public class Common {
 		ADD, REMOVE, RECOVER, SEARCH, EDIT, COMPLETE, INCOMPLETE, UNDO, REDO, CLEAR_ALL, TODAY, SHOW_ALL, SYNC, SETTINGS, HELP, EXIT, INVALID, MARK, UNMARK
 	}
 	
-	static String[] COMMAND_TYPES_STR = { "add", "remove", "delete", "edit",
-		"modify", "search", "find", "clear", "mark", "unmark", "complete",
-		"incomplete", "all", "list", "today", "help", "del", "exit", "rm",
-		"show", "ls", "clr", "done", "undone", "settings", "sync", "recover", "rec" };
+	static String[] COMMAND_TYPES_STR = { "add", "insert", "remove", "delete", "edit", "set",
+		"modify", "search", "find", "clear", "mark", "highlight", "unmark", "unhightlight", "complete",
+		"incomplete", "all", "list", "today", "help", "del", "exit", "end", "rm",
+		"show", "display", "ls", "clr", "done", "undone", "settings", "sync", "recover", "rec" };
 	
-	/* start date keys */
+	/***********************************Start Date and End date key**************************************/
 	static String[] startDateKeys = { "start from", "start at",
 			"start on", "begin from", "begin at", "begin on", "from", "after", "on",
 			"at"};
 
-	/* end date keys */
 	static String[] endDateKeys = { "end on", "end at", "end by",
 			"end before", "to", "till", "until", "by", "due", "before", "next", "today",
 			"tonight" };
@@ -170,7 +169,42 @@ public class Common {
 		}
 	}
 	
+	/**
+	 * Justify does the array contain one specific string
+	 * 
+	 * @param array
+	 * @param element
+	 * @return boolean result
+	 */
+	public static boolean doesArrayContain(String[] array, String element) {
+		element = element.trim();
+		for (int i = 0; i < array.length; i++){
+			if (array[i].equals(element)){
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	/****************** string operation *********************************/
+	/**
+	 * This function removes all unneeded spaces between words in a string,
+	 * which means there will be only 1 space between words
+	 * 
+	 * @param content
+	 *            content of the String
+	 * @return the after-processed string
+	 */
+	static String removeUnneededSpaces(String content) {
+		String[] words = Common.splitBySpace(content);
+		String result = "";
+		for (int i = 0; i < words.length; i++){
+			result += words[i] + " ";
+		}
+
+		return result.trim();
+	}
+	
 	static String getLastWord(String commandString) {
 		String[] stringArray = commandString.trim().split("\\s+");
 		return stringArray[stringArray.length - 1];

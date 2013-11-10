@@ -813,6 +813,7 @@ public class Control extends Application {
 		return executeCommand("search today");
 	}
 	
+	
 	/**
 	 * CLEAR command execution
 	 */
@@ -994,8 +995,8 @@ public class Control extends Application {
 						try {
 							syncThread = new SyncCommand(model, sync, view,
 									taskFile);
-							if (syncThread.feedback != null
-									&& syncThread.feedback
+							if (syncThread.getFeedback() != null
+									&& syncThread.getFeedback()
 											.equals(Common.MESSAGE_SYNC_INVALID_USERNAME_PASSWORD)) {
 								executeSettingsCommand(
 										CALL_SETTINGS_FROM_SYNC);
@@ -1018,7 +1019,7 @@ public class Control extends Application {
 		if (!isUnderSyncingProcess()){
 			syncThread = new SyncCommand(model, sync, view,
 					taskFile);
-			if(syncThread.feedback != null && syncThread.feedback.equals(Common.MESSAGE_SYNC_INVALID_USERNAME_PASSWORD)){
+			if(syncThread.getFeedback() != null && syncThread.getFeedback().equals(Common.MESSAGE_SYNC_INVALID_USERNAME_PASSWORD)){
 				executeSettingsCommand(CALL_SETTINGS_FROM_SYNC);
 			}
 		}
@@ -1096,6 +1097,8 @@ public class Control extends Application {
 				|| feedback.equals(Common.MESSAGE_SUCCESSFUL_SETTINGS)
 				|| feedback.equals(Common.MESSAGE_SYNC_SUCCESSFUL);
 	}
+	
+	/*****************************Timer and update control of system*************************************************/
 	
 	/**
 	 * Initialize the auto sync and update timer 
@@ -1198,7 +1201,7 @@ public class Control extends Application {
 	 * @param list
 	 *            the given list
 	 */
-	public static void updateOverdueLine(ObservableList<Task> list) {
+	private static void updateOverdueLine(ObservableList<Task> list) {
 		boolean hasLastOverdueTask = false;
 		for (int i = list.size() - 1; i >= 0; i--) {
 			list.get(i).setIsLastOverdue(false);

@@ -2230,6 +2230,9 @@ public class View implements HotkeyListener {
 			setFeedbackStyle(0, "<show>", colourScheme[0]);
 			emptyFeedback(1);
 			break;
+		case Common.MESSAGE_CLEAR_ALL_TIP:
+			setFeedbackStyle(0, "<clear>", colourScheme[0]);
+			break;
 		case Common.MESSAGE_SYNC_TIP:
 			setFeedbackStyle(0, "<sync>", colourScheme[0]);
 			emptyFeedback(1);
@@ -2271,19 +2274,23 @@ public class View implements HotkeyListener {
 			setFeedbackWithTaskInfos();
 			break;
 		default:
-			emptyFeedback(0);
-			ArrayList<String> availCommands = getAvailCommands(requestFeedback
-					.trim());
-			for (int i = 0; i < availCommands.size(); i++) {
-				setFeedbackStyle(i + 1, availCommands.get(i), colourScheme[0]);
-			}
-			setFeedbackStyle(0,
-					availCommands.size() > 0 ? "Available commands: "
-							: Common.MESSAGE_REQUEST_COMMAND, colourScheme[1]);
+			displayAvailableCommands(requestFeedback);
 			break;
 		}
 	}
 
+	private void displayAvailableCommands(String requestFeedback) {
+		emptyFeedback(0);
+		ArrayList<String> availCommands = getAvailCommands(requestFeedback
+				.trim());
+		for (int i = 0; i < availCommands.size(); i++) {
+			setFeedbackStyle(i + 1, availCommands.get(i), colourScheme[0]);
+		}
+		setFeedbackStyle(0,
+				availCommands.size() > 0 ? "Available commands: "
+						: Common.MESSAGE_REQUEST_COMMAND, colourScheme[1]);
+	}
+	
 	/**
 	 * Append the content of feedback with available index
 	 */
