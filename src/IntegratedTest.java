@@ -1,12 +1,8 @@
-import static org.junit.Assert.*;
-
-import java.io.IOException;
-
+import static org.junit.Assert.assertTrue;
 import org.junit.BeforeClass;
+import static org.junit.Assert.fail;
+
 import org.junit.Test;
-
-
-
 
 public class IntegratedTest  {
 	

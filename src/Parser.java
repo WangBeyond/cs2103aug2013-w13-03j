@@ -1,3 +1,4 @@
+
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -346,7 +347,7 @@ public class Parser {
 	 */
 	private static String checkForAddCommand(Common.COMMAND_TYPES commandType) {
 		if (isAddCommandType(commandType)){
-			throw new IllegalArgumentException("Invalid command: work information cannot be empty");
+			throw new IllegalArgumentException("Invalid command: work information cannot be empty.");
 		}else{
 			return Common.NULL;
 		}
@@ -398,7 +399,7 @@ public class Parser {
 	private static String[] parseIndexCommand(String content, int tabIndex, Model model) {
 		try {
 			return parseCommandWithIndex(content);
-		} catch (Exception e) {
+		} catch (NumberFormatException e) {
 			return convertInfosIntoIndices(tabIndex, model);
 		} 
 	}
@@ -1257,13 +1258,13 @@ public class Parser {
 
 	private static boolean isMarkCommand(String commandTypeString) {
 		boolean isMark = commandTypeString.equalsIgnoreCase("mark") 
-				||commandTypeString.equalsIgnoreCase("hightlight") ;
+				||commandTypeString.equalsIgnoreCase("highlight") ;
 		return isMark;
 	}
 
 	private static boolean isUnmarkCommand(String commandTypeString) {
 		boolean isUnMark = commandTypeString.equalsIgnoreCase("unmark") 
-				||commandTypeString.equalsIgnoreCase("unhightlight") ;
+				||commandTypeString.equalsIgnoreCase("unhighlight") ;
 		return isUnMark;
 	}
 

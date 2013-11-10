@@ -1,3 +1,4 @@
+
 import java.awt.TrayIcon.MessageType;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -42,7 +43,7 @@ public class Control extends Application {
 	// History keep track of previous commands
 	private History commandHistory = new History();
 	// View in the application, providing the GUI
-	private static View view;
+	private View view;
 	// Storages
 	private Storage taskFile;
 	private Storage settingStore;
@@ -1234,7 +1235,7 @@ public class Control extends Application {
 		}
 	}
 	
-	public static View getView() {
+	public View getView() {
 		return view;
 	}
 	

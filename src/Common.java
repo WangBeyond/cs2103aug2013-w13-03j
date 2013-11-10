@@ -1,4 +1,3 @@
-import java.io.IOException;
 import java.util.Collections;
 
 import javafx.collections.ObservableList;
