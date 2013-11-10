@@ -26,14 +26,12 @@ import javafx.stage.StageStyle;
  * This class provides the main graphic user interface for the Login panel.
  * 
  */
-//@author A0100927M
 public class Login {
 
 	private static final boolean STORE_SUCCESSFUL = true;
 	private static final boolean STORE_FAIL = false;
 	
 	private final KeyCombination saveInput = new KeyCodeCombination(KeyCode.ENTER);
-	private final KeyCombination cancelLogin = new KeyCodeCombination(KeyCode.ESCAPE);
 	
 	private static Login oneLoginPage;
 	private Model model;
@@ -49,12 +47,14 @@ public class Login {
 	private PasswordField pwBox;
 	private PasswordField pwRetypeBox;
 	
+
 	/**
 	 * This is the constructor for class Login. 
 	 * 
 	 * @param model
 	 *            model of lists of tasks
 	 */
+	//@author A0100927M
 	private Login(Model model){
 		initializeModel(model);
 		setupStage();
@@ -72,6 +72,7 @@ public class Login {
 	 *            model of lists of tasks
 	 * @return the instance of Login
 	 */
+	//@author A0100927M
 	public static Login getInstanceLogin(Model model){
 		if (oneLoginPage == null){
 			oneLoginPage = new Login(model);
@@ -80,6 +81,7 @@ public class Login {
 	}
 	
 	// shows the Login page
+	//@author A0100927M
 	public void showLoginPage(){
 		loginStage.showAndWait();
 	}
@@ -91,11 +93,13 @@ public class Login {
 	 * @param model
 	 *            model of lists of tasks
 	 */
+	//@author A0100927M
 	private void initializeModel(Model model){
 		this.model = model;
 	}
 	
 	// set up the stage for the Login page
+	//@author A0100927M
 	private void setupStage(){
 		loginStage = new Stage();
 		loginStage.initStyle(StageStyle.UNDECORATED);
@@ -112,6 +116,7 @@ public class Login {
 	}
 	
 	// set up the form to fill in details
+	//@author A0100927M
 	private void setupForm(){
 		grid = new GridPane();
 		grid.setAlignment(Pos.CENTER_LEFT);
@@ -122,6 +127,7 @@ public class Login {
 	}
 	
 	// create the scene of the stage
+	//@author A0100927M
 	private void setupScene(){
 		root = new Group();
 		root.getChildren().add(setupBackground());
@@ -134,10 +140,11 @@ public class Login {
 	}
 	
 	// create shortcut keys for Login page
+	//@author A0100927M
 	private void setupShortcuts(){
 		root.setOnKeyPressed(new EventHandler<KeyEvent>(){
 			public void handle(KeyEvent e) {
-				if (cancelLogin.match(e)) {
+				if (Common.esc.match(e)) {
 					loginStage.close();
 				} else if (saveInput.match(e)){
 					if (storeUserInfo()){
@@ -149,6 +156,7 @@ public class Login {
 	}
 	
 	// set up draggable
+	//@author A0100927M
 	private void setupDraggable() {
 		root.setOnMousePressed(new EventHandler<MouseEvent>() {
 			@Override
@@ -168,6 +176,7 @@ public class Login {
 	}
 	
 	// set up all buttons on login page
+	//@author A0100927M
 	private void setupButtons(){
 		buttons = new Group();
 		buttons.getChildren().add(setupSaveButton());
@@ -177,6 +186,7 @@ public class Login {
 	}
 	
 	// set up all textfields on login page
+	//@author A0100927M
 	private void setupTextfields(){
 		setupUserTextfield();
 		setupPasswordTextfield();
@@ -185,6 +195,7 @@ public class Login {
 	
 	/************************** sets up the individual Textfields ****************************/
 	// set up the Google account textfield
+	//@author A0100927M
 	private void setupUserTextfield(){
 		Label googleAccount = new Label("Google account:");
 		grid.add(googleAccount, 0, 1);
@@ -195,6 +206,7 @@ public class Login {
 	}
 	
 	// set up the Password textfield
+	//@author A0100927M
 	private void setupPasswordTextfield(){
 		Label pw = new Label("Password:");
 		grid.add(pw, 0, 2);
@@ -203,6 +215,7 @@ public class Login {
 	}
 	
 	// set up the Password Retype textfield
+	//@author A0100927M
 	private void setupPasswordRetypeTextfield(){
 		Label pwRetype = new Label("Retype password:");
 		grid.add(pwRetype, 0, 3);
@@ -217,6 +230,7 @@ public class Login {
 	 * @return saveButton
 	 *            button to save user info
 	 */
+	//@author A0100927M
 	private Button setupSaveButton(){
 		Button saveButton = new Button("");
 		saveButton.setId("save");
@@ -238,6 +252,7 @@ public class Login {
 	 * @return cancelButton
 	 *            button to exit
 	 */
+	//@author A0100927M
 	private Button setupExitButton(){
 		Button cancelButton = new Button("");
 		cancelButton.setId("esc");
@@ -260,6 +275,7 @@ public class Login {
 	 * @return loginBg
 	 *            image of the Login background
 	 */
+	//@author A0100927M
 	private ImageView setupBackground(){
 		Image loginImage = new Image(getClass().getResourceAsStream("login.png"));
 		ImageView loginBg = new ImageView();
@@ -274,11 +290,12 @@ public class Login {
 	
 	/************************** stores user info from Login ****************************/
 	/**
-	 * This sets up the login image as the background of the stage
+	 * This stores the user information from user input textfields
 	 * 
 	 * @return boolean
 	 *            determines if the storing of user info was successful
 	 */
+	//@author A0105667B
 	private boolean storeUserInfo(){
 		String account = googleAccountTextfield.getText();
 		String pw = pwBox.getText();

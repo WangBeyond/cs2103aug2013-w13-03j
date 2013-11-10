@@ -5,7 +5,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 
-
+//@author A0105667B
 public class Common {
 	/***********************************Command Types **************************************************/
 	static enum COMMAND_TYPES {
