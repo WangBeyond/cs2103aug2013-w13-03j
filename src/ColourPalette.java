@@ -9,7 +9,7 @@ import javafx.scene.paint.Color;
  * This class provides static colours for the GUI in View.
  * 
  */
-//@Ko Wan Ling A0100927M
+//@author A0100927M
 public class ColourPalette {
 	
 	/********************************* Colours for javafx **************************************/
