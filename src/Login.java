@@ -26,10 +26,9 @@ import javafx.stage.StageStyle;
  * This class provides the main graphic user interface for the Login panel.
  * 
  */
-//@Ko Wan Ling A0100927M
+//@author A0100927M
 public class Login {
-	public static final String MESSAGE_PASSWORDS_MATCH_FAIL = "Passwords do not match!";
-	
+
 	private static final boolean STORE_SUCCESSFUL = true;
 	private static final boolean STORE_FAIL = false;
 	
@@ -292,7 +291,7 @@ public class Login {
 				return STORE_SUCCESSFUL;
 			} else {
 				pwRetypeBox.clear();
-				pwRetypeBox.setPromptText(MESSAGE_PASSWORDS_MATCH_FAIL);
+				pwRetypeBox.setPromptText(Common.MESSAGE_PASSWORDS_MATCH_FAIL);
 			}
 		}
 		return STORE_FAIL;
