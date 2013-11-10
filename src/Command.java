@@ -11,6 +11,7 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
+//@author A0098077N
 /****************************************** Abstract Class Command ***************************/
 public abstract class Command {
 	protected static final String SPARSE_DAY_RECURRING_REGEX = "(every)\\s*(\\d+)\\s*(mondays?|tuesdays?|wednesdays?|thursdays?|fridays?|saturdays?|sundays?)";
@@ -525,6 +526,7 @@ class AddCommand extends TwoWayCommand {
 		createdTask.setEndDate(endDate);
 	}
 	
+	//@author A0100927M
 	/**
 	 * Undo the ADD command
 	 */
@@ -537,6 +539,7 @@ class AddCommand extends TwoWayCommand {
 		return Common.MESSAGE_SUCCESSFUL_UNDO;
 	}
 	
+	//@author A0098077N
 	/**
 	 * Redo the ADD command
 	 */
@@ -829,6 +832,7 @@ class EditCommand extends TwoWayCommand {
 		}
 	}
 	
+	//@author A0100927M
 	/**
 	 * Memorize the initial state of the edited task
 	 */
@@ -863,6 +867,7 @@ class EditCommand extends TwoWayCommand {
 		targetTask.setOccurrence(editedTask.getNumOccurrences(), editedTask.getCurrentOccurrence());
 	}
 	
+	//@author A0105667B
 	/**
 	 * This function is used to process the repeating info of target task.
 	 * Then it updates these infos for the edited task.
@@ -884,6 +889,7 @@ class EditCommand extends TwoWayCommand {
 			editedTask.setNumOccurrences(0);
 	}
 	
+	//@author A0100927M
 	/**
 	 * Undo EDIT command
 	 */
@@ -903,6 +909,7 @@ class EditCommand extends TwoWayCommand {
 		return Common.MESSAGE_SUCCESSFUL_UNDO;
 	}
 	
+	//@author A0098077N
 	/**
 	 * Redo EDIT command
 	 */
@@ -990,6 +997,7 @@ class RemoveCommand extends IndexCommand {
 		Common.sortList(model.getTrashList());
 	}
 	
+	//@author A0100927M
 	/**
 	 * Undo the REMOVE command
 	 */
@@ -1014,6 +1022,7 @@ class RemoveCommand extends IndexCommand {
 		}
 	}
 	
+	//@author A0098077N
 	/**
 	 * Redo the REMOVE command
 	 */
@@ -1025,6 +1034,7 @@ class RemoveCommand extends IndexCommand {
 	}
 }
 
+//@author A0100927M
 /**
  * 
  * Class ClearAllCommand. This class executes command to clear all tasks in a list.
@@ -1078,7 +1088,7 @@ class ClearAllCommand extends IndexCommand {
 			originalTrashTasks[i] = model.getTaskFromTrash(i);
 		}
 	}
-	
+
 	/**
 	 * This is the main function for the clearing process
 	 */
@@ -1113,7 +1123,7 @@ class ClearAllCommand extends IndexCommand {
 		Common.sortList(model.getTrashList());
 		return Common.MESSAGE_SUCCESSFUL_UNDO;
 	}
-	
+
 	/**
 	 * This function resets the list of tasks in trash tab back to its original state
 	 */
@@ -1145,6 +1155,7 @@ class ClearAllCommand extends IndexCommand {
 		Common.sortList(model.getPendingList());
 	}
 	
+	//@author A0098077N
 	/**
 	 * Redo CLEAR command
 	 */
@@ -1154,6 +1165,7 @@ class ClearAllCommand extends IndexCommand {
 	}
 }
 
+//@author A0100927M
 /**
  * 
  * Class CompleteCommand. This class executes command to complete a list of given indices.
@@ -1214,6 +1226,7 @@ class CompleteCommand extends IndexCommand {
 		sortInvolvedLists();
 	}
 	
+	//@author A0098077N
 	/**
 	 * Sort the 2 lists which are involved in this process
 	 */
@@ -1222,6 +1235,7 @@ class CompleteCommand extends IndexCommand {
 		Common.sortList(model.getCompleteList());
 	}
 	
+	//@author A0100927M
 	/**
 	 * Get the indices of these tasks after they move to the complete list
 	 */
@@ -1232,6 +1246,7 @@ class CompleteCommand extends IndexCommand {
 		Arrays.sort(indexInCompleteList);
 	}
 	
+	//@author A0098077N
 	/**
 	 * Check whether the current tab is suitable for the COMPLETE command
 	 */
@@ -1241,6 +1256,7 @@ class CompleteCommand extends IndexCommand {
 		}
 	}
 	
+	//@author A0100927M
 	/**
 	 * Undo COMPLETE command
 	 */
@@ -1256,6 +1272,7 @@ class CompleteCommand extends IndexCommand {
 		return Common.MESSAGE_SUCCESSFUL_UNDO;
 	}
 	
+	//@author A0098077N
 	/**
 	 * Redo COMPLETE command
 	 */
@@ -1267,6 +1284,7 @@ class CompleteCommand extends IndexCommand {
 	}
 }
 
+//@author A0100927M
 /**
  * 
  * Class IncompleteCommand
@@ -1329,6 +1347,7 @@ class IncompleteCommand extends IndexCommand {
 		sortInvolvedLists();
 	}
 	
+	//@author A0098077N
 	/**
 	 * This function is used to sort the involved lists in the process
 	 */
@@ -1337,6 +1356,7 @@ class IncompleteCommand extends IndexCommand {
 		Common.sortList(model.getCompleteList());
 	}
 	
+	//@author A0100927M
 	/**
 	 * This function is used to get the indices of these tasks in pending list after processing
 	 */
@@ -1348,6 +1368,7 @@ class IncompleteCommand extends IndexCommand {
 		Arrays.sort(indexInIncompleteList);
 	}
 	
+	//@author A0098077N
 	/**
 	 * Check whether the current tab is suitable for executing INCOMPLETE commmand
 	 */
@@ -1357,6 +1378,7 @@ class IncompleteCommand extends IndexCommand {
 		}
 	}
 	
+	//@author A0100927M
 	/**
 	 * Undo for INCOMPLETE command
 	 */
@@ -1372,6 +1394,7 @@ class IncompleteCommand extends IndexCommand {
 		return Common.MESSAGE_SUCCESSFUL_UNDO;
 	}
 	
+	//@author A0098077N
 	/**
 	 * Redo for INCOMPLETE command
 	 */
@@ -1383,6 +1406,7 @@ class IncompleteCommand extends IndexCommand {
 	}
 }
 
+//@author A0098077N
 /**
  * 
  * Class RecoverCommand. This class executes command to recover tasks in trash list.
@@ -1499,6 +1523,7 @@ class RecoverCommand extends IndexCommand {
 	}
 }
 
+//@author A0100927M
 /**
  * 
  * Class MarkCommand. This class executes command to mark a list of indices as important
@@ -1551,6 +1576,7 @@ class MarkCommand extends IndexCommand {
 		return Common.MESSAGE_SUCCESSFUL_UNDO;
 	}
 	
+	//@author A0098077N
 	/**
 	 * Redo MARK command
 	 */
@@ -1565,6 +1591,7 @@ class MarkCommand extends IndexCommand {
 	}
 }
 
+//@author A0100927M
 /**
  * 
  * Class UnmarkCommand. This class executes command to unmark a list of indices in the list
@@ -1616,6 +1643,7 @@ class UnmarkCommand extends IndexCommand {
 		return Common.MESSAGE_SUCCESSFUL_UNDO;
 	}
 	
+	//@author A0098077N
 	/**
 	 * Redo UNMARK command
 	 */
@@ -1630,7 +1658,7 @@ class UnmarkCommand extends IndexCommand {
 	}
 }
 
-
+//@author A0105667B
 /**********************************Subclass of Commnand**********************************************/
 
 /**
@@ -2056,6 +2084,7 @@ class SearchCommand extends Command {
 	}
 }
 
+//@author A0098077N
 /**
  * 
  * Class ShowAllCommand. This class executes command to show all tasks in the list
@@ -2101,6 +2130,7 @@ class ShowAllCommand extends Command {
 	}
 }
 
+//@author A0100927M
 /**
  * 
  * Class HelpCommand. This class execute command to show the help window.
@@ -2168,6 +2198,8 @@ class SettingsCommand extends Command {
 	}
 }
 
+//TODO: zijian's part?
+//@author A0105523
 /**
  * 
  * Class SyncCommand. This class executes command to sync with the Google Calendar in a concurrent thread.
