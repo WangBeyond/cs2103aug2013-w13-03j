@@ -2,12 +2,12 @@ import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+//@author A0100927M
 /**
  * 
  * History class: This class stores and retrieves past commands.
  * 
  */
-//@author A0100927M
 class History {
 	private static Logger log = Logger.getLogger("History");
 	private Stack<TwoWayCommand> prevCommandsForUndo;
@@ -31,15 +31,17 @@ class History {
 	public boolean isUndoable() {
 		return undoable;
 	}
-
+	
 	public boolean isRedoable() {
 		return redoable;
 	}
 	
+	//@author A0105667B
 	public boolean isAfterSearch() {
 		return isOperatedAfterSearch;
 	}
 	
+	//@author A0100927M
 	public TwoWayCommand getPrevCommandForUndo() {
 		assert undoable == true;
 		TwoWayCommand previousCommand = prevCommandsForUndo.pop();
@@ -73,10 +75,12 @@ class History {
 		this.redoable = redoable;
 	}
 	
+	//@author A0105667B
 	public void setIsAfterSearch(boolean isAfter) {
 		isOperatedAfterSearch = isAfter;
 	}
 
+	//@author A0100927M
 	/************************ UPDATE Functions **********************************/
 	// update with most recent TwoWayCommand without prior searching
 	public void updateCommand(TwoWayCommand newCommand) {
@@ -89,6 +93,7 @@ class History {
 		redoable = false;
 	}
 	
+	//@author A0105667B
 	// update with most recent TwoWayCommand with prior searching
 	public void updateCommand(TwoWayCommand newCommand,boolean isAfter) {
 		prevCommandsForUndo.push(newCommand);

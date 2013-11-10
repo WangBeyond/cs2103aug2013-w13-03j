@@ -30,6 +30,7 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
+//@author A0100927M
 /**
  * 
  * This class provides the main graphic user interface for the Settings panel.
@@ -71,7 +72,6 @@ public class Settings {
 	 * @param model
 	 *            model of lists of tasks
 	 */
-	//@author A0100927M
 	private Settings(Model model) {
 		initializeKeyVariables(model);
 		setupStage();
@@ -82,12 +82,13 @@ public class Settings {
 		setupDraggable();
 	}
 	
-	// returns the settings stage
 	//@author A0098077N
+	// returns the settings stage
 	public Stage getSettingsStage() {
 		return settingsStage;
 	}
 
+	//@author A0100927M
 	/**
 	 * This creates one instance of Settings
 	 * 
@@ -95,7 +96,6 @@ public class Settings {
 	 *            model of lists of tasks
 	 * @return the instance of Settings
 	 */
-	//@author A0100927M
 	public static Settings getInstanceSettings(Model model) {
 		if (oneSettingsPage == null) {
 			oneSettingsPage = new Settings(model);
@@ -109,7 +109,6 @@ public class Settings {
 	 * @param checkUsernamePassword
 	 *            String that determines which error message to show
 	 */
-	//@author A0100927M
 	public void showSettingsPage(String checkUsernamePassword) {
 		showTextFields();
 		showErrorTexts(checkUsernamePassword);
@@ -127,13 +126,11 @@ public class Settings {
 	 * @param model
 	 *            model of lists of tasks
 	 */
-	//@author A0100927M
 	private void initializeKeyVariables(Model model){
 		this.model = model;
 	}
 	
 	// set up the stage for Settings
-	//@author A0100927M
 	private void setupStage() {
 		settingsStage = new Stage();
 		settingsStage.initStyle(StageStyle.UNDECORATED);
@@ -152,7 +149,6 @@ public class Settings {
 	}
 	
 	// set up the all content in Settings 
-	//@author A0100927M
 	private void setupContent() {
 		setupGrid();
 		setupTextfields();
@@ -164,7 +160,6 @@ public class Settings {
 	}
 	
 	// set up the scene for Settings stage
-	//@author A0100927M
 	private void setupScene() {
 		root = new Group();
 		root.getChildren().add(setupBackground());
@@ -177,7 +172,6 @@ public class Settings {
 	}
 	
 	// set up all Buttons
-	//@author A0100927M
 	private void setupButtons() {
 		buttons = new Group();
 		buttons.getChildren().add(setupSaveButton());
@@ -187,7 +181,6 @@ public class Settings {
 	}
 	
 	// set up shortcut keys
-	//@author A0100927M
 	private void setupShortcuts() {
 		root.setOnKeyPressed(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent e) {
@@ -203,7 +196,6 @@ public class Settings {
 	}
 
 	// set up draggable
-	//@author A0100927M
 	private void setupDraggable() {
 		root.setOnMousePressed(new EventHandler<MouseEvent>() {
 			@Override
@@ -223,7 +215,6 @@ public class Settings {
 	
 	/************************** individual methods to show Settings fields ****************************/
 	// shows the Google account and password in their respective textfields
-	//@author A0100927M
 	private void showTextFields(){
 		googleAccountTextfield.setText(model.getUsername());
 		pwBox.setText(model.getPassword());
@@ -236,7 +227,6 @@ public class Settings {
 	 * @param checkUsernamePassword
 	 *            String that determines which error message to show
 	 */
-	//@author A0100927M	
 	private void showErrorTexts(String checkUsernamePassword){
 		if (checkUsernamePassword.equals(Control.CALL_NORMAL_SETTINGS)){
 			invalidUsername.setVisible(false);
@@ -253,8 +243,8 @@ public class Settings {
 		}
 	}
 	
-	// shows the selected Radiobutton based on current time display settings 
 	//@author A0098077N
+	// shows the selected Radiobutton based on current time display settings 
 	private void showTimeDisplay(){
 		if (model.doDisplayRemaining()){
 			remaining.setSelected(true);
@@ -264,7 +254,6 @@ public class Settings {
 	}
 	
 	// shows the theme mode and selected Radiobutton based on current theme mode 
-	//@author A0098077N
 	private void showThemeMode(){
 		if (model.getThemeMode().equals(Common.DAY_MODE)) {
 			dayMode.setSelected(true);
@@ -287,7 +276,6 @@ public class Settings {
 	}
 	
 	// shows the selected Combobox based on current colour scheme 
-	//@author A0098077N
 	private void showColourScheme(){
 		if (model.getColourScheme() != null){
 			colourSchemes.setValue(model.getColourScheme());
@@ -295,7 +283,6 @@ public class Settings {
 	}
 	
 	// shows the selected Radiobutton and time period Textfield based on current sync settings
-	//@author A0098077N
 	private void showSyncMode(){
 		if (model.hasAutoSync() == true) {
 			autoSync.setSelected(true);
@@ -305,10 +292,9 @@ public class Settings {
 		syncPeriodTextfield.setText(String.valueOf(model.getSyncPeriod()));
 	}
 			
-		
+	//@author A0100927M
 	/************************** sets up individual content fields ****************************/
 	// set up the grid
-	//@author A0100927M
 	private void setupGrid(){
 		grid = new GridPane();
 		grid.setAlignment(Pos.CENTER_LEFT);
@@ -318,7 +304,6 @@ public class Settings {
 	}	
 	
 	// set up the text fields
-	//@author A0100927M
 	private void setupTextfields() {
 		setupUserTextfield();
 		setupPasswordTextfield();
@@ -327,7 +312,6 @@ public class Settings {
 	}
 
 	// set up the error messages
-	//@author A0100927M
 	private void setupErrorTexts(){
 		invalidUsername = new Text("Account may be invalid.");
 		invalidPassword = new Text("Password may be invalid.");
@@ -347,7 +331,6 @@ public class Settings {
 	}
 	
 	// set up the colour scheme
-	//@author A0100927M
 	private void setupColourScheme() {
 		Label colourScheme = new Label("Colour scheme:");
 		grid.add(colourScheme, 0, 7);
@@ -370,8 +353,8 @@ public class Settings {
 		grid.add(colourSchemes, 1, 7);
 	}
 
-	// set up the time format fields
 	//@author A0105667B
+	// set up the time format fields
 	private void setupTimeFormat() {
 		Label timeFormat = new Label("Time format:");
 		grid.add(timeFormat, 0, 4);
@@ -390,7 +373,6 @@ public class Settings {
 	}
 
 	// set up the theme mode fields
-	//@author A0105667B
 	private void setupThemeMode() {
 		Label themeMode = new Label("Theme mode: ");
 		grid.add(themeMode, 0, 5);
@@ -409,7 +391,6 @@ public class Settings {
 	}
 
 	// set up the sync mode fields
-	//@author A0105667B
 	private void setupSyncMode() {
 		Label syncMode = new Label("Sync mode: ");
 		grid.add(syncMode, 0, 6);
@@ -428,7 +409,6 @@ public class Settings {
 	}
 	
 	// set up the sync period field
-	//@author A0105667B
 	private void setupSyncPeriod(){
 		Label syncPeriod = new Label("Sync period: ");
 		grid.add(syncPeriod, 0, 8);
@@ -469,6 +449,7 @@ public class Settings {
 		grid.add(hb, 1, 8);
 	}
 
+	//@author A0100927M
 	/************************** sets up background image Settings ****************************/
 	/**
 	 * This sets up the settings image as the background of the stage
@@ -476,7 +457,6 @@ public class Settings {
 	 * @return loginBg
 	 *            image of the Settings background
 	 */
-	//@author A0100927M
 	private ImageView setupBackground() {
 		bgImage = new ImageView();
 		bgImage.setFitWidth(600);
@@ -487,6 +467,7 @@ public class Settings {
 		return bgImage;
 	}
 
+	//@author A0105667B
 	/************************** stores user info from Settings ****************************/
 	/**
 	 * This stores the user information from user input textfields
@@ -494,7 +475,6 @@ public class Settings {
 	 * @return boolean
 	 *            determines if the storing of user info was successful
 	 */
-	//@author A0105667B
 	private boolean storeSettingChanges() {
 		boolean successfulChange = STORE_FAIL;
 
@@ -543,9 +523,9 @@ public class Settings {
 		return successfulChange;
 	}
 	
+	//@author A0100927M
 	/************************** sets up the individual Textfields ****************************/
 	// set up the Google account textfield
-	//@author A0100927M
 	private void setupUserTextfield(){
 		Label googleAccount = new Label("Google account:");
 		grid.add(googleAccount, 0, 1);
@@ -556,7 +536,6 @@ public class Settings {
 	}
 	
 	// set up the Password textfield
-	//@author A0100927M
 	private void setupPasswordTextfield(){
 		Label pw = new Label("Password:");
 		grid.add(pw, 0, 2);
@@ -566,7 +545,6 @@ public class Settings {
 	}
 	
 	// set up the Password Retype textfield
-	//@author A0100927M
 	private void setupPasswordRetypeTextfield(){
 		Label pwRetype = new Label("Retype password:");
 		grid.add(pwRetype, 0, 3);
@@ -582,7 +560,6 @@ public class Settings {
 	 * @return saveButton
 	 *            button to save user info
 	 */
-	//@author A0100927M
 	private Button setupSaveButton() {
 		Button saveButton = new Button("");
 		saveButton.setId("save");
@@ -604,7 +581,6 @@ public class Settings {
 	 * @return cancelButton
 	 *            button to exit
 	 */
-	//@author A0100927M
 	private Button setupExitButton() {
 		Button exitButton = new Button("");
 		exitButton.setId("esc");

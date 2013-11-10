@@ -17,12 +17,12 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
+//@author A0100927M
 /**
  * 
  * This class provides the main graphic user interface for the Help panel.
  * 
  */
-//@author A0100927M
 public class Help{
 	private static Logger log = Logger.getLogger("Help");
 	private final KeyCombination nextPage = new KeyCodeCombination(KeyCode.RIGHT, KeyCombination.CONTROL_DOWN);
