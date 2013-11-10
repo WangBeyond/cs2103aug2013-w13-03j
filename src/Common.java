@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.util.Collections;
 
 import javafx.collections.ObservableList;
@@ -102,8 +103,8 @@ public class Common {
 	static final String POPUP_MESSAGE_END_DATE = "Task \"%1$s\" will end after the next %2$s minutes";
 	
 	/*****************************file name*******************************************/
-	static final String TASK_FILENAME = "task_storage.xml";
-	static final String SETTING_FILENAME = "setting_storage.xml";
+	static String TASK_FILENAME = "task_storage.xml";
+	static String SETTING_FILENAME = "setting_storage.xml";
 	
 	/******************************symbols *****************************************/
 	static final String TRUE = "true";
@@ -186,6 +187,11 @@ public class Common {
 		}
 		return false;
 	}
+	
+	static void changeTaskFile(String fileName) {
+		TASK_FILENAME = fileName;
+	}
+	
 	
 	/****************** string operation *********************************/
 	/**

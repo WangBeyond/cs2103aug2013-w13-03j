@@ -13,6 +13,7 @@ import org.jdom2.output.XMLOutputter;
 import org.jdom2.input.SAXBuilder;
 import org.jdom2.JDOMException;
 
+//@author A0105667B
 public class TaskStorage extends Storage {
 	private static final String INDEXID = "indexID";
 	private static final String WORK_INFO ="workInfo";
@@ -32,10 +33,10 @@ public class TaskStorage extends Storage {
 	private static final String ADDED_WHEN_SYNC = "added_when_sync";
 	private static final String DELETED_WHEN_SYNC = "deleted_when_sync";
 	
-	private static final String PENDING = "pending";
-	private static final String COMPLETE = "complete";
-	private static final  String TRASH = "trash";
-	private static final String UNDO_BUFFER = "undo_buffer";
+	static final String PENDING = "pending";
+	static final String COMPLETE = "complete";
+	static final  String TRASH = "trash";
+	static final String UNDO_BUFFER = "undo_buffer";
 
 	private static Logger log = Logger.getLogger("TaskStorage");
 	
@@ -107,6 +108,76 @@ public class TaskStorage extends Storage {
 		  }
 	}
 	
+	boolean checkTaskListEmptyForTest(String taskListType) throws IOException{
+		SAXBuilder builder = new SAXBuilder();
+		try {//retrive the elements
+			Document doc = (Document) builder.build(xmlFile);
+			Element rootNode = doc.getRootElement();
+			if (taskListType.equals(PENDING)) {
+				Element pending = rootNode.getChild(PENDING);
+				return pending.getChildren().isEmpty();
+			} else if (taskListType.equals(COMPLETE)) {
+				Element complete = rootNode.getChild(COMPLETE);
+				return complete.getChildren().isEmpty();
+			} else if (taskListType.equals(TRASH)) {
+				Element trash = rootNode.getChild(TRASH);
+				return trash.getChildren().isEmpty();
+			} else if (taskListType.equals(UNDO_BUFFER)) {
+				Element undoBuffer = rootNode.getChild(UNDO_BUFFER);
+				return undoBuffer.getChildren().isEmpty();
+			} else {
+				return false;
+			}
+		} catch (IOException io) {
+			throw io;
+		  } catch (JDOMException jdomex) {
+			log.log(Level.WARNING, jdomex.getMessage());
+			return false;
+		  }
+	}
+	
+	boolean searchTaskInFileForTest(Task task, String taskListType) throws IOException {
+		SAXBuilder builder = new SAXBuilder();
+		try {//retrive the elements
+			Document doc = (Document) builder.build(xmlFile);
+			Element rootNode = doc.getRootElement();
+			if (taskListType.equals(PENDING)) {
+				Element pending = rootNode.getChild(PENDING);
+				return searchTaskInElement(pending, task);
+			} else if (taskListType.equals(COMPLETE)) {
+				Element complete = rootNode.getChild(COMPLETE);
+				return searchTaskInElement(complete,task);
+			} else if (taskListType.equals(TRASH)) {
+				Element trash = rootNode.getChild(TRASH);
+				return searchTaskInElement(trash, task);
+			} else if (taskListType.equals(UNDO_BUFFER)) {
+				Element undoBuffer = rootNode.getChild(UNDO_BUFFER);
+				return searchTaskInElement(undoBuffer, task);
+			} else {
+				return false;
+			}
+		} catch (IOException io) {
+			throw io;
+		  } catch (JDOMException jdomex) {
+			log.log(Level.WARNING, jdomex.getMessage());
+			return false;
+		  }
+	}
+
+	private boolean searchTaskInElement(Element element, Task task)
+			 {
+		List<Element> taskList = element.getChildren();
+		for(int i = 0; i<taskList.size();i++) {
+			Task newTask = new Task();
+			Element targetElement = taskList.get(i);
+			newTask = setTaskInfo(newTask, targetElement);
+			if(Task.equalTask(newTask,task)) {
+				System.out.println(task.getEndDateString()+" "+newTask.getEndDateString());
+				return true;
+			}
+		}
+		return false;
+	}
 
 /**********************************Generate tasks from XML file and add them to model **************************/
 	

@@ -2346,6 +2346,14 @@ public class View implements HotkeyListener {
 		setFeedbackStyle(5, "<#tag>", colourScheme[5]);
 		emptyFeedback(6);
 	}
+	
+	public String getFeedback() {
+		String feedbackStr = "";
+		for(Text feedback: feedbackList) {
+			feedbackStr += feedback.getText();
+		}
+		return feedbackStr;
+	}
 
 	/**
 	 * Get the list of possible commands by processing the input command from

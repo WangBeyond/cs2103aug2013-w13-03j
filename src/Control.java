@@ -42,7 +42,7 @@ public class Control extends Application {
 	// History keep track of previous commands
 	private History commandHistory = new History();
 	// View in the application, providing the GUI
-	private View view;
+	private static View view;
 	// Storages
 	private Storage taskFile;
 	private Storage settingStore;
@@ -51,7 +51,8 @@ public class Control extends Application {
 	private Synchronization sync = new Synchronization(model);
 	// Timer for auto sync
 	private Timer syncTimer;
-	
+	//tabIndex for test cases to modify
+	private int tabIndexTest = 0;
 	
 	/**
 	 * Main Function of the application
@@ -71,7 +72,7 @@ public class Control extends Application {
 	/**
 	 * Load the data from storage files
 	 */
-	private void loadData() {
+	void loadData() {
 		try {
 			loadTask();
 			loadSettings();
@@ -608,7 +609,7 @@ public class Control extends Application {
 	 *            the command input from the user
 	 * @return the corresponding feedback according to the command
 	 */
-	private String executeCommand(String userCommand) {
+	String executeCommand(String userCommand) {
 		boolean isEmptyCommand = Parser.checkEmptyCommand(userCommand);
 		if (isEmptyCommand) {
 			return Common.MESSAGE_EMPTY_COMMAND;
@@ -626,10 +627,14 @@ public class Control extends Application {
 
 	private int getTabIndex() {
 		if(view == null){
-			return 0;
+			return tabIndexTest;
 		}
 		int tabIndex = view.getTabIndex();
 		return tabIndex;
+	}
+	
+	void setTabForTest(int tabIndex) {
+		tabIndexTest = tabIndex;
 	}
 	
 	/**
@@ -717,7 +722,9 @@ public class Control extends Application {
 		if (feedback.equals(Common.MESSAGE_SUCCESSFUL_ADD)) {
 			commandHistory.updateCommand((TwoWayCommand) addCommand);
 			storeTask();
-			view.setTab(Common.PENDING_TAB);
+			if(view != null) {
+				view.setTab(Common.PENDING_TAB);
+			}
 			executeShowCommand();
 		}
 		return feedback;
@@ -1225,5 +1232,13 @@ public class Control extends Application {
 				hasLastOverdueTask = true;
 			}
 		}
+	}
+	
+	public static View getView() {
+		return view;
+	}
+	
+	public Storage getTaskFile() {
+		return taskFile;
 	}
 }

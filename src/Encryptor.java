@@ -1,6 +1,7 @@
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
+//@A0105667B
 public class Encryptor {
 	
 	//Key generator source

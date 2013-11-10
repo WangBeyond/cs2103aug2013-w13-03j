@@ -1,6 +1,8 @@
 import java.io.File;
 import java.io.IOException;
 
+//@author A0105667B
+
 public abstract class Storage {
 	
 	protected final static boolean DONE_READING = true;
@@ -62,5 +64,14 @@ public abstract class Storage {
 				System.out.println("Cannot create the text file");
 			}
 		}
+	}
+	
+	/**********************methods for test**********************/
+	boolean searchTaskInFileForTest(Task task, String taskListType) throws IOException {
+		return false;
+	}
+	
+	boolean checkTaskListEmptyForTest(String taskListType) throws IOException{
+		return false;
 	}
 }
