@@ -21,12 +21,17 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
-
+/**
+ * 
+ * This class provides the main graphic user interface for the Login panel.
+ * 
+ */
+//@Ko Wan Ling A0100927M
 public class Login {
-	static final String MESSAGE_PASSWORDS_MATCH_FAIL = "Passwords do not match!";
+	public static final String MESSAGE_PASSWORDS_MATCH_FAIL = "Passwords do not match!";
 	
-	static final boolean STORE_SUCCESSFUL = true;
-	static final boolean STORE_FAIL = false;
+	private static final boolean STORE_SUCCESSFUL = true;
+	private static final boolean STORE_FAIL = false;
 	
 	private final KeyCombination saveInput = new KeyCodeCombination(KeyCode.ENTER);
 	private final KeyCombination cancelLogin = new KeyCodeCombination(KeyCode.ESCAPE);
@@ -45,6 +50,12 @@ public class Login {
 	private PasswordField pwBox;
 	private PasswordField pwRetypeBox;
 	
+	/**
+	 * This is the constructor for class Login. 
+	 * 
+	 * @param model
+	 *            model of lists of tasks
+	 */
 	private Login(Model model){
 		initializeModel(model);
 		setupStage();
@@ -55,6 +66,13 @@ public class Login {
 		setupShortcuts();
 	}
 	
+	/**
+	 * This creates one instance of Login
+	 * 
+	 * @param model
+	 *            model of lists of tasks
+	 * @return the instance of Login
+	 */
 	public static Login getInstanceLogin(Model model){
 		if (oneLoginPage == null){
 			oneLoginPage = new Login(model);
@@ -62,14 +80,23 @@ public class Login {
 		return oneLoginPage;
 	}
 	
+	// shows the Login page
 	public void showLoginPage(){
 		loginStage.showAndWait();
 	}
 	
+	/************************** sets up general GUI of Login ****************************/
+	/**
+	 * This initializes the model of lists of tasks
+	 * 
+	 * @param model
+	 *            model of lists of tasks
+	 */
 	private void initializeModel(Model model){
 		this.model = model;
 	}
 	
+	// set up the stage for the Login page
 	private void setupStage(){
 		loginStage = new Stage();
 		loginStage.initStyle(StageStyle.UNDECORATED);
@@ -85,6 +112,7 @@ public class Login {
 						.toExternalForm()));
 	}
 	
+	// set up the form to fill in details
 	private void setupForm(){
 		grid = new GridPane();
 		grid.setAlignment(Pos.CENTER_LEFT);
@@ -94,14 +122,7 @@ public class Login {
 		setupTextfields();
 	}
 	
-	private void setupButtons(){
-		buttons = new Group();
-		buttons.getChildren().add(setupSaveButton());
-		buttons.getChildren().add(setupExitButton());
-		buttons.setLayoutX(340);
-		buttons.setLayoutY(240);
-	}
-	
+	// create the scene of the stage
 	private void setupScene(){
 		root = new Group();
 		root.getChildren().add(setupBackground());
@@ -113,87 +134,7 @@ public class Login {
 		loginStage.setScene(loginScene);
 	}
 	
-	private void setupTextfields(){
-		Label googleAccount = new Label("Google account:");
-		grid.add(googleAccount, 0, 1);
-		googleAccountTextfield = new TextField();
-		googleAccountTextfield.requestFocus();
-		googleAccountTextfield.setId("input");
-		grid.add(googleAccountTextfield, 1, 1);
-
-		Label pw = new Label("Password:");
-		grid.add(pw, 0, 2);
-		pwBox = new PasswordField();
-		grid.add(pwBox, 1, 2);
-		
-		Label pwRetype = new Label("Retype password:");
-		grid.add(pwRetype, 0, 3);
-		pwRetypeBox = new PasswordField();
-		grid.add(pwRetypeBox, 1, 3);
-	}
-	
-	private Button setupSaveButton(){
-		Button saveButton = new Button("");
-		saveButton.setId("save");
-		saveButton.setPrefSize(76, 42);
-		saveButton.setTranslateX(-95);
-		saveButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
-			public void handle(MouseEvent e) {
-				if (storeUserInfo()){
-					loginStage.close();
-				} 
-			}
-		});
-		
-		return saveButton;
-	}
-	
-	private Button setupExitButton(){
-		Button cancelButton = new Button("");
-		cancelButton.setId("esc");
-		cancelButton.setPrefSize(42, 42);
-		cancelButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
-			public void handle(MouseEvent e) {
-				loginStage.close();
-				if (storeUserInfo()){
-					loginStage.close();
-				}
-			}
-		});
-		
-		return cancelButton;
-	}
-	
-	private ImageView setupBackground(){
-		Image loginImage = new Image(getClass().getResourceAsStream("login.png"));
-		ImageView loginBg = new ImageView();
-		loginBg.setImage(loginImage);
-		loginBg.setFitWidth(415.5);
-		loginBg.setPreserveRatio(true);
-		loginBg.setSmooth(true);
-		loginBg.setCache(true);
-	
-		return loginBg;
-	}
-	
-	private boolean storeUserInfo(){
-		String account = googleAccountTextfield.getText();
-		String pw = pwBox.getText();
-		String pwRetype = pwRetypeBox.getText();
-		
-		if(account != null){
-			if (!pw.equals("") && !pwRetype.equals("") && pw.equals(pwRetype)) {
-				model.setUsername(account);
-				model.setPassword(pw);
-				return STORE_SUCCESSFUL;
-			} else {
-				pwRetypeBox.clear();
-				pwRetypeBox.setPromptText(MESSAGE_PASSWORDS_MATCH_FAIL);
-			}
-		}
-		return STORE_FAIL;
-	}
-	
+	// create shortcut keys for Login page
 	private void setupShortcuts(){
 		root.setOnKeyPressed(new EventHandler<KeyEvent>(){
 			public void handle(KeyEvent e) {
@@ -208,6 +149,7 @@ public class Login {
 		});
 	}
 	
+	// set up draggable
 	private void setupDraggable() {
 		root.setOnMousePressed(new EventHandler<MouseEvent>() {
 			@Override
@@ -224,5 +166,135 @@ public class Login {
 				loginStage.setY(me.getScreenY() - dragAnchorY);
 			}
 		});
+	}
+	
+	// set up all buttons on login page
+	private void setupButtons(){
+		buttons = new Group();
+		buttons.getChildren().add(setupSaveButton());
+		buttons.getChildren().add(setupExitButton());
+		buttons.setLayoutX(340);
+		buttons.setLayoutY(240);
+	}
+	
+	// set up all textfields on login page
+	private void setupTextfields(){
+		setupUserTextfield();
+		setupPasswordTextfield();
+		setupPasswordRetypeTextfield();
+	}
+	
+	/************************** sets up the individual Textfields ****************************/
+	// set up the Google account textfield
+	private void setupUserTextfield(){
+		Label googleAccount = new Label("Google account:");
+		grid.add(googleAccount, 0, 1);
+		googleAccountTextfield = new TextField();
+		googleAccountTextfield.requestFocus();
+		googleAccountTextfield.setId("input");
+		grid.add(googleAccountTextfield, 1, 1);
+	}
+	
+	// set up the Password textfield
+	private void setupPasswordTextfield(){
+		Label pw = new Label("Password:");
+		grid.add(pw, 0, 2);
+		pwBox = new PasswordField();
+		grid.add(pwBox, 1, 2);
+	}
+	
+	// set up the Password Retype textfield
+	private void setupPasswordRetypeTextfield(){
+		Label pwRetype = new Label("Retype password:");
+		grid.add(pwRetype, 0, 3);
+		pwRetypeBox = new PasswordField();
+		grid.add(pwRetypeBox, 1, 3);
+	}
+	
+	/************************** sets up the individual Buttons ****************************/
+	/**
+	 * This sets up the save button
+	 * 
+	 * @return saveButton
+	 *            button to save user info
+	 */
+	private Button setupSaveButton(){
+		Button saveButton = new Button("");
+		saveButton.setId("save");
+		saveButton.setPrefSize(76, 42);
+		saveButton.setTranslateX(-95);
+		saveButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
+			public void handle(MouseEvent e) {
+				if (storeUserInfo()){
+					loginStage.close();
+				} 
+			}
+		});	
+		return saveButton;
+	}
+	
+	/**
+	 * This sets up the exit button
+	 * 
+	 * @return cancelButton
+	 *            button to exit
+	 */
+	private Button setupExitButton(){
+		Button cancelButton = new Button("");
+		cancelButton.setId("esc");
+		cancelButton.setPrefSize(42, 42);
+		cancelButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
+			public void handle(MouseEvent e) {
+				loginStage.close();
+				if (storeUserInfo()){
+					loginStage.close();
+				}
+			}
+		});	
+		return cancelButton;
+	}
+	
+	/************************** sets up background image Login ****************************/
+	/**
+	 * This sets up the login image as the background of the stage
+	 * 
+	 * @return loginBg
+	 *            image of the Login background
+	 */
+	private ImageView setupBackground(){
+		Image loginImage = new Image(getClass().getResourceAsStream("login.png"));
+		ImageView loginBg = new ImageView();
+		loginBg.setImage(loginImage);
+		loginBg.setFitWidth(415.5);
+		loginBg.setPreserveRatio(true);
+		loginBg.setSmooth(true);
+		loginBg.setCache(true);
+	
+		return loginBg;
+	}
+	
+	/************************** stores user info from Login ****************************/
+	/**
+	 * This sets up the login image as the background of the stage
+	 * 
+	 * @return boolean
+	 *            determines if the storing of user info was successful
+	 */
+	private boolean storeUserInfo(){
+		String account = googleAccountTextfield.getText();
+		String pw = pwBox.getText();
+		String pwRetype = pwRetypeBox.getText();
+		
+		if(account != null){
+			if (!pw.equals("") && !pwRetype.equals("") && pw.equals(pwRetype)) {
+				model.setUsername(account);
+				model.setPassword(pw);
+				return STORE_SUCCESSFUL;
+			} else {
+				pwRetypeBox.clear();
+				pwRetypeBox.setPromptText(MESSAGE_PASSWORDS_MATCH_FAIL);
+			}
+		}
+		return STORE_FAIL;
 	}
 }

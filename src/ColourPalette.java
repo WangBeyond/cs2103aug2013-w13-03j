@@ -4,6 +4,12 @@ import javax.swing.text.StyleContext;
 
 import javafx.scene.paint.Color;
 
+/**
+ * 
+ * This class provides static colours for the GUI in View.
+ * 
+ */
+//@Ko Wan Ling A0100927M
 public class ColourPalette {
 	
 	/********************************* Colours for javafx **************************************/
@@ -101,6 +107,7 @@ public class ColourPalette {
 	public static final AttributeSet pinkBright = cont.addAttribute(cont.getEmptySet(),
 			StyleConstants.Foreground, new java.awt.Color(254, 203, 200));
 	
+	/******************************* Colour sets for javaswing ********************************/
 	public static final AttributeSet[] defaultDaySchemeSwing = {attrGray, attrGreen, attrDarkCyan, 
 		attrOrange, attrCyan, attrBlue, attrRed, attrDarkBlue, attrMagenta};
 	public static final AttributeSet[] defaultNightSchemeSwing = {grayNight, attrGreenNight, 
