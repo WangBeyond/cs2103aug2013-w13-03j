@@ -444,7 +444,7 @@ public class Control extends Application {
 	
 	// Setup the hot keys in the application
 	private void setupHotkeys() {
-		view.mainRoot.setOnKeyPressed(new EventHandler<KeyEvent>() {
+		view.getMainRoot().setOnKeyPressed(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent keyEvent) {
 				if (Common.undo_hot_key.match(keyEvent)) {
 					isRealTimeSearch = false;
@@ -938,7 +938,7 @@ public class Control extends Application {
 	 * SETTINGS command execution
 	 */
 	private String executeSettingsCommand(String origin) throws IOException{
-		view.stage.hide();
+		view.getStage().hide();
 		String previousTheme = model.getThemeMode();
 		if(syncTimer != null)
 			syncTimer.cancel();
@@ -952,8 +952,8 @@ public class Control extends Application {
 			initializeAutoSync();
 			updateTimeFormat();
 		}
-		view.stage.toFront();
-		view.stage.show();
+		view.getStage().toFront();
+		view.getStage().show();
 		return feedback;
 	}
 	

@@ -352,8 +352,8 @@ public class Settings {
 		}
 		grid.add(colourSchemes, 1, 7);
 	}
-
-	//@author A0105667B
+	
+	//@author A0098077N
 	// set up the time format fields
 	private void setupTimeFormat() {
 		Label timeFormat = new Label("Time format:");
@@ -389,7 +389,8 @@ public class Settings {
 		grid.add(dayMode, 1, 5);
 		grid.add(nightMode, 2, 5);
 	}
-
+	
+	//@author A0105667B
 	// set up the sync mode fields
 	private void setupSyncMode() {
 		Label syncMode = new Label("Sync mode: ");
@@ -408,6 +409,7 @@ public class Settings {
 		grid.add(manualSync, 2, 6);
 	}
 	
+	//@author A0098077N
 	// set up the sync period field
 	private void setupSyncPeriod(){
 		Label syncPeriod = new Label("Sync period: ");

@@ -1,9 +1,6 @@
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
-import sun.misc.BASE64Encoder;
-import sun.misc.BASE64Decoder;
-
 public class Encryptor {
 	
 	//Key generator source
@@ -21,6 +18,7 @@ public class Encryptor {
      * @return a encrypted string
      * @throws Exception
      */
+	@SuppressWarnings("restriction")
 	public String encrypt(String str) throws Exception {
         Cipher ecipher =  Cipher.getInstance(algo);  
         byte k[] = KEYGENSOURCE .getBytes();   
@@ -39,6 +37,7 @@ public class Encryptor {
 	 * @return  a decrupted string
 	 * @throws Exception
 	 */
+	@SuppressWarnings("restriction")
 	public String decrypt(String encryptedStr) throws Exception{
 		// Decode base64 to get bytes
 		byte[] dec = new sun.misc.BASE64Decoder().decodeBuffer(encryptedStr);

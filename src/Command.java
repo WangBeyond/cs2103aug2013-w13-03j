@@ -1650,7 +1650,6 @@ class SearchCommand extends Command {
 	// The searched repeating type
 	private String repeatingType;
 	private int numOccurrences = 0;
-	private int currentOccurrence;
 	// Search for important task
 	private String isImpt;
 	// The main interface of the application
@@ -1712,13 +1711,13 @@ class SearchCommand extends Command {
 	private void updateSearchResults() {
 		if (isPendingTab()) {
 			model.setSearchPendingList(searchList);
-			view.taskPendingList.setItems(model.getSearchPendingList());
+			view.getPendingTable().setItems(model.getSearchPendingList());
 		} else if (isCompleteTab()) {
 			model.setSearchCompleteList(searchList);
-			view.taskCompleteList.setItems(model.getSearchCompleteList());
+			view.getCompleteTable().setItems(model.getSearchCompleteList());
 		} else {
 			model.setSearchTrashList(searchList);
-			view.taskTrashList.setItems(model.getSearchTrashList());
+			view.getTrashTable().setItems(model.getSearchTrashList());
 		}
 	}
 	
@@ -2092,11 +2091,11 @@ class ShowAllCommand extends Command {
 	 */
 	private void setContent() {
 		if (isPendingTab()) {
-			view.taskPendingList.setItems(model.getPendingList());
+			view.getPendingTable().setItems(model.getPendingList());
 		} else if (isCompleteTab()) {
-			view.taskCompleteList.setItems(model.getCompleteList());
+			view.getCompleteTable().setItems(model.getCompleteList());
 		} else {
-			view.taskTrashList.setItems(model.getTrashList());
+			view.getTrashTable().setItems(model.getTrashList());
 		}
 	}
 }

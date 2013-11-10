@@ -100,31 +100,36 @@ public class View implements HotkeyListener {
 	private static final String UNLOGIN_WELCOME_MESSAGE = "Welcome to iDo!";
 	private static final String BRIGHT_COLOUR_THEME = "Bright";
 	private static final String GOLDFISH_COLOUR_THEME = "Goldfish";
+	
+	// The list of colours in a specific colour scheme for feedback and command
+	// line
+	private static Color[] colourScheme;
+	protected static AttributeSet[] colourSchemeCommandLine;
 	// Sub windows apart from the main window
 	private Help helpPage;
 	private Settings settingsPage;
 	private Login loginPage;
 
 	// Button to expand or collapse window
-	public Button expandOrCollapse;
+	private Button expandOrCollapse;
 	// Tab Pane to contain 3 tables
-	public TabPane tabPane;
+	private TabPane tabPane;
 	// Menu shown when clicking on icon in tray
-	public PopupMenu popupMenu;
+	private PopupMenu popupMenu;
 	// Table View in 3 tabs
-	public TableView<Task> taskPendingList;
-	public TableView<Task> taskCompleteList;
-	public TableView<Task> taskTrashList;
+	private TableView<Task> taskPendingList;
+	private TableView<Task> taskCompleteList;
+	private TableView<Task> taskTrashList;
 	// The image for the title of the application
 	private ImageView title;
 
 	// The actual window
-	public Stage stage;
+	private Stage stage;
 	// Scene controlling how the user see in the window
 	private Scene scene;
 	// The main groups that scene will show to user
 	private BorderPane subRoot;
-	public StackPane mainRoot;
+	private StackPane mainRoot;
 
 	// The command line
 	private JTextPane commandLine; // this node is in Swing
@@ -146,11 +151,6 @@ public class View implements HotkeyListener {
 	// Feedback text in the application
 	private ArrayList<Text> feedbackList = new ArrayList<Text>();
 
-	// The list of colours in a specific colour scheme for feedback and command
-	// line
-	private static Color[] colourScheme;
-	protected static AttributeSet[] colourSchemeCommandLine;
-
 	// Vertical scroll bar for 3 tables in each corresponding tab
 	private ScrollBar pendingBar;
 	private ScrollBar completeBar;
@@ -166,7 +166,8 @@ public class View implements HotkeyListener {
 
 	// The model of settings and task info
 	private Model model;
-
+	
+	//@author A0098077N
 	/**
 	 * This is the constructor for class View. It will create the content in the
 	 * GUI and setup the scene for the stage in Control class.
@@ -186,9 +187,12 @@ public class View implements HotkeyListener {
 		showInitialMessage();
 	}
 
-	// Get the reference to tray icon of the application
-	public TrayIcon getTrayIcon() {
-		return trayIcon;
+	public Stage getStage(){
+		return stage;
+	}
+
+	public StackPane getMainRoot(){
+		return mainRoot;
 	}
 
 	// Get the reference to the command line of the application
@@ -196,15 +200,21 @@ public class View implements HotkeyListener {
 		return commandLine;
 	}
 
-	/**
-	 * This function is used to setup the global hotkey for the application User
-	 * can use the assigned hot key to open the application any time while it is
-	 * hidden in the system tray
-	 */
-	private void setupGlobalHotkey() {
-		loadLibrary();
-		checkIntellitype();
-		initGlobalHotKey();
+	// Get the reference to tray icon of the application
+	public TrayIcon getTrayIcon() {
+		return trayIcon;
+	}
+
+	public TableView<Task> getPendingTable(){
+		return taskPendingList;
+	}
+
+	public TableView<Task> getCompleteTable(){
+		return taskCompleteList;
+	}
+
+	public TableView<Task> getTrashTable(){
+		return taskTrashList;
 	}
 
 	/**
@@ -221,6 +231,31 @@ public class View implements HotkeyListener {
 	}
 
 	/**
+	 * Setup the main window of the application
+	 */
+	private void setupStage() {
+		stage.setWidth(760);
+		stage.setHeight(540);
+		setInitialPosition();
+		stage.initStyle(StageStyle.UNDECORATED);
+		stage.setTitle("iDo");
+		setIcon();
+	}
+
+	/**
+	 * Setup the scene to be shown in the main stage i.e main window
+	 */
+	private void setupScene() {
+		stage.setHeight(70.0);
+		scene = new Scene(mainRoot);
+		customizeGUI();
+		stage.setScene(scene);
+		stage.show();
+		setInitialState();
+		setupScrollBar();
+	}
+
+	/**
 	 * This function is the main function to setup all the important nodes in
 	 * the interface
 	 */
@@ -232,17 +267,8 @@ public class View implements HotkeyListener {
 		setupDraggable();
 		setupShortcuts();
 	}
-
-	/**
-	 * This function is used to to setup the popup windows appearing when user
-	 * type some specific commands. These popup windows comprise help window and
-	 * setting window.
-	 */
-	private void setupPopupWindows() {
-		setupHelpPage();
-		setupSettingsPage();
-	}
-
+	
+	//@author A0105667B
 	/**
 	 * This function is used to show the initial message when the user first
 	 * open the application. The message will be different according to whether
@@ -257,7 +283,8 @@ public class View implements HotkeyListener {
 			setFeedbackStyle(0, UNLOGIN_WELCOME_MESSAGE, defaultColor);
 		}
 	}
-
+	
+	//@author A0100927M
 	/**
 	 * This function will show the login page for the user to input his Google
 	 * account when he first uses the application. The user can choose to input
@@ -273,6 +300,16 @@ public class View implements HotkeyListener {
 	// Check whether this is the first time user uses the application
 	private boolean checkFirstTimeLogin() {
 		return model.getUsername() == null;
+	}
+
+	/**
+	 * This function is used to to setup the popup windows appearing when user
+	 * type some specific commands. These popup windows comprise help window and
+	 * setting window.
+	 */
+	private void setupPopupWindows() {
+		setupHelpPage();
+		setupSettingsPage();
 	}
 
 	// Setup the content of help window
@@ -300,6 +337,34 @@ public class View implements HotkeyListener {
 	public void showSettingsPage(String checkUsernamePassword) {
 		settingsPage.showSettingsPage(checkUsernamePassword);
 	}
+	
+	//@author A0098077N
+	/**
+	 * Look up for the reference to the vertical scroll bar from the given
+	 * TableView object
+	 */
+	private ScrollBar lookUpVerticalScrollBar(TableView<Task> list) {
+		for (Node n : list.lookupAll(".scroll-bar")) {
+			if (n instanceof ScrollBar) {
+				ScrollBar temp = (ScrollBar) n;
+				if (temp.getOrientation() == Orientation.VERTICAL)
+					return temp;
+			}
+		}
+		return null;
+	}
+
+	// Get the corresponding scroll bar from the given tab index
+	private ScrollBar getScrollBar(int tab) {
+		if (tab == Common.PENDING_TAB) {
+			return pendingBar;
+		} else if (tab == Common.COMPLETE_TAB) {
+			return completeBar;
+		} else if (tab == Common.TRASH_TAB) {
+			return trashBar;
+		}
+		return null;
+	}
 
 	/**
 	 * This function is used to setup the scroll bars for all tables in the
@@ -313,37 +378,6 @@ public class View implements HotkeyListener {
 		InputMap map = commandLine.getInputMap();
 		setupScrollUpKeyForCommandLine(map);
 		setupScrollDownKeyForCommandLine(map);
-	}
-
-	// Setup scroll down key
-	@SuppressWarnings("serial")
-	private void setupScrollDownKeyForCommandLine(InputMap map) {
-		KeyStroke scrollDownKey = KeyStroke.getKeyStroke(
-				com.sun.glass.events.KeyEvent.VK_DOWN, 0);
-		Action scrollDownAction = new AbstractAction() {
-			@Override
-			public void actionPerformed(java.awt.event.ActionEvent e) {
-				Platform.runLater(new Runnable() {
-					@Override
-					public void run() {
-						processScrollingDown();
-					}
-				});
-			}
-		};
-		map.put(scrollDownKey, scrollDownAction);
-	}
-
-	// Get the corresponding scroll bar from the given tab index
-	private ScrollBar getScrollBar(int tab) {
-		if (tab == Common.PENDING_TAB) {
-			return pendingBar;
-		} else if (tab == Common.COMPLETE_TAB) {
-			return completeBar;
-		} else if (tab == Common.TRASH_TAB) {
-			return trashBar;
-		}
-		return null;
 	}
 
 	// Setup scroll up key
@@ -365,19 +399,25 @@ public class View implements HotkeyListener {
 		map.put(scrollUpKey, scrollUpAction);
 	}
 
-	// Look up for the reference to the vertical scroll bar from the given
-	// TableView object
-	private ScrollBar lookUpVerticalScrollBar(TableView<Task> list) {
-		for (Node n : list.lookupAll(".scroll-bar")) {
-			if (n instanceof ScrollBar) {
-				ScrollBar temp = (ScrollBar) n;
-				if (temp.getOrientation() == Orientation.VERTICAL)
-					return temp;
+	// Setup scroll down key
+	@SuppressWarnings("serial")
+	private void setupScrollDownKeyForCommandLine(InputMap map) {
+		KeyStroke scrollDownKey = KeyStroke.getKeyStroke(
+				com.sun.glass.events.KeyEvent.VK_DOWN, 0);
+		Action scrollDownAction = new AbstractAction() {
+			@Override
+			public void actionPerformed(java.awt.event.ActionEvent e) {
+				Platform.runLater(new Runnable() {
+					@Override
+					public void run() {
+						processScrollingDown();
+					}
+				});
 			}
-		}
-		return null;
+		};
+		map.put(scrollDownKey, scrollDownAction);
 	}
-	
+
 	/**
 	 * Process scrolling down the table
 	 */
@@ -632,17 +672,6 @@ public class View implements HotkeyListener {
 	}
 	
 	/**
-	 * Create the whole content to be displayed in the interface
-	 */
-	private void createContent() {
-		createSubRoot();
-		createCommandLine();
-
-		mainRoot = new StackPane();
-		mainRoot.getChildren().addAll(textField, subRoot);
-	}
-	
-	/**
 	 * Create the command line for the application with multi color text
 	 */
 	private void createCommandLine() {
@@ -664,18 +693,7 @@ public class View implements HotkeyListener {
 		textField.setTranslateX(36);
 		textField.setTranslateY(-93);
 	}
-	
-	/**
-	 * Create the group containing all display nodes in the application except for the command line
-	 */
-	private void createSubRoot() {
-		createTopSection();
-		createCenterSection();
-		createBottomSection();
-		subRoot = BorderPaneBuilder.create().top(top).center(center)
-				.bottom(bottom).build();
-	}
-	
+
 	/**
 	 * Setup font for the command line
 	 */
@@ -690,7 +708,7 @@ public class View implements HotkeyListener {
 		}
 		updateCustomFont(attrs, customFont);
 	}
-	
+
 	// Update the new custom font for the application
 	private void updateCustomFont(MutableAttributeSet attrs,
 			java.awt.Font customFont) {
@@ -699,15 +717,14 @@ public class View implements HotkeyListener {
 		StyledDocument doc = commandLine.getStyledDocument();
 		doc.setCharacterAttributes(0, doc.getLength() + 1, attrs, false);
 	}
-	
+
 	// Register the font to the system
 	private void registerFont(java.awt.Font customFont) {
 		GraphicsEnvironment ge = GraphicsEnvironment
 				.getLocalGraphicsEnvironment();
 		ge.registerFont(customFont);
 	}
-	
-	
+
 	// Load the custom font
 	private java.awt.Font loadCustomFont() throws FileNotFoundException,
 			FontFormatException, IOException {
@@ -718,7 +735,7 @@ public class View implements HotkeyListener {
 		temp = temp.deriveFont(java.awt.Font.PLAIN, 16);
 		return temp;
 	}
-	
+
 	/**
 	 * Get the default font in the application
 	 * @return the default font
@@ -726,17 +743,27 @@ public class View implements HotkeyListener {
 	private java.awt.Font getDefaultFont() {
 		return new java.awt.Font("Calibri", java.awt.Font.PLAIN, 17);
 	}
+
+	/**
+	 * Create the whole content to be displayed in the interface
+	 */
+	private void createContent() {
+		createSubRoot();
+		createCommandLine();
+
+		mainRoot = new StackPane();
+		mainRoot.getChildren().addAll(textField, subRoot);
+	}
 	
 	/**
-	 * Setup the main window of the application
+	 * Create the group containing all display nodes in the application except for the command line
 	 */
-	private void setupStage() {
-		stage.setWidth(760);
-		stage.setHeight(540);
-		setInitialPosition();
-		stage.initStyle(StageStyle.UNDECORATED);
-		stage.setTitle("iDo");
-		setIcon();
+	private void createSubRoot() {
+		createTopSection();
+		createCenterSection();
+		createBottomSection();
+		subRoot = BorderPaneBuilder.create().top(top).center(center)
+				.bottom(bottom).build();
 	}
 	
 	/**
@@ -755,19 +782,6 @@ public class View implements HotkeyListener {
 		Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
 		stage.setX((primaryScreenBounds.getWidth() - stage.getWidth()) / 2);
 		stage.setY((primaryScreenBounds.getHeight() - stage.getHeight()) / 2);
-	}
-	
-	/**
-	 * Setup the scene to be shown in the main stage i.e main window
-	 */
-	private void setupScene() {
-		stage.setHeight(70.0);
-		scene = new Scene(mainRoot);
-		customizeGUI();
-		stage.setScene(scene);
-		stage.show();
-		setInitialState();
-		setupScrollBar();
 	}
 	
 	/**
@@ -1044,7 +1058,8 @@ public class View implements HotkeyListener {
 		netAccessIndicator = new ImageView(netAcess);
 		netAccessIndicator.setVisible(false);
 	}
-
+	
+	//@author A0100927M
 	// Create the indicator whether the application is under syncing progress or
 	// not
 	private void createSyncProgressIndicator() {
@@ -1066,7 +1081,8 @@ public class View implements HotkeyListener {
 			}
 		});
 	}
-
+	
+	//@author A0098077N
 	/**
 	 * Show the signal that there is currently no internet connection The signal
 	 * will start to fade out after 2 seconds
@@ -1251,36 +1267,12 @@ public class View implements HotkeyListener {
 		});
 	}
 
-	// Add row status column
-	private TableColumn<Task, RowStatus> addRowStatusColumn(
-			final ObservableList<TableColumn<Task, ?>> columns) {
-		final TableColumn<Task, RowStatus> rowStatusColumn = createRowStatusColumn();
-		columns.add(rowStatusColumn);
-		return rowStatusColumn;
-	}
-
-	// Add tag column
-	private TableColumn<Task, Tag> addTagColumn(
-			final ObservableList<TableColumn<Task, ?>> columns) {
-		final TableColumn<Task, Tag> tagColumn = createTagColumn();
-		columns.add(tagColumn);
-		return tagColumn;
-	}
-
-	// Add end date column
-	private TableColumn<Task, String> addEndDateColumn(
-			final ObservableList<TableColumn<Task, ?>> columns) {
-		final TableColumn<Task, String> endDateColumn = createEndDateColumn();
-		columns.add(endDateColumn);
-		return endDateColumn;
-	}
-
-	// Add start date column
-	private TableColumn<Task, String> addStartDateColumn(
-			final ObservableList<TableColumn<Task, ?>> columns) {
-		final TableColumn<Task, String> startDateColumn = createStartDateColumn();
-		columns.add(startDateColumn);
-		return startDateColumn;
+	// Set the text display when the table is empty
+	private void setEmptyTableMessage(TableView<Task> taskList) {
+		final Text emptyTableSign = new Text(
+				"There is currently no task in this tab");
+		emptyTableSign.getStyleClass().add("text");
+		taskList.setPlaceholder(emptyTableSign);
 	}
 
 	// Add task info column
@@ -1291,12 +1283,67 @@ public class View implements HotkeyListener {
 		return taskInfoColumn;
 	}
 
-	// Add occurrence column
-	private TableColumn<Task, String> addOccurrenceColumn(
-			final ObservableList<TableColumn<Task, ?>> columns) {
-		final TableColumn<Task, String> occurrenceColumn = createOccurrenceColumn();
-		columns.add(occurrenceColumn);
-		return occurrenceColumn;
+	/**
+	 * Create the column displaying task info
+	 * 
+	 * @return the created column
+	 */
+	private TableColumn<Task, String> createTaskInfoColumn() {
+		TableColumn<Task, String> taskInfoColumn = TableColumnBuilder
+				.<Task, String> create().resizable(false).text("Task")
+				.sortable(false).prefWidth(300).build();
+	
+		setupTaskInfoProperty(taskInfoColumn);
+		setupTaskInfoUpdateFormat(taskInfoColumn);
+	
+		return taskInfoColumn;
+	}
+
+	/**
+	 * Link up the content of each cell with the task info property in Task
+	 * class
+	 * 
+	 * @param taskInfoColumn
+	 *            the linked column
+	 */
+	private void setupTaskInfoProperty(TableColumn<Task, String> taskInfoColumn) {
+		taskInfoColumn
+				.setCellValueFactory(new PropertyValueFactory<Task, String>(
+						"workInfo"));
+	}
+
+	/**
+	 * Setup how to display the content of the property
+	 * 
+	 * @param taskInfoColumn
+	 *            the modified column
+	 */
+	private void setupTaskInfoUpdateFormat(
+			final TableColumn<Task, String> taskInfoColumn) {
+		taskInfoColumn
+				.setCellFactory(new Callback<TableColumn<Task, String>, TableCell<Task, String>>() {
+	
+					@Override
+					public TableCell<Task, String> call(
+							TableColumn<Task, String> arg0) {
+						TableCell<Task, String> tc = new TableCell<Task, String>() {
+							Text text;
+	
+							@Override
+							public void updateItem(String item, boolean empty) {
+								if (item != null) {
+									text = new Text(item);
+									text.getStyleClass().add("text");
+									text.wrappingWidthProperty().bind(
+											taskInfoColumn.widthProperty());
+									setGraphic(text);
+								}
+							}
+						};
+						tc.setAlignment(Pos.TOP_LEFT);
+						return tc;
+					}
+				});
 	}
 
 	// Add index column
@@ -1307,12 +1354,185 @@ public class View implements HotkeyListener {
 		return indexColumn;
 	}
 
-	// Set the text display when the table is empty
-	private void setEmptyTableMessage(TableView<Task> taskList) {
-		final Text emptyTableSign = new Text(
-				"There is currently no task in this tab");
-		emptyTableSign.getStyleClass().add("text");
-		taskList.setPlaceholder(emptyTableSign);
+	/**
+	 * Create the index column
+	 * 
+	 * @return the created column
+	 */
+	private TableColumn<Task, String> createIndexColumn() {
+		TableColumn<Task, String> indexColumn = TableColumnBuilder
+				.<Task, String> create().resizable(false).visible(true)
+				.text("").prefWidth(28).sortable(false).resizable(false)
+				.build();
+		setupEndDateProperty(indexColumn); // no specific property as index
+											// column does not depend on Task
+		setupIndexUpdateFormat(indexColumn);
+		return indexColumn;
+	}
+
+	/**
+	 * Setup how to display the content in the column
+	 * 
+	 * @param indexColumn
+	 *            the modified column
+	 */
+	private void setupIndexUpdateFormat(TableColumn<Task, String> indexColumn) {
+		indexColumn
+				.setCellFactory(new Callback<TableColumn<Task, String>, TableCell<Task, String>>() {
+	
+					@Override
+					public TableCell<Task, String> call(
+							TableColumn<Task, String> param) {
+						TableCell<Task, String> tc = new TableCell<Task, String>() {
+							@Override
+							public void updateItem(String item, boolean empty) {
+								if (item != null) {
+									setText(getTableRow().getIndex() + 1 + ".");
+								}
+							}
+						};
+						tc.setAlignment(Pos.TOP_LEFT);
+						return tc;
+					}
+				});
+	}
+
+	// Add tag column
+	private TableColumn<Task, Tag> addTagColumn(
+			final ObservableList<TableColumn<Task, ?>> columns) {
+		final TableColumn<Task, Tag> tagColumn = createTagColumn();
+		columns.add(tagColumn);
+		return tagColumn;
+	}
+
+	/**
+	 * Create the tag column containing the info of recurring period and
+	 * category tag
+	 * 
+	 * @return the created column
+	 */
+	private TableColumn<Task, Tag> createTagColumn() {
+		TableColumn<Task, Tag> tagColumn = TableColumnBuilder
+				.<Task, Tag> create().resizable(false).text("Tag")
+				.sortable(false).resizable(false).prefWidth(110).build();
+	
+		setupTagProperty(tagColumn);
+		setupTagUpdateFormat(tagColumn);
+	
+		return tagColumn;
+	}
+
+	/**
+	 * Link up the content of each cell with the tag property in Task class
+	 * 
+	 * @param tagColumn
+	 *            the linked column
+	 */
+	private void setupTagProperty(TableColumn<Task, Tag> tagColumn) {
+		tagColumn
+				.setCellValueFactory(new PropertyValueFactory<Task, Tag>("tag"));
+	}
+
+	/**
+	 * Setup how to display the content of the property
+	 * 
+	 * @param tagColumn
+	 *            the modifed column
+	 */
+	private void setupTagUpdateFormat(final TableColumn<Task, Tag> tagColumn) {
+		tagColumn
+				.setCellFactory(new Callback<TableColumn<Task, Tag>, TableCell<Task, Tag>>() {
+	
+					@Override
+					public TableCell<Task, Tag> call(
+							TableColumn<Task, Tag> param) {
+						TableCell<Task, Tag> tc = new TableCell<Task, Tag>() {
+							Text text;
+	
+							public void updateItem(Tag item, boolean empty) {
+								if (item != null) {
+									boolean isRepetitiveTask = !item
+											.getRepetition()
+											.equals(Common.NULL);
+									boolean hasTag = !item.getTag().equals("-");
+									checkRepetitiveTag(item, isRepetitiveTask,
+											hasTag);
+									text.getStyleClass().add("text");
+									text.wrappingWidthProperty().bind(
+											tagColumn.widthProperty());
+									setGraphic(text);
+								}
+							}
+	
+							// Check for repetitive tag
+							private void checkRepetitiveTag(Tag item,
+									boolean isRepetitiveTask, boolean hasTag) {
+								if (!isRepetitiveTask) {
+									checkCategoryTagForNormalTask(item, hasTag);
+								} else {
+									checkCategoryTagForRecurringTask(item,
+											hasTag);
+								}
+							}
+	
+							// Check for category tag of recurring task
+							private void checkCategoryTagForRecurringTask(
+									Tag item, boolean hasTag) {
+								if (!hasTag) {
+									text = new Text(""
+											+ appendSpaceForAlignment("#"
+													+ item.getRepetition()));
+								} else {
+									text = new Text(
+											appendSpaceForAlignment(item
+													.getTag())
+													+ "\n"
+													+ appendSpaceForAlignment("#"
+															+ item.getRepetition()));
+								}
+							}
+	
+							// Check for category tag of normal task
+							private void checkCategoryTagForNormalTask(
+									Tag item, boolean hasTag) {
+								if (!hasTag) {
+									text = new Text(
+											appendSpaceForAlignment("-"));
+								} else {
+									text = new Text(
+											appendSpaceForAlignment(item
+													.getTag()));
+								}
+							}
+	
+							// Append space for alignment according to the
+							// content of the info
+							private String appendSpaceForAlignment(String info) {
+								if (info.equals("-")) {
+									return "             " + info;
+								}
+	
+								if (info.length() < 10) {
+									return "\t" + info;
+								} else if (info.length() < 12) {
+									return "    " + info;
+								} else {
+									return info;
+								}
+							}
+						};
+						tc.setAlignment(Pos.TOP_CENTER);
+						return tc;
+					}
+				});
+	}
+
+	// Add row status column
+	private TableColumn<Task, RowStatus> addRowStatusColumn(
+			final ObservableList<TableColumn<Task, ?>> columns) {
+		final TableColumn<Task, RowStatus> rowStatusColumn = createRowStatusColumn();
+		columns.add(rowStatusColumn);
+		return rowStatusColumn;
 	}
 
 	/**
@@ -1353,7 +1573,7 @@ public class View implements HotkeyListener {
 			TableColumn<Task, RowStatus> rowStatusColumn) {
 		rowStatusColumn
 				.setCellFactory(new Callback<TableColumn<Task, RowStatus>, TableCell<Task, RowStatus>>() {
-
+	
 					@Override
 					public TableCell<Task, RowStatus> call(
 							TableColumn<Task, RowStatus> param) {
@@ -1366,7 +1586,7 @@ public class View implements HotkeyListener {
 									setStyle(item);
 								}
 							}
-
+	
 							// Clear the style of the row status
 							private void clearStyle() {
 								getTableRow().getStyleClass().removeAll(
@@ -1374,9 +1594,9 @@ public class View implements HotkeyListener {
 										"important", "unimportant-odd",
 										"unimportant-last", "important-last",
 										"unimportant-odd-last");
-
+	
 							}
-
+	
 							// Set the style for the row status
 							private void setStyle(RowStatus rowStatus) {
 								boolean isLastOverdue = rowStatus
@@ -1387,7 +1607,7 @@ public class View implements HotkeyListener {
 								checkIsLastOverdue(isLastOverdue, isOdd,
 										isImportant);
 							}
-
+	
 							// Check for last overdue task
 							private void checkIsLastOverdue(
 									boolean isLastOverdue, boolean isOdd,
@@ -1400,7 +1620,7 @@ public class View implements HotkeyListener {
 											isImportant);
 								}
 							}
-
+	
 							// Check for important task of non last overdue task
 							private void checkIsImportantForNormalTask(
 									boolean isOdd, boolean isImportant) {
@@ -1411,7 +1631,7 @@ public class View implements HotkeyListener {
 									checkIsOddForLastOverdueTask(isOdd);
 								}
 							}
-
+	
 							// Check for odd task of last overdue task
 							private void checkIsOddForLastOverdueTask(
 									boolean isOdd) {
@@ -1423,7 +1643,7 @@ public class View implements HotkeyListener {
 											"unimportant");
 								}
 							}
-
+	
 							// Check for important task of last overdue task
 							private void checkIsImportantForLastOverdueTask(
 									boolean isOdd, boolean isImportant) {
@@ -1434,7 +1654,7 @@ public class View implements HotkeyListener {
 									checkIsOddForNormalTask(isOdd);
 								}
 							}
-
+	
 							// Check for odd task of non last overdue task
 							private void checkIsOddForNormalTask(boolean isOdd) {
 								if (isOdd) {
@@ -1451,32 +1671,117 @@ public class View implements HotkeyListener {
 				});
 	}
 
-	/**
-	 * Create the index column
-	 * 
-	 * @return the created column
-	 */
-	private TableColumn<Task, String> createIndexColumn() {
-		TableColumn<Task, String> indexColumn = TableColumnBuilder
-				.<Task, String> create().resizable(false).visible(true)
-				.text("").prefWidth(28).sortable(false).resizable(false)
-				.build();
-		setupEndDateProperty(indexColumn); // no specific property as index
-											// column does not depend on Task
-		setupIndexUpdateFormat(indexColumn);
-		return indexColumn;
+	// Add start date column
+	private TableColumn<Task, String> addStartDateColumn(
+			final ObservableList<TableColumn<Task, ?>> columns) {
+		final TableColumn<Task, String> startDateColumn = createStartDateColumn();
+		columns.add(startDateColumn);
+		return startDateColumn;
 	}
 
 	/**
-	 * Setup how to display the content in the column
+	 * Create the start date column
 	 * 
-	 * @param indexColumn
+	 * @return the created column
+	 */
+	private TableColumn<Task, String> createStartDateColumn() {
+		TableColumn<Task, String> startDateColumn = TableColumnBuilder
+				.<Task, String> create().resizable(false).text("Start")
+				.prefWidth(110).resizable(false).sortable(false).build();
+	
+		setupStartDateProperty(startDateColumn);
+		setupStartDateUpdateFormat(startDateColumn);
+	
+		return startDateColumn;
+	}
+
+	/**
+	 * Link up the content of each cell with the startDateString property in
+	 * Task class
+	 * 
+	 * @param startDateColumn
+	 *            the linked column
+	 */
+	private void setupStartDateProperty(
+			TableColumn<Task, String> startDateColumn) {
+		startDateColumn
+				.setCellValueFactory(new PropertyValueFactory<Task, String>(
+						"startDateString"));
+	}
+
+	/**
+	 * Setup how to display the content of the property
+	 * 
+	 * @param startDateColumn
 	 *            the modified column
 	 */
-	private void setupIndexUpdateFormat(TableColumn<Task, String> indexColumn) {
-		indexColumn
+	private void setupStartDateUpdateFormat(
+			TableColumn<Task, String> startDateColumn) {
+		startDateColumn
 				.setCellFactory(new Callback<TableColumn<Task, String>, TableCell<Task, String>>() {
+	
+					@Override
+					public TableCell<Task, String> call(
+							TableColumn<Task, String> param) {
+						TableCell<Task, String> tc = new TableCell<Task, String>() {
+							public void updateItem(String item, boolean empty) {
+								if (item != null)
+									setText(item);
+							}
+						};
+						tc.setAlignment(Pos.TOP_CENTER);
+						return tc;
+					}
+				});
+	}
 
+	// Add end date column
+	private TableColumn<Task, String> addEndDateColumn(
+			final ObservableList<TableColumn<Task, ?>> columns) {
+		final TableColumn<Task, String> endDateColumn = createEndDateColumn();
+		columns.add(endDateColumn);
+		return endDateColumn;
+	}
+
+	/**
+	 * Create the end date column
+	 * 
+	 * @return the created column
+	 */
+	private TableColumn<Task, String> createEndDateColumn() {
+		TableColumn<Task, String> endDateColumn = TableColumnBuilder
+				.<Task, String> create().resizable(false).text("End")
+				.sortable(false).resizable(false).prefWidth(110).build();
+	
+		setupEndDateProperty(endDateColumn);
+		setupEndDateUpdateFormat(endDateColumn);
+	
+		return endDateColumn;
+	}
+
+	/**
+	 * Link up the content of each cell with the endDateString property in Task
+	 * class
+	 * 
+	 * @param endDateColumn
+	 */
+	private void setupEndDateProperty(TableColumn<Task, String> endDateColumn) {
+		endDateColumn
+				.setCellValueFactory(new PropertyValueFactory<Task, String>(
+						"endDateString"));
+	}
+
+	/**
+	 * Setup how to display the content of the property
+	 * 
+	 * @param endDateColumn
+	 *            the modified column
+	 */
+	private void setupEndDateUpdateFormat(
+			TableColumn<Task, String> endDateColumn) {
+		endDateColumn
+				.setCellFactory(new Callback<TableColumn<Task, String>, TableCell<Task, String>>() {
+	
 					@Override
 					public TableCell<Task, String> call(
 							TableColumn<Task, String> param) {
@@ -1484,14 +1789,23 @@ public class View implements HotkeyListener {
 							@Override
 							public void updateItem(String item, boolean empty) {
 								if (item != null) {
-									setText(getTableRow().getIndex() + 1 + ".");
+									setText(item);
 								}
 							}
 						};
-						tc.setAlignment(Pos.TOP_LEFT);
+						tc.setAlignment(Pos.TOP_CENTER);
 						return tc;
 					}
 				});
+	}
+	
+	//@author A0105667B
+	// Add occurrence column
+	private TableColumn<Task, String> addOccurrenceColumn(
+			final ObservableList<TableColumn<Task, ?>> columns) {
+		final TableColumn<Task, String> occurrenceColumn = createOccurrenceColumn();
+		columns.add(occurrenceColumn);
+		return occurrenceColumn;
 	}
 
 	/**
@@ -1554,304 +1868,9 @@ public class View implements HotkeyListener {
 					}
 				});
 	}
-
-	/**
-	 * Create the end date column
-	 * 
-	 * @return the created column
-	 */
-	private TableColumn<Task, String> createEndDateColumn() {
-		TableColumn<Task, String> endDateColumn = TableColumnBuilder
-				.<Task, String> create().resizable(false).text("End")
-				.sortable(false).resizable(false).prefWidth(110).build();
-
-		setupEndDateProperty(endDateColumn);
-		setupEndDateUpdateFormat(endDateColumn);
-
-		return endDateColumn;
-	}
-
-	/**
-	 * Link up the content of each cell with the endDateString property in Task
-	 * class
-	 * 
-	 * @param endDateColumn
-	 */
-	private void setupEndDateProperty(TableColumn<Task, String> endDateColumn) {
-		endDateColumn
-				.setCellValueFactory(new PropertyValueFactory<Task, String>(
-						"endDateString"));
-	}
-
-	/**
-	 * Setup how to display the content of the property
-	 * 
-	 * @param endDateColumn
-	 *            the modified column
-	 */
-	private void setupEndDateUpdateFormat(
-			TableColumn<Task, String> endDateColumn) {
-		endDateColumn
-				.setCellFactory(new Callback<TableColumn<Task, String>, TableCell<Task, String>>() {
-
-					@Override
-					public TableCell<Task, String> call(
-							TableColumn<Task, String> param) {
-						TableCell<Task, String> tc = new TableCell<Task, String>() {
-							@Override
-							public void updateItem(String item, boolean empty) {
-								if (item != null) {
-									setText(item);
-								}
-							}
-						};
-						tc.setAlignment(Pos.TOP_CENTER);
-						return tc;
-					}
-				});
-	}
-
-	/**
-	 * Create the start date column
-	 * 
-	 * @return the created column
-	 */
-	private TableColumn<Task, String> createStartDateColumn() {
-		TableColumn<Task, String> startDateColumn = TableColumnBuilder
-				.<Task, String> create().resizable(false).text("Start")
-				.prefWidth(110).resizable(false).sortable(false).build();
-
-		setupStartDateProperty(startDateColumn);
-		setupStartDateUpdateFormat(startDateColumn);
-
-		return startDateColumn;
-	}
-
-	/**
-	 * Link up the content of each cell with the startDateString property in
-	 * Task class
-	 * 
-	 * @param startDateColumn
-	 *            the linked column
-	 */
-	private void setupStartDateProperty(
-			TableColumn<Task, String> startDateColumn) {
-		startDateColumn
-				.setCellValueFactory(new PropertyValueFactory<Task, String>(
-						"startDateString"));
-	}
-
-	/**
-	 * Setup how to display the content of the property
-	 * 
-	 * @param startDateColumn
-	 *            the modified column
-	 */
-	private void setupStartDateUpdateFormat(
-			TableColumn<Task, String> startDateColumn) {
-		startDateColumn
-				.setCellFactory(new Callback<TableColumn<Task, String>, TableCell<Task, String>>() {
-
-					@Override
-					public TableCell<Task, String> call(
-							TableColumn<Task, String> param) {
-						TableCell<Task, String> tc = new TableCell<Task, String>() {
-							public void updateItem(String item, boolean empty) {
-								if (item != null)
-									setText(item);
-							}
-						};
-						tc.setAlignment(Pos.TOP_CENTER);
-						return tc;
-					}
-				});
-	}
-
-	/**
-	 * Create the tag column containing the info of recurring period and
-	 * category tag
-	 * 
-	 * @return the created column
-	 */
-	private TableColumn<Task, Tag> createTagColumn() {
-		TableColumn<Task, Tag> tagColumn = TableColumnBuilder
-				.<Task, Tag> create().resizable(false).text("Tag")
-				.sortable(false).resizable(false).prefWidth(110).build();
-
-		setupTagProperty(tagColumn);
-		setupTagUpdateFormat(tagColumn);
-
-		return tagColumn;
-	}
-
-	/**
-	 * Link up the content of each cell with the tag property in Task class
-	 * 
-	 * @param tagColumn
-	 *            the linked column
-	 */
-	private void setupTagProperty(TableColumn<Task, Tag> tagColumn) {
-		tagColumn
-				.setCellValueFactory(new PropertyValueFactory<Task, Tag>("tag"));
-	}
-
-	/**
-	 * Setup how to display the content of the property
-	 * 
-	 * @param tagColumn
-	 *            the modifed column
-	 */
-	private void setupTagUpdateFormat(final TableColumn<Task, Tag> tagColumn) {
-		tagColumn
-				.setCellFactory(new Callback<TableColumn<Task, Tag>, TableCell<Task, Tag>>() {
-
-					@Override
-					public TableCell<Task, Tag> call(
-							TableColumn<Task, Tag> param) {
-						TableCell<Task, Tag> tc = new TableCell<Task, Tag>() {
-							Text text;
-
-							public void updateItem(Tag item, boolean empty) {
-								if (item != null) {
-									boolean isRepetitiveTask = !item
-											.getRepetition()
-											.equals(Common.NULL);
-									boolean hasTag = !item.getTag().equals("-");
-									checkRepetitiveTag(item, isRepetitiveTask,
-											hasTag);
-									text.getStyleClass().add("text");
-									text.wrappingWidthProperty().bind(
-											tagColumn.widthProperty());
-									setGraphic(text);
-								}
-							}
-
-							// Check for repetitive tag
-							private void checkRepetitiveTag(Tag item,
-									boolean isRepetitiveTask, boolean hasTag) {
-								if (!isRepetitiveTask) {
-									checkCategoryTagForNormalTask(item, hasTag);
-								} else {
-									checkCategoryTagForRecurringTask(item,
-											hasTag);
-								}
-							}
-
-							// Check for category tag of recurring task
-							private void checkCategoryTagForRecurringTask(
-									Tag item, boolean hasTag) {
-								if (!hasTag) {
-									text = new Text(""
-											+ appendSpaceForAlignment("#"
-													+ item.getRepetition()));
-								} else {
-									text = new Text(
-											appendSpaceForAlignment(item
-													.getTag())
-													+ "\n"
-													+ appendSpaceForAlignment("#"
-															+ item.getRepetition()));
-								}
-							}
-
-							// Check for category tag of normal task
-							private void checkCategoryTagForNormalTask(
-									Tag item, boolean hasTag) {
-								if (!hasTag) {
-									text = new Text(
-											appendSpaceForAlignment("-"));
-								} else {
-									text = new Text(
-											appendSpaceForAlignment(item
-													.getTag()));
-								}
-							}
-
-							// Append space for alignment according to the
-							// content of the info
-							private String appendSpaceForAlignment(String info) {
-								if (info.equals("-")) {
-									return "             " + info;
-								}
-
-								if (info.length() < 10) {
-									return "\t" + info;
-								} else if (info.length() < 12) {
-									return "    " + info;
-								} else {
-									return info;
-								}
-							}
-						};
-						tc.setAlignment(Pos.TOP_CENTER);
-						return tc;
-					}
-				});
-	}
-
-	/**
-	 * Create the column displaying task info
-	 * 
-	 * @return the created column
-	 */
-	private TableColumn<Task, String> createTaskInfoColumn() {
-		TableColumn<Task, String> taskInfoColumn = TableColumnBuilder
-				.<Task, String> create().resizable(false).text("Task")
-				.sortable(false).prefWidth(300).build();
-
-		setupTaskInfoProperty(taskInfoColumn);
-		setupTaskInfoUpdateFormat(taskInfoColumn);
-
-		return taskInfoColumn;
-	}
-
-	/**
-	 * Link up the content of each cell with the task info property in Task
-	 * class
-	 * 
-	 * @param taskInfoColumn
-	 *            the linked column
-	 */
-	private void setupTaskInfoProperty(TableColumn<Task, String> taskInfoColumn) {
-		taskInfoColumn
-				.setCellValueFactory(new PropertyValueFactory<Task, String>(
-						"workInfo"));
-	}
-
-	/**
-	 * Setup how to display the content of the property
-	 * 
-	 * @param taskInfoColumn
-	 *            the modified column
-	 */
-	private void setupTaskInfoUpdateFormat(
-			final TableColumn<Task, String> taskInfoColumn) {
-		taskInfoColumn
-				.setCellFactory(new Callback<TableColumn<Task, String>, TableCell<Task, String>>() {
-
-					@Override
-					public TableCell<Task, String> call(
-							TableColumn<Task, String> arg0) {
-						TableCell<Task, String> tc = new TableCell<Task, String>() {
-							Text text;
-
-							@Override
-							public void updateItem(String item, boolean empty) {
-								if (item != null) {
-									text = new Text(item);
-									text.getStyleClass().add("text");
-									text.wrappingWidthProperty().bind(
-											taskInfoColumn.widthProperty());
-									setGraphic(text);
-								}
-							}
-						};
-						tc.setAlignment(Pos.TOP_LEFT);
-						return tc;
-					}
-				});
-	}
-
+	
+	
+	//@author A0098077N
 	/**
 	 * Setup the event for the expandOrCollapse button
 	 */
@@ -2013,6 +2032,17 @@ public class View implements HotkeyListener {
 	}
 
 	/**
+	 * This function is used to setup the global hotkey for the application User
+	 * can use the assigned hot key to open the application any time while it is
+	 * hidden in the system tray
+	 */
+	private void setupGlobalHotkey() {
+		loadLibrary();
+		checkIntellitype();
+		initGlobalHotKey();
+	}
+
+	/**
 	 * Get the Settings MenuItem in the pop up menu
 	 * 
 	 * @return the requested menu item
@@ -2169,6 +2199,12 @@ public class View implements HotkeyListener {
 		tabPane.getSelectionModel().select(tabIndex);
 	}
 
+	// Get the current tab index that the user is viewing
+	public int getTabIndex() {
+		return tabPane.getSelectionModel().getSelectedIndex();
+	}
+	
+	//@author A0105667B
 	/**
 	 * This function is the main function to set the real-time multicolor
 	 * feedback
@@ -2177,7 +2213,7 @@ public class View implements HotkeyListener {
 	 *            the request of feedback from the application. Depending on the
 	 *            request, this function will give different feedbacks.
 	 */
-	void setFeedback(String requestFeedback) {
+	public void setFeedback(String requestFeedback) {
 		emptyFeedback(0);
 		switch (requestFeedback) {
 		case Common.MESSAGE_ADD_TIP:
@@ -2319,7 +2355,7 @@ public class View implements HotkeyListener {
 	 *            the command input from the user
 	 * @return the list of possible commands
 	 */
-	ArrayList<String> getAvailCommands(String inputCommand) {
+	private ArrayList<String> getAvailCommands(String inputCommand) {
 		ArrayList<String> availCommands = new ArrayList<String>();
 		for (int i = 0; i < Common.COMMAND_TYPES_STR.length; i++) {
 			String command = Common.COMMAND_TYPES_STR[i];
@@ -2332,6 +2368,20 @@ public class View implements HotkeyListener {
 		return availCommands;
 	}
 
+	// Set the content and color for a feedback element with given index
+	public void setFeedbackStyle(int index, String text, Color color) {
+		feedbackList.get(index).setText(text);
+		feedbackList.get(index).setFill(color);
+	}
+
+	// Empty the feedback list
+	public void emptyFeedback(int startIndex) {
+		for (int i = startIndex; i < feedbackList.size(); i++) {
+			feedbackList.get(i).setText("");
+		}
+	}
+	
+	//@author A0100927M
 	/**
 	 * Set the colour scheme for iDo
 	 * 
@@ -2384,25 +2434,10 @@ public class View implements HotkeyListener {
 		colourSchemeCommandLine = ColourPalette.defaultDaySchemeSwing;
 	}
 
-	// Set the content and color for a feedback element with given index
-	public void setFeedbackStyle(int index, String text, Color color) {
-		feedbackList.get(index).setText(text);
-		feedbackList.get(index).setFill(color);
-	}
-
-	// Empty the feedback list
-	public void emptyFeedback(int startIndex) {
-		for (int i = startIndex; i < feedbackList.size(); i++) {
-			feedbackList.get(i).setText("");
-		}
-	}
-
-	// Get the current tab index that the user is viewing
-	public int getTabIndex() {
-		return tabPane.getSelectionModel().getSelectedIndex();
-	}
+	
 }
 
+//@author A0098077N
 /**
  * 
  * This class defines the style in the command line How the command line has

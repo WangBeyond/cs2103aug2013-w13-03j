@@ -5,6 +5,7 @@ import java.util.TimeZone;
 
 import com.google.gdata.data.DateTime;
 
+
 /**
  *
  * This class is used to store the start date and end date in iDo
@@ -15,7 +16,6 @@ public class CustomDate {
 	final private static int VALID = 1;
 	final private static int INVALID = -1;
 	final public static int OUT_OF_BOUNDS = 0;
-
 	final private static int MAXIMUM_LENGTH_OF_DATE_INFO = 4;
 	final private static int MAXIMUM_LENGTH_FOR_DATE_PART = 2;
 	final private static int MAXIMUM_LENGTH_FOR_TIME_PART = 2;
@@ -29,12 +29,10 @@ public class CustomDate {
 	final private static long YEAR_IN_MILLIS = 365 * 24 * 60 * 60 * 1000;
 	final private static long FIRST_TWELVE_HOURS = 12 * 60;
 	final private static int HOUR_IN_MINUTES = 60;
-	
 	final private static String DAILY_REGEX = "(every)(\\d+)(days?)";
 	final private static String WEEKLY_REGEX = "(every)(\\d+)(weeks?)";
 	final private static String MONTHLY_REGEX = "(every)(\\d+)(months?)";
 	final private static String YEARLY_REGEX = "(every)(\\d+)(years?)";
-	
 	final private static int LARGER = 1;
 	final private static int SMALLER = -1;
 	final private static int EQUAL = 0;
@@ -50,10 +48,10 @@ public class CustomDate {
 
 	// The date info of this target date
 	private String dateInfo;
-
+	// Indicator whether the dateInfo has indicated the specific date
 	boolean hasIndicatedDate;
 	
-	
+	//@author A0098077N
 	// Default constructors
 	public CustomDate() {
 		sourceDate = new GregorianCalendar();
@@ -390,7 +388,8 @@ public class CustomDate {
 	public static void updateCurrentDate() {
 		currentDate = new GregorianCalendar();
 	}
-
+	
+	//@author A0105667B
 	/**
 	 * Get the distance between 2 periods in recurring rule for updating
 	 * 
@@ -497,7 +496,8 @@ public class CustomDate {
 		
 		return 0;
 	}
-
+	
+	//@author A0098077N
 	/**
 	 * This function is used to set the date from given info string
 	 * This is the main function for conversion for CustomDate class.
@@ -695,7 +695,7 @@ public class CustomDate {
 		return numElements - 1;
 	}
 	
-	/*
+	/**
 	 * This function is used to check whether the date is out of bounds
 	 * If yes, it will throw an IllegalArgumentException with indicated message
 	 */
@@ -708,7 +708,7 @@ public class CustomDate {
 		}
 	}
 	
-	/*
+	/**
 	 * Get the starting index of the DATE part in the string array
 	 */
 	private int getStartIndexOfDate(String[] infos) {
@@ -848,7 +848,7 @@ public class CustomDate {
 				|| dateInfo.contains("nov") || dateInfo.contains("dec");
 	}
 	
-	/*
+	/**
 	 * This function is used to get the corresponding Integer value of the day string 
 	 */
 	private int getDay(String day) {
@@ -900,7 +900,7 @@ public class CustomDate {
 		return day.equals("sunday") || day.equals("sun");
 	}
 	
-	/*
+	/**
 	 * This function is used to get the Integer value of the month String
 	 */
 	private int getMonth(String month) {
@@ -935,7 +935,7 @@ public class CustomDate {
 		}
 	}
 	
-	/*
+	/**
 	 * This function is used to get the string of the month for display
 	 */
 	private String getMonthString(int month) {
@@ -1267,7 +1267,7 @@ public class CustomDate {
 		return numElements - 1;
 	}
 	
-	/*
+	/**
 	 * This function is used to reset the hour, minute and second back to 0
 	 * But if the time is 'tonight', hour and minute will be reseted back to 23 and 59 respectively
 	 */
@@ -1283,7 +1283,7 @@ public class CustomDate {
 		}
 	}
 
-	/*
+	/**
 	 * This function is used to check whether the time is out of bounds
 	 * If yes, it will throw an IllegalArgumentException with indicated message
 	 */
@@ -1316,7 +1316,7 @@ public class CustomDate {
 		return (sourceDate.getTimeInMillis() - currentDate.getTimeInMillis()) <= SIX_HOURS_IN_MILLIS;
 	}
 	
-	/*
+	/**
 	 * This function is used to check whether the user did input the time
 	 */
 	private boolean hasTime(boolean isStartDate) {
@@ -1334,7 +1334,7 @@ public class CustomDate {
 		return true;
 	}
 	
-	/*
+	/**
 	 * This function is used to check whether the date is today
 	 */
 	private boolean isToday() {
@@ -1345,7 +1345,7 @@ public class CustomDate {
 		return isCurrentYear && isCurrentMonth && isCurrentDate;
 	}
 	
-	/*
+	/**
 	 * This function is used to check whether the time is tonight
 	 */
 	private boolean isTonight() {
