@@ -22,7 +22,7 @@ public class CustomDate {
 	final private static int EMPTY_DATE_INFO = 0;
 	final private static int SUNDAY = 8;
 	final private static int MINUTE_IN_MILLIS = 60 * 1000;
-	final private static long DAY_IN_MILLIS = 24 * 60 * 60 * 1000;
+	final public static long DAY_IN_MILLIS = 24 * 60 * 60 * 1000;
 	final private static long SIX_HOURS_IN_MILLIS = 6 * 60 * 60 * 1000;
 	final private static long WEEK_IN_MILLIS = 7 * 24 * 60 * 60 * 1000;
 	final private static long MONTH_IN_MILLIS = 30L * 24 * 60 * 60 * 1000;
