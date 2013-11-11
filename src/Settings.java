@@ -352,7 +352,7 @@ public class Settings {
 
 		ObservableList<String> colourOptions = FXCollections
 				.observableArrayList(Common.DAY_MODE, Common.NIGHT_MODE,
-						"Goldfish", "Bright");
+						Common.GOLDFISH, Common.BRIGHT);
 
 		colourSchemes = new ComboBox<String>(colourOptions);
 		colourSchemes.setPrefWidth(175);
