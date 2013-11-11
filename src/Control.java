@@ -1254,11 +1254,15 @@ public class Control extends Application {
 	}
 	
 	//@author A0105667B
-	public View getView() {
-		return view;
+	public Model getModel() {
+		return model;
 	}
 	
 	public Storage getTaskFile() {
 		return taskFile;
+	}
+	
+	public Storage getSettingsFile() {
+		return settingStore;
 	}
 }
