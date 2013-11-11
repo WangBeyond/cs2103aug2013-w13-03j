@@ -28,7 +28,6 @@ import javafx.stage.StageStyle;
  * 
  */
 public class Login {
-
 	private static final boolean STORE_SUCCESSFUL = true;
 	private static final boolean STORE_FAIL = false;
 	
