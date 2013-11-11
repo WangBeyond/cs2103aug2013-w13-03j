@@ -36,7 +36,6 @@ public class TaskStorage extends Storage {
 	static final String PENDING = "pending";
 	static final String COMPLETE = "complete";
 	static final  String TRASH = "trash";
-	static final String UNDO_BUFFER = "undo_buffer";
 
 	private static Logger log = Logger.getLogger("TaskStorage");
 	
@@ -60,17 +59,14 @@ public class TaskStorage extends Storage {
 		Element pending = new Element(PENDING);
 		Element complete = new Element(COMPLETE);
 		Element trash = new Element(TRASH);
-		Element undoBuffer = new Element(UNDO_BUFFER);
 		//Add task info to its corresponding element in XML file
 		pending = addTasksToXMLFile(pending, PENDING, model.getPendingList());
 		complete = addTasksToXMLFile(complete, COMPLETE, model.getCompleteList());
 		trash = addTasksToXMLFile(trash, TRASH, model.getTrashList());
-		undoBuffer = addTasksToXMLFile(undoBuffer, UNDO_BUFFER, model.getUndoTaskBuffer());
 		//append elements to root
 		doc.getRootElement().getChildren().add(pending);
 		doc.getRootElement().getChildren().add(complete);
 		doc.getRootElement().getChildren().add(trash);
-		doc.getRootElement().getChildren().add(undoBuffer);
 		//Outupt to XML file
 		XMLOutputter xmlOutput = new XMLOutputter();
 		xmlOutput.setFormat(Format.getPrettyFormat());
@@ -89,19 +85,17 @@ public class TaskStorage extends Storage {
 	 */
 	public void loadFromFile() throws IOException {
 		SAXBuilder builder = new SAXBuilder();
-		try {//retrive the elements
+		try {//retrieve the elements
 			Document doc = (Document) builder.build(xmlFile);
 			Element rootNode = doc.getRootElement();
 			Element pending = rootNode.getChild(PENDING);
 			Element trash = rootNode.getChild(TRASH);
 			Element complete = rootNode.getChild(COMPLETE);
-			Element undoBuffer = rootNode.getChild(UNDO_BUFFER);
 			//Retrieve tasks from the elements and add to model
 			addTasksToModel(pending, PENDING);
 			addTasksToModel(complete, COMPLETE);
 			addTasksToModel(trash, TRASH);
-			addTasksToModel(undoBuffer, UNDO_BUFFER);
-		} catch (IOException io) {
+			} catch (IOException io) {
 			throw io;
 		  } catch (JDOMException jdomex) {
 			log.log(Level.WARNING, jdomex.getMessage());
@@ -122,9 +116,6 @@ public class TaskStorage extends Storage {
 			} else if (taskListType.equals(TRASH)) {
 				Element trash = rootNode.getChild(TRASH);
 				return trash.getChildren().isEmpty();
-			} else if (taskListType.equals(UNDO_BUFFER)) {
-				Element undoBuffer = rootNode.getChild(UNDO_BUFFER);
-				return undoBuffer.getChildren().isEmpty();
 			} else {
 				return false;
 			}
@@ -150,9 +141,6 @@ public class TaskStorage extends Storage {
 			} else if (taskListType.equals(TRASH)) {
 				Element trash = rootNode.getChild(TRASH);
 				return searchTaskInElement(trash, task);
-			} else if (taskListType.equals(UNDO_BUFFER)) {
-				Element undoBuffer = rootNode.getChild(UNDO_BUFFER);
-				return searchTaskInElement(undoBuffer, task);
 			} else {
 				return false;
 			}
@@ -172,7 +160,6 @@ public class TaskStorage extends Storage {
 			Element targetElement = taskList.get(i);
 			newTask = setTaskInfo(newTask, targetElement);
 			if(Task.equalTask(newTask,task)) {
-				System.out.println(task.getEndDateString()+" "+newTask.getEndDateString());
 				return true;
 			}
 		}
@@ -264,9 +251,6 @@ public class TaskStorage extends Storage {
         case TRASH:
                 model.addTaskToTrash(newTask);
                 break;
-        case UNDO_BUFFER:
-        		model.getUndoTaskBuffer().add(newTask);
-        		break;
         }
 	}
 	

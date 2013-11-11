@@ -33,6 +33,8 @@ import com.google.gdata.util.ServiceException;
  * This class is the main class for processing synchronization
  *
  */
+
+//@author A0105523U
 public class Synchronization  {
 	// Logger of this class
 	private static Logger logger = Logger.getLogger("Sync");
@@ -50,7 +52,7 @@ public class Synchronization  {
 	boolean isValid = false;
 	/* Model */
 	Model model;
-
+	History commandHistory;
 	/* calendar service */
 	CalendarService service;
 
@@ -75,8 +77,9 @@ public class Synchronization  {
 	 * @param m
 	 *            model of this application
 	 */
-	public Synchronization(Model m) {
+	public Synchronization(Model m, History c) {
 		model = m;
+		commandHistory = c;
 	}
 	
 	/*************** start of public methods ****************/
@@ -136,7 +139,8 @@ public class Synchronization  {
 		// Add tasks locally which have been added on GCal
 		addEventsLocally(eventEntry, model); 
 		
-		model.getUndoTaskBuffer().clear();
+		commandHistory.clearUndoStack();
+		commandHistory.clearRedoStack();
 		return Common.MESSAGE_SYNC_SUCCESSFUL;
 	}
 	
@@ -166,7 +170,6 @@ public class Synchronization  {
 		URL owncalUrl = new URL(METAFEED_URL_BASE + username
 				+ OWNCALENDARS_FEED_URL_SUFFIX);
 		String calId = isCalendarExist(service, owncalUrl);
-		System.out.println(calId);
 		if (calId == null) {
 			CalendarEntry calendar = createCalendar(service, owncalUrl);
 			calId = trimId(calendar.getId());
@@ -248,6 +251,7 @@ public class Synchronization  {
 		return event;
 	}
 	
+	//@author A0098077N
 	/**
 	 * This function is used to update both the modified tasks on iDo and
 	 * modified events on Google Calendar to be the same with each other
@@ -307,6 +311,7 @@ public class Synchronization  {
 						.getLatestModifiedDate(), new CustomDate(
 						updated)) > 0;
 				if (hasLatestModificationFromiDo) {
+					System.out.println("test");
 					updateModifiedEventOnGCal(service, entries,
 							feedURL, toBeUpdatedOnGCal, pendingList, i,
 							j);
@@ -383,16 +388,17 @@ public class Synchronization  {
 		entries.get(j).setTitle(
 				new PlainTextConstruct(pendingList.get(i)
 						.getWorkInfo()));
-		if (pendingList.get(i).isImportantTask() == true) {
-			setReminder(entries.get(j));
-		} else{
-			entries.get(j).getReminder().clear();
-		}
 		
 		if (isNormalTask(pendingList, i)) {
 			updateToNormalEntry(service, entries, feedURL, toBeUpdatedOnGCal, pendingList, i, j);
 		} else {
 			updateToRecurrenceEntry(entries, toBeUpdatedOnGCal, pendingList, i, j);
+		}
+		
+		if (pendingList.get(i).isImportantTask() == true) {
+			setReminder(entries.get(j));
+		} else{
+			entries.get(j).getReminder().clear();
 		}
 	}
 	
@@ -447,6 +453,7 @@ public class Synchronization  {
 	private void updateToRecurrenceEntry(List<CalendarEventEntry> entries,
 			List<CalendarEventEntry> toBeUpdatedOnGCal, List<Task> pendingList,
 			int i, int j) {
+		
 		entries.get(j).getTimes().clear();
 		if (!pendingList.get(i).isFloatingTask()) {
 			String startDate = pendingList.get(i)
@@ -463,13 +470,16 @@ public class Synchronization  {
 					.getNumOccurrences();
 			
 			String recurData = setRecurrenceData(startDate, endDate, freq, null, count, interval);
+			System.out.println(recurData);
 			Recurrence rec = new Recurrence();
 			rec.setValue(recurData);
 			entries.get(j).setRecurrence(rec);
+			System.out.println("test more");
 		}
 		toBeUpdatedOnGCal.add(entries.get(j));
 	}
 	
+	//@author A0105523U
 	/**
 	 * This function is used to set the number of occurences for a recurring
 	 * data to be passed to the constructor of Recurrence object
@@ -532,7 +542,7 @@ public class Synchronization  {
 					+ "MONTHLY";
 		} else if (freq.contains("year")) {
 			recurData = recurData + "RRULE:FREQ="
-					+ "MONTHLY";
+					+ "YEARLY";
 		}
 		return recurData;
 	}
@@ -602,8 +612,7 @@ public class Synchronization  {
 	 * @return true if the task is indeed a normal task or vice versa
 	 */
 	private boolean isNormalTask(List<Task> pendingList, int i) {
-		return pendingList.get(i).getTag().getRepetition()
-				.equals("null")
+		return !pendingList.get(i).isRecurringTask()
 				&& pendingList.get(i).getStartDate() != null;
 	}
 
@@ -628,33 +637,8 @@ public class Synchronization  {
 		ObservableList<Task> deletedTasks = model.getTrashList();
 		deleteTasksInOtherTabsOnGCal(entries, tobeDelete, completedTasks);
 		deleteTasksInOtherTabsOnGCal(entries, tobeDelete, deletedTasks);
-		deleteUndoAddedTasksOnGCal(model, entries, tobeDelete);
 		deleteEvents(service, tobeDelete, feedUrl);
 		
-	}
-	
-	/**
-	 * Delete list of undo added tasks on Google Calendar
-	 * 
-	 * @param model
-	 *            model of tasks in iDo
-	 * @param entries
-	 *            list of entries on Google Calendar
-	 * @param tobeDelete
-	 *            list of events to be deleted on Google Calendar
-	 */
-	private void deleteUndoAddedTasksOnGCal(Model model,
-			List<CalendarEventEntry> entries,
-			List<CalendarEventEntry> tobeDelete) {
-		for(int i = 0; i < model.getUndoTaskBuffer().size(); i++){
-			for (int j = 0; j < entries.size(); j++) {
-				if (model.getUndoTaskBuffer().get(i).getIndexId()
-						.equals(entries.get(j).getId())) {
-					tobeDelete.add(entries.get(j));
-					break;
-				}
-			}
-		}
 	}
 	
 	/**

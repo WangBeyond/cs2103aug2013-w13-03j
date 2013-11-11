@@ -42,18 +42,19 @@ public class Control extends Application {
 	// History keep track of previous commands
 	private History commandHistory = new History();
 	// View in the application, providing the GUI
-	private static View view;
+	private View view;
 	// Storages
 	private Storage taskFile;
 	private Storage settingStore;
 	// Sync thread of Control class
 	public static SyncCommand syncThread;
-	private Synchronization sync = new Synchronization(model);
+	private Synchronization sync = new Synchronization(model, commandHistory);
 	// Timer for auto sync
 	private Timer syncTimer;
 	//tabIndex for test cases to modify
 	private int tabIndexTest = 0;
 	
+	//@author A0098077N
 	/**
 	 * Main Function of the application
 	 * @param args
@@ -69,6 +70,7 @@ public class Control extends Application {
 		loadTimer();
 	}
 	
+	//@author A0105667B
 	/**
 	 * Load the data from storage files
 	 */
@@ -81,7 +83,7 @@ public class Control extends Application {
 			logger.log(Level.INFO,"Cannot read the given file");
 		}
 	}
-
+	
 	/**
 	 * Load the settings data
 	 */
@@ -89,7 +91,18 @@ public class Control extends Application {
 		settingStore = new SettingsStorage(Common.SETTING_FILENAME, model);
 		settingStore.loadFromFile();
 	}
-
+	
+	/**
+	 * Store settings data into storage files
+	 */
+	private void storeSettings() {
+		try{
+			settingStore.storeToFile();
+		} catch(IOException io) {
+			logger.log(Level.INFO, "Cannot store with the given filename");
+		}
+	}
+	
 	/**
 	 * Load the task data
 	 */
@@ -98,6 +111,7 @@ public class Control extends Application {
 		taskFile.loadFromFile();
 	}
 	
+	//@author A0098077N
 	/**
 	 * Initialize the graphical user interface of the application. Setup the
 	 * listeners and key bindings in the interface
@@ -113,16 +127,6 @@ public class Control extends Application {
 		storeSettings();
 	}
 	
-	/**
-	 * Store settings data into storage files
-	 */
-	private void storeSettings() {
-		try{
-			settingStore.storeToFile();
-		} catch(IOException io) {
-			logger.log(Level.INFO, "Cannot store with the given filename");
-		}
-	}
 	
 	/**
 	 * Update the lines separating overdue tasks and ongoing tasks in all lists
@@ -477,7 +481,6 @@ public class Control extends Application {
 					public void run() {
 						isRealTimeSearch = false;
 						String feedback = executeCommand(view.getCommandLine().getText());
-						System.out.println("feedback: " + feedback);
 						updateFeedback(feedback);
 					}
 				});
@@ -587,6 +590,7 @@ public class Control extends Application {
 		};
 	}
 	
+	//@author A0105667B
 	/**
 	 * Update the feedback in the interface according to the types of feedback
 	 * 
@@ -600,6 +604,8 @@ public class Control extends Application {
 		view.emptyFeedback(0);
 		view.setFeedbackStyle(0, feedback, view.getDefaultColor());
 	}
+	
+	//@author A0105523U
 	/******************************************************* EXECUTION SECTION *************************************************************/
 	/**
 	 * This function is the main function for executing all command inputs from
@@ -609,7 +615,7 @@ public class Control extends Application {
 	 *            the command input from the user
 	 * @return the corresponding feedback according to the command
 	 */
-	String executeCommand(String userCommand) {
+	public String executeCommand(String userCommand) {
 		boolean isEmptyCommand = Parser.checkEmptyCommand(userCommand);
 		if (isEmptyCommand) {
 			return Common.MESSAGE_EMPTY_COMMAND;
@@ -624,7 +630,8 @@ public class Control extends Application {
 			return e.getMessage(); // the corresponding error message
 		}
 	}
-
+	
+	//@author A0098077N
 	private int getTabIndex() {
 		if(view == null){
 			return tabIndexTest;
@@ -633,10 +640,12 @@ public class Control extends Application {
 		return tabIndex;
 	}
 	
+	//@author A0105667B
 	void setTabForTest(int tabIndex) {
 		tabIndexTest = tabIndex;
 	}
 	
+	//@author A0105523U
 	/**
 	 * This function is used to execute according to each specific command
 	 * 
@@ -693,6 +702,7 @@ public class Control extends Application {
 		}
 	}
 	
+	//@author A0105667B
 	/**
 	 * Start real time search from the specific search Command
 	 * 
@@ -709,6 +719,7 @@ public class Control extends Application {
 		}
 	}
 	
+	//@author A0105523U
 	/**
 	 * ADD command execution
 	 */
@@ -730,6 +741,7 @@ public class Control extends Application {
 		return feedback;
 	}
 	
+	//@author A0105667B
 	/*
 	 * Store task info into storage file
 	 */
@@ -813,7 +825,7 @@ public class Control extends Application {
 		return Common.MESSAGE_INVALID_REDO;
 	}
 	
-	//@author A0105667B
+	//@author A0098077N
 	/**
 	 * SEARCH command execution
 	 */
@@ -1002,6 +1014,7 @@ public class Control extends Application {
 		setupChangeListener();
 	}
 	
+	//@author A0105667B
 	/*
 	 * Reset the sync timer each time after changing settings or at the start when open application
 	 */
@@ -1032,6 +1045,7 @@ public class Control extends Application {
 		}, 0, model.getSyncPeriod() * Common.MINUTE_IN_MILLIS);
 	}
 	
+	//@author A0105523U
 	/**
 	 * SYNC command execution
 	 */
@@ -1048,7 +1062,8 @@ public class Control extends Application {
 		clearCommandLine();
 		return Common.MESSAGE_REQUEST_COMMAND;
 	}
-
+	
+	//@author A0098077N
 	private void clearCommandLine() {
 		view.getCommandLine().setText("");
 	}
@@ -1066,11 +1081,13 @@ public class Control extends Application {
 		return exitCommand.execute();
 	}
 	
+	//@author A0105667B
 	// Indicator whether the application is under syncing process
 	private boolean isUnderSyncingProcess() {
 		return syncThread != null && syncThread.isRunning();
 	}
 	
+	//@author A0098077N
 	/**
 	 * SHOW command execution
 	 */
@@ -1141,6 +1158,7 @@ public class Control extends Application {
 		}, 0, Common.MINUTE_IN_MILLIS);
 	}
 	
+	//@author A0105667B
 	// Setup the auto sync timer with assigned period
 	private void initializeAutoSync() {
 		if(model.hasAutoSync()){
@@ -1148,6 +1166,7 @@ public class Control extends Application {
 		}
 	}
 	
+	//@author A0098077N
 	/**
 	 * This function checks which tasks in pending list need to be reminded
 	 */
@@ -1162,8 +1181,8 @@ public class Control extends Application {
 	
 	// Check whether a task should be reminded
 	private void displayMessageForImportantTask(Task task) {
-		int remainingTimeForStartDate = 9;
-		int remainingTimeForEndDate = 0;
+		int remainingTimeForStartDate = task.getStartDate().getRemainingTime();
+		int remainingTimeForEndDate = task.getEndDate().getRemainingTime();
 		if (isTimeForReminding(remainingTimeForStartDate)) {
 			displayMessageForStartDate(task.getWorkInfo(),remainingTimeForStartDate);
 		} else if (isTimeForReminding(remainingTimeForEndDate)) {
@@ -1234,7 +1253,8 @@ public class Control extends Application {
 		}
 	}
 	
-	public static View getView() {
+	//@author A0105667B
+	public View getView() {
 		return view;
 	}
 	

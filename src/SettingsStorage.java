@@ -12,6 +12,7 @@ import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 
+//@author A0105667B
 public class SettingsStorage extends Storage {
 
 	private static String encryptAlgo = "DES/ECB/PKCS5Padding";
@@ -52,7 +53,6 @@ public class SettingsStorage extends Storage {
 		Element account = new Element(ACCOUNT);
 		doc.getRootElement().getChildren().add(account);
 		String encryptedPassword = encryptPassword(model.getPassword());
-		System.out.println("store: "+model.getPassword()+"->"+encryptedPassword);
 		account = recordSettings(account, encryptedPassword);
 		//Output to XML file
 		XMLOutputter xmlOutput = new XMLOutputter();

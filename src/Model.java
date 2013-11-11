@@ -1,4 +1,3 @@
-import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -11,7 +10,6 @@ import javafx.collections.ObservableList;
  * It comprises data in settings, list of tasks for display on the interface.
  *
  */
-
 public class Model {
 	private static final String MESSAGE_OUT_OF_BOUNDS_INDEX = "Out of bounds index";
 
@@ -42,9 +40,8 @@ public class Model {
 	 * List of IDs from tasks which were removed during synchronization
 	 */
 	private ObservableList<String> removedIdDuringSync;
-	
-	private ArrayList<Task> undoTaskBuffer;
-	
+
+	//@author A0105523U
 	/*
 	 * Default constructor
 	 */
@@ -56,7 +53,6 @@ public class Model {
 		searchComplete = FXCollections.observableArrayList();
 		searchTrash = FXCollections.observableArrayList();
 		removedIdDuringSync = FXCollections.observableArrayList();
-		undoTaskBuffer = new ArrayList<Task>();
 		displayRemaining = true;
 		themeMode = Common.DAY_MODE;
 		colourScheme = Common.DAY_MODE;
@@ -121,10 +117,7 @@ public class Model {
 		return searchTrash;
 	}
 	
-	public ArrayList<Task> getUndoTaskBuffer(){
-		return undoTaskBuffer;
-	}
-	
+	//@author A0105667B
 	/******************************** GET or MODIFY the index IDs of deleted-during-sync tasks ******************/
 	public ObservableList<String> getRemovedIdDuringSync() {
 		return removedIdDuringSync;
@@ -230,7 +223,6 @@ public class Model {
 		}
 	}
 
-	//@author A0100927M
 	/***************************** REMOVE a task with indicated index permanently, not moving to trash *******************/
 	public void removeTaskFromPendingNoTrash(int index) {
 		try {
@@ -261,6 +253,7 @@ public class Model {
 		searchTrash = searchList;
 	}
 	
+	//@author A0105667B
 	/************************************ SETTINGS Section *************************************************/
 	// Google Account ID
 	private String username;
@@ -322,8 +315,7 @@ public class Model {
 	public void setAutoSync(boolean isAutoSync) {
 		this.isAutoSync = isAutoSync;
 	}
-
-	//@author A0100927M
+	
 	public void setColourScheme(String colourScheme){
 		this.colourScheme = colourScheme;
 	}

@@ -5,6 +5,7 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.ArrayList;
 
+
 import com.google.gdata.util.AuthenticationException;
 
 import javafx.application.Platform;
@@ -495,7 +496,12 @@ class AddCommand extends TwoWayCommand {
 		cur.setHour(0);
 		cur.setMinute(0);
 		if(endDate.beforeCurrentTime()){
-			throw new IllegalArgumentException("Invalid date as end time is before the current time");
+			cur.setYear(endDate.getYear());
+			cur.setMonth(endDate.getMonth());
+			cur.setDate(endDate.getDate());
+			createdTask.setStartDate(cur);
+			createdTask.setEndDate(endDate);
+			updateTimeForEndDate(createdTask.getStartDate(), endDate);
 		} else {
 			createdTask.setStartDate(cur);
 			createdTask.setEndDate(endDate);
@@ -537,8 +543,6 @@ class AddCommand extends TwoWayCommand {
 		int index = model.getIndexFromPending(createdTask);
 		model.removeTaskFromPendingNoTrash(index);
 		assert model.getTaskFromPending(index).equals(createdTask);
-		if(createdTask.getStatus() == Task.Status.UNCHANGED)
-			model.getUndoTaskBuffer().add(createdTask);
 		return Common.MESSAGE_SUCCESSFUL_UNDO;
 	}
 	
@@ -549,11 +553,6 @@ class AddCommand extends TwoWayCommand {
 	public String redo(){
 		model.addTaskToPending(createdTask);
 		createdTask.setStatus(Task.Status.NEWLY_ADDED);
-		for(int i = 0; i < model.getUndoTaskBuffer().size(); i++){
-			if(model.getUndoTaskBuffer().get(i) == createdTask)
-				createdTask.setStatus(Task.Status.UNCHANGED);
-		}
-		
 		Common.sortList(model.getPendingList());
 		return Common.MESSAGE_SUCCESSFUL_REDO;
 	}
@@ -594,13 +593,13 @@ class AddCommand extends TwoWayCommand {
 	}
 }
 
+//@author A0105667B
 /**
  * 
  * Class Edit Command. This command edits an existing task in the model
  * 
  */
 class EditCommand extends TwoWayCommand {
-	private static final String INVALID_END_DATE_BEFORE_CURRENT_TIME = "Invalid as end time is before current time";
 	// Original index of the edited task
 	int index; 
 	// Work info of the target task 
@@ -649,7 +648,7 @@ class EditCommand extends TwoWayCommand {
 	}
 	
 	/**
-	 * Execute the EDIT comand
+	 * Execute the EDIT command
 	 */
 	public String execute() {
 		if (convertIndex(index - 1) == INVALID) {
@@ -749,7 +748,12 @@ class EditCommand extends TwoWayCommand {
 		cur.setHour(0);
 		cur.setMinute(0);
 		if(endDate.beforeCurrentTime()){
-			throw new IllegalArgumentException(INVALID_END_DATE_BEFORE_CURRENT_TIME);
+			cur.setYear(endDate.getYear());
+			cur.setMonth(endDate.getMonth());
+			cur.setDate(endDate.getDate());
+			editedTask.setStartDate(cur);
+			editedTask.setEndDate(endDate);
+			updateTimeForEndDate(editedTask.getStartDate(), endDate);
 		} else {
 			editedTask.setStartDate(cur);
 			editedTask.setEndDate(endDate);
@@ -789,6 +793,7 @@ class EditCommand extends TwoWayCommand {
 		checkInvalidDates(isRepetitive, hasStartDate, hasEndDate, startDate, endDate, repeatingType);
 	}
 	
+	//@author A0098077N
 	/**
 	 * Determine the target date info from the command input
 	 * 
@@ -819,6 +824,18 @@ class EditCommand extends TwoWayCommand {
 			updateTimeForEndDate(startDate, endDate);
 		} else {
 			endDate = editedTask.getEndDate();
+		}
+		
+		if(hasStartDateKey || hasEndDateKey || hasRepetitiveKey){
+			editedTask.setCurrentOccurrence(1);
+		} 
+		
+		if(hasRepetitiveKey){
+			editedTask.setNumOccurrences(0);
+		}
+		if(hasWorkInfoKey){
+			editedTask.setNumOccurrences(0);
+			editedTask.setCurrentOccurrence(1);
 		}
 	}
 	
@@ -889,8 +906,9 @@ class EditCommand extends TwoWayCommand {
 			editedTask.setNumOccurrences(num);
 			repeatingType = repeatingType.replaceAll(pattern, "$1");
 
-		} else 
-			editedTask.setNumOccurrences(0);
+		} else{
+			
+		}
 	}
 	
 	//@author A0100927M
@@ -1662,7 +1680,7 @@ class UnmarkCommand extends IndexCommand {
 	}
 }
 
-
+//@author A0098077N
 /**********************************Subclass of Command**********************************************/
 
 /**
@@ -2165,6 +2183,7 @@ class HelpCommand extends Command {
 	}
 }
 
+//@author A0100927M
 /**
  * 
  * Class SettingsCommand. This class executes command to show SETTINGS dialog

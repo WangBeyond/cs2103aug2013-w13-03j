@@ -1,3 +1,4 @@
+
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -348,7 +349,7 @@ public class Parser {
 	 */
 	private static String checkForAddCommand(Common.COMMAND_TYPES commandType) {
 		if (isAddCommandType(commandType)){
-			throw new IllegalArgumentException("Invalid command: work information cannot be empty");
+			throw new IllegalArgumentException("Invalid command: work information cannot be empty.");
 		}else{
 			return Common.NULL;
 		}
@@ -400,7 +401,7 @@ public class Parser {
 	private static String[] parseIndexCommand(String content, int tabIndex, Model model) {
 		try {
 			return parseCommandWithIndex(content);
-		} catch (Exception e) {
+		} catch (NumberFormatException e) {
 			return convertInfosIntoIndices(tabIndex, model);
 		} 
 	}
@@ -455,7 +456,6 @@ public class Parser {
 	 */
 	private static void parseIndex(String[] splittedUserCommand,
 			Vector<String> indexList) {
-		try {
 			for (String s : splittedUserCommand) {
 				boolean isRangeIndex = s.contains(Common.HYPHEN);
 				if (isRangeIndex) {
@@ -464,9 +464,6 @@ public class Parser {
 					indexList.add(String.valueOf(Integer.parseInt(s)));
 				}
 			}
-		} catch (NumberFormatException e) {
-			throw new IllegalArgumentException("Index is invalid");
-		}
 	}
 
 	/**
@@ -842,7 +839,7 @@ public class Parser {
 			dateWithKeyWord = addKeyWord(date, command, dateTypeIndicator,
 					startIndex, dateWithKeyWord, secondSpaceIndex,
 					firstSpaceIndex);
-			if (!dateWithKeyWord.equals(date)) {
+			if (!dateWithKeyWord.equals(date) || dateWithKeyWord.startsWith("tomorrow") || dateWithKeyWord.startsWith("today") || dateWithKeyWord.startsWith("tonight") || dateWithKeyWord.startsWith("next")) {
 				return dateWithKeyWord;
 			}
 		}
@@ -874,8 +871,8 @@ public class Parser {
 	
 	// Get the index of the first space before the date in the command
 	private static int getFirstSpaceIndex(String command, int secondSpaceIndex) {
-		int firstSpaceIndex = secondSpaceIndex - 1;
-		while (firstSpaceIndex > 0
+		int firstSpaceIndex = getCharIndex(command, secondSpaceIndex);
+		while (firstSpaceIndex >= 0
 				&& command.charAt(firstSpaceIndex) != ' ') {
 			firstSpaceIndex--;
 		}
@@ -884,13 +881,20 @@ public class Parser {
 	
 	// Get the index of the second space before the date in the command
 	private static int getSecondSpaceIndex(String command, int startIndex) {
-		int secondSpaceIndex = startIndex - 2;
+		int secondSpaceIndex = getCharIndex(command, startIndex-1);
 
-		while (secondSpaceIndex > 0
+		while (secondSpaceIndex >= 0
 				&& command.charAt(secondSpaceIndex) != ' ') {
 			secondSpaceIndex--;
 		}
 		return secondSpaceIndex;
+	}
+	
+	private static int getCharIndex(String command, int index){
+		while(index >= 0 && command.charAt(index) == ' ')
+			index--;
+		
+		return index;
 	}
 
 	/**
@@ -1259,13 +1263,13 @@ public class Parser {
 
 	private static boolean isMarkCommand(String commandTypeString) {
 		boolean isMark = commandTypeString.equalsIgnoreCase("mark") 
-				||commandTypeString.equalsIgnoreCase("hightlight") ;
+				||commandTypeString.equalsIgnoreCase("highlight") ;
 		return isMark;
 	}
 
 	private static boolean isUnmarkCommand(String commandTypeString) {
 		boolean isUnMark = commandTypeString.equalsIgnoreCase("unmark") 
-				||commandTypeString.equalsIgnoreCase("unhightlight") ;
+				||commandTypeString.equalsIgnoreCase("unhighlight") ;
 		return isUnMark;
 	}
 
