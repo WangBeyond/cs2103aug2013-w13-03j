@@ -1245,8 +1245,7 @@ class CompleteCommand extends IndexCommand {
 			Task toComplete = model.getTaskFromPending(completeIndex);
 			toCompleteTasks[i] = toComplete;
 			modifyStatus(toComplete);
-			model.getPendingList().remove(completeIndex);
-			model.addTaskToComplete(toComplete);
+			model.completeTaskFromPending(completeIndex);
 		}
 		sortInvolvedLists();
 	}
