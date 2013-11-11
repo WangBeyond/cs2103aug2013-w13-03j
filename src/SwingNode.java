@@ -356,7 +356,7 @@ public class SwingNode extends Region {
         jDialog.setAlwaysOnTop(value);
     }
     
-    // Set stage to frontmost of the window
+    // Set stage to front most of the window
     public void setStageToFront() {
         stage.toFront();
     }

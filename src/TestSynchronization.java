@@ -1,11 +1,11 @@
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
 import com.google.gdata.util.AuthenticationException;
 
-
-public class SynchronizationTest {
+//@author A0105523U
+public class TestSynchronization {
 
 	@Test
 	public void test() {
