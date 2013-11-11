@@ -84,38 +84,29 @@ class History {
 		prevCommandsForRedo.clear();
 		redoable = false;
 	}
-
 	
 	//@author A0105667B
 	public void setIsAfterSearch(boolean isAfter) {
 		isOperatedAfterSearch = isAfter;
 	}
 	
-	
-
 	//@author A0100927M
 	/************************ UPDATE Functions **********************************/
 	// update with most recent TwoWayCommand without prior searching
 	public void updateCommand(TwoWayCommand newCommand) {
 		prevCommandsForUndo.push(newCommand);
-		if (!prevCommandsForRedo.empty()){
-			prevCommandsForRedo.clear();
-		}
+		clearRedoStack();
 		log.log(Level.INFO, "Cleared redo stack and added new command to undo stack.");
 		undoable = true;
-		redoable = false;
 	}
 	
 	//@author A0105667B
 	// update with most recent TwoWayCommand with prior searching
 	public void updateCommand(TwoWayCommand newCommand,boolean isAfter) {
 		prevCommandsForUndo.push(newCommand);
-		if (!prevCommandsForRedo.empty()){
-			prevCommandsForRedo.clear();
-		}
+		clearRedoStack();
 		log.log(Level.INFO, "Cleared redo stack and added new command to undo stack.");
 		undoable = true;
-		redoable = false;
 		isOperatedAfterSearch = isAfter;
 	}
 }
