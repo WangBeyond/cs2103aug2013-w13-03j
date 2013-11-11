@@ -1836,7 +1836,7 @@ public class View implements HotkeyListener {
 							public void updateItem(String item, boolean empty) {
 								if (item != null) {
 									text = new Text(item);
-									text.setFill(Color.DARKCYAN);
+									text.setFill(ColourPalette.occurrenceColour);
 									text.setFont(Font.font("Verdana", 9));
 									setAlignment(Pos.TOP_LEFT);
 									setGraphic(text);
