@@ -3,7 +3,7 @@ import org.junit.BeforeClass;
 import static org.junit.Assert.fail;
 import org.junit.Test;
 
-
+//@author A0105667B
 public class TestIntegrated  {
 	
 	static Control controlTest;
