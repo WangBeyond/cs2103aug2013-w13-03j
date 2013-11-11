@@ -74,4 +74,8 @@ public abstract class Storage {
 	boolean checkTaskListEmptyForTest(String taskListType) throws IOException{
 		return false;
 	}
+	
+	boolean compareModelAndFileForTest() throws IOException {
+		return false;
+	}
 }

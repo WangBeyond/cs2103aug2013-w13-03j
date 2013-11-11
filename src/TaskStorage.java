@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javafx.collections.ObservableList;
+
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.output.Format;
@@ -100,70 +102,6 @@ public class TaskStorage extends Storage {
 		  } catch (JDOMException jdomex) {
 			log.log(Level.WARNING, jdomex.getMessage());
 		  }
-	}
-	
-	boolean checkTaskListEmptyForTest(String taskListType) throws IOException{
-		SAXBuilder builder = new SAXBuilder();
-		try {//retrive the elements
-			Document doc = (Document) builder.build(xmlFile);
-			Element rootNode = doc.getRootElement();
-			if (taskListType.equals(PENDING)) {
-				Element pending = rootNode.getChild(PENDING);
-				return pending.getChildren().isEmpty();
-			} else if (taskListType.equals(COMPLETE)) {
-				Element complete = rootNode.getChild(COMPLETE);
-				return complete.getChildren().isEmpty();
-			} else if (taskListType.equals(TRASH)) {
-				Element trash = rootNode.getChild(TRASH);
-				return trash.getChildren().isEmpty();
-			} else {
-				return false;
-			}
-		} catch (IOException io) {
-			throw io;
-		  } catch (JDOMException jdomex) {
-			log.log(Level.WARNING, jdomex.getMessage());
-			return false;
-		  }
-	}
-	
-	boolean searchTaskInFileForTest(Task task, String taskListType) throws IOException {
-		SAXBuilder builder = new SAXBuilder();
-		try {//retrive the elements
-			Document doc = (Document) builder.build(xmlFile);
-			Element rootNode = doc.getRootElement();
-			if (taskListType.equals(PENDING)) {
-				Element pending = rootNode.getChild(PENDING);
-				return searchTaskInElement(pending, task);
-			} else if (taskListType.equals(COMPLETE)) {
-				Element complete = rootNode.getChild(COMPLETE);
-				return searchTaskInElement(complete,task);
-			} else if (taskListType.equals(TRASH)) {
-				Element trash = rootNode.getChild(TRASH);
-				return searchTaskInElement(trash, task);
-			} else {
-				return false;
-			}
-		} catch (IOException io) {
-			throw io;
-		  } catch (JDOMException jdomex) {
-			log.log(Level.WARNING, jdomex.getMessage());
-			return false;
-		  }
-	}
-
-	private boolean searchTaskInElement(Element element, Task task)
-			 {
-		List<Element> taskList = element.getChildren();
-		for(int i = 0; i<taskList.size();i++) {
-			Task newTask = new Task();
-			Element targetElement = taskList.get(i);
-			newTask = setTaskInfo(newTask, targetElement);
-			if(Task.equalTask(newTask,task)) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 /**********************************Generate tasks from XML file and add them to model **************************/
@@ -305,4 +243,113 @@ public class TaskStorage extends Storage {
 		}
 		return newTask;
 	}
+	
+	
+	/*******************************Methods for testing**********************************************/
+	
+	public boolean compareModelAndFileForTest() throws IOException {
+		SAXBuilder builder = new SAXBuilder();
+		try {//retrieve the elements
+			Document doc = (Document) builder.build(xmlFile);
+			Element rootNode = doc.getRootElement();
+			Element pending = rootNode.getChild(PENDING);
+			Element trash = rootNode.getChild(TRASH);
+			Element complete = rootNode.getChild(COMPLETE);
+			//Retrieve tasks from the elements and add to model
+			if (!compareListAndElement(pending, model.getPendingList())) {
+				return false;
+			} else if (!compareListAndElement(complete, model.getCompleteList())) {
+				return false;
+			} else if (!compareListAndElement(trash, model.getTrashList())) {
+				return false;
+			} else {
+				return true;
+			}
+			} catch (IOException io) {
+			throw io;
+		  } catch (JDOMException jdomex) {
+			log.log(Level.WARNING, jdomex.getMessage());
+			return false;
+		  }
+	}
+	
+	private boolean compareListAndElement (Element element, ObservableList<Task> taskListInModel){
+		List<Element> taskListInFile = element.getChildren();
+		if (taskListInModel.size() != taskListInFile.size()) {
+			return false;
+		}
+		for(int i = 0; i<taskListInFile.size();i++) {
+			Task taskInFile = new Task();
+			Element targetElement = taskListInFile.get(i);
+			taskInFile = setTaskInfo(taskInFile, targetElement);
+			Task taskInModel = taskListInModel.get(i);
+			if(!Task.equalTask(taskInFile,taskInModel)) {
+				return false;
+			}
+		}
+		return true;
+	}	
+	
+	boolean checkTaskListEmptyForTest(String taskListType) throws IOException {
+		SAXBuilder builder = new SAXBuilder();
+		try {//retrive the elements
+			Document doc = (Document) builder.build(xmlFile);
+			Element rootNode = doc.getRootElement();
+			if (taskListType.equals(PENDING)) {
+				Element pending = rootNode.getChild(PENDING);
+				return pending.getChildren().isEmpty();
+			} else if (taskListType.equals(COMPLETE)) {
+				Element complete = rootNode.getChild(COMPLETE);
+				return complete.getChildren().isEmpty();
+			} else if (taskListType.equals(TRASH)) {
+				Element trash = rootNode.getChild(TRASH);
+				return trash.getChildren().isEmpty();
+			} else {
+				return false;
+			}
+		} catch (IOException io) {
+			throw io;
+		  } catch (JDOMException jdomex) {
+			log.log(Level.WARNING, jdomex.getMessage());
+			return false;
+		  }
+	}
+	
+	boolean searchTaskInFileForTest(Task task, String taskListType) throws IOException {
+		SAXBuilder builder = new SAXBuilder();
+		try {//retrive the elements
+			Document doc = (Document) builder.build(xmlFile);
+			Element rootNode = doc.getRootElement();
+			if (taskListType.equals(PENDING)) {
+				Element pending = rootNode.getChild(PENDING);
+				return searchTaskInElement(pending, task);
+			} else if (taskListType.equals(COMPLETE)) {
+				Element complete = rootNode.getChild(COMPLETE);
+				return searchTaskInElement(complete,task);
+			} else if (taskListType.equals(TRASH)) {
+				Element trash = rootNode.getChild(TRASH);
+				return searchTaskInElement(trash, task);
+			} else {
+				return false;
+			}
+		} catch (IOException io) {
+			throw io;
+		  } catch (JDOMException jdomex) {
+			log.log(Level.WARNING, jdomex.getMessage());
+			return false;
+		  }
+	}
+
+	private boolean searchTaskInElement(Element element, Task targetTask) {
+		List<Element> taskList = element.getChildren();
+		for(int i = 0; i<taskList.size();i++) {
+			Task taskInFile = new Task();
+			Element targetElement = taskList.get(i);
+			taskInFile = setTaskInfo(taskInFile, targetElement);
+			if(Task.equalTask(taskInFile, targetTask)) {
+				return true;
+			}
+		}
+		return false;
+}
 }
