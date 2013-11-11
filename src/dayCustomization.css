@@ -1,0 +1,436 @@
+.root{
+	-fx-background-color: rgb(70,70,70);
+}
+
+/** Tab Pane **/
+.tab-pane *.tab-header-background {
+    -fx-background-color: transparent;
+}
+
+.tab-pane:top *.tab-header-area {
+    -fx-padding: 40.0 0.0 0.0 0.0;
+    -fx-translate-x: 403; 
+    -fx-font-weight: bold; 
+}
+
+.control-buttons-tab {
+    -fx-background-color: -fx-tab-border-color, -fx-inner-border, -fx-body-color;
+    -fx-padding: 0.0 0.0 -30.0 -30.0; 
+    visibility: hidden;
+}
+
+.tab-down-button .arrow {
+    -fx-background-color: transparent;
+    -fx-shape: null;
+}
+
+.tab {
+	-fx-background-color: rgb(39, 216, 110);
+    -fx-background-insets: -10.0, 0.0, 0.0;
+    -fx-background-radius: 0.0 0.0 0.0 0.0, 0.0 0.0 0.0 0.0, 0.0 0.0 0.0 0.0;
+    -fx-padding: 0.0 0.0 0.0 0.0;
+}
+.tab:hover {
+    	-fx-background-color: rgb(43, 235, 120);
+
+}
+
+.tab:selected:hover{
+	-fx-background-color: rgb(255, 255, 255);
+}
+
+.tab:selected {
+    -fx-background-color: rgb(255, 255, 255);
+    -fx-background-insets: -10.0, 0.0, 0.0 ;
+    -fx-background-radius: 0.0 0.0 0.0 0.0, 0.0 0.0 0.0 0.0, 0.0 0.0 0.0 0.0;
+    -fx-padding: 0.0 0.0 0.0 0.0;
+}
+
+.tab-pane{
+	-fx-tab-min-width: 90.0; 
+    -fx-tab-max-width: 90.0; 
+    -fx-tab-min-height: 35.0;
+    -fx-tab-max-height: 35.0;
+    -fx-translate-y: -10;
+}
+
+
+/************************************* Text Field *****************************************************/
+.text-field {
+    -fx-background-color: rgb(247.0,247.0,247.0), black, -fx-control-inner-background;
+    -fx-background-insets: -1.0, 1.0, 1.0;
+    -fx-background-radius: 0.0, 0.0, 0.0;
+    -fx-padding: 4.5 5.0 4.5 5.0;
+    -fx-font-size: 15.0;
+    -fx-font-family: "Ubuntu";
+    -fx-prompt-text-fill: derive(-fx-control-inner-background,-30.0%);
+    -fx-cursor: text;
+}
+ 
+.text-field:focused {
+    -fx-background-color: rgb(247.0, 247.0, 247.0) , white, white;
+    -fx-background-insets: -1.0, 1.0, 1.0;
+    -fx-background-radius: 0.0, 0.0, 0.0;
+    -fx-prompt-text-fill: transparent;
+}
+
+.password-field {
+	-fx-border-color: greenyellow;
+	-fx-border-width: 1.0px; 
+}
+
+.password-field:focused {
+	-fx-border-color: greenyellow; 
+	-fx-border-width: 2.0px;
+}
+
+#input{
+	-fx-border-color: greenyellow;
+	-fx-border-width: 1.0px;    
+}
+
+#input:focused{
+	-fx-border-color: greenyellow; 
+	-fx-border-width: 2.0px;  
+}
+
+/************************************************************************************************************ */
+
+/* Table View */
+.table-view {
+	-fx-table-cell-border-color: transparent;
+    -fx-background-color: white;
+    -fx-background-insets: 0.0,0.0;
+    -fx-border-radius: 2.0 2.0 2.0;
+
+    /* There is some oddness if padding is in em values rather than pixels,
+       in particular, the left border of the control doesn't show. */
+    -fx-padding: 1.0; /* 0.083333em; */
+
+    /* Constants used throughout the tableview.
+     * TODO: Should these be derived from the palette in .scene?
+     */
+    -fx-table-header-border-color: black;
+/*    -fx-table-header-background-color: linear (0%,0%) to (0%,100%) stops (80%, #bbbbbb) (10%, #f6f6f6);*/
+}
+
+.table-row-cell {
+    -fx-skin: "com.sun.javafx.scene.control.skin.TableRowSkin";
+    -fx-background-color: white;
+    -fx-background-insets: 0.0, 0.0 0.0 1.0 0.0;
+    -fx-border-color: transparent transparent transparent transparent;
+    -fx-padding: 0.0em; /* 0 */
+    -fx-text-fill: -fx-text-inner-color;
+}
+ 
+.table-row-cell:odd {
+    -fx-background-color: white;
+    -fx-background-insets: 0.0, 0.0 0.0 1.0 0.0;
+}
+.table-cell {
+    -fx-skin: "com.sun.javafx.scene.control.skin.TableCellSkin";
+    -fx-padding: 0.166667em; /* 2px, plus border adds 1px */
+
+    -fx-background-color: null;
+    -fx-border-color: transparent -fx-table-cell-border-color transparent transparent;
+    -fx-border-width: 0.083333em; /* 1 */
+    -fx-cell-size: 2.0em; /* 24 */
+}
+
+
+/* This is the area behind the column headers. An ideal place to specify background
+   and border colors for the whole area (not individual column-header's). */
+.table-view .column-header-background {
+    -fx-background-color: white;
+    -fx-padding: 0.0;
+}
+
+/* The column header row is made up of a number of column-header, one for each
+   TableColumn, and a 'filler' area that extends from the right-most column
+   to the edge of the tableview, or up to the 'column control' button. */
+.table-view .column-header, .table-view .filler {
+    -fx-text-fill: -fx-selection-bar-text;
+	-fx-translate-x: -8px;	
+    /* TODO: for some reason, this doesn't scale. */
+    -fx-font-size: 1.083333em; /* 13pt - 1 more than the default font */
+    -fx-font-weight: bold;
+    -fx-size: 25.0;
+    -fx-border-style: hidden hidden solid hidden ;
+    -fx-border-color: black;
+    -fx-border-insets: 0.0 0.0 0.0 0.0, 0.0 0.0 0.0 0.0;
+    -fx-border-width: 0.083333em, 0.083333em;
+}
+
+.table-view *.scroll-bar:horizontal *.increment-button,
+.table-view *.scroll-bar:horizontal *.decrement-button {
+    -fx-background-color: null;
+    -fx-background-radius: 0;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.table-view *.scroll-bar:horizontal *.increment-arrow, 
+.table-view *.scroll-bar:horizontal *.decrement-arrow {
+    -fx-background-color: null;
+    -fx-background-radius: 0;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+    -fx-shape: null;
+}
+.table-view *.scroll-bar:vertical{
+    -fx-background-color:transparent;
+}
+
+.table-view *.scroll-bar:vertical *.increment-button,
+.table-view *.scroll-bar:vertical *.decrement-button {
+    -fx-background-color:transparent;
+	-fx-border-color:derive(gray,80%);
+}
+
+.table-view *.scroll-bar:vertical *.track{
+     -fx-background-color: transparent;
+	 -fx-border-color:derive(gray,80%);
+	 -fx-background-radius: 0em;
+}
+
+.table-view *.scroll-bar:vertical *.thumb {
+    -fx-background-color:derive(black,90%);
+	-fx-background-insets: 0, 0, 0;
+	-fx-background-radius: 0em;
+
+}
+ 
+.text{
+	-fx-font-size: 15.0;
+	-fx-fill: black;
+}
+
+.feedback{
+	-fx-font-weight: bold;
+	-fx-font-size: 16.0;	
+}
+
+.important{
+    -fx-border-color: transparent transparent transparent transparent;
+	-fx-background-color:  rgb(43, 235, 120);
+}
+
+.important-last{
+	-fx-border-color: transparent transparent red transparent;
+	-fx-background-color:  rgb(43, 235, 120);
+}
+
+.unimportant-last{
+	-fx-border-color: transparent transparent red transparent;
+	-fx-background-color: white;
+}
+
+.unimportant-odd-last{
+	-fx-border-color: transparent transparent red transparent;
+	-fx-background-color: rgb(230,230,230);
+}
+
+.last-overdue{
+	-fx-border-color: transparent transparent red transparent;
+}
+
+.unimportant{
+    -fx-border-color: transparent transparent transparent transparent;
+	-fx-background-color: white;
+}
+
+.unimportant-odd{
+    -fx-border-color: transparent transparent transparent transparent;
+	-fx-background-color: rgb(230,230,230);
+}
+
+
+
+/********************************************* Button  ***********************************************/
+.button {
+    -fx-skin: "com.sun.javafx.scene.control.skin.ButtonSkin";
+    -fx-background-color: transparent;
+    -fx-background-insets: 0 0 0 0, 0, 0,0;
+    -fx-background-radius: 0, 0, 0, 0;
+    -fx-text-fill: -fx-text-base-color;
+    -fx-alignment: CENTER;
+    -fx-content-display: graphic-only;
+}
+
+.button:focused {
+    -fx-background-color: transparent ;
+    -fx-background-radius:  0, 0, 0, 0;
+}
+
+.button:hover {
+	-fx-background-color: transparent;
+}
+
+.button:armed {
+    -fx-background-color: transparent;
+}
+ 
+.button:default {
+    -fx-base: transparent;
+}
+
+.button:show-mnemonics .mnemonic-underline {
+    -fx-stroke: -fx-text-fill;
+} 
+
+#close{
+	-fx-background-repeat: no-repeat;
+	-fx-background-size: 20 20; 
+	-fx-background-image: url("close.png") ;
+}
+
+#close:hover{
+	-fx-background-repeat: no-repeat;
+	-fx-background-size: 20 20; 
+	-fx-background-image: url("closeHover.png");
+}
+
+#minimize{
+	-fx-background-repeat: no-repeat;
+	-fx-background-size: 20 20; 
+	-fx-background-image: url("minimise.png") ;
+}
+
+#minimize:hover{
+	-fx-background-repeat: no-repeat;
+	-fx-background-size: 20 20; 
+	-fx-background-image: url("minimizeHover.png");
+}
+
+#smaller{
+	-fx-background-repeat:no-repeat ;
+	-fx-background-size: 30 30;
+	-fx-background-image: url("makeSmaller.png");
+}
+
+#smaller:hover{
+	-fx-background-repeat:no-repeat ;
+	-fx-background-size: 30 30;
+	-fx-background-image: url("makeSmallerHover.png");
+}
+
+#larger{
+	-fx-background-repeat:no-repeat ;
+	-fx-background-size: 30 30;
+	-fx-background-image: url("makeLarger.png");
+	
+}
+
+#overdue {
+	-fx-text-fill: red;
+}
+
+#larger:hover{
+	-fx-background-repeat:no-repeat ;
+	-fx-background-size: 30 30;
+	-fx-background-image: url("makeLargerHover.png");
+}
+
+/* Buttons for help page */
+
+#close_help{
+	-fx-background-repeat: no-repeat;
+	-fx-background-size: 25 25; 
+	-fx-background-image: url("close.png") ;
+}
+
+#close_help:hover{
+	-fx-background-repeat: no-repeat;
+	-fx-background-size: 25 25; 
+	-fx-background-image: url("closeHover.png") ;
+}
+
+#next{
+	-fx-background-repeat: no-repeat;
+	-fx-background-size: 30 30; 
+	-fx-background-image: url("next.png") ;
+}
+
+#next:hover{
+	-fx-background-repeat: no-repeat;
+	-fx-background-size: 30 30; 
+	-fx-background-image: url("nextHover.png") ;
+}
+
+#back{
+	-fx-background-repeat: no-repeat;
+	-fx-background-size: 30 30; 
+	-fx-background-image: url("back.png") ;
+}
+
+#back:hover{
+	-fx-background-repeat: no-repeat;
+	-fx-background-size: 30 30; 
+	-fx-background-image: url("backHover.png") ;
+}
+
+#save{
+	-fx-background-repeat: no-repeat;
+	-fx-background-size: 76 42; 
+	-fx-background-image: url("save.png") ;
+}
+
+#save:hover{
+	-fx-background-repeat: no-repeat;
+	-fx-background-size: 76 42; 
+	-fx-background-image: url("saveHover.png") ;
+}
+
+#esc{
+	-fx-background-repeat: no-repeat;
+	-fx-background-size: 42 42; 
+	-fx-background-image: url("esc.png") ;
+}
+
+#esc:hover{
+	-fx-background-repeat: no-repeat;
+	-fx-background-size: 42 42; 
+	-fx-background-image: url("escHover.png") ;
+}
+
+/********************************************* ComboBox  ***********************************************/
+.combo-box{
+	-fx-background-color: white;
+	-fx-border-color: greenyellow;
+	-fx-border-width: 1.0px;
+}
+
+.combo-box:focused{
+	-fx-background-color: white;
+	-fx-border-color: greenyellow;
+	-fx-border-width: 2.0px;
+}
+
+.combo-box .arrow-button{
+	-fx-background-color: transparent;
+}
+
+.combo-box-popup .list-view{
+	-fx-background-color: white;
+	-fx-border-color: greenyellow;
+	-fx-border-width: 2.0px;
+}
+
+.combo-box-popup .list-view .list-cell:filled:selected{
+	-fx-background-color: rgb(124, 175, 12);
+}
+
+.combo-box-popup .list-view .list-cell:filled:hover{
+	-fx-background-color: rgb(199, 244, 100);
+}
+
+/*************************************ProgressIndicator***************************************/
+.progress-indicator{
+	-fx-progress-color: rgb(132, 225, 132);
+}
+
+/*************************************Error text***************************************/
+#error_text{
+	-fx-font: 14px Verdana;
+	-fx-fill: orangered;
+}
