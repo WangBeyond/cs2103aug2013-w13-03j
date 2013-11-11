@@ -104,8 +104,8 @@ public class Common {
 	static final String POPUP_MESSAGE_END_DATE = "Task \"%1$s\" will end after the next %2$s minutes";
 	
 	/*****************************file name*******************************************/
-	static String TASK_FILENAME = "task_storage.xml";
-	static String SETTING_FILENAME = "setting_storage.xml";
+	static String task_fileName = "task_storage.xml";
+	static String setting_fileName = "setting_storage.xml";
 	
 	/******************************symbols *****************************************/
 	static final String TRUE = "true";
@@ -196,7 +196,11 @@ public class Common {
 	}
 	
 	static void changeTaskFile(String fileName) {
-		TASK_FILENAME = fileName;
+		task_fileName = fileName;
+	}
+
+	static void changeSettingsFile(String fileName) {
+		setting_fileName = fileName;
 	}
 	
 	//@author A0098077N
