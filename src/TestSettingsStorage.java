@@ -3,7 +3,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 //@author A0105667B
-public class SettingsStorageTest {
+public class TestSettingsStorage {
 	static Control controlTest;
 	static Storage settingStore;
 	static Model model;

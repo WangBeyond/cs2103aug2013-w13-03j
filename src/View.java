@@ -348,8 +348,9 @@ public class View implements HotkeyListener {
 		for (Node n : list.lookupAll(".scroll-bar")) {
 			if (n instanceof ScrollBar) {
 				ScrollBar temp = (ScrollBar) n;
-				if (temp.getOrientation() == Orientation.VERTICAL)
+				if (temp.getOrientation() == Orientation.VERTICAL){
 					return temp;
+				}
 			}
 		}
 		return null;
@@ -357,6 +358,7 @@ public class View implements HotkeyListener {
 
 	// Get the corresponding scroll bar from the given tab index
 	private ScrollBar getScrollBar(int tab) {
+		assert tab >= 0 && tab <= 2;
 		if (tab == Common.PENDING_TAB) {
 			return pendingBar;
 		} else if (tab == Common.COMPLETE_TAB) {
@@ -377,6 +379,8 @@ public class View implements HotkeyListener {
 		trashBar = lookUpVerticalScrollBar(taskTrashList);
 
 		InputMap map = commandLine.getInputMap();
+		assert map != null;
+		
 		setupScrollUpKeyForCommandLine(map);
 		setupScrollDownKeyForCommandLine(map);
 	}
@@ -497,11 +501,14 @@ public class View implements HotkeyListener {
 						&& e.isControlDown();
 				boolean isHideShortcut = (e.getKeyCode() == java.awt.event.KeyEvent.VK_H
 						&& e.isControlDown() && e.isShiftDown());
+				boolean isTraditionalCloseShortcut = (e.getKeyCode() == java.awt.event.KeyEvent.VK_F4 && e
+						.isAltDown());
+				
 				if (isCollapseShortcut) {
 					setupCollapseShortuctForCommandLine();
 				} else if (isExpandShortcut) {
 					setupExpandShortcutForCommandLine();
-				} else if (isHideShortcut) {
+				} else if (isHideShortcut || isTraditionalCloseShortcut) {
 					setupHideShortcutForCommandLine();
 				}
 			}
@@ -571,7 +578,7 @@ public class View implements HotkeyListener {
 					collapseAnimation();
 				} else if (Common.expandWindow.match(keyEvent)) {
 					expandAnimation();
-				} else if (Common.hideWindow.match(keyEvent)) {
+				} else if (Common.hideWindow.match(keyEvent) || Common.traditionalCloseWindow.match(keyEvent)) {
 					hide();
 				} else if (keyEvent.getCode() == KeyCode.BACK_SPACE) {
 					setupBackspaceShortcut();
@@ -631,8 +638,7 @@ public class View implements HotkeyListener {
 				int pos = commandLine.getCaretPosition();
 				boolean isAtTheStart = pos == 0;
 				if (!isAtTheStart) {
-					commandLine.setText(commandLine.getText().substring(0,
-							pos - 1)
+					commandLine.setText(commandLine.getText().substring(0, pos - 1)
 							+ commandLine.getText().substring(pos));
 					commandLine.setCaretPosition(pos - 1);
 				}
@@ -650,11 +656,11 @@ public class View implements HotkeyListener {
 				setFocusOnCommandLine();
 				if (e.getCode() != KeyCode.ENTER) {
 					int pos = commandLine.getCaretPosition();
-					commandLine.setText(commandLine.getText().substring(0, pos)
-							+ e.getText()
+					commandLine.setText(commandLine.getText().substring(0, pos) + e.getText()
 							+ commandLine.getText().substring(pos));
-					if (pos != commandLine.getText().length())
+					if (pos != commandLine.getText().length()){
 						commandLine.setCaretPosition(pos + 1);
+					}
 				}
 			}
 		});
@@ -665,6 +671,7 @@ public class View implements HotkeyListener {
 	 */
 	private void processChangingTab() {
 		int tabIndex = getTabIndex();
+		assert tabIndex >= 0 && tabIndex <= 2;
 		if (tabIndex != Common.TRASH_TAB) {
 			tabPane.getSelectionModel().selectNext();
 		} else {
@@ -873,8 +880,7 @@ public class View implements HotkeyListener {
 	 * Set style sheet for night mode
 	 */
 	private void setStyleSheetForNightMode() {
-		scene.getStylesheets().addAll(
-				getClass().getResource("nightCustomization.css")
+		scene.getStylesheets().addAll(getClass().getResource("nightCustomization.css")
 						.toExternalForm());
 	}
 	
@@ -882,8 +888,7 @@ public class View implements HotkeyListener {
 	 * Set style sheet for day mode
 	 */
 	private void setStyleSheetForDayMode() {
-		scene.getStylesheets()
-				.addAll(getClass().getResource("dayCustomization.css")
+		scene.getStylesheets().addAll(getClass().getResource("dayCustomization.css")
 						.toExternalForm());
 	}
 	
@@ -1430,8 +1435,7 @@ public class View implements HotkeyListener {
 	 *            the linked column
 	 */
 	private void setupTagProperty(TableColumn<Task, Tag> tagColumn) {
-		tagColumn
-				.setCellValueFactory(new PropertyValueFactory<Task, Tag>("tag"));
+		tagColumn.setCellValueFactory(new PropertyValueFactory<Task, Tag>("tag"));
 	}
 
 	/**
@@ -1441,9 +1445,7 @@ public class View implements HotkeyListener {
 	 *            the modifed column
 	 */
 	private void setupTagUpdateFormat(final TableColumn<Task, Tag> tagColumn) {
-		tagColumn
-				.setCellFactory(new Callback<TableColumn<Task, Tag>, TableCell<Task, Tag>>() {
-	
+		tagColumn.setCellFactory(new Callback<TableColumn<Task, Tag>, TableCell<Task, Tag>>() {
 					@Override
 					public TableCell<Task, Tag> call(
 							TableColumn<Task, Tag> param) {
@@ -1480,16 +1482,10 @@ public class View implements HotkeyListener {
 							private void checkCategoryTagForRecurringTask(
 									Tag item, boolean hasTag) {
 								if (!hasTag) {
-									text = new Text(""
-											+ appendSpaceForAlignment("#"
-													+ item.getRepetition()));
+									text = new Text(appendSpaceForAlignment("#"+ item.getRepetition()));
 								} else {
-									text = new Text(
-											appendSpaceForAlignment(item
-													.getTag())
-													+ "\n"
-													+ appendSpaceForAlignment("#"
-															+ item.getRepetition()));
+									text = new Text(appendSpaceForAlignment(item.getTag()) + "\n"
+													+ appendSpaceForAlignment("#" + item.getRepetition()));
 								}
 							}
 	
@@ -1497,12 +1493,9 @@ public class View implements HotkeyListener {
 							private void checkCategoryTagForNormalTask(
 									Tag item, boolean hasTag) {
 								if (!hasTag) {
-									text = new Text(
-											appendSpaceForAlignment("-"));
+									text = new Text(appendSpaceForAlignment("-"));
 								} else {
-									text = new Text(
-											appendSpaceForAlignment(item
-													.getTag()));
+									text = new Text(appendSpaceForAlignment(item.getTag()));
 								}
 							}
 	
@@ -1559,9 +1552,7 @@ public class View implements HotkeyListener {
 	 */
 	private void setupRowStatusProperty(
 			TableColumn<Task, RowStatus> rowStatusColumn) {
-		rowStatusColumn
-				.setCellValueFactory(new PropertyValueFactory<Task, RowStatus>(
-						"rowStatus"));
+		rowStatusColumn.setCellValueFactory(new PropertyValueFactory<Task, RowStatus>("rowStatus"));
 	}
 
 	/**
@@ -1572,8 +1563,7 @@ public class View implements HotkeyListener {
 	 */
 	private void setupRowStatusUpdateFormat(
 			TableColumn<Task, RowStatus> rowStatusColumn) {
-		rowStatusColumn
-				.setCellFactory(new Callback<TableColumn<Task, RowStatus>, TableCell<Task, RowStatus>>() {
+		rowStatusColumn.setCellFactory(new Callback<TableColumn<Task, RowStatus>, TableCell<Task, RowStatus>>() {
 	
 					@Override
 					public TableCell<Task, RowStatus> call(
@@ -1626,8 +1616,7 @@ public class View implements HotkeyListener {
 							private void checkIsImportantForNormalTask(
 									boolean isOdd, boolean isImportant) {
 								if (isImportant) {
-									getTableRow().getStyleClass().add(
-											"important");
+									getTableRow().getStyleClass().add("important");
 								} else {
 									checkIsOddForLastOverdueTask(isOdd);
 								}
@@ -1637,11 +1626,9 @@ public class View implements HotkeyListener {
 							private void checkIsOddForLastOverdueTask(
 									boolean isOdd) {
 								if (isOdd) {
-									getTableRow().getStyleClass().add(
-											"unimportant-odd");
+									getTableRow().getStyleClass().add("unimportant-odd");
 								} else {
-									getTableRow().getStyleClass().add(
-											"unimportant");
+									getTableRow().getStyleClass().add("unimportant");
 								}
 							}
 	
@@ -1649,8 +1636,7 @@ public class View implements HotkeyListener {
 							private void checkIsImportantForLastOverdueTask(
 									boolean isOdd, boolean isImportant) {
 								if (isImportant) {
-									getTableRow().getStyleClass().add(
-											"important-last");
+									getTableRow().getStyleClass().add("important-last");
 								} else {
 									checkIsOddForNormalTask(isOdd);
 								}
@@ -1659,11 +1645,9 @@ public class View implements HotkeyListener {
 							// Check for odd task of non last overdue task
 							private void checkIsOddForNormalTask(boolean isOdd) {
 								if (isOdd) {
-									getTableRow().getStyleClass().add(
-											"unimportant-odd-last");
+									getTableRow().getStyleClass().add("unimportant-odd-last");
 								} else {
-									getTableRow().getStyleClass().add(
-											"unimportant-last");
+									getTableRow().getStyleClass().add("unimportant-last");
 								}
 							}
 						};
@@ -1705,9 +1689,7 @@ public class View implements HotkeyListener {
 	 */
 	private void setupStartDateProperty(
 			TableColumn<Task, String> startDateColumn) {
-		startDateColumn
-				.setCellValueFactory(new PropertyValueFactory<Task, String>(
-						"startDateString"));
+		startDateColumn.setCellValueFactory(new PropertyValueFactory<Task, String>("startDateString"));
 	}
 
 	/**
@@ -1767,9 +1749,7 @@ public class View implements HotkeyListener {
 	 * @param endDateColumn
 	 */
 	private void setupEndDateProperty(TableColumn<Task, String> endDateColumn) {
-		endDateColumn
-				.setCellValueFactory(new PropertyValueFactory<Task, String>(
-						"endDateString"));
+		endDateColumn.setCellValueFactory(new PropertyValueFactory<Task, String>("endDateString"));
 	}
 
 	/**
@@ -1833,9 +1813,7 @@ public class View implements HotkeyListener {
 	 */
 	private void setupOccurrenceProperty(
 			TableColumn<Task, String> occurrenceColumn) {
-		occurrenceColumn
-				.setCellValueFactory(new PropertyValueFactory<Task, String>(
-						"occurrence"));
+		occurrenceColumn.setCellValueFactory(new PropertyValueFactory<Task, String>("occurrence"));
 	}
 
 	/**
@@ -2015,17 +1993,20 @@ public class View implements HotkeyListener {
 	 */
 	private PopupMenu createPopupMenu() {
 		final PopupMenu popup = new PopupMenu();
-
+		
+		// Create Show Item
 		MenuItem showItem = new MenuItem("Show the main window");
 		showItem.addActionListener(createShowListener());
 		popup.add(showItem);
 
 		popup.addSeparator();
-
+		
+		// Create Setting Item
 		MenuItem settingsItem = new MenuItem("Preferences");
 
 		popup.add(settingsItem);
-
+		
+		// Create Close Item
 		MenuItem closeItem = new MenuItem("Exit");
 		closeItem.addActionListener(createExitListener());
 		popup.add(closeItem);
@@ -2105,7 +2086,7 @@ public class View implements HotkeyListener {
 
 	/**
 	 * Hide the application. If system tray is not supported, the application
-	 * will termintate instead.
+	 * will terminate instead.
 	 */
 	public void hide() {
 		Platform.runLater(new Runnable() {
@@ -2186,7 +2167,8 @@ public class View implements HotkeyListener {
 							Number oldValue, Number newValue) {
 						clearSearchLists();
 					}
-
+					
+					// Clear the search results back to original list
 					private void clearSearchLists() {
 						TwoWayCommand.setIndexType(TwoWayCommand.SHOWN);
 						taskPendingList.setItems(model.getPendingList());

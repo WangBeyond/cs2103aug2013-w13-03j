@@ -585,8 +585,7 @@ public class CustomDate {
 	 */
 	private int updateDate(String[] infos, GregorianCalendar tempDate, int numElements) {
 		int startIndex = getStartIndexOfDate(infos);
-		assert startIndex >= 0;
-		
+
 		if (hasMonthWord()) { // containing month String i.e Jan
 			numElements = updateDateWithMonth(infos, tempDate, numElements, startIndex);
 		} else if (hasSlashFormat(dateInfo)) { 

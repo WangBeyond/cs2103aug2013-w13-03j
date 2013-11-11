@@ -311,7 +311,6 @@ public class Synchronization  {
 						.getLatestModifiedDate(), new CustomDate(
 						updated)) > 0;
 				if (hasLatestModificationFromiDo) {
-					System.out.println("test");
 					updateModifiedEventOnGCal(service, entries,
 							feedURL, toBeUpdatedOnGCal, pendingList, i,
 							j);
@@ -453,7 +452,6 @@ public class Synchronization  {
 	private void updateToRecurrenceEntry(List<CalendarEventEntry> entries,
 			List<CalendarEventEntry> toBeUpdatedOnGCal, List<Task> pendingList,
 			int i, int j) {
-		
 		entries.get(j).getTimes().clear();
 		if (!pendingList.get(i).isFloatingTask()) {
 			String startDate = pendingList.get(i)
@@ -470,11 +468,9 @@ public class Synchronization  {
 					.getNumOccurrences();
 			
 			String recurData = setRecurrenceData(startDate, endDate, freq, null, count, interval);
-			System.out.println(recurData);
 			Recurrence rec = new Recurrence();
 			rec.setValue(recurData);
 			entries.get(j).setRecurrence(rec);
-			System.out.println("test more");
 		}
 		toBeUpdatedOnGCal.add(entries.get(j));
 	}
@@ -829,7 +825,7 @@ public class Synchronization  {
 	 */
 	private void checkOccurrencesForTimedRecurringTask(Task newTask,
 			String recurData, String freq) {
-		newTask.setTag(new Tag(Common.HYPHEN, freq.toLowerCase()));
+		newTask.setTag(new Tag(newTask.getTag().getTag(), freq.toLowerCase()));
 		if (recurData.contains("COUNT=")) {
 			int startIndex = recurData.indexOf("COUNT=") + 6;
 			int endIndex = recurData.indexOf(";", startIndex);

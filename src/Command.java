@@ -78,8 +78,8 @@ public abstract class Command {
 	protected void checkInvalidDates(boolean isRepetitive,
 			boolean hasStartDate, boolean hasEndDate, CustomDate startDate,
 			CustomDate endDate, String repeatingType) {
-		boolean isFloatingTask = !hasStartDate && !hasEndDate;
-		if (!isFloatingTask) {
+		boolean isTimedTask = hasStartDate && hasEndDate;
+		if (isTimedTask) {
 			boolean hasEndDateBeforeStartDate = CustomDate.compare(endDate, startDate) < 0;
 			if (hasEndDateBeforeStartDate) {
 				throw new IllegalArgumentException(Common.MESSAGE_INVALID_DATE_RANGE);
@@ -788,8 +788,9 @@ class EditCommand extends TwoWayCommand {
 	 */
 	private void checkRecurringInfo(boolean isRepetitive, boolean hasStartDate,
 			boolean hasEndDate) {
-		if(isRepetitive)
+		if (isRepetitive) {
 			splitRepeatingInfo();
+		}
 		checkInvalidDates(isRepetitive, hasStartDate, hasEndDate, startDate, endDate, repeatingType);
 	}
 	
@@ -926,6 +927,7 @@ class EditCommand extends TwoWayCommand {
 		editedTask.setIndexId(originalTask.getIndexId());
 		editedTask.setLatestModifiedDate(originalTask.getLatestModifiedDate());
 		editedTask.setOccurrence(originalTask.getNumOccurrences(), originalTask.getCurrentOccurrence());
+		editedTask.updateLatestModifiedDate();
 		Common.sortList(modifiedList);
 
 		return Common.MESSAGE_SUCCESSFUL_UNDO;
@@ -946,6 +948,7 @@ class EditCommand extends TwoWayCommand {
 		editedTask.setIndexId(targetTask.getIndexId());
 		editedTask.setLatestModifiedDate(targetTask.getLatestModifiedDate());
 		editedTask.setOccurrence(targetTask.getNumOccurrences(), targetTask.getCurrentOccurrence());
+		editedTask.updateLatestModifiedDate();
 		Common.sortList(modifiedList);
 		
 		return Common.MESSAGE_SUCCESSFUL_REDO;
@@ -1581,6 +1584,7 @@ class MarkCommand extends IndexCommand {
 			int markIndex = convertIndex(indexList[i] - 1);
 			Task targetTask = modifiedList.get(markIndex);
 			targetTask.setIsImportant(true);
+			targetTask.updateLatestModifiedDate();
 		}
 
 		return Common.MESSAGE_SUCCESSFUL_MARK;
@@ -1594,6 +1598,7 @@ class MarkCommand extends IndexCommand {
 			int unmarkIndex = convertIndex(indexList[i] - 1);
 			Task targetTask = modifiedList.get(unmarkIndex);
 			targetTask.setIsImportant(false);
+			targetTask.updateLatestModifiedDate();
 		}
 		return Common.MESSAGE_SUCCESSFUL_UNDO;
 	}
@@ -1607,6 +1612,7 @@ class MarkCommand extends IndexCommand {
 			int markIndex = convertIndex(indexList[i] - 1);
 			Task targetTask = modifiedList.get(markIndex);
 			targetTask.setIsImportant(true);
+			targetTask.updateLatestModifiedDate();
 		}
 
 		return Common.MESSAGE_SUCCESSFUL_REDO;
@@ -1648,6 +1654,7 @@ class UnmarkCommand extends IndexCommand {
 			int unmarkIndex = convertIndex(indexList[i] - 1);
 			Task targetTask = modifiedList.get(unmarkIndex);
 			targetTask.setIsImportant(false);
+			targetTask.updateLatestModifiedDate();
 		}
 
 		return Common.MESSAGE_SUCCESSFUL_UNMARK;
@@ -1661,6 +1668,7 @@ class UnmarkCommand extends IndexCommand {
 			int markIndex = convertIndex(indexList[i] - 1);
 			Task targetTask = modifiedList.get(markIndex);
 			targetTask.setIsImportant(true);
+			targetTask.updateLatestModifiedDate();
 		}
 		return Common.MESSAGE_SUCCESSFUL_UNDO;
 	}
@@ -1674,6 +1682,7 @@ class UnmarkCommand extends IndexCommand {
 			int unmarkIndex = convertIndex(indexList[i] - 1);
 			Task targetTask = modifiedList.get(unmarkIndex);
 			targetTask.setIsImportant(false);
+			targetTask.updateLatestModifiedDate();
 		}
 
 		return Common.MESSAGE_SUCCESSFUL_REDO;

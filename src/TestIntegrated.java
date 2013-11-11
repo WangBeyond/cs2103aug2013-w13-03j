@@ -7,7 +7,7 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 
 
-public class IntegratedTest  {
+public class TestIntegrated  {
 	
 	static Control controlTest;
 	static Storage dataFile;
@@ -23,6 +23,17 @@ public class IntegratedTest  {
 	}
 	
 	@Test
+	public void test(){
+		testClear();
+		testAdd();
+		testRemove();
+		testEdit();
+		testMark();
+		testComplete();
+		testRecover();
+		
+	}
+	
 	public void testClear() {
 		controlTest.setTabForTest(Common.PENDING_TAB);
 		controlTest.executeCommand("clear");
@@ -47,7 +58,7 @@ public class IntegratedTest  {
 		}
 	}
 	
-	@Test
+
 	public void testAdd() {
 		clearAll();
 		controlTest.setTabForTest(Common.PENDING_TAB);
@@ -78,7 +89,6 @@ public class IntegratedTest  {
 		}
 	}
 	
-	@Test
 	public void testRemove() {
 		clearAll();
 		controlTest.setTabForTest(Common.PENDING_TAB);
@@ -107,7 +117,6 @@ public class IntegratedTest  {
 		}
 	}
 	
-	@Test 
 	public void testEdit() {
 		clearAll();
 		controlTest.setTabForTest(Common.PENDING_TAB);
@@ -143,7 +152,6 @@ public class IntegratedTest  {
 		}
 	}
 	
-	@Test 
 	public void testMark() {
 		clearAll();
 		controlTest.setTabForTest(Common.PENDING_TAB);
@@ -168,7 +176,6 @@ public class IntegratedTest  {
 		}	
 	}
 	
-	@Test 
 	public void testComplete() {
 		clearAll();
 		controlTest.setTabForTest(Common.PENDING_TAB);
@@ -208,7 +215,6 @@ public class IntegratedTest  {
 
 	}
 	
-	@Test 
 	public void testRecover() {
 		clearAll();
 		controlTest.setTabForTest(Common.PENDING_TAB);

@@ -392,7 +392,7 @@ public class Control extends Application {
 				if (isIndexCommand(command)) {
 					view.setFeedback(Common.MESSAGE_COMPLETE_INDEX_TIP);
 				} else {
-					view.setFeedback(Common.MESSAGE_INCOMPLETE_INFO_TIP);
+					view.setFeedback(Common.MESSAGE_COMPLETE_INFO_TIP);
 				}
 			}
 
@@ -441,6 +441,7 @@ public class Control extends Application {
 	// Setup key bindings for the command line
 	private void setupKeyBindingsForCommandLine() {
 		InputMap map = view.getCommandLine().getInputMap();
+		assert map != null;
 		addKeyBindingForExecution(map);
 		addKeyBindingForUndo(map);
 		addKeyBindingForRedo(map);
@@ -624,6 +625,7 @@ public class Control extends Application {
 		try {
 			Common.COMMAND_TYPES commandType = Parser.determineCommandType(userCommand);
 			int tabIndex = getTabIndex();
+			assert tabIndex >= 0 && tabIndex <= 2;
 			String[] parsedUserCommand = Parser.parseCommand(userCommand, commandType, model, tabIndex);
 			return executeCommandCorrespondingType(parsedUserCommand, commandType);
 		} catch (Exception e) {
@@ -726,7 +728,7 @@ public class Control extends Application {
 	private String executeAddCommand(String[] parsedUserCommand)
 			throws IOException {
 		int tabIndex = getTabIndex();
-		
+		assert tabIndex >= 0 && tabIndex <= 2;
 		Command addCommand = new AddCommand(parsedUserCommand, model, tabIndex);
 		String feedback = addCommand.execute();
 		
@@ -755,7 +757,7 @@ public class Control extends Application {
 	private String executeEditCommand(String[] parsedUserCommand) throws IOException {
 		boolean isAfterSearch = TwoWayCommand.listedIndexType;
 		int tabIndex = getTabIndex();
-		
+		assert tabIndex >= 0 && tabIndex <= 2;
 		Command editCommand = new EditCommand(parsedUserCommand, model, tabIndex);
 		String feedback = editCommand.execute();
 		
@@ -775,7 +777,7 @@ public class Control extends Application {
 	private String executeRemoveCommand(String[] parsedUserCommand) throws IOException {
 		boolean isAfterSearch = TwoWayCommand.listedIndexType;
 		int tabIndex = getTabIndex();
-		
+		assert tabIndex >= 0 && tabIndex <= 2;
 		Command removeCommand = new RemoveCommand(parsedUserCommand, model, tabIndex);
 		String feedback = removeCommand.execute();
 		
@@ -858,7 +860,7 @@ public class Control extends Application {
 	private String executeClearCommand() throws IOException {
 		boolean isAfterSearch = TwoWayCommand.listedIndexType;
 		int tabIndex = getTabIndex();
-		
+		assert tabIndex >= 0 && tabIndex <= 2;
 		Command clearCommand = new ClearAllCommand(model, tabIndex);
 		String feedback = clearCommand.execute();
 		
@@ -879,7 +881,7 @@ public class Control extends Application {
 			throws IOException {
 		boolean isAfterSearch = TwoWayCommand.listedIndexType;
 		int tabIndex = getTabIndex();
-		
+		assert tabIndex >= 0 && tabIndex <= 2;
 		Command completeCommand = new CompleteCommand(parsedUserCommand, model, tabIndex);
 		String feedback = completeCommand.execute();
 
@@ -900,7 +902,7 @@ public class Control extends Application {
 			throws IOException {
 		boolean isAfterSearch = TwoWayCommand.listedIndexType;
 		int tabIndex = getTabIndex();
-		
+		assert tabIndex >= 0 && tabIndex <= 2;
 		Command incompleteCommand = new IncompleteCommand(parsedUserCommand, model, tabIndex);
 		String feedback = incompleteCommand.execute();
 
@@ -921,7 +923,7 @@ public class Control extends Application {
 	private String executeRecoverCommand(String[] parsedUserCommand) throws IOException{
 		boolean isAfterSearch = TwoWayCommand.listedIndexType;
 		int tabIndex = getTabIndex();
-		
+		assert tabIndex >= 0 && tabIndex <= 2;
 		Command recoverCommand = new RecoverCommand(parsedUserCommand, model, tabIndex);
 		String feedback = recoverCommand.execute();
 		
@@ -943,7 +945,7 @@ public class Control extends Application {
 			throws IOException {
 		boolean isAfterSearch = TwoWayCommand.listedIndexType;
 		int tabIndex = getTabIndex();
-		
+		assert tabIndex >= 0 && tabIndex <= 2;
 		Command markCommand = new MarkCommand(parsedUserCommand, model, tabIndex);
 		String feedback = markCommand.execute();
 
@@ -964,7 +966,7 @@ public class Control extends Application {
 			throws IOException {
 		boolean isAfterSearch = TwoWayCommand.listedIndexType;
 		int tabIndex = getTabIndex();
-		
+		assert tabIndex >= 0 && tabIndex <= 2;
 		Command unmarkCommand = new UnmarkCommand(parsedUserCommand, model, tabIndex);
 		String feedback = unmarkCommand.execute();
 
@@ -1093,6 +1095,7 @@ public class Control extends Application {
 	 */
 	private String executeExitCommand() {
 		int tabIndex = getTabIndex();
+		assert tabIndex >= 0 && tabIndex <= 2;
 		Command exitCommand = new ExitCommand(model, tabIndex);
 		if(isUnderSyncingProcess()){
 			return Common.MESSAGE_EXIT_RESTRICTION;
@@ -1113,8 +1116,9 @@ public class Control extends Application {
 	 */
 	private String executeShowCommand() {
 		Command showCommand = new ShowAllCommand(model, view);
-		int tab = getTabIndex();
-		updateOverdueLineForSpecificTab(tab);
+		int tabIndex = getTabIndex();
+		assert tabIndex >= 0 && tabIndex <= 2;
+		updateOverdueLineForSpecificTab(tabIndex);
 		
 		return showCommand.execute();
 	}

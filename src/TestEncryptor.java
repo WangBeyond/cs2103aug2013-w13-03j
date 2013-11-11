@@ -4,7 +4,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 //@author A0105667B
-public class EncryptorTest {
+public class TestEncryptor {
 	private static String encryptAlgo = "DES/ECB/PKCS5Padding";
 	private static Encryptor encryptor;
 	

@@ -457,9 +457,9 @@ public class Task implements Comparable<Task> {
 			return false;
 		} else if (!task1.getWorkInfo().equals(task2.getWorkInfo())) {
 			return false;
-		} else if (CustomDate.compare(task1.getStartDate(), task2.getStartDate())!=0) {
+		} else if (CustomDate.compare(task1.getStartDate(), task2.getStartDate()) != 0) {
 			return false;
-		} else if (CustomDate.compare(task1.getEndDate(), task2.getEndDate())!=0) {
+		} else if (CustomDate.compare(task1.getEndDate(), task2.getEndDate()) != 0) {
 			return false;
 		} else if (!task1.getTag().getTag().equals(task2.getTag().getTag())) {
 			return false;
