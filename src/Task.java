@@ -465,7 +465,11 @@ public class Task implements Comparable<Task> {
 			return false;
 		} else if (!task1.getTag().getRepetition().equals(task2.getTag().getRepetition())) {
 			return false;
-		} else if (task1.isImportantTask()!=task2.isImportantTask()) {
+		} else if (task1.isImportantTask() != task2.isImportantTask()) {
+			return false;
+		} else if (task1.getNumOccurrences() != task2.getNumOccurrences()) {
+			return false;
+		} else if (task1.getCurrentOccurrence() != task2.getCurrentOccurrence()) {
 			return false;
 		} else {
 			return true;

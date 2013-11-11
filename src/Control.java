@@ -735,8 +735,8 @@ public class Control extends Application {
 			storeTask();
 			if(view != null) {
 				view.setTab(Common.PENDING_TAB);
+				executeShowCommand();
 			}
-			executeShowCommand();
 		}
 		return feedback;
 	}
@@ -762,7 +762,9 @@ public class Control extends Application {
 		if (feedback.equals(Common.MESSAGE_SUCCESSFUL_EDIT)) {
 			commandHistory.updateCommand((TwoWayCommand) editCommand, isAfterSearch);
 			storeTask();
-			executeShowCommand();
+			if(view != null) {
+				executeShowCommand();
+			}
 		}
 		return feedback;
 	}
@@ -780,7 +782,9 @@ public class Control extends Application {
 		if (feedback.equals(Common.MESSAGE_SUCCESSFUL_REMOVE)) {
 			commandHistory.updateCommand((TwoWayCommand) removeCommand, isAfterSearch);
 			storeTask();
-			executeShowCommand();
+			if(view != null) {
+				executeShowCommand();
+			}
 		}
 		return feedback;
 	}
@@ -795,7 +799,9 @@ public class Control extends Application {
 		}
 		
 		if (commandHistory.isUndoable()) {
-			executeShowCommand();
+			if(view != null) {
+				executeShowCommand();
+			}
 			TwoWayCommand undoCommand = commandHistory.getPrevCommandForUndo();
 			String feedback = undoCommand.undo();
 			storeTask();
@@ -816,7 +822,9 @@ public class Control extends Application {
 			if (commandHistory.isAfterSearch()) {
 				TwoWayCommand.setIndexType(TwoWayCommand.SEARCHED);
 			}
-			executeShowCommand();
+			if(view != null) {
+				executeShowCommand();
+			}
 			TwoWayCommand redoCommand = commandHistory.getPrevCommandForRedo();
 			redoCommand.redo();
 			storeTask();
@@ -857,7 +865,9 @@ public class Control extends Application {
 		if (feedback.equals(Common.MESSAGE_SUCCESSFUL_CLEAR_ALL)) {
 			commandHistory.updateCommand((TwoWayCommand) clearCommand, isAfterSearch);
 			storeTask();
-			executeShowCommand();
+			if(view != null) {
+				executeShowCommand();
+			}
 		}
 		return feedback;
 	}
@@ -876,7 +886,9 @@ public class Control extends Application {
 		if (feedback.equals(Common.MESSAGE_SUCCESSFUL_COMPLETE)) {
 			commandHistory.updateCommand((TwoWayCommand) completeCommand, isAfterSearch);
 			storeTask();
-			executeShowCommand();
+			if(view != null) {
+				executeShowCommand();
+			}
 		}
 		return feedback;
 	}
@@ -895,7 +907,9 @@ public class Control extends Application {
 		if (feedback.equals(Common.MESSAGE_SUCCESSFUL_INCOMPLETE)) {
 			commandHistory.updateCommand((TwoWayCommand) incompleteCommand, isAfterSearch);
 			storeTask();
-			executeShowCommand();
+			if(view != null) {
+				executeShowCommand();
+			}
 		}
 		return feedback;
 	}
@@ -914,7 +928,9 @@ public class Control extends Application {
 		if(feedback.equals(Common.MESSAGE_SUCCESSFUL_RECOVER)){
 			commandHistory.updateCommand((TwoWayCommand)recoverCommand, isAfterSearch);
 			storeTask();
-			executeShowCommand();
+			if(view != null) {
+				executeShowCommand();
+			}
 		}
 		return feedback;
 	}
@@ -934,7 +950,9 @@ public class Control extends Application {
 		if (feedback.equals(Common.MESSAGE_SUCCESSFUL_MARK)) {
 			commandHistory.updateCommand((TwoWayCommand) markCommand, isAfterSearch);
 			storeTask();
-			executeShowCommand();
+			if(view != null) {
+				executeShowCommand();
+			}
 		}
 		return feedback;
 	}
@@ -953,7 +971,9 @@ public class Control extends Application {
 		if (feedback.equals(Common.MESSAGE_SUCCESSFUL_UNMARK)) {
 			commandHistory.updateCommand((TwoWayCommand) unmarkCommand, isAfterSearch);
 			storeTask();
-			executeShowCommand();
+			if(view != null) {
+				executeShowCommand();
+			}
 		}
 		return feedback;
 	}
