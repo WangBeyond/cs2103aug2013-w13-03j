@@ -2520,7 +2520,6 @@ class CustomStyledDocument extends DefaultStyledDocument {
 						.length(), View.colourSchemeCommandLine[8], false);
 				break;
 			}
-
 		}
 	}
 };
