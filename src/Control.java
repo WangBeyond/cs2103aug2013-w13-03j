@@ -88,7 +88,7 @@ public class Control extends Application {
 	 * Load the settings data
 	 */
 	private void loadSettings() throws IOException {
-		settingStore = new SettingsStorage(Common.SETTING_FILENAME, model);
+		settingStore = new SettingsStorage(Common.setting_fileName, model);
 		settingStore.loadFromFile();
 	}
 	
@@ -107,7 +107,7 @@ public class Control extends Application {
 	 * Load the task data
 	 */
 	private void loadTask() throws IOException {
-		taskFile = new TaskStorage(Common.TASK_FILENAME, model);
+		taskFile = new TaskStorage(Common.task_fileName, model);
 		taskFile.loadFromFile();
 	}
 	
