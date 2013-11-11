@@ -87,7 +87,7 @@ import javafx.stage.StageStyle;
 import javafx.util.Callback;
 import javafx.util.Duration;
 
-//@author A0098077N
+
 /**
  * 
  * This class provides the main graphic user interface for the application
@@ -168,6 +168,7 @@ public class View implements HotkeyListener {
 	// The model of settings and task info
 	private Model model;
 	
+	//@author A0098077N
 	/**
 	 * This is the constructor for class View. It will create the content in the
 	 * GUI and setup the scene for the stage in Control class.

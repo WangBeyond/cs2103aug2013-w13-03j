@@ -8,7 +8,7 @@ public class TestMain {
 	CustomDateTest customDateTest = new CustomDateTest();
 	ParserTest parserTest = new ParserTest();
 	CommandTest commandTest = new CommandTest();
-	
+	IntegratedTest integratedTest = new IntegratedTest();
 	
 	@Test
 	public void test() {

@@ -26,7 +26,7 @@ class History {
 		redoable = false;
 		isOperatedAfterSearch = false;
 	}
-
+	
 	/************************ GET Functions **********************************/
 	public boolean isUndoable() {
 		return undoable;
@@ -75,10 +75,23 @@ class History {
 		this.redoable = redoable;
 	}
 	
+	public void clearUndoStack(){
+		prevCommandsForUndo.clear();
+		undoable = false;
+	}
+	
+	public void clearRedoStack(){
+		prevCommandsForRedo.clear();
+		redoable = false;
+	}
+
+	
 	//@author A0105667B
 	public void setIsAfterSearch(boolean isAfter) {
 		isOperatedAfterSearch = isAfter;
 	}
+	
+	
 
 	//@author A0100927M
 	/************************ UPDATE Functions **********************************/

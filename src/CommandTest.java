@@ -25,7 +25,6 @@ public class CommandTest {
 		testCompleteCommand();
 		// INCOMPLETE command
 		testIncompleteCommand();
-		
 	}
 
 	private void testIncompleteCommand() {

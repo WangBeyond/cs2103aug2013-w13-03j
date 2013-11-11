@@ -3,7 +3,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
-//@author A0098077N
+
 /**
  * 
  * This class is used to store the information of a task
@@ -60,7 +60,8 @@ public class Task implements Comparable<Task> {
 	
 	// The latest date when the task was modified
 	private CustomDate latestModifiedDate;
-
+	
+	//@author A0098077N
 	// Default constructor
 	public Task() {
 		checkProperty();
@@ -539,6 +540,7 @@ class Tag {
 	}
 }
 
+//@author A0098077N
 /**
  * 
  * This class is used to store the current status of a task whether it is

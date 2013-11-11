@@ -12,6 +12,7 @@ import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 
+//@author A0105667B
 public class SettingsStorage extends Storage {
 
 	private static String encryptAlgo = "DES/ECB/PKCS5Padding";

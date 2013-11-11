@@ -1,4 +1,3 @@
-
 import java.awt.TrayIcon.MessageType;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -49,7 +48,7 @@ public class Control extends Application {
 	private Storage settingStore;
 	// Sync thread of Control class
 	public static SyncCommand syncThread;
-	private Synchronization sync = new Synchronization(model);
+	private Synchronization sync = new Synchronization(model, commandHistory);
 	// Timer for auto sync
 	private Timer syncTimer;
 	//tabIndex for test cases to modify
@@ -616,7 +615,7 @@ public class Control extends Application {
 	 *            the command input from the user
 	 * @return the corresponding feedback according to the command
 	 */
-	String executeCommand(String userCommand) {
+	public String executeCommand(String userCommand) {
 		boolean isEmptyCommand = Parser.checkEmptyCommand(userCommand);
 		if (isEmptyCommand) {
 			return Common.MESSAGE_EMPTY_COMMAND;
