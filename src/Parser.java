@@ -23,7 +23,9 @@ public class Parser {
 			"every friday",
 			"every saturday",
 			"every sunday",
-			"every\\s*\\d*\\s*(days?|weeks?|months?|years?|mondays?|tuesdays?|wednesdays?|thursdays?|fridays?|saturdays?|sundays?)" };
+			"every\\s*\\d*\\s*(days?|weeks?|months?|years?"
+					+ "|mondays?|tuesdays?|wednesdays?|thursdays?"
+						+ "|fridays?|saturdays?|sundays?)" };
 
 
 	/* maximum length of a date. Example: next Monday 4pm */
