@@ -87,6 +87,7 @@ import javafx.stage.StageStyle;
 import javafx.util.Callback;
 import javafx.util.Duration;
 
+//@author A0098077N
 /**
  * 
  * This class provides the main graphic user interface for the application
@@ -167,7 +168,6 @@ public class View implements HotkeyListener {
 	// The model of settings and task info
 	private Model model;
 	
-	//@author A0098077N
 	/**
 	 * This is the constructor for class View. It will create the content in the
 	 * GUI and setup the scene for the stage in Control class.
@@ -1291,7 +1291,7 @@ public class View implements HotkeyListener {
 	private TableColumn<Task, String> createTaskInfoColumn() {
 		TableColumn<Task, String> taskInfoColumn = TableColumnBuilder
 				.<Task, String> create().resizable(false).text("Task")
-				.sortable(false).prefWidth(300).build();
+				.sortable(false).prefWidth(330).build();
 	
 		setupTaskInfoProperty(taskInfoColumn);
 		setupTaskInfoUpdateFormat(taskInfoColumn);
@@ -1687,7 +1687,7 @@ public class View implements HotkeyListener {
 	private TableColumn<Task, String> createStartDateColumn() {
 		TableColumn<Task, String> startDateColumn = TableColumnBuilder
 				.<Task, String> create().resizable(false).text("Start")
-				.prefWidth(110).resizable(false).sortable(false).build();
+				.prefWidth(90).resizable(false).sortable(false).build();
 	
 		setupStartDateProperty(startDateColumn);
 		setupStartDateUpdateFormat(startDateColumn);
@@ -1751,7 +1751,7 @@ public class View implements HotkeyListener {
 	private TableColumn<Task, String> createEndDateColumn() {
 		TableColumn<Task, String> endDateColumn = TableColumnBuilder
 				.<Task, String> create().resizable(false).text("End")
-				.sortable(false).resizable(false).prefWidth(110).build();
+				.sortable(false).resizable(false).prefWidth(90).build();
 	
 		setupEndDateProperty(endDateColumn);
 		setupEndDateUpdateFormat(endDateColumn);
@@ -1816,7 +1816,7 @@ public class View implements HotkeyListener {
 	private TableColumn<Task, String> createOccurrenceColumn() {
 		TableColumn<Task, String> occurrenceColumn = TableColumnBuilder
 				.<Task, String> create().resizable(false).visible(true)
-				.text("").prefWidth(28).sortable(false).resizable(false)
+				.text("").prefWidth(40).sortable(false).resizable(false)
 				.build();
 		setupOccurrenceProperty(occurrenceColumn);
 		setupOccurrenceUpdateFormat(occurrenceColumn);
@@ -1858,7 +1858,8 @@ public class View implements HotkeyListener {
 								if (item != null) {
 									text = new Text(item);
 									text.setFill(Color.DARKCYAN);
-									text.setFont(Font.font("Verdana", 10));
+									text.setFont(Font.font("Verdana", 9));
+									setAlignment(Pos.TOP_LEFT);
 									setGraphic(text);
 								}
 							}
@@ -2262,6 +2263,14 @@ public class View implements HotkeyListener {
 			setFeedbackStyle(0, "<today>", colourScheme[0]);
 			emptyFeedback(1);
 			break;
+		case Common.MESSAGE_HELP_TIP:
+			setFeedbackStyle(0, "<help>", colourScheme[0]);
+			emptyFeedback(1);
+			break;
+		case Common.MESSAGE_SETTINGS_TIP:
+			setFeedbackStyle(0, "<settings>", colourScheme[0]);
+			emptyFeedback(1);
+			break;
 		case Common.MESSAGE_SHOW_ALL_TIP:
 			setFeedbackStyle(0, "<show>", colourScheme[0]);
 			emptyFeedback(1);
@@ -2294,19 +2303,19 @@ public class View implements HotkeyListener {
 			setFeedbackWithTaskInfos();
 			break;
 		case Common.MESSAGE_COMPLETE_INDEX_TIP:
-			setFeedbackStyle(0, "<complete/done>", colourScheme[0]);
+			setFeedbackStyle(0, "<done>", colourScheme[0]);
 			setFeedbackWithTaskIndices();
 			break;
 		case Common.MESSAGE_COMPLETE_INFO_TIP:
-			setFeedbackStyle(0, "<complete/done>", colourScheme[0]);
+			setFeedbackStyle(0, "<done>", colourScheme[0]);
 			setFeedbackWithTaskInfos();
 			break;
 		case Common.MESSAGE_INCOMPLETE_INDEX_TIP:
-			setFeedbackStyle(0, "<incomplete/undone>", colourScheme[0]);
+			setFeedbackStyle(0, "<undone>", colourScheme[0]);
 			setFeedbackWithTaskIndices();
 			break;
 		case Common.MESSAGE_INCOMPLETE_INFO_TIP:
-			setFeedbackStyle(0, "<incomplete/undone>", colourScheme[0]);
+			setFeedbackStyle(0, "<undone>", colourScheme[0]);
 			setFeedbackWithTaskInfos();
 			break;
 		default:
@@ -2469,7 +2478,7 @@ class CustomStyledDocument extends DefaultStyledDocument {
 
 	private void setColor() throws BadLocationException {
 		String text = getText(0, getLength());
-		ArrayList<InfoWithIndex> infoList = Parser.parseForView(text);
+		ArrayList<InfoWithIndex> infoList = Parser.parseForView(text.toLowerCase());
 		for (int i = 0; i < infoList.size(); i++) {
 			InfoWithIndex info = infoList.get(i);
 			switch (info.getInfoType()) {

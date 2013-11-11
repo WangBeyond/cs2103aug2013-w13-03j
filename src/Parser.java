@@ -454,7 +454,6 @@ public class Parser {
 	 */
 	private static void parseIndex(String[] splittedUserCommand,
 			Vector<String> indexList) {
-		try {
 			for (String s : splittedUserCommand) {
 				boolean isRangeIndex = s.contains(Common.HYPHEN);
 				if (isRangeIndex) {
@@ -463,9 +462,6 @@ public class Parser {
 					indexList.add(String.valueOf(Integer.parseInt(s)));
 				}
 			}
-		} catch (NumberFormatException e) {
-			throw new IllegalArgumentException("Index is invalid");
-		}
 	}
 
 	/**
@@ -841,7 +837,7 @@ public class Parser {
 			dateWithKeyWord = addKeyWord(date, command, dateTypeIndicator,
 					startIndex, dateWithKeyWord, secondSpaceIndex,
 					firstSpaceIndex);
-			if (!dateWithKeyWord.equals(date)) {
+			if (!dateWithKeyWord.equals(date) || dateWithKeyWord.startsWith("tomorrow") || dateWithKeyWord.startsWith("today") || dateWithKeyWord.startsWith("tonight") || dateWithKeyWord.startsWith("next")) {
 				return dateWithKeyWord;
 			}
 		}
@@ -873,8 +869,8 @@ public class Parser {
 	
 	// Get the index of the first space before the date in the command
 	private static int getFirstSpaceIndex(String command, int secondSpaceIndex) {
-		int firstSpaceIndex = secondSpaceIndex - 1;
-		while (firstSpaceIndex > 0
+		int firstSpaceIndex = getCharIndex(command, secondSpaceIndex);
+		while (firstSpaceIndex >= 0
 				&& command.charAt(firstSpaceIndex) != ' ') {
 			firstSpaceIndex--;
 		}
@@ -883,13 +879,20 @@ public class Parser {
 	
 	// Get the index of the second space before the date in the command
 	private static int getSecondSpaceIndex(String command, int startIndex) {
-		int secondSpaceIndex = startIndex - 2;
+		int secondSpaceIndex = getCharIndex(command, startIndex-1);
 
-		while (secondSpaceIndex > 0
+		while (secondSpaceIndex >= 0
 				&& command.charAt(secondSpaceIndex) != ' ') {
 			secondSpaceIndex--;
 		}
 		return secondSpaceIndex;
+	}
+	
+	private static int getCharIndex(String command, int index){
+		while(index >= 0 && command.charAt(index) == ' ')
+			index--;
+		
+		return index;
 	}
 
 	/**

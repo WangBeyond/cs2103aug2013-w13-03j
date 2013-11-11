@@ -11,7 +11,6 @@ import javafx.collections.ObservableList;
  * It comprises data in settings, list of tasks for display on the interface.
  *
  */
-
 public class Model {
 	private static final String MESSAGE_OUT_OF_BOUNDS_INDEX = "Out of bounds index";
 
@@ -125,6 +124,7 @@ public class Model {
 		return undoTaskBuffer;
 	}
 	
+	//@author A0105667B
 	/******************************** GET or MODIFY the index IDs of deleted-during-sync tasks ******************/
 	public ObservableList<String> getRemovedIdDuringSync() {
 		return removedIdDuringSync;
