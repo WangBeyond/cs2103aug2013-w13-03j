@@ -12,7 +12,6 @@ import javafx.collections.ObservableList;
  */
 public class Model {
 	private static final String MESSAGE_OUT_OF_BOUNDS_INDEX = "Out of bounds index";
-
 	// Logger
 	private static Logger logger = Logger.getLogger("Model");
 	
