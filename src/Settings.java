@@ -36,7 +36,6 @@ import javafx.stage.StageStyle;
  * 
  */
 public class Settings {
-	
 	private static final boolean STORE_SUCCESSFUL = true;
 	private static final boolean STORE_FAIL = false;
 
