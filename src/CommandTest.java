@@ -1,7 +1,7 @@
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
-
+//@author A0098077N
 public class CommandTest {
 	Model testModel = new Model();
 	Command testCommand;
@@ -208,14 +208,6 @@ public class CommandTest {
 			testCommand.execute();
 		} catch(IllegalArgumentException e){
 			assertEquals("Test UNMARK command","There are duplicate indexes!", e.getMessage());
-		}
-		
-		try{
-			parsedInfo = Parser.parseCommand("unmark kasdk-3", Common.COMMAND_TYPES.UNMARK, testModel, 0);
-			testCommand = new UnmarkCommand(parsedInfo, testModel, 0);
-			testCommand.execute();
-		} catch(IllegalArgumentException e){
-			assertEquals("Test UNMARK command","Index is invalid", e.getMessage());
 		}
 	}
 	

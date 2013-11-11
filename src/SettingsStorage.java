@@ -52,7 +52,6 @@ public class SettingsStorage extends Storage {
 		Element account = new Element(ACCOUNT);
 		doc.getRootElement().getChildren().add(account);
 		String encryptedPassword = encryptPassword(model.getPassword());
-		System.out.println("store: "+model.getPassword()+"->"+encryptedPassword);
 		account = recordSettings(account, encryptedPassword);
 		//Output to XML file
 		XMLOutputter xmlOutput = new XMLOutputter();

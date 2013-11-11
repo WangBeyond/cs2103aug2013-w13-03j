@@ -172,7 +172,6 @@ public class TaskStorage extends Storage {
 			Element targetElement = taskList.get(i);
 			newTask = setTaskInfo(newTask, targetElement);
 			if(Task.equalTask(newTask,task)) {
-				System.out.println(task.getEndDateString()+" "+newTask.getEndDateString());
 				return true;
 			}
 		}

@@ -166,7 +166,6 @@ public class Synchronization  {
 		URL owncalUrl = new URL(METAFEED_URL_BASE + username
 				+ OWNCALENDARS_FEED_URL_SUFFIX);
 		String calId = isCalendarExist(service, owncalUrl);
-		System.out.println(calId);
 		if (calId == null) {
 			CalendarEntry calendar = createCalendar(service, owncalUrl);
 			calId = trimId(calendar.getId());
@@ -307,6 +306,7 @@ public class Synchronization  {
 						.getLatestModifiedDate(), new CustomDate(
 						updated)) > 0;
 				if (hasLatestModificationFromiDo) {
+					System.out.println("test");
 					updateModifiedEventOnGCal(service, entries,
 							feedURL, toBeUpdatedOnGCal, pendingList, i,
 							j);
@@ -383,16 +383,17 @@ public class Synchronization  {
 		entries.get(j).setTitle(
 				new PlainTextConstruct(pendingList.get(i)
 						.getWorkInfo()));
-		if (pendingList.get(i).isImportantTask() == true) {
-			setReminder(entries.get(j));
-		} else{
-			entries.get(j).getReminder().clear();
-		}
 		
 		if (isNormalTask(pendingList, i)) {
 			updateToNormalEntry(service, entries, feedURL, toBeUpdatedOnGCal, pendingList, i, j);
 		} else {
 			updateToRecurrenceEntry(entries, toBeUpdatedOnGCal, pendingList, i, j);
+		}
+		
+		if (pendingList.get(i).isImportantTask() == true) {
+			setReminder(entries.get(j));
+		} else{
+			entries.get(j).getReminder().clear();
 		}
 	}
 	
@@ -447,6 +448,7 @@ public class Synchronization  {
 	private void updateToRecurrenceEntry(List<CalendarEventEntry> entries,
 			List<CalendarEventEntry> toBeUpdatedOnGCal, List<Task> pendingList,
 			int i, int j) {
+		
 		entries.get(j).getTimes().clear();
 		if (!pendingList.get(i).isFloatingTask()) {
 			String startDate = pendingList.get(i)
@@ -463,9 +465,11 @@ public class Synchronization  {
 					.getNumOccurrences();
 			
 			String recurData = setRecurrenceData(startDate, endDate, freq, null, count, interval);
+			System.out.println(recurData);
 			Recurrence rec = new Recurrence();
 			rec.setValue(recurData);
 			entries.get(j).setRecurrence(rec);
+			System.out.println("test more");
 		}
 		toBeUpdatedOnGCal.add(entries.get(j));
 	}
@@ -532,7 +536,7 @@ public class Synchronization  {
 					+ "MONTHLY";
 		} else if (freq.contains("year")) {
 			recurData = recurData + "RRULE:FREQ="
-					+ "MONTHLY";
+					+ "YEARLY";
 		}
 		return recurData;
 	}
@@ -602,8 +606,7 @@ public class Synchronization  {
 	 * @return true if the task is indeed a normal task or vice versa
 	 */
 	private boolean isNormalTask(List<Task> pendingList, int i) {
-		return pendingList.get(i).getTag().getRepetition()
-				.equals("null")
+		return !pendingList.get(i).isRecurringTask()
 				&& pendingList.get(i).getStartDate() != null;
 	}
 

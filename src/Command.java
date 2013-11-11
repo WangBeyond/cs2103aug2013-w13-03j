@@ -5,6 +5,7 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.ArrayList;
 
+
 import com.google.gdata.util.AuthenticationException;
 
 import javafx.application.Platform;
@@ -649,7 +650,7 @@ class EditCommand extends TwoWayCommand {
 	}
 	
 	/**
-	 * Execute the EDIT comand
+	 * Execute the EDIT command
 	 */
 	public String execute() {
 		if (convertIndex(index - 1) == INVALID) {
@@ -820,6 +821,18 @@ class EditCommand extends TwoWayCommand {
 		} else {
 			endDate = editedTask.getEndDate();
 		}
+		
+		if(hasStartDateKey || hasEndDateKey || hasRepetitiveKey){
+			editedTask.setCurrentOccurrence(1);
+		} 
+		
+		if(hasRepetitiveKey){
+			editedTask.setNumOccurrences(0);
+		}
+		if(hasWorkInfoKey){
+			editedTask.setNumOccurrences(0);
+			editedTask.setCurrentOccurrence(1);
+		}
 	}
 	
 	/**
@@ -889,8 +902,9 @@ class EditCommand extends TwoWayCommand {
 			editedTask.setNumOccurrences(num);
 			repeatingType = repeatingType.replaceAll(pattern, "$1");
 
-		} else 
-			editedTask.setNumOccurrences(0);
+		} else{
+			
+		}
 	}
 	
 	//@author A0100927M

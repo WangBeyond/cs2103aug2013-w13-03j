@@ -3,6 +3,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+//@author A0098077N
 // This class contains test cases for class CustomDate
 public class CustomDateTest {
 	CustomDate currentTime;

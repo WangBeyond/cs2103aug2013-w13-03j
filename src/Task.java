@@ -3,6 +3,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
+//@author A0098077N
 /**
  * 
  * This class is used to store the information of a task
@@ -141,7 +142,8 @@ public class Task implements Comparable<Task> {
 			setEndDateString(getEndDate().toString(IS_END_DATE));
 		}
 	}
-
+	
+	//@author A0105667B
 	/**
 	 * This function is used to update the start time and end time for a
 	 * repetitive task when the end time is behind the current time
@@ -150,6 +152,8 @@ public class Task implements Comparable<Task> {
 		long difference = CustomDate.getUpdateDistance(getTag()
 				.getRepetition());
 		while (getEndDate().beforeCurrentTime()) {
+			if(current_occurrence == num_occurrences)
+				break;
 			// Update the occurrences
 			current_occurrence++;
 			updateOccurrenceString();
@@ -158,7 +162,8 @@ public class Task implements Comparable<Task> {
 			updateEndDate(difference);
 		}
 	}
-
+	
+	//@author A0098077N
 	/**
 	 * Update the start date to new date with given difference in milliseconds
 	 * between the new and the old ones
@@ -207,6 +212,7 @@ public class Task implements Comparable<Task> {
 		return false;
 	}
 	
+	//@author A0105667B
 	/**
 	 * This function is used to update the occurrences of a task for display
 	 */
@@ -217,7 +223,8 @@ public class Task implements Comparable<Task> {
 			occurrenceString.set(current_occurrence + "/" + num_occurrences);
 		}
 	}
-
+	
+	//@author A0098077N
 	/************************ GET Property Functions **********************************/
 	public ObjectProperty<RowStatus> rowStatusProperty() {
 		if (rowStatus == null) {
@@ -343,7 +350,8 @@ public class Task implements Comparable<Task> {
 	public boolean hasUnchangedStatus() {
 		return status == Status.UNCHANGED;
 	}
-
+	
+	//@author A0105667B
 	public int getNumOccurrences() {
 		return num_occurrences;
 	}
@@ -351,7 +359,8 @@ public class Task implements Comparable<Task> {
 	public int getCurrentOccurrence() {
 		return current_occurrence;
 	}
-
+	
+	//@author A0098077N
 	/*************************************** SET Value Functions ****************************************/
 	public void setIsLastOverdue(boolean isLastOverdue) {
 		rowStatus.set(new RowStatus(rowStatus.get().getIsImportant(), isLastOverdue));
@@ -418,13 +427,14 @@ public class Task implements Comparable<Task> {
 	public void updateLatestModifiedDate() {
 		latestModifiedDate = new CustomDate();
 	}
-
+	
+	//@author A0105667B
 	public void initOccurrence(int num_occurrences) {
 		this.num_occurrences = num_occurrences;
 		current_occurrence = 1;
 		updateOccurrenceString();
 	}
-
+	
 	public void setNumOccurrences(int num_occurrences) {
 		this.num_occurrences = num_occurrences;
 		updateOccurrenceString();
@@ -462,6 +472,7 @@ public class Task implements Comparable<Task> {
 	}
 }
 
+//@author A0098077N
 /**
  * 
  * This class is used to stored the information of tag of a task
