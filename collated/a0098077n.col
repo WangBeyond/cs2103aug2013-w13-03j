@@ -4147,7 +4147,7 @@ public class SwingNode extends Region {
         jDialog.setAlwaysOnTop(value);
     }
     
-    // Set stage to frontmost of the window
+    // Set stage to front most of the window
     public void setStageToFront() {
         stage.toFront();
     }
@@ -5242,6 +5242,7 @@ public class TestMain {
 	TestSettingsStorage settingsStorageTest = new TestSettingsStorage();
 	TestEncryptor encryptorTest = new TestEncryptor();
 	TestIntegrated integratedTest = new TestIntegrated();
+	TestSynchronization synchronizationTest = new TestSynchronization();
 		
 	@Test
 	public void test() {
@@ -5263,6 +5264,8 @@ public class TestMain {
 		// Integrated testing
 		TestIntegrated.testSetup();
 		integratedTest.test();
+		
+		synchronizationTest.test();
 	}
 
 }
