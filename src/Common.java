@@ -5,8 +5,10 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 
-//@author A0105667B
+
 public class Common {
+	
+	//@author A0105667B
 	/***********************************Command Types **************************************************/
 	static enum COMMAND_TYPES {
 		ADD, REMOVE, RECOVER, SEARCH, EDIT, COMPLETE, INCOMPLETE, UNDO, REDO, CLEAR_ALL, TODAY, SHOW_ALL, SYNC, SETTINGS, HELP, EXIT, INVALID, MARK, UNMARK
@@ -113,6 +115,7 @@ public class Common {
 	static final String HASH_TAG = "#";
 	static final String HYPHEN = "-";
 	
+	//@author A0100927M
 	/******************************key combination*************************************/
 	static final KeyCombination undo_hot_key = new KeyCodeCombination(
 			KeyCode.Z, KeyCodeCombination.CONTROL_DOWN);
@@ -151,7 +154,10 @@ public class Common {
 	/***********************************theme mode ************************************************/
 	static final String DAY_MODE = "Day mode";
 	static final String NIGHT_MODE = "Night mode";
+	static final String BRIGHT = "Bright";
+	static final String GOLDFISH = "Goldfish";
 	
+	//@author A0105667B
 	/***************************list operation************************************************/
 	public static void sortList(ObservableList<Task> list) {
 		Collections.sort(list);
@@ -191,7 +197,7 @@ public class Common {
 		TASK_FILENAME = fileName;
 	}
 	
-	
+	//@author A0098077N
 	/****************** string operation *********************************/
 	/**
 	 * This function removes all unneeded spaces between words in a string,

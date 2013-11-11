@@ -2,8 +2,12 @@ import java.io.IOException;
 import java.io.FileWriter;
 import java.lang.String;
 import java.io.File;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javafx.collections.ObservableList;
+
 //import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -215,5 +219,48 @@ public class SettingsStorage extends Storage {
 	public String decryptString(String cipherString) throws Exception {
 		return new Encryptor(encryptAlgo).decrypt(cipherString);
 	}
+	
+	
+	/*******************************Methods for testing**********************************************/
+	
+	public boolean compareModelAndFileForTest() throws IOException {
+		SAXBuilder builder = new SAXBuilder();
+		try {//retrieve the elements
+			Document doc = (Document) builder.build(xmlFile);
+			Element rootNode = doc.getRootElement();
+			Element account = rootNode.getChild(ACCOUNT);
+			Element username = account.getChild(USERNAME);
+			Element password = account.getChild(PASSWORD);
+			Element displayRemaining  = account.getChild(DISPLAY_REMAINING);
+			Element themeMode = account.getChild(THEMEMODE);
+			Element colourScheme = account.getChild(COLOR_SCHEME);
+			Element autoSync = account.getChild(AUTO_SYNC);
+			Element syncPeriod = account.getChild(SYNC_PERIOD);
+			String decryptedPassword= decryptPassword(password.getText());
+			if (!username.getText().equals(model.getUsername())) {
+				return false;
+			} else if (!decryptedPassword.equals(model.getPassword())) {
+				return false;
+			} else if ((displayRemaining.getText().equals(Common.TRUE)? true : false)!=(model.getDisplayRemaining())) {
+				return false;
+			} else if (!themeMode.getText().equals(model.getThemeMode())) {
+				return false;
+			} else if (!colourScheme.getText().equals(model.getColourScheme())) {
+				return false;
+			} else if (!autoSync.getText().equals(model.hasAutoSync() == true? Common.TRUE : Common.FALSE)) {
+				return false;
+			} else if (Integer.valueOf(syncPeriod.getText())!=(model.getSyncPeriod())) {
+				return false;
+			} else {
+				return true;
+			}
+			} catch (IOException io) {
+			throw io;
+		  } catch (JDOMException jdomex) {
+			log.log(Level.WARNING, jdomex.getMessage());
+			return false;
+		  }
+	}
+	
 
 }
