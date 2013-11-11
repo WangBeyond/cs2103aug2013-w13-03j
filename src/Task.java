@@ -345,7 +345,7 @@ public class Task implements Comparable<Task> {
 	}
 
 	public boolean hasDeletedStatus() {
-		return status == Status.DELETED;
+		return status == Status.DELETED || status == Status.DELETED_WHEN_SYNC;
 	}
 
 	public boolean hasUnchangedStatus() {

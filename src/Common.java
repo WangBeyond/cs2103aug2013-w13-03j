@@ -203,7 +203,7 @@ public class Common {
 		setting_fileName = fileName;
 	}
 	
-	//@author A0098077N
+	//@author A0105523U
 	/****************** string operation *********************************/
 	/**
 	 * This function removes all unneeded spaces between words in a string,
