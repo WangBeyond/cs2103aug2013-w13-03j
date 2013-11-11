@@ -16,7 +16,8 @@ public class ColourPalette {
 	/********************************* Colours for javafx **************************************/
 	public static final Color fxWHITE = Color.WHITE;
 	public static final Color fxNEAR_WHITE = Color.rgb(250, 250, 250);
-	
+	public static final Color occurrenceColour = Color.rgb(42, 186, 143);
+			
 	public static final Color[] defaultScheme = {Color.rgb(130, 255, 121), 
 		fxWHITE, Color.rgb(18, 235, 166), Color.rgb(92, 190, 247), 
 			Color.RED, Color.ORANGE, Color.ORCHID};
@@ -443,8 +444,7 @@ class CompleteCommand extends IndexCommand {
 			Task toComplete = model.getTaskFromPending(completeIndex);
 			toCompleteTasks[i] = toComplete;
 			modifyStatus(toComplete);
-			model.getPendingList().remove(completeIndex);
-			model.addTaskToComplete(toComplete);
+			model.completeTaskFromPending(completeIndex);
 		}
 		sortInvolvedLists();
 	}
@@ -558,7 +558,7 @@ class IncompleteCommand extends IndexCommand {
 		for (int i = indexCount - 1; i >= 0; i--) {
 			int incompleteIndex = convertIndex(indexList[i] - 1);
 			Task toPending = model.getTaskFromComplete(incompleteIndex);
-			reverseStatus(toPending);
+			modifyStatus(toPending);
 			toIncompleteTasks[i] = toPending;
 			model.getCompleteList().remove(incompleteIndex);
 			model.addTaskToPending(toPending);
@@ -603,7 +603,7 @@ class IncompleteCommand extends IndexCommand {
 	public String undo() {
 		for (int i = indexCount - 1; i >= 0; i--) {
 			Task toComplete = model.getTaskFromPending(indexInIncompleteList[i]);
-			modifyStatus(toComplete);
+			reverseStatus(toComplete);
 			toIncompleteTasks[i] = toComplete;
 			model.getPendingList().remove(indexInIncompleteList[i]);
 			model.addTaskToComplete(toComplete);
@@ -1821,6 +1821,19 @@ public class Login {
 		}
 	}
 
+	/******************************complete a task from pending***************************************/
+	public void completeTaskFromPending(int index) {
+		try {
+			Task t = pending.remove(index);
+			if (t.getStatus() != Task.Status.ADDED_WHEN_SYNC) {
+				removedIdDuringSync.add(t.getIndexId());
+			}
+			addTaskToComplete(t);
+		} catch (IndexOutOfBoundsException e) {
+			logger.log(Level.WARNING, MESSAGE_OUT_OF_BOUNDS_INDEX);
+		}
+	}
+	
 	/************************************** SET a specific searchList *********************************/
 	public void setSearchPendingList(ObservableList<Task> searchList) {
 		searchPending = searchList;

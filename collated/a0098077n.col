@@ -225,52 +225,6 @@ abstract class IndexCommand extends TwoWayCommand{
 	}
 	
 	/**
-	 * This function is used to modify the status of a task when the a certain
-	 * command is working on it
-	 * 
-	 * @param modifiedTask
-	 *            the task which will have it status changed
-	 */
-	protected void modifyStatus(Task modifiedTask){
-		if (isPendingTab() && modifiedTask.hasNewlyAddedStatus()) {
-			modifiedTask.setStatus(Task.Status.UNCHANGED);
-		} else if (isPendingTab() && modifiedTask.hasUnchangedStatus()) {
-			modifyStatusForUnchangedTask(modifiedTask);
-		}
-	}
-
-	private void modifyStatusForUnchangedTask(Task modifiedTask) {
-		if (Control.syncThread == null || !Control.syncThread.isRunning()) {
-			modifiedTask.setStatus(Task.Status.DELETED);
-		} else {
-			modifiedTask.setStatus(Task.Status.DELETED_WHEN_SYNC);
-		}
-	}
-	
-	/**
-	 * This function is used to reverse the status of a task when a certain
-	 * command is working on it
-	 * 
-	 * @param reversedTask
-	 *            the task which will have its status reversed
-	 */
-	protected void reverseStatus(Task reversedTask){
-		if (isPendingTab() && reversedTask.hasUnchangedStatus()) {
-			reverseStatusForUnchangedTask(reversedTask);
-		} else if (isPendingTab() && reversedTask.hasDeletedStatus()) {
-			reversedTask.setStatus(Task.Status.UNCHANGED);
-		}
-	}
-
-	private void reverseStatusForUnchangedTask(Task reversedTask) {
-		if (Control.syncThread == null || !Control.syncThread.isRunning()) {
-			reversedTask.setStatus(Task.Status.NEWLY_ADDED);
-		} else {
-			reversedTask.setStatus(Task.Status.ADDED_WHEN_SYNC);
-		}
-	}
-	
-	/**
 	 * This function is used to check if the list of indices is valid or not
 	 */
 	protected void checkValidIndexes(){
@@ -441,6 +395,52 @@ abstract class IndexCommand extends TwoWayCommand{
 
 		return Common.MESSAGE_SUCCESSFUL_REDO;
 	}
+	
+	/**
+	 * This function is used to modify the status of a task when the a certain
+	 * command is working on it
+	 * 
+	 * @param modifiedTask
+	 *            the task which will have it status changed
+	 */
+	protected void modifyStatus(Task modifiedTask){
+		if (isPendingTab() && modifiedTask.hasNewlyAddedStatus()) {
+			modifiedTask.setStatus(Task.Status.UNCHANGED);
+		} else if (isPendingTab() && modifiedTask.hasUnchangedStatus()) {
+			modifyStatusForUnchangedTask(modifiedTask);
+		}
+	}
+
+	private void modifyStatusForUnchangedTask(Task modifiedTask) {
+		if (Control.syncThread == null || !Control.syncThread.isRunning()) {
+			modifiedTask.setStatus(Task.Status.DELETED);
+		} else {
+			modifiedTask.setStatus(Task.Status.DELETED_WHEN_SYNC);
+		}
+	}
+	
+	/**
+	 * This function is used to reverse the status of a task when a certain
+	 * command is working on it
+	 * 
+	 * @param reversedTask
+	 *            the task which will have its status reversed
+	 */
+	protected void reverseStatus(Task reversedTask){
+		if (isPendingTab() && reversedTask.hasUnchangedStatus()) {
+			reverseStatusForUnchangedTask(reversedTask);
+		} else if (isPendingTab() && reversedTask.hasDeletedStatus()) {
+			reversedTask.setStatus(Task.Status.UNCHANGED);
+		}
+	}
+
+	private void reverseStatusForUnchangedTask(Task reversedTask) {
+		if (Control.syncThread == null || !Control.syncThread.isRunning()) {
+			reversedTask.setStatus(Task.Status.NEWLY_ADDED);
+		} else {
+			reversedTask.setStatus(Task.Status.ADDED_WHEN_SYNC);
+		}
+	}
 }
 
 	// End of segment: D:\CS2103 Proj\src\Command.java
@@ -459,6 +459,52 @@ abstract class IndexCommand extends TwoWayCommand{
 	public String redo(){
 		processClear();
 		return Common.MESSAGE_SUCCESSFUL_REDO;
+	}
+	
+	/**
+	 * This function is used to modify the status of a task when the a certain
+	 * command is working on it
+	 * 
+	 * @param modifiedTask
+	 *            the task which will have it status changed
+	 */
+	protected void modifyStatus(Task modifiedTask){
+		if (isPendingTab() && modifiedTask.hasNewlyAddedStatus()) {
+			modifiedTask.setStatus(Task.Status.UNCHANGED);
+		} else if (isPendingTab() && modifiedTask.hasUnchangedStatus()) {
+			modifyStatusForUnchangedTask(modifiedTask);
+		}
+	}
+
+	private void modifyStatusForUnchangedTask(Task modifiedTask) {
+		if (Control.syncThread == null || !Control.syncThread.isRunning()) {
+			modifiedTask.setStatus(Task.Status.DELETED);
+		} else {
+			modifiedTask.setStatus(Task.Status.DELETED_WHEN_SYNC);
+		}
+	}
+	
+	/**
+	 * This function is used to reverse the status of a task when a certain
+	 * command is working on it
+	 * 
+	 * @param reversedTask
+	 *            the task which will have its status reversed
+	 */
+	protected void reverseStatus(Task reversedTask){
+		if (isPendingTab() && reversedTask.hasUnchangedStatus()) {
+			reverseStatusForUnchangedTask(reversedTask);
+		} else if (isPendingTab() && reversedTask.hasDeletedStatus()) {
+			reversedTask.setStatus(Task.Status.UNCHANGED);
+		}
+	}
+
+	private void reverseStatusForUnchangedTask(Task reversedTask) {
+		if (Control.syncThread == null || !Control.syncThread.isRunning()) {
+			reversedTask.setStatus(Task.Status.NEWLY_ADDED);
+		} else {
+			reversedTask.setStatus(Task.Status.ADDED_WHEN_SYNC);
+		}
 	}
 }
 
@@ -518,6 +564,52 @@ abstract class IndexCommand extends TwoWayCommand{
 
 		return Common.MESSAGE_SUCCESSFUL_REDO;
 	}
+	
+	/**
+	 * This function is used to modify the status of a task when the a certain
+	 * command is working on it
+	 * 
+	 * @param modifiedTask
+	 *            the task which will have it status changed
+	 */
+	protected void modifyStatus(Task modifiedTask){
+		if (isPendingTab() && modifiedTask.hasNewlyAddedStatus()) {
+			modifiedTask.setStatus(Task.Status.UNCHANGED);
+		} else if (isPendingTab() && modifiedTask.hasUnchangedStatus()) {
+			modifyStatusForUnchangedTask(modifiedTask);
+		}
+	}
+
+	private void modifyStatusForUnchangedTask(Task modifiedTask) {
+		if (Control.syncThread == null || !Control.syncThread.isRunning()) {
+			modifiedTask.setStatus(Task.Status.DELETED);
+		} else {
+			modifiedTask.setStatus(Task.Status.DELETED_WHEN_SYNC);
+		}
+	}
+	
+	/**
+	 * This function is used to reverse the status of a task when a certain
+	 * command is working on it
+	 * 
+	 * @param reversedTask
+	 *            the task which will have its status reversed
+	 */
+	protected void reverseStatus(Task reversedTask){
+		if (isPendingTab() && reversedTask.hasUnchangedStatus()) {
+			reverseStatusForUnchangedTask(reversedTask);
+		} else if (isPendingTab() && reversedTask.hasDeletedStatus()) {
+			reversedTask.setStatus(Task.Status.UNCHANGED);
+		}
+	}
+
+	private void reverseStatusForUnchangedTask(Task reversedTask) {
+		if (Control.syncThread == null || !Control.syncThread.isRunning()) {
+			reversedTask.setStatus(Task.Status.NEWLY_ADDED);
+		} else {
+			reversedTask.setStatus(Task.Status.ADDED_WHEN_SYNC);
+		}
+	}
 }
 
 	// End of segment: D:\CS2103 Proj\src\Command.java
@@ -575,6 +667,52 @@ abstract class IndexCommand extends TwoWayCommand{
 		retrieveIndexesAfterProcessing();
 		
 		return Common.MESSAGE_SUCCESSFUL_REDO;
+	}
+	
+	/**
+	 * This function is used to modify the status of a task when the a certain
+	 * command is working on it
+	 * 
+	 * @param modifiedTask
+	 *            the task which will have it status changed
+	 */
+	protected void modifyStatus(Task modifiedTask){
+		if (isCompleteTab() && modifiedTask.hasUnchangedStatus()) {
+			modifyStatusForUnchangedTask(modifiedTask);
+		} else if (isCompleteTab() && modifiedTask.hasDeletedStatus()) {
+			modifiedTask.setStatus(Task.Status.UNCHANGED);
+		}
+	}
+
+	private void modifyStatusForUnchangedTask(Task modifiedTask) {
+		if (Control.syncThread == null || !Control.syncThread.isRunning()) {
+			modifiedTask.setStatus(Task.Status.NEWLY_ADDED);
+		} else {
+			modifiedTask.setStatus(Task.Status.ADDED_WHEN_SYNC);
+		}
+	}
+	
+	/**
+	 * This function is used to reverse the status of a task when a certain
+	 * command is working on it
+	 * 
+	 * @param reversedTask
+	 *            the task which will have its status reversed
+	 */
+	protected void reverseStatus(Task reversedTask){
+		if (isCompleteTab() && reversedTask.hasNewlyAddedStatus()) {
+			reversedTask.setStatus(Task.Status.UNCHANGED);
+		} else if (isCompleteTab() && reversedTask.hasUnchangedStatus()) {
+			reverseStatusForUnchangedTask(reversedTask);
+		}
+	}
+
+	private void reverseStatusForUnchangedTask(Task reversedTask) {
+		if (Control.syncThread == null || !Control.syncThread.isRunning()) {
+			reversedTask.setStatus(Task.Status.DELETED);
+		} else {
+			reversedTask.setStatus(Task.Status.DELETED_WHEN_SYNC);
+		}
 	}
 }
 
@@ -641,7 +779,7 @@ class RecoverCommand extends IndexCommand {
 		for (int i = indexCount - 1; i >= 0; i--) {
 			int recoverIndex = convertIndex(indexList[i] - 1);
 			Task toPending = model.getTaskFromTrash(recoverIndex);
-			reverseStatus(toPending);
+			modifyStatus(toPending);
 			toRecoverTasks[i] = toPending;
 			model.getTrashList().remove(recoverIndex);
 			model.addTaskToPending(toPending);
@@ -683,7 +821,7 @@ class RecoverCommand extends IndexCommand {
 	public String undo() {
 		for (int i = indexCount - 1; i >= 0; i--) {
 			Task toTrash = model.getTaskFromPending(indexInPendingList[i]);
-			modifyStatus(toTrash);
+			reverseStatus(toTrash);
 			toRecoverTasks[i] = toTrash;
 			model.getPendingList().remove(indexInPendingList[i]);
 			model.addTaskToTrash(toTrash);
@@ -701,6 +839,52 @@ class RecoverCommand extends IndexCommand {
 		retrieveIndexesAfterProcessing();
 		
 		return Common.MESSAGE_SUCCESSFUL_REDO;
+	}
+	
+	/**
+	 * This function is used to modify the status of a task when the a certain
+	 * command is working on it
+	 * 
+	 * @param modifiedTask
+	 *            the task which will have it status changed
+	 */
+	protected void modifyStatus(Task modifiedTask){
+		if (isTrashTab() && modifiedTask.hasUnchangedStatus()) {
+			modifyStatusForUnchangedTask(modifiedTask);
+		} else if (isTrashTab() && modifiedTask.hasDeletedStatus()) {
+			modifiedTask.setStatus(Task.Status.UNCHANGED);
+		}
+	}
+
+	private void modifyStatusForUnchangedTask(Task modifiedTask) {
+		if (Control.syncThread == null || !Control.syncThread.isRunning()) {
+			modifiedTask.setStatus(Task.Status.NEWLY_ADDED);
+		} else {
+			modifiedTask.setStatus(Task.Status.ADDED_WHEN_SYNC);
+		}
+	}
+	
+	/**
+	 * This function is used to reverse the status of a task when a certain
+	 * command is working on it
+	 * 
+	 * @param reversedTask
+	 *            the task which will have its status reversed
+	 */
+	protected void reverseStatus(Task reversedTask){
+		if (isTrashTab() && reversedTask.hasNewlyAddedStatus()) {
+			reversedTask.setStatus(Task.Status.UNCHANGED);
+		} else if (isTrashTab() && reversedTask.hasUnchangedStatus()) {
+			reverseStatusForUnchangedTask(reversedTask);
+		}
+	}
+
+	private void reverseStatusForUnchangedTask(Task reversedTask) {
+		if (Control.syncThread == null || !Control.syncThread.isRunning()) {
+			reversedTask.setStatus(Task.Status.DELETED);
+		} else {
+			reversedTask.setStatus(Task.Status.DELETED_WHEN_SYNC);
+		}
 	}
 }
 
@@ -1281,61 +1465,6 @@ class ExitCommand extends Command {
 }
 
 	// End of segment: D:\CS2103 Proj\src\Command.java
-
-
-
-
-
-	/**
-	 * origin: D:\CS2103 Proj\src\Common.java
-	 */
-
-	/****************** string operation *********************************/
-	/**
-	 * This function removes all unneeded spaces between words in a string,
-	 * which means there will be only 1 space between words
-	 * 
-	 * @param content
-	 *            content of the String
-	 * @return the after-processed string
-	 */
-	static String removeUnneededSpaces(String content) {
-		String[] words = Common.splitBySpace(content);
-		String result = "";
-		for (int i = 0; i < words.length; i++){
-			result += words[i] + " ";
-		}
-
-		return result.trim();
-	}
-	
-	static String getLastWord(String commandString) {
-		String[] stringArray = commandString.trim().split("\\s+");
-		return stringArray[stringArray.length - 1];
-	}
-
-	static String removeLastWord(String commandString) {
-		String lastWord = getLastWord(commandString);
-		return commandString.substring(0,
-				commandString.length() - lastWord.length()).trim();
-	}
-
-	static String getFirstWord(String commandString) {
-		String[] stringArray = splitBySpace(commandString);
-		return stringArray[0];
-	}
-
-	static String removeFirstWord(String commandString) {
-		return commandString.replaceFirst(getFirstWord(commandString), "")
-				.trim();
-	}
-
-	static String[] splitBySpace(String content) {
-		return content.trim().split("\\s+");
-	}
-}
-
-	// End of segment: D:\CS2103 Proj\src\Common.java
 
 
 
@@ -4675,7 +4804,7 @@ public class SwingNode extends Region {
 	}
 
 	public boolean hasDeletedStatus() {
-		return status == Status.DELETED;
+		return status == Status.DELETED || status == Status.DELETED_WHEN_SYNC;
 	}
 
 	public boolean hasUnchangedStatus() {
