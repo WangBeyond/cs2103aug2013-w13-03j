@@ -130,6 +130,8 @@ public class Common {
 			KeyCombination.CONTROL_DOWN);
 	static final KeyCombination hideWindow = new KeyCodeCombination(KeyCode.H,
 			KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN);
+	static final KeyCombination traditionalCloseWindow = new KeyCodeCombination(
+			KeyCode.F4, KeyCombination.ALT_DOWN);
 	static final KeyCombination changeTab = new KeyCodeCombination(KeyCode.TAB,
 			KeyCombination.CONTROL_DOWN);
 	

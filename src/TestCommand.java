@@ -2,7 +2,7 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 //@author A0098077N
-public class CommandTest {
+public class TestCommand {
 	Model testModel = new Model();
 	Command testCommand;
 	String[] parsedInfo;

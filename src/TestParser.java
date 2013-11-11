@@ -8,7 +8,7 @@ import org.junit.Test;
 import org.junit.internal.ArrayComparisonFailure;
 
 //@author A0098077N
-public class ParserTest {
+public class TestParser {
 	String[] parsedInfo;
 	
 	@Test

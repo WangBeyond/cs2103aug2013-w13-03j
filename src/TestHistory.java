@@ -9,7 +9,7 @@ import org.junit.Test;
  * HistoryTest class: This class tests the functionality of History class.
  * 
  */
-public class HistoryTest {
+public class TestHistory {
 
 	@Test
 	public void test() {
