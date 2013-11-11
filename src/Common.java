@@ -1,4 +1,3 @@
-import java.io.IOException;
 import java.util.Collections;
 
 import javafx.collections.ObservableList;
@@ -25,7 +24,7 @@ public class Common {
 
 	static String[] endDateKeys = { "end on", "end at", "end by",
 			"end before", "to", "till", "until", "by", "due", "before", "next", "today",
-			"tonight" };
+			"tonight", "tomorrow" };
 	
 	/************************************* Feedback Messsage  ******************************/
 	static final String WELCOME_MESSAGE = "Welcome back, %s";

@@ -30,7 +30,6 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
-//@author A0100927M
 /**
  * 
  * This class provides the main graphic user interface for the Settings panel.

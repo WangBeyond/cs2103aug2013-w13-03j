@@ -5,7 +5,7 @@ import java.util.TimeZone;
 
 import com.google.gdata.data.DateTime;
 
-
+//@author A0098077N
 /**
  *
  * This class is used to store the start date and end date in iDo
@@ -51,7 +51,6 @@ public class CustomDate {
 	// Indicator whether the dateInfo has indicated the specific date
 	boolean hasIndicatedDate;
 	
-	//@author A0098077N
 	// Default constructors
 	public CustomDate() {
 		sourceDate = new GregorianCalendar();
