@@ -239,6 +239,19 @@ public class Model {
 		}
 	}
 
+	/******************************complete a task from pending***************************************/
+	public void completeTaskFromPending(int index) {
+		try {
+			Task t = pending.remove(index);
+			if (t.getStatus() != Task.Status.ADDED_WHEN_SYNC) {
+				removedIdDuringSync.add(t.getIndexId());
+			}
+			addTaskToComplete(t);
+		} catch (IndexOutOfBoundsException e) {
+			logger.log(Level.WARNING, MESSAGE_OUT_OF_BOUNDS_INDEX);
+		}
+	}
+	
 	/************************************** SET a specific searchList *********************************/
 	public void setSearchPendingList(ObservableList<Task> searchList) {
 		searchPending = searchList;
