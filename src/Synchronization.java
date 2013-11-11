@@ -33,6 +33,8 @@ import com.google.gdata.util.ServiceException;
  * This class is the main class for processing synchronization
  *
  */
+
+//@author A0105523U
 public class Synchronization  {
 	// Logger of this class
 	private static Logger logger = Logger.getLogger("Sync");
@@ -50,7 +52,7 @@ public class Synchronization  {
 	boolean isValid = false;
 	/* Model */
 	Model model;
-
+	History commandHistory;
 	/* calendar service */
 	CalendarService service;
 
@@ -75,8 +77,9 @@ public class Synchronization  {
 	 * @param m
 	 *            model of this application
 	 */
-	public Synchronization(Model m) {
+	public Synchronization(Model m, History c) {
 		model = m;
+		commandHistory = c;
 	}
 	
 	/*************** start of public methods ****************/
@@ -136,7 +139,8 @@ public class Synchronization  {
 		// Add tasks locally which have been added on GCal
 		addEventsLocally(eventEntry, model); 
 		
-		model.getUndoTaskBuffer().clear();
+		commandHistory.clearUndoStack();
+		commandHistory.clearRedoStack();
 		return Common.MESSAGE_SYNC_SUCCESSFUL;
 	}
 	
@@ -247,6 +251,7 @@ public class Synchronization  {
 		return event;
 	}
 	
+	//@author A0098077N
 	/**
 	 * This function is used to update both the modified tasks on iDo and
 	 * modified events on Google Calendar to be the same with each other
@@ -474,6 +479,7 @@ public class Synchronization  {
 		toBeUpdatedOnGCal.add(entries.get(j));
 	}
 	
+	//@author A0105523U
 	/**
 	 * This function is used to set the number of occurences for a recurring
 	 * data to be passed to the constructor of Recurrence object
@@ -631,33 +637,8 @@ public class Synchronization  {
 		ObservableList<Task> deletedTasks = model.getTrashList();
 		deleteTasksInOtherTabsOnGCal(entries, tobeDelete, completedTasks);
 		deleteTasksInOtherTabsOnGCal(entries, tobeDelete, deletedTasks);
-		deleteUndoAddedTasksOnGCal(model, entries, tobeDelete);
 		deleteEvents(service, tobeDelete, feedUrl);
 		
-	}
-	
-	/**
-	 * Delete list of undo added tasks on Google Calendar
-	 * 
-	 * @param model
-	 *            model of tasks in iDo
-	 * @param entries
-	 *            list of entries on Google Calendar
-	 * @param tobeDelete
-	 *            list of events to be deleted on Google Calendar
-	 */
-	private void deleteUndoAddedTasksOnGCal(Model model,
-			List<CalendarEventEntry> entries,
-			List<CalendarEventEntry> tobeDelete) {
-		for(int i = 0; i < model.getUndoTaskBuffer().size(); i++){
-			for (int j = 0; j < entries.size(); j++) {
-				if (model.getUndoTaskBuffer().get(i).getIndexId()
-						.equals(entries.get(j).getId())) {
-					tobeDelete.add(entries.get(j));
-					break;
-				}
-			}
-		}
 	}
 	
 	/**
