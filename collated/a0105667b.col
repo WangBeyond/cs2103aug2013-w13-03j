@@ -1,0 +1,3131 @@
+//@author: a0105667b
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Command.java
+	 */
+
+	// Set the type of repetition
+		protected String setRepeatingType(String repeatingType) {
+			if(repeatingType.matches(FREQUENT_RECURRING_REGEX)) {
+				repeatingType = repeatingType.replaceAll(FREQUENT_RECURRING_REGEX,"$2");
+					if(repeatingType.equals("day")){
+						repeatingType = "daily"; 
+					}else{	
+						repeatingType = repeatingType+"ly";
+					}
+			} else if (repeatingType.matches(FREQUENT_DAY_RECURRING_REGEX)) {
+				repeatingType = "weekly";
+			} else if(repeatingType.matches(SPARSE_RECURRING_REGEX)) {
+				repeatingType = repeatingType.replaceAll("\\s+", "");
+			} else if(repeatingType.matches(SPARSE_DAY_RECURRING_REGEX)){
+				repeatingType = repeatingType.replaceAll(SPARSE_DAY_RECURRING_REGEX, "$1$2weeks");
+			}
+			
+			return repeatingType;
+		}
+}
+
+	// End of segment: D:\CS2103 Proj\src\Command.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Command.java
+	 */
+
+	/**
+	 * This function is used to set the current indexes as indexes after search
+	 * or original ones.
+	 * 
+	 * @param type
+	 *            type of indexes: SEARCH or SHOWN
+	 */
+	public static void setIndexType(boolean type) {
+		listedIndexType = type;
+	}
+
+	/**
+	 * This function is used to return the original index of a task in the
+	 * modifiedList
+	 * 
+	 * @param prevIndex
+	 *            the required index in the current list
+	 * @return the original index. INVALID if the index is out of bounds.
+	 */
+	public int convertIndex(int prevIndex) {
+		if (isSearchedResults()) {
+			return getOriginalIndexFromSearchList(prevIndex);
+		} else {
+			return getOriginalIndexFromOriginalList(prevIndex);
+		}
+	}
+	
+	
+	/**
+	 * This function is used to get the true index of a task from the given
+	 * original index This will first check if the index is out of bounds or
+	 * not.
+	 * 
+	 * @param prevIndex
+	 *            the requested index
+	 * @return INVALID if index is out of bounds, else itself
+	 */
+	private int getOriginalIndexFromOriginalList(int prevIndex) {	
+		boolean isOutOfBounds = prevIndex < 0
+				|| prevIndex >= modifiedList.size();
+		if (isOutOfBounds) {
+			return INVALID;
+		}
+		return prevIndex;
+	}
+	
+	/**
+	 * This function is used to get the true index of a task from the given
+	 * index in search result This will first check if this index in the search
+	 * list is out of bounds or not
+	 * 
+	 * @param prevIndex
+	 *            the requested index
+	 * @return INVALID if index is out of bounds, else its corresponding
+	 *         original index
+	 */
+	private int getOriginalIndexFromSearchList(int prevIndex) {
+		ObservableList<Task> searchList;
+		searchList = getSearchList(tabIndex);
+		boolean isOutOfBounds = prevIndex < 0 || prevIndex >= searchList.size();
+		if (isOutOfBounds) {
+			return INVALID;
+		}
+		return searchList.get(prevIndex).getIndexInList();
+	}
+	
+	protected boolean isSearchedResults(){
+		return listedIndexType == TwoWayCommand.SEARCHED;
+	}
+	
+	protected boolean isAllResults(){
+		return listedIndexType == TwoWayCommand.SHOWN;
+	}
+}
+
+	// End of segment: D:\CS2103 Proj\src\Command.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Command.java
+	 */
+
+	/**
+	 * This function is used to split the recurring info from the command From
+	 * this function, we can determine the number of occurrences and type of
+	 * repetition for a task
+	 */
+	private void splitRepeatingInfo() {
+		setOccurrences();
+		repeatingType = setRepeatingType(repeatingType);
+	}
+	
+	
+	
+	// Set number of occurrences
+	private void setOccurrences() {
+		if(repeatingType.matches(OCCURRENCE_PATTERN)) {
+			int num = Integer.valueOf(repeatingType.replaceAll(OCCURRENCE_PATTERN,"$3"));
+			createdTask.setNumOccurrences(num);
+			repeatingType = repeatingType.replaceAll(OCCURRENCE_PATTERN, "$1");
+		} else {
+			createdTask.setNumOccurrences(0);
+		}
+	}
+	
+	/**
+	 * Set the tag for display of this task
+	 */
+	private void setTag(){
+		if (tag.equals(Common.NULL) || tag.equals(Common.HASH_TAG)) {
+				createdTask.setTag(new Tag(Common.HYPHEN, repeatingType));
+		} else {
+				createdTask.setTag(new Tag(tag, repeatingType));
+		}
+	}
+}
+
+	// End of segment: D:\CS2103 Proj\src\Command.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Command.java
+	 */
+
+/**
+ * 
+ * Class Edit Command. This command edits an existing task in the model
+ * 
+ */
+class EditCommand extends TwoWayCommand {
+	// Original index of the edited task
+	int index; 
+	// Work info of the target task 
+	String workInfo;
+	// Tag of the target task
+	String tag;
+	// Start date in string format of the target task
+	String startDateString;
+	// End date in string format of the target task
+	String endDateString;
+	// Indicator whether the target task is important or not
+	boolean hasImptTaskToggle;
+	// Type of repetition of the target task
+	String repeatingType;
+	// The edited task whose infos will change from the originalTask to targetTask
+	Task editedTask;
+	// Original task
+	Task originalTask;
+	// Target task
+	Task targetTask;
+	// The start date and end date of the target task
+	CustomDate startDate, endDate;
+	
+	/**
+	 * Constructor of this command
+	 * 
+	 * @param parsedUserCommand
+	 *            array of info from the command parsed by the Parser class
+	 * @param model
+	 *            the model of tasks in the application
+	 * @param tabIndex
+	 *            the current tab index
+	 */
+	public EditCommand(String[] parsedUserCommand, Model model, int tabIndex) {
+		super(model, tabIndex);
+		assert parsedUserCommand != null;
+		modifiedList = getModifiedList(tabIndex);
+		
+		index = Integer.parseInt(parsedUserCommand[0]);
+		workInfo = parsedUserCommand[1];
+		tag = parsedUserCommand[2];
+		startDateString = parsedUserCommand[3];
+		endDateString = parsedUserCommand[4];
+		hasImptTaskToggle = (parsedUserCommand[5].equals(Common.TRUE)) ? true: false;
+		repeatingType = parsedUserCommand[6];
+	}
+	
+	/**
+	 * Execute the EDIT command
+	 */
+	public String execute() {
+		if (convertIndex(index - 1) == INVALID) {
+			return Common.MESSAGE_INDEX_OUT_OF_BOUNDS;
+		}
+		editedTask = modifiedList.get(convertIndex(index - 1));
+		// Start editing
+		setOriginalTask();
+		processEditing();
+		setTargetTask();
+		editedTask.updateLatestModifiedDate();
+		Common.sortList(modifiedList);
+		return Common.MESSAGE_SUCCESSFUL_EDIT;
+	}
+	
+	/**
+	 * This is the main function for the editing process
+	 */
+	private void processEditing() {
+		startDate = endDate = null;
+		boolean hasRepetitiveKey = !repeatingType.equals(Common.NULL);
+		boolean hasWorkInfoKey = !workInfo.equals(Common.NULL);
+		boolean hasStartDateKey = !startDateString.equals(Common.NULL);
+		boolean hasEndDateKey = !endDateString.equals(Common.NULL);
+		
+		determineDateInfoOfTargetTask(hasRepetitiveKey, hasWorkInfoKey,
+				hasStartDateKey, hasEndDateKey);
+		
+		boolean isRepetitive = !repeatingType.equals(Common.NULL);
+		boolean hasStartDate = startDate != null;
+		boolean hasEndDate = endDate != null;
+		checkRecurringInfo(isRepetitive, hasStartDate, hasEndDate);
+		
+		updateEditedTask(hasWorkInfoKey, isRepetitive, hasStartDate, hasEndDate);
+	}
+	
+	/**
+	 * Start updating the new info for edited task
+	 * 
+	 * @param hasWorkInfoKey
+	 *            indicator whether the command input has a new work info
+	 * @param isRepetitive
+	 *            indicator whether the target task is recurring task
+	 * @param hasStartDate
+	 *            indicator whether the target task has start date
+	 * @param hasEndDate
+	 *            indicator whether the target task has end date
+	 */
+	private void updateEditedTask(boolean hasWorkInfoKey, boolean isRepetitive,
+			boolean hasStartDate, boolean hasEndDate) {
+		if (hasWorkInfoKey) {
+			editedTask.setWorkInfo(workInfo);
+		}
+		
+		updateDateInfos(hasStartDate, hasEndDate); 
+		setTag();
+		if (isRepetitive) {
+			editedTask.updateDateForRepetitiveTask();
+		}
+		
+		if (hasImptTaskToggle) {
+			editedTask.setIsImportant(!editedTask.isImportantTask());
+		}
+	}
+	
+	/**
+	 * Update the date info for the edited task
+	 * 
+	 * @param hasStartDate
+	 *            indicator whether target task has start date
+	 * @param hasEndDate
+	 *            indicator whether target task has end date
+	 */
+	private void updateDateInfos(boolean hasStartDate, boolean hasEndDate) {
+		if (hasStartDate && hasEndDate) {
+			updateDatesWithBothDates();
+		} else if(hasStartDate){
+			updateDateWithStartDate();
+		} else if(hasEndDate){
+			updateDateWithEndDate();
+		}
+	}
+	
+	/**
+	 * Update date when target task has both start date and end date
+	 */
+	private void updateDatesWithBothDates() {
+		editedTask.setStartDate(startDate);
+		editedTask.setEndDate(endDate);
+	}
+	
+	/**
+	 * Update date when target task has only end date
+	 */
+	private void updateDateWithEndDate() {
+		CustomDate cur = new CustomDate();
+		cur.setHour(0);
+		cur.setMinute(0);
+		if(endDate.beforeCurrentTime()){
+			cur.setYear(endDate.getYear());
+			cur.setMonth(endDate.getMonth());
+			cur.setDate(endDate.getDate());
+			editedTask.setStartDate(cur);
+			editedTask.setEndDate(endDate);
+			updateTimeForEndDate(editedTask.getStartDate(), endDate);
+		} else {
+			editedTask.setStartDate(cur);
+			editedTask.setEndDate(endDate);
+			updateTimeForEndDate(editedTask.getStartDate(), endDate);
+		}
+	}
+	
+	/**
+	 * Update date when target task has only start date
+	 */
+	private void updateDateWithStartDate() {
+		editedTask.setStartDate(startDate);
+		CustomDate cd = new CustomDate();
+		cd.setYear(editedTask.getStartDate().getYear());
+		cd.setMonth(editedTask.getStartDate().getMonth());
+		cd.setDate(editedTask.getStartDate().getDate());
+		cd.setHour(23);
+		cd.setMinute(59);
+		editedTask.setEndDate(cd);
+	}
+	
+	/**
+	 * This function is used to get the repeating info of the target task and
+	 * check whether it is valid or not
+	 * 
+	 * @param isRepetitive
+	 *            indicator whether the target task is a recurring task or not
+	 * @param hasStartDate
+	 *            indicator whether the target task has start date
+	 * @param hasEndDate
+	 *            indicator whether the target task has end date
+	 */
+	private void checkRecurringInfo(boolean isRepetitive, boolean hasStartDate,
+			boolean hasEndDate) {
+		if (isRepetitive) {
+			splitRepeatingInfo();
+		}
+		checkInvalidDates(isRepetitive, hasStartDate, hasEndDate, startDate, endDate, repeatingType);
+	}
+	
+	// End of segment: D:\CS2103 Proj\src\Command.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Command.java
+	 */
+
+	/**
+	 * This function is used to process the repeating info of target task.
+	 * Then it updates these infos for the edited task.
+	 */
+	private void splitRepeatingInfo() {
+		updateOccurrences();
+		repeatingType = setRepeatingType(repeatingType);
+	}
+	
+	// Update the number of occurrences for the edited task
+	private void updateOccurrences() {
+		String pattern = "(.*)(\\s+)(\\d+)(\\s+times?.*)";
+		if(repeatingType.matches(pattern)) {
+			int num = Integer.valueOf(repeatingType.replaceAll(pattern,"$3"));
+			editedTask.setNumOccurrences(num);
+			repeatingType = repeatingType.replaceAll(pattern, "$1");
+
+		} else{
+			
+		}
+	}
+	
+	// End of segment: D:\CS2103 Proj\src\Command.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Command.java
+	 */
+
+/**
+ * Class RemoveCommand. This class executes a command to remove a list of given indices by the user.
+ * 
+ */
+class RemoveCommand extends IndexCommand {
+	// List of removed tasks
+	private ArrayList<Task> removedTaskInfo;
+	
+	/**
+	 * Constructor of this class
+	 * 
+	 * @param parsedUserCommand
+	 *            the array of indices in string format from the command parsed
+	 *            by Parser clas
+	 * @param model
+	 *            model of tasks in the application
+	 * @param tabIndex
+	 *            the current tab
+	 */
+	public RemoveCommand(String[] parsedUserCommand, Model model, int tabIndex) {
+		super(model, tabIndex);
+		assert parsedUserCommand != null;
+		removedTaskInfo = new ArrayList<Task>();
+		modifiedList = getModifiedList(tabIndex);
+		indexCount = parsedUserCommand.length;
+		getListOfIndices(parsedUserCommand);
+	}
+	
+	/**
+	 * Execute the REMOVE command
+	 */
+	public String execute() {
+		Arrays.sort(indexList);
+		checkValidIndexes();
+		processRemove();
+		sortInvolvedLists();
+		return Common.MESSAGE_SUCCESSFUL_REMOVE;
+	}
+	
+	/**
+	 * This is the main function for the removing process
+	 */
+	private void processRemove(){
+		for (int i = indexCount - 1; i >= 0; i--) {
+			int removedIndex = convertIndex(indexList[i] - 1);
+			Task removedTask = modifiedList.get(removedIndex);
+			removedTaskInfo.add(removedTask);
+			model.removeTask(removedIndex, tabIndex);
+			modifyStatus(removedTask);
+		}
+	}
+	
+	/**
+	 * This function sort all lists involved in the removing process
+	 */
+	private void sortInvolvedLists(){
+		if (isPendingTab()) {
+			Common.sortList(model.getPendingList());
+		} else if (isCompleteTab()) {
+			Common.sortList(model.getCompleteList());
+		}
+		
+		Common.sortList(model.getTrashList());
+	}
+	
+	// End of segment: D:\CS2103 Proj\src\Command.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Common.java
+	 */
+
+	/***********************************Command Types **************************************************/
+	static enum COMMAND_TYPES {
+		ADD, REMOVE, RECOVER, SEARCH, EDIT, COMPLETE, INCOMPLETE, UNDO, REDO, CLEAR_ALL, TODAY, SHOW_ALL, SYNC, SETTINGS, HELP, EXIT, INVALID, MARK, UNMARK
+	}
+	
+	static String[] COMMAND_TYPES_STR = { "add", "insert", "remove", "delete", "edit", "set",
+		"modify", "search", "find", "clear", "mark", "highlight", "unmark", "unhightlight", "complete",
+		"incomplete", "all", "list", "today", "help", "del", "exit", "end", "rm",
+		"show", "display", "ls", "clr", "done", "undone", "settings", "sync", "recover", "rec" };
+	
+	/***********************************Start Date and End date key**************************************/
+	static String[] startDateKeys = { "start from", "start at",
+			"start on", "begin from", "begin at", "begin on", "from", "after", "on",
+			"at"};
+
+	static String[] endDateKeys = { "end on", "end at", "end by",
+			"end before", "to", "till", "until", "by", "due", "before", "next", "today",
+			"tonight", "tomorrow" };
+	
+	/************************************* Feedback Messsage  ******************************/
+	static final String WELCOME_MESSAGE = "Welcome back, %s";
+	//Success message
+	static final String MESSAGE_INVALID_COMMAND_TYPE = "Invalid Command Type!";
+	static final String MESSAGE_EMPTY_COMMAND = "Empty Command!";
+	static final String MESSAGE_INVALID_UNDO = "You cannot undo anymore!";
+	static final String MESSAGE_INVALID_REDO = "You cannot redo anymore!";
+	static final String MESSAGE_SUCCESSFUL_REDO = "Redo was successful.";
+	static final String MESSAGE_SUCCESSFUL_SHOW_ALL = "Show all the tasks";
+	static final String MESSAGE_SUCCESSFUL_CLEAR_ALL = "Clear all the tasks";
+	static final String MESSAGE_SUCCESSFUL_SEARCH = "Successful search!";
+	static final String MESSAGE_NO_RESULTS = "No results found!";
+	static final String MESSAGE_SUCCESSFUL_ADD = "One task has been added successfully.";
+	static final String MESSAGE_SUCCESSFUL_MARK = "Indicated task(s) has/have been marked successfully.";
+	static final String MESSAGE_SUCCESSFUL_UNMARK = "Indicated task(s) has/have been unmarked successfully.";
+	static final String MESSAGE_SUCCESSFUL_COMPLETE = "Indicated task(s) has/have been marked as complete.";
+	static final String MESSAGE_SUCCESSFUL_INCOMPLETE = "Indicated task(s) has/have been marked as incomplete.";
+	static final String MESSAGE_SUCCESSFUL_RECOVER = "Indicated task(s) has/have been recovered successfully.";
+	static final String MESSAGE_SUCCESSFUL_EDIT = "Indicated task has been edited successfully.";
+	static final String MESSAGE_SUCCESSFUL_REMOVE = "Indicated tasks has/have been removed.";
+	static final String MESSAGE_SUCCESSFUL_UNDO = "Undo was successful.";
+	static final String MESSAGE_SUCCESSFUL_HELP = "Help window opened.";
+	static final String MESSAGE_SUCCESSFUL_SETTINGS = "Settings window opened.";
+	//Failure message
+	static final String MESSAGE_INVALID_START_END_DATES = "There must be both start and end dates for repetitive task.";
+	static final String MESSAGE_INVALID_TIME_REPETITIVE = "The difference is larger than the limit of repetitive period.";
+	static final String MESSAGE_INVALID_DATE_RANGE = "Invalid date range as start date is after end date.";
+	static final String MESSAGE_DUPLICATE_INDEXES = "There are duplicate indexes!";
+	static final String MESSAGE_INDEX_OUT_OF_BOUNDS = "There is an index outside the range of the list.";
+	static final String MESSAGE_WRONG_COMPLETE_TABS = "Cannot complete the tasks in this current tab.";
+	static final String MESSAGE_WRONG_INCOMPLETE_TABS = "Cannot incomplete the tasks in this current tab.";
+	static final String MESSAGE_WRONG_RECOVER_TABS = "Cannot recover the tasks in this current tab.";
+	static final String MESSAGE_SYNC_SUCCESSFUL = "Successful synchronized.";
+	static final String MESSAGE_SYNC_INVALID_USERNAME_PASSWORD = "Synchronization failed: Invalid username and password.";
+	static final String MESSAGE_SYNC_SERVICE_STOPPED = "Synchronization service has stopped working.";
+	static final String MESSAGE_SYNC_FAIL_TO_CREATE_CALENDAR = "Fail to create a calendar.";
+	static final String NO_EDITING_INFO = "No infos for editing";
+	static final String INVALID_INDEX = "Invalid index";
+	static final String INVALID_RANGE_END_SMALLER = "Invalid range as end point is smaller than start point";
+	static final String INVALID_RANGE = "Invalid Range";
+	static final String MESSAGE_PASSWORDS_MATCH_FAIL = "Passwords do not match!";
+	//Tip message
+	static final String MESSAGE_ADD_TIP = "Tip for ADD command";
+	static final String MESSAGE_EDIT_TIP = "Tip for EDIT command";
+	static final String MESSAGE_RECOVER_INDEX_TIP = "Tip for RECOVER with index command";
+	static final String MESSAGE_RECOVER_INFO_TIP = "Tip for RECOVER with info command";
+	static final String MESSAGE_REMOVE_INDEX_TIP = "Tip for REMOVE with index command";
+	static final String MESSAGE_REMOVE_INFO_TIP = "Tip for REMOVE with info command";
+	static final String MESSAGE_SEARCH_TIP = "Tip for SEARCH command";
+	static final String MESSAGE_TODAY_TIP = "Tip for TODAY command";
+	static final String MESSAGE_SHOW_ALL_TIP = "Tip for SHOW command";
+	static final String MESSAGE_CLEAR_ALL_TIP = "Tip for CLEAR command";
+	static final String MESSAGE_UNDO_TIP = "Tip for UNDO command";
+	static final String MESSAGE_REDO_TIP = "Tip for REDO command";
+	static final String MESSAGE_MARK_INDEX_TIP = "Tip for MARK with index command";
+	static final String MESSAGE_MARK_INFO_TIP = "Tip for MARK with info command";
+	static final String MESSAGE_UNMARK_INDEX_TIP = "Tip for UNMARK with index command";
+	static final String MESSAGE_UNMARK_INFO_TIP = "Tip for UNMAR with info command";
+	static final String MESSAGE_COMPLETE_INDEX_TIP = "Tip for COMPLETE with index command";
+	static final String MESSAGE_COMPLETE_INFO_TIP = "Tip for COMPLETE with info command";
+	static final String MESSAGE_INCOMPLETE_INDEX_TIP = "Tip for INCOMPLETE with index command";
+	static final String MESSAGE_INCOMPLETE_INFO_TIP = "Tip for INCOMPLETE with info command";
+	static final String MESSAGE_SYNC_TIP = "Tip for SYNC command";
+	static final String MESSAGE_HELP_TIP = "Tip for HELP command";
+	static final String MESSAGE_SETTINGS_TIP = "Tip for SETTINGS command";
+	static final String MESSAGE_EXIT_TIP = "Tip for EXIT command";
+	static final String MESSAGE_REQUEST_COMMAND = "Please enter a command or type help to view commands.";	
+	// Restriction message from executing specific commands during process of synchronization
+	static final String MESSAGE_UNDO_RESTRICTION = "Cannot undo during process of synchronization";
+	static final String MESSAGE_REDO_RESTRICTION = "Cannot redo during process of synchronization";
+	static final String MESSAGE_EXIT_RESTRICTION = "Cannot exit during process of synchronization";
+	// Display message in system tray
+	static final String POPUP_MESSAGE_START_DATE = "Task \"%1$s\" will begin after the next %2$s minutes";
+	static final String POPUP_MESSAGE_END_DATE = "Task \"%1$s\" will end after the next %2$s minutes";
+	
+	/*****************************file name*******************************************/
+	static String TASK_FILENAME = "task_storage.xml";
+	static String SETTING_FILENAME = "setting_storage.xml";
+	
+	/******************************symbols *****************************************/
+	static final String TRUE = "true";
+	static final String FALSE = "false";
+	static final String NULL = "null";	
+	static final String IMPT_MARK = "*";
+	static final String HASH_TAG = "#";
+	static final String HYPHEN = "-";
+	
+	// End of segment: D:\CS2103 Proj\src\Common.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Common.java
+	 */
+
+	/***************************list operation************************************************/
+	public static void sortList(ObservableList<Task> list) {
+		Collections.sort(list);
+		updateIndexInList(list);
+	}
+	
+	public static void updateIndexInList(ObservableList<Task> list) {
+		boolean hasLastOverdue = false;
+		for (int i = list.size() - 1; i >= 0; i--) {
+			list.get(i).setIndexInList(i);
+			list.get(i).setIsLastOverdue(false);
+			if (!hasLastOverdue && list.get(i).isOverdueTask()) {
+				list.get(i).setIsLastOverdue(true);
+				hasLastOverdue = true;
+			}
+		}
+	}
+	
+	/**
+	 * Justify does the array contain one specific string
+	 * 
+	 * @param array
+	 * @param element
+	 * @return boolean result
+	 */
+	public static boolean doesArrayContain(String[] array, String element) {
+		element = element.trim();
+		for (int i = 0; i < array.length; i++){
+			if (array[i].equals(element)){
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	static void changeTaskFile(String fileName) {
+		TASK_FILENAME = fileName;
+	}
+	
+	// End of segment: D:\CS2103 Proj\src\Common.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Control.java
+	 */
+
+	/**
+	 * Load the data from storage files
+	 */
+	void loadData() {
+		try {
+			loadTask();
+			loadSettings();
+			CustomDate.setDisplayRemaining(model.doDisplayRemaining());
+		} catch (IOException e) {
+			logger.log(Level.INFO,"Cannot read the given file");
+		}
+	}
+	
+	/**
+	 * Load the settings data
+	 */
+	private void loadSettings() throws IOException {
+		settingStore = new SettingsStorage(Common.SETTING_FILENAME, model);
+		settingStore.loadFromFile();
+	}
+	
+	/**
+	 * Store settings data into storage files
+	 */
+	private void storeSettings() {
+		try{
+			settingStore.storeToFile();
+		} catch(IOException io) {
+			logger.log(Level.INFO, "Cannot store with the given filename");
+		}
+	}
+	
+	/**
+	 * Load the task data
+	 */
+	private void loadTask() throws IOException {
+		taskFile = new TaskStorage(Common.TASK_FILENAME, model);
+		taskFile.loadFromFile();
+	}
+	
+	// End of segment: D:\CS2103 Proj\src\Control.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Control.java
+	 */
+
+	/**
+	 * Update the feedback in the interface according to the types of feedback
+	 * 
+	 * @param feedback
+	 *            the specific feedback
+	 */
+	private void updateFeedback(String feedback) {
+		if (successfulExecution(feedback)) {
+			clearCommandLine();
+		}
+		view.emptyFeedback(0);
+		view.setFeedbackStyle(0, feedback, view.getDefaultColor());
+	}
+	
+	// End of segment: D:\CS2103 Proj\src\Control.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Control.java
+	 */
+
+	void setTabForTest(int tabIndex) {
+		tabIndexTest = tabIndex;
+	}
+	
+	// End of segment: D:\CS2103 Proj\src\Control.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Control.java
+	 */
+
+	/**
+	 * Start real time search from the specific search Command
+	 * 
+	 * @param searchCommand
+	 *            the input search command
+	 */
+	private void realTimeSearch(String searchCommand) {
+		isRealTimeSearch = true;
+		boolean hasOnlySearchCommandType = searchCommand.trim().equals("search") || searchCommand.trim().equals("find");
+		if (hasOnlySearchCommandType) {
+			executeShowCommand();
+		} else {
+			executeCommand(searchCommand);
+		}
+	}
+	
+	// End of segment: D:\CS2103 Proj\src\Control.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Control.java
+	 */
+
+	/*
+	 * Store task info into storage file
+	 */
+	private void storeTask() throws IOException {
+		taskFile.storeToFile();
+	}
+	
+	/**
+	 * EDIT command execution
+	 */
+	private String executeEditCommand(String[] parsedUserCommand) throws IOException {
+		boolean isAfterSearch = TwoWayCommand.listedIndexType;
+		int tabIndex = getTabIndex();
+		assert tabIndex >= 0 && tabIndex <= 2;
+		Command editCommand = new EditCommand(parsedUserCommand, model, tabIndex);
+		String feedback = editCommand.execute();
+		
+		if (feedback.equals(Common.MESSAGE_SUCCESSFUL_EDIT)) {
+			commandHistory.updateCommand((TwoWayCommand) editCommand, isAfterSearch);
+			storeTask();
+			if(view != null) {
+				executeShowCommand();
+			}
+		}
+		return feedback;
+	}
+	
+	/**
+	 * REMOVE command execution
+	 */
+	private String executeRemoveCommand(String[] parsedUserCommand) throws IOException {
+		boolean isAfterSearch = TwoWayCommand.listedIndexType;
+		int tabIndex = getTabIndex();
+		assert tabIndex >= 0 && tabIndex <= 2;
+		Command removeCommand = new RemoveCommand(parsedUserCommand, model, tabIndex);
+		String feedback = removeCommand.execute();
+		
+		if (feedback.equals(Common.MESSAGE_SUCCESSFUL_REMOVE)) {
+			commandHistory.updateCommand((TwoWayCommand) removeCommand, isAfterSearch);
+			storeTask();
+			if(view != null) {
+				executeShowCommand();
+			}
+		}
+		return feedback;
+	}
+	
+	// End of segment: D:\CS2103 Proj\src\Control.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Control.java
+	 */
+
+	/*
+	 * Reset the sync timer each time after changing settings or at the start when open application
+	 */
+	private void setupAutoSyncTimer() {
+		syncTimer = new Timer();
+		syncTimer.schedule(new TimerTask() {
+			@Override
+			public void run() {
+				Platform.runLater(new Runnable() {
+					@Override
+					public void run() {
+						try {
+							syncThread = new SyncCommand(model, sync, view,
+									taskFile);
+							if (syncThread.getFeedback() != null
+									&& syncThread.getFeedback()
+											.equals(Common.MESSAGE_SYNC_INVALID_USERNAME_PASSWORD)) {
+								executeSettingsCommand(
+										CALL_SETTINGS_FROM_SYNC);
+							}
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
+				});
+
+			}
+		}, 0, model.getSyncPeriod() * Common.MINUTE_IN_MILLIS);
+	}
+	
+	// End of segment: D:\CS2103 Proj\src\Control.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Control.java
+	 */
+
+	// Indicator whether the application is under syncing process
+	private boolean isUnderSyncingProcess() {
+		return syncThread != null && syncThread.isRunning();
+	}
+	
+	// End of segment: D:\CS2103 Proj\src\Control.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Control.java
+	 */
+
+	// Setup the auto sync timer with assigned period
+	private void initializeAutoSync() {
+		if(model.hasAutoSync()){
+			setupAutoSyncTimer();
+		}
+	}
+	
+	// End of segment: D:\CS2103 Proj\src\Control.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Control.java
+	 */
+
+	public Model getModel() {
+		return model;
+	}
+	
+	public Storage getTaskFile() {
+		return taskFile;
+	}
+	
+	public Storage getSettingsFile() {
+		return settingStore;
+	}
+}
+
+	// End of segment: D:\CS2103 Proj\src\Control.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\CustomDate.java
+	 */
+
+	/**
+	 * Get the distance between 2 periods in recurring rule for updating
+	 * 
+	 * @param repetition
+	 *            the string format of the recurring rule
+	 * @return the required distance
+	 */
+	public static long getUpdateDistance(String repetition) {
+		if (checkDailyRoutine(repetition)>0) {
+			return DAY_IN_MILLIS * checkDailyRoutine(repetition);
+		} else if (checkWeeklyRoutine(repetition)>0) {
+			return WEEK_IN_MILLIS * checkWeeklyRoutine(repetition);
+		} else if (checkMonthlyRoutine(repetition)>0) {
+			return MONTH_IN_MILLIS * checkMonthlyRoutine(repetition);
+		} else if (checkYearlyRoutine(repetition)>0) {
+			return YEAR_IN_MILLIS * checkYearlyRoutine(repetition);
+		} else {
+			return 0;
+		}
+	}
+
+	/**
+	 * This function is used to check whether the recurring rule is daily
+	 * routine. If yes, get the distance between each period.
+	 * 
+	 * @param repetition
+	 *            the string format of the recurring rule
+	 * @return 0 if this is not a daily routine. Otherwise, return the distance.
+	 */
+	private static int checkDailyRoutine(String repetition) {
+		boolean isFrequentDailyRoutine = repetition.equals("daily");
+		if (isFrequentDailyRoutine) {
+			return 1;
+		} else if (repetition.matches(DAILY_REGEX)) {
+			return Integer.valueOf(repetition.replaceAll(DAILY_REGEX, "$2"));
+		} 
+		
+		return 0;
+	}
+	
+	/**
+	 * This function is used to check whether the recurring rule is weekly
+	 * routine. If yes, get the distance between each period.
+	 * 
+	 * @param repetition
+	 *            the string format of the recurring rule
+	 * @return 0 if this is not a weekly routine. Otherwise, return the
+	 *         distance.
+	 */
+	private static int checkWeeklyRoutine(String repetition) {
+		if (isFrequentWeeklyRoutine(repetition)) {
+			return 1;
+		} else if(repetition.matches(WEEKLY_REGEX)) {
+			int weekNum = Integer.valueOf(repetition.replaceAll(WEEKLY_REGEX, "$2"));
+			return weekNum;
+		}
+
+		return 0;
+	}
+	
+	private static boolean isFrequentWeeklyRoutine(String repetition){
+		boolean isFrequentWeeklyRoutine = repetition.equals("weekly");
+		return isFrequentWeeklyRoutine;
+	}
+
+	/**
+	 * This function is used to check whether the recurring rule is monthly
+	 * routine. If yes, get the distance between each period.
+	 * 
+	 * @param repetition
+	 *            the string format of the recurring rule
+	 * @return 0 if this is not a monthly routine. Otherwise, return the
+	 *         distance.
+	 */
+	private static int checkMonthlyRoutine(String repetition) {
+		boolean isFrequentMonthlyRoutine = repetition.equals("monthly");
+		if(isFrequentMonthlyRoutine){
+			return 1;
+		} else if(repetition.matches(MONTHLY_REGEX)) {
+			int monthNum = Integer.valueOf(repetition.replaceAll(MONTHLY_REGEX, "$2"));
+			return monthNum;
+		} 
+		
+		return 0;
+	}
+	
+	/**
+	 * This function is used to check whether the recurring rule is yearly
+	 * routine. If yes, get the distance between each period.
+	 * 
+	 * @param repetition
+	 *            the string format of the recurring rule
+	 * @return 0 if this is not a yearly routine. Otherwise, return the
+	 *         distance.
+	 */
+	private static int checkYearlyRoutine(String repetition) {
+		boolean isFrequentYearlyRoutine = repetition.equals("yearly") || repetition.equals("annually");
+		if (isFrequentYearlyRoutine) {
+			return 1;
+		} else if (repetition.matches(YEARLY_REGEX)) {
+			int yearNum = Integer.valueOf(repetition.replaceAll(YEARLY_REGEX, "$2"));
+			return yearNum;
+		}
+		
+		return 0;
+	}
+	
+	// End of segment: D:\CS2103 Proj\src\CustomDate.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\History.java
+	 */
+
+	public boolean isAfterSearch() {
+		return isOperatedAfterSearch;
+	}
+	
+	// End of segment: D:\CS2103 Proj\src\History.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\History.java
+	 */
+
+	public void setIsAfterSearch(boolean isAfter) {
+		isOperatedAfterSearch = isAfter;
+	}
+	
+	// End of segment: D:\CS2103 Proj\src\History.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\History.java
+	 */
+
+	// update with most recent TwoWayCommand with prior searching
+	public void updateCommand(TwoWayCommand newCommand,boolean isAfter) {
+		prevCommandsForUndo.push(newCommand);
+		clearRedoStack();
+		log.log(Level.INFO, "Cleared redo stack and added new command to undo stack.");
+		undoable = true;
+		isOperatedAfterSearch = isAfter;
+	}
+}
+
+	// End of segment: D:\CS2103 Proj\src\History.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Login.java
+	 */
+
+	/************************** stores user info from Login ****************************/
+	/**
+	 * This stores the user information from user input textfields
+	 * 
+	 * @return boolean
+	 *            determines if the storing of user info was successful
+	 */
+	private boolean storeUserInfo(){
+		String account = googleAccountTextfield.getText();
+		String pw = pwBox.getText();
+		String pwRetype = pwRetypeBox.getText();
+		
+		if(account != null){
+			if (!pw.equals("") && !pwRetype.equals("") && pw.equals(pwRetype)) {
+				model.setUsername(account);
+				model.setPassword(pw);
+				return STORE_SUCCESSFUL;
+			} else {
+				pwRetypeBox.clear();
+				pwRetypeBox.setPromptText(Common.MESSAGE_PASSWORDS_MATCH_FAIL);
+			}
+		}
+		return STORE_FAIL;
+	}
+}
+
+	// End of segment: D:\CS2103 Proj\src\Login.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Model.java
+	 */
+
+	/******************************** GET or MODIFY the index IDs of deleted-during-sync tasks ******************/
+	public ObservableList<String> getRemovedIdDuringSync() {
+		return removedIdDuringSync;
+	}
+	
+	public void clearSyncInfo() {
+		removedIdDuringSync.clear();
+		
+		modifyStatusForAddedTasks();
+		modifyStatusForCompletedTasks();
+		modifyStatusForRemovedTasks();
+	}
+
+	private void modifyStatusForRemovedTasks() {
+		for(Task deletedTask : trash) {
+			if (deletedTask.getStatus() == Task.Status.DELETED_WHEN_SYNC){
+			deletedTask.setStatus(Task.Status.DELETED);
+			}
+		}
+	}
+
+	private void modifyStatusForCompletedTasks() {
+		for(Task deletedTask : complete) {
+			if (deletedTask.getStatus() == Task.Status.DELETED_WHEN_SYNC){
+			deletedTask.setStatus(Task.Status.DELETED);
+			}
+		}
+	}
+
+	private void modifyStatusForAddedTasks() {
+		for(Task addedTask : pending) {
+			if(addedTask.getStatus() == Task.Status.ADDED_WHEN_SYNC){
+				addedTask.setStatus(Task.Status.NEWLY_ADDED);
+			}
+		}
+	}
+
+	// End of segment: D:\CS2103 Proj\src\Model.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Model.java
+	 */
+
+	/************************************ SETTINGS Section *************************************************/
+	// Google Account ID
+	private String username;
+	// Google Account Password
+	private String password;
+	// Indicator whether to display the remaining time or not
+	private boolean displayRemaining;
+	// The theme mode: DAY or NIGHT
+	private String themeMode;
+	// The color theme
+	private String colourScheme;
+	// Indicator whether to auto sync or not
+	private boolean isAutoSync;
+	// Period of syncing if enabling auto sync
+	private int syncPeriod;
+	
+	/*********************************** GET functions ****************************************/
+	public boolean doDisplayRemaining(){
+		return displayRemaining;
+	}
+	
+	public String getThemeMode(){
+		return themeMode;
+	}
+	
+	// End of segment: D:\CS2103 Proj\src\Model.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Parser.java
+	 */
+
+	/**
+	 * This function is used to parse all command working with indices such as
+	 * MARK, COMPLETE or REMOVE
+	 * 
+	 * @param content
+	 *            content of the command
+	 * @param tabIndex
+	 *            the current tab
+	 * @param model
+	 *            model of the application
+	 * @return the array of indices
+	 */
+	private static String[] parseIndexCommand(String content, int tabIndex, Model model) {
+		try {
+			return parseCommandWithIndex(content);
+		} catch (NumberFormatException e) {
+			return convertInfosIntoIndices(tabIndex, model);
+		} 
+	}
+	
+	/**
+	 * This function is used when the user type infos for these commands working with indices.
+	 * This function will convert the infos typed by the user into indices by searching for these corresponding infos.
+	 * @param tabIndex the current tab
+	 * @param model of the application
+	 * @return the array of indices 
+	 */
+	private static String[] convertInfosIntoIndices(int tabIndex, Model model) {
+		ObservableList<Task> modifiedList;
+		if (tabIndex == Common.PENDING_TAB) {
+			modifiedList = model.getSearchPendingList();
+		} else if (tabIndex == Common.COMPLETE_TAB) {
+			modifiedList = model.getSearchCompleteList();
+		} else {
+			modifiedList = model.getSearchTrashList();
+		}
+		String indexRange = "1" + Common.HYPHEN + modifiedList.size();
+		
+		return parseCommandWithIndex(indexRange);
+	}
+	
+	// End of segment: D:\CS2103 Proj\src\Parser.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Parser.java
+	 */
+
+	/**
+	 * This method is used to parse the command when any key event occurs and
+	 * highlight the command to indicate the understanding of the command by the
+	 * program to user to assist user to type more exact command in real-time
+	 * before the user presses Enter
+	 * 
+	 * @param command
+	 *            the command input
+	 * @return the array list of InfoWithIndex object to pass on the View class
+	 *         to process
+	 */
+	static ArrayList<InfoWithIndex> parseForView(String command) {
+		ArrayList<InfoWithIndex> infoList = new ArrayList<InfoWithIndex>();
+		Common.COMMAND_TYPES commandType;
+		String commandTypeStr;
+		commandType = determineCommandType(command);
+		if (commandType == Common.COMMAND_TYPES.INVALID) {
+			infoList.add(new InfoWithIndex(command, 0, Common.INDEX_REDUNDANT_INFO));
+			return infoList;
+		}	
+		commandTypeStr = appendCommandTypeInfo(command, infoList);
+		try {
+			String[] result = parseCommand(command, commandType, model, 0);
+			infoList = appendIndexInfo(result, infoList, command, commandType);
+			infoList = decomposeCommand(result, infoList, command, commandType, commandTypeStr);
+			return infoList;
+		} catch (Exception e) {
+			infoList = handleRedundantInfo(e, infoList,command, commandTypeStr);
+			return infoList;
+		}
+	}
+	
+	/********************************* Some methods used for parseForView ***********************************************/
+	
+	/**
+	 * This function appends the info of command type to the list of
+	 * InfoWithIndex object
+	 * 
+	 * @param command
+	 *            the command from the user
+	 * @param infoList
+	 *            the list of infos
+	 * @return the string of command type
+	 */
+	private static String appendCommandTypeInfo(String command,
+			ArrayList<InfoWithIndex> infoList) {
+		String commandTypeStr;
+		int indexOfCommandType = command.indexOf(Common.getFirstWord(command));
+		commandTypeStr = completeWithSpace(Common.getFirstWord(command), command, indexOfCommandType);
+		while(indexOfCommandType != 0){
+			commandTypeStr = (command.charAt(indexOfCommandType) == '\t' ? "\t" : " ") + commandTypeStr;
+			indexOfCommandType--;
+		}
+		infoList.add(new InfoWithIndex(commandTypeStr, 0, Common.INDEX_COMMAND_TYPE));
+		return commandTypeStr;
+	}
+	
+	/**
+	 * This function handles the redundant info when the command is invalid
+	 * 
+	 * @param exception
+	 *            exception from the application
+	 * @param infoList
+	 *            the array list of infos
+	 * @param command
+	 *            the command from the user
+	 * @param commandTypeStr
+	 *            the string of command type in the command
+	 * @return the modified list of infos
+	 */
+	private static ArrayList<InfoWithIndex> handleRedundantInfo(Exception exception,
+			ArrayList<InfoWithIndex> infoList, String command,
+			String commandTypeStr) {
+		infoList.clear();
+		infoList.add(new InfoWithIndex(commandTypeStr, 0, Common.INDEX_COMMAND_TYPE));
+		String remainingInfo = Common.removeFirstWord(command);
+		if (exception.getMessage() != null && exception.getMessage().equals(Common.NO_EDITING_INFO)) {
+			infoList.add(new InfoWithIndex(remainingInfo, commandTypeStr.length(), Common.INDEX_INDEX_INFO));
+		} else {
+			infoList.add(new InfoWithIndex(remainingInfo, commandTypeStr.length(), Common.INDEX_REDUNDANT_INFO));
+		}
+		return infoList;
+	}
+	
+	/**
+	 * This function is the main function to parse all important infos in the
+	 * command into the list of infos for viewing
+	 * 
+	 * @param parsedCommand
+	 *            the array of infos after being parsed
+	 * @param infoList
+	 *            the list of infos to be passed to View class
+	 * @param command
+	 *            the command from the user
+	 * @param commandType
+	 *            the type of command
+	 * @param commandTypeStr
+	 *            the command type in String format
+	 * @return the list of InfoWithIndex object
+	 */
+	private static ArrayList<InfoWithIndex> decomposeCommand(String[] parsedCommand,
+			ArrayList<InfoWithIndex> infoList, String command,
+			Common.COMMAND_TYPES commandType, String commandTypeStr) {
+		// First consider command with info
+		if (isAddCommandType(commandType) || isSearchCommandType(commandType) || isEditCommandType(commandType)) {
+			infoList = decomposeInfoCommand(parsedCommand, infoList, command, commandTypeStr);
+			infoList = addRedundantInfo(infoList, command);
+		} else {
+			int beginIndex = commandTypeStr.length();
+			if (isIndexCommandType(commandType)) {
+				infoList.add(new InfoWithIndex(command.substring(beginIndex), beginIndex, Common.INDEX_INDEX_INFO));
+			} else if(commandType == Common.COMMAND_TYPES.INVALID){
+				infoList.add(new InfoWithIndex(command.substring(beginIndex), beginIndex, Common.INDEX_REDUNDANT_INFO));
+			} else {
+				log.log(Level.WARNING, "Inexisting command type");
+			}
+		}
+		return infoList;
+	}
+	
+	/**
+	 * This function is used to parse all the infos in ADD, SEARCH and EDIT
+	 * command for viewing
+	 * 
+	 * @param parsedCommand
+	 *            the command after being parsed
+	 * @param infoList
+	 *            the array list of infos for viewing
+	 * @param command
+	 *            the command from the user
+	 * @param commandTypeStr
+	 *            command type in String format
+	 * @return the modifed list of infos for viewing
+	 */
+	private static ArrayList<InfoWithIndex> decomposeInfoCommand(
+			String[] parsedCommand, ArrayList<InfoWithIndex> infoList, String command,
+			String commandTypeStr) {
+		for (int infoIndex = 0; infoIndex < parsedCommand.length; infoIndex++) {
+			String info = parsedCommand[infoIndex];
+			info = appendDateKeyForStartDate(command, infoIndex, info);
+			info = appendDateKeyForEndDate(command, infoIndex, info);
+			appendAsteriskForImportantTask(infoList, command, infoIndex, info);
+			appendInfoToList(infoList, command, commandTypeStr, infoIndex, info);
+		}
+		return infoList;
+	}
+	
+	private static void appendInfoToList(ArrayList<InfoWithIndex> infoList, String command, String commandTypeStr, int infoIndex, String info) {
+		if (command.contains(info)) {
+			int startIndex;
+			if (infoIndex == Common.INDEX_WORK_INFO) {
+				String temp = command.substring(commandTypeStr
+						.length());
+				startIndex = temp.indexOf(info)
+						+ commandTypeStr.length();
+			} else
+				startIndex = command.indexOf(info);
+			info = completeWithSpace(info, command, startIndex);
+			InfoWithIndex ci = new InfoWithIndex(info, startIndex,
+					infoIndex);
+			infoList.add(ci);
+		}
+	}
+	
+	// Add the important info in the list of infos for viewing
+	private static void appendAsteriskForImportantTask(
+			ArrayList<InfoWithIndex> infoList, String command, int infoIndex,
+			String info) {
+		if (infoIndex == Common.INDEX_IS_IMPT && info == Common.TRUE) {
+			String markStr = completeWithSpace(Common.IMPT_MARK, command,
+					command.indexOf(Common.IMPT_MARK));
+			InfoWithIndex imptInfo = new InfoWithIndex(markStr,
+					command.indexOf(Common.IMPT_MARK), Common.INDEX_IS_IMPT);
+			infoList.add(imptInfo);
+		}
+	}
+	
+	// Append the key word for the end date
+	private static String appendDateKeyForEndDate(String command,
+			int infoIndex, String info) {
+		if (infoIndex == Common.INDEX_END_DATE && info != Common.NULL){
+			info = appendWithDateKey(info, command, END_DATE);
+		}
+		return info;
+	}
+	
+	// Append the key word for the start date
+	private static String appendDateKeyForStartDate(String command,
+			int infoIndex, String info) {
+		if (infoIndex == Common.INDEX_START_DATE && info != Common.NULL){
+			info = appendWithDateKey(info, command, START_DATE);
+		}
+		return info;
+	}
+	
+	/**
+	 * This funtionc add the index info into the list of infos for viewing for
+	 * EDIT command
+	 * 
+	 * @param parsedCommand
+	 *            the command after being parsed
+	 * @param infoList
+	 *            the list of InfoWithIndex to be passed to View class
+	 * @param command
+	 *            the command from the user
+	 * @param commandType
+	 *            the type of command
+	 * @return the list of infos for viewing
+	 */
+	private static ArrayList<InfoWithIndex> appendIndexInfo(String[] parsedCommand,
+			ArrayList<InfoWithIndex> infoList, String command,
+			Common.COMMAND_TYPES commandType) {
+		if (isEditCommandType(commandType)) {
+			String index = parsedCommand[0];
+			String indexWithSpace = completeWithSpace(index, command,
+					command.indexOf(index));
+			InfoWithIndex indexInfo = new InfoWithIndex(indexWithSpace,
+					command.indexOf(index), Common.INDEX_INDEX_INFO);
+			infoList.add(indexInfo);
+			for (int i = 0; i < parsedCommand.length - 1; i++)
+				parsedCommand[i] = parsedCommand[i + 1];
+			parsedCommand[parsedCommand.length - 1] = Common.NULL;
+		}
+		return infoList;
+	}
+	
+
+	/**
+	 * Append the date with its front preposition like start from or so on
+	 * 
+	 * @param date
+	 * @param command
+	 * @param dateTypeIndicator
+	 *            is the date type start date or end date
+	 * @return the date with preposition in front
+	 */
+	private static String appendWithDateKey(String date, String command,
+			int dateTypeIndicator) {
+		int startIndex = 0;
+		String dateWithKeyWord = date;
+		while (startIndex != -1) {
+			startIndex = command.indexOf(date, startIndex + 1);
+			int secondSpaceIndex = getSecondSpaceIndex(command, startIndex);
+			int firstSpaceIndex = getFirstSpaceIndex(command, secondSpaceIndex);
+			dateWithKeyWord = addKeyWord(date, command, dateTypeIndicator,
+					startIndex, dateWithKeyWord, secondSpaceIndex,
+					firstSpaceIndex);
+			if (!dateWithKeyWord.equals(date) || dateWithKeyWord.startsWith("tomorrow") || dateWithKeyWord.startsWith("today") || dateWithKeyWord.startsWith("tonight") || dateWithKeyWord.startsWith("next")) {
+				return dateWithKeyWord;
+			}
+		}
+		return dateWithKeyWord;
+	}
+	
+	// Add key word for the date
+	private static String addKeyWord(String date, String command,
+			int dateTypeIndicator, int startIndex, String dateWithPreposition,
+			int secondSpaceIndex, int firstSpaceIndex) {
+		boolean containsKeyWordForStartDate = Common.doesArrayContain(
+				dateTypeIndicator == START_DATE ? Common.startDateKeys
+						: Common.endDateKeys, command.substring(
+						firstSpaceIndex + 1, startIndex));
+		boolean containsKeyWordForEndDate = Common.doesArrayContain(
+				dateTypeIndicator == START_DATE ? Common.startDateKeys
+						: Common.endDateKeys, command.substring(
+						secondSpaceIndex + 1, startIndex));
+		
+		if (containsKeyWordForStartDate) {
+			dateWithPreposition = command.substring(firstSpaceIndex + 1,
+					startIndex) + date;
+		} else if (containsKeyWordForEndDate) {
+			dateWithPreposition = command.substring(secondSpaceIndex + 1,
+					startIndex) + date;
+		}
+		return dateWithPreposition;
+	}
+	
+	// Get the index of the first space before the date in the command
+	private static int getFirstSpaceIndex(String command, int secondSpaceIndex) {
+		int firstSpaceIndex = getCharIndex(command, secondSpaceIndex);
+		while (firstSpaceIndex >= 0
+				&& command.charAt(firstSpaceIndex) != ' ') {
+			firstSpaceIndex--;
+		}
+		return firstSpaceIndex;
+	}
+	
+	// Get the index of the second space before the date in the command
+	private static int getSecondSpaceIndex(String command, int startIndex) {
+		int secondSpaceIndex = getCharIndex(command, startIndex-1);
+
+		while (secondSpaceIndex >= 0
+				&& command.charAt(secondSpaceIndex) != ' ') {
+			secondSpaceIndex--;
+		}
+		return secondSpaceIndex;
+	}
+	
+	private static int getCharIndex(String command, int index){
+		while(index >= 0 && command.charAt(index) == ' ')
+			index--;
+		
+		return index;
+	}
+
+	/**
+	 * add the remaining info without highlighted by parser to infoList with
+	 * InfoType: INDEX_TYPING_INFO
+	 * 
+	 * @param infoList
+	 * @param command
+	 * @return complete infoList
+	 */
+	private static ArrayList<InfoWithIndex> addRedundantInfo(
+			ArrayList<InfoWithIndex> infoList, String command) {
+		Collections.sort(infoList);
+		int keyInfoCount = infoList.size();
+		for (int i = 0; i < keyInfoCount; i++) {
+			int startIndex = infoList.get(i).getEndIndex();
+			int endIndex;
+			if (i != (keyInfoCount - 1)) {
+				endIndex = infoList.get(i + 1).getStartIndex();
+			} else {
+				endIndex = command.length();
+			}
+			if (startIndex < endIndex) {
+				infoList.add(new InfoWithIndex(command.substring(startIndex, endIndex), startIndex, Common.INDEX_WORK_INFO));
+			}
+		}
+		Collections.sort(infoList);
+		return infoList;
+	}
+
+	/**
+	 * complete a info with its rear spaces
+	 * 
+	 * @param info
+	 * @param command
+	 * @param startIndex
+	 * @return info with space
+	 */
+	private static String completeWithSpace(String info, String command,
+			int startIndex) {
+		int endIndex = startIndex + info.length();
+		int i = 0;
+		while ((endIndex + i) < command.length()) {
+			if(command.charAt(endIndex + i) == ' '){
+				info += " ";
+				i++;
+			} else if(command.charAt(endIndex + i) == '\t'){
+				info += "\t";
+				i++;
+			} else { // no more spaces or tabs
+				break;
+			}
+		}
+		return info;
+	}
+
+
+
+	/************************** assisting methods for parseCommandWithInfo ****************************************/
+
+	/**
+	 * retrieve the repeating type from the command string
+	 * 
+	 * @param commandString
+	 * @return a string array including command string and repeating tag
+	 */
+	private static String[] getRepeatingType(String commandString) {
+		String repeatingKey = Common.NULL;
+		for (int i = 0; i < repeatingKeys.length; i++) {
+			String regex = "(\\s+)?"+repeatingKeys[i]+"(\\s+\\d+\\s+times?)?";
+		    Pattern pattern = Pattern.compile(regex);
+		    Matcher matcher = pattern.matcher(commandString);
+			repeatingKey = processRecurringInfo(repeatingKey, matcher);		
+		}
+		commandString = extractRecurringInfo(commandString, repeatingKey);
+		return new String[] { commandString, repeatingKey.trim() };
+	}
+	
+	// Remove the recurring info from the command
+	private static String extractRecurringInfo(String commandString,
+			String repeatingKey) {
+		if(!repeatingKey.equals(Common.NULL)){
+			commandString = commandString.replace(repeatingKey, "");
+		}
+		return commandString;
+	}
+	
+	// Get the recurring info
+	private static String processRecurringInfo(String repeatingKey,
+			Matcher matcher) {
+		while (matcher.find()) {
+			if (repeatingKey.equals(Common.NULL))
+				repeatingKey = matcher.group();
+			else {
+				throw new IllegalArgumentException(
+						"Invalid Command: More than 1 repetitive signals");
+			}
+		}
+		return repeatingKey;
+	}
+	
+	// End of segment: D:\CS2103 Proj\src\Parser.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Parser.java
+	 */
+
+/**
+ * Class infoWithIndex is assisting parseForView to install the information of
+ * parsed command and reflects on commandLine and feedback
+ * 
+ * 
+ */
+class InfoWithIndex implements Comparable<InfoWithIndex> {
+	// Info content
+	String info;
+	// Start index of the info in the command
+	int startIndex;
+	// End index of the info in the command
+	int endIndex;
+	// Type of info
+	int infoType;
+
+	/**
+	 * Constructor of this class
+	 * 
+	 * @param info
+	 *            the info
+	 * @param index
+	 *            the index of the info found in the command
+	 * @param infoType
+	 *            the type of info
+	 */
+	public InfoWithIndex(String info, int index, int infoType) {
+		this.info = info;
+		startIndex = index;
+		endIndex = startIndex + info.length();
+		this.infoType = infoType;
+	}
+	
+	// Get info content
+	public String getInfo() {
+		return info;
+	}
+	
+	// Get start index in the command
+	public int getStartIndex() {
+		return startIndex;
+	}
+	
+	// Get end index in the command
+	public int getEndIndex() {
+		return endIndex;
+	}
+	
+	// Get the type of info
+	public int getInfoType() {
+		return infoType;
+	}
+
+	public int compareTo(InfoWithIndex other) {
+		if (startIndex > other.startIndex) {
+			return 1;
+		} else if (startIndex == other.startIndex) {
+			return 0;
+		} else {
+			return -1;
+		}
+	}
+}
+
+	// End of segment: D:\CS2103 Proj\src\Parser.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Settings.java
+	 */
+
+	// set up the sync mode fields
+	private void setupSyncMode() {
+		Label syncMode = new Label("Sync mode: ");
+		grid.add(syncMode, 0, 6);
+		ToggleGroup toggleGroup = new ToggleGroup();
+		autoSync = RadioButtonBuilder.create().text("Auto sync")
+				.toggleGroup(toggleGroup).selected(true).build();
+		manualSync = RadioButtonBuilder.create().text("Manual sync")
+				.toggleGroup(toggleGroup).build();
+		if (model.hasAutoSync() == true) {
+			autoSync.setSelected(true);
+		} else {
+			manualSync.setSelected(true);
+		}
+		grid.add(autoSync, 1, 6);
+		grid.add(manualSync, 2, 6);
+	}
+	
+	// End of segment: D:\CS2103 Proj\src\Settings.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Settings.java
+	 */
+
+	/************************** stores user info from Settings ****************************/
+	/**
+	 * This stores the user information from user input textfields
+	 * 
+	 * @return boolean
+	 *            determines if the storing of user info was successful
+	 */
+	private boolean storeSettingChanges() {
+		boolean successfulChange = STORE_FAIL;
+
+		String account = googleAccountTextfield.getText();
+		String pw = pwBox.getText();
+		String pwRetype = pwRetypeBox.getText();
+		
+		if (account != null) {
+			if (pw != null && pwRetype != null && pw.equals(pwRetype)) {
+				model.setUsername(account);
+				model.setPassword(pw);
+				successfulChange = STORE_SUCCESSFUL;
+			} else {
+				pwRetypeBox.clear();
+				showErrorTexts(Common.MESSAGE_PASSWORDS_MATCH_FAIL);
+				return successfulChange;
+			}
+		}
+		
+		if (dayMode.isSelected()) {
+			model.setThemeMode(Common.DAY_MODE);
+		} else {
+			model.setThemeMode(Common.NIGHT_MODE);
+		}
+
+		if (colourSchemes.getValue() != null) {
+			String schemeChosen = colourSchemes.getValue().toString();
+			model.setColourScheme(schemeChosen);
+		}
+
+		if (remaining.isSelected()) {
+			model.setDisplayRemaining(true);
+		} else {
+			model.setDisplayRemaining(false);
+		}
+
+		if (autoSync.isSelected()) {
+			model.setAutoSync(true);
+		} else {
+			model.setAutoSync(false);
+		}
+		
+		model.setSyncPeriod(Integer.parseInt(syncPeriodTextfield.getText()));
+		successfulChange = STORE_SUCCESSFUL;
+		
+		return successfulChange;
+	}
+	
+	// End of segment: D:\CS2103 Proj\src\Settings.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\SettingsStorage.java
+	 */
+
+public class SettingsStorage extends Storage {
+
+	private static String encryptAlgo = "DES/ECB/PKCS5Padding";
+	private static final String ENCRYPTION_FAIL = "fail to encrypt password";
+	
+	private static final String ROOT = "root";
+	private static final String ACCOUNT = "account";
+	private static final String USERNAME = "username";
+	private static final String PASSWORD = "password";
+	private static final String DISPLAY_REMAINING = "display_remaining";
+	private static final String THEMEMODE = "themeMode";
+	private static final String COLOR_SCHEME="colourScheme";
+	private static final String AUTO_SYNC = "autoSync";
+	private static final String SYNC_PERIOD = "syncPeriod";
+	
+	private static Logger log = Logger.getLogger("SettingStorage");
+	private String dir;
+	public SettingsStorage(String fileName, Model model) {
+		createDir();
+		dir = findUserDocDir() + FOLDERNAME + "/" + fileName;
+		xmlFile = new File(dir);
+		checkIfFileExists(xmlFile);
+		this.model = model;
+        //Security.insertProviderAt(new BouncyCastleProvider(), 1);
+	}
+	
+	
+	/************************** store account information  **************************/
+	
+	@Override
+	/**
+	 * Store account information to XML file of setting storage
+	 */
+	public void storeToFile() throws IOException {
+		//Initialize the elements
+		Element root = new Element(ROOT);
+		Document doc = new Document(root);
+		Element account = new Element(ACCOUNT);
+		doc.getRootElement().getChildren().add(account);
+		String encryptedPassword = encryptPassword(model.getPassword());
+		account = recordSettings(account, encryptedPassword);
+		//Output to XML file
+		XMLOutputter xmlOutput = new XMLOutputter();
+		xmlOutput.setFormat(Format.getPrettyFormat());
+		xmlOutput.output(doc, new FileWriter(dir));
+		log.log(Level.INFO, "Setting saved");
+	}
+	
+	private Element recordSettings(Element account, String encryptedPassword) {
+		account.addContent(new Element(USERNAME).setText(model.getUsername()));
+		account.addContent(new Element(PASSWORD).setText(encryptedPassword));
+		account.addContent(new Element(DISPLAY_REMAINING).setText(model.getDisplayRemaining()==true? Common.TRUE : Common.FALSE));
+		account.addContent(new Element(THEMEMODE).setText(model.getThemeMode()));
+		account.addContent(new Element(COLOR_SCHEME).setText(model.getColourScheme()));
+		account.addContent(new Element(AUTO_SYNC).setText(model.hasAutoSync() == true? Common.TRUE : Common.FALSE));
+		account.addContent(new Element(SYNC_PERIOD).setText(String.valueOf(model.getSyncPeriod())));
+		return account;
+	}
+	
+	
+	/*****************************update account information **************************/
+	
+	@Override
+	/**
+	 * Update account information to XML file of setting storage after settings changed
+	 */
+	public void updateToFile() throws IOException{
+		 
+		  try {	 
+			 //initialize the XML file builder
+			SAXBuilder builder = new SAXBuilder();
+			File xmlFile = new File(dir);
+			Document doc = (Document) builder.build(xmlFile);
+			Element rootNode = doc.getRootElement();
+			Element account = rootNode.getChild(ACCOUNT);
+			account = updateInfo(account);
+			//Output to XML file
+			XMLOutputter xmlOutput = new XMLOutputter();
+			xmlOutput.setFormat(Format.getPrettyFormat());
+			xmlOutput.output(doc, new FileWriter(dir));
+			log.log(Level.INFO, "File updated!");
+		  } catch (JDOMException e) {
+			log.log(Level.WARNING, e.getMessage());
+		  }
+	}
+	
+	
+	private Element updateInfo(Element account) {
+		if (model.getUsername() != null) {
+			account.getChild(USERNAME).setText(model.getUsername());				
+		}
+		String encryptedPassword = encryptPassword(model.getPassword());
+		if (model.getPassword() != null) {
+			account.getChild(PASSWORD).setText(encryptedPassword);			
+		}
+		account.getChild(DISPLAY_REMAINING).setText(model.getDisplayRemaining() == true? Common.TRUE : Common.FALSE);
+		if (model.getThemeMode()!=null) {
+			account.getChild(THEMEMODE).setText(model.getThemeMode());	
+		}
+		if (model.getColourScheme() != null) {
+			account.getChild(COLOR_SCHEME).setText(model.getColourScheme());
+		} else {
+			account.getChild(COLOR_SCHEME).setText("Default day mode");
+		}
+		account.getChild(AUTO_SYNC).setText(model.hasAutoSync() == true? Common.TRUE : Common.FALSE);
+		account.getChild(SYNC_PERIOD).setText(String.valueOf(model.getSyncPeriod()));
+		return account;
+	}
+	
+	
+	/*****************************load account information************************************/
+	
+	@Override
+	/**
+	 * Load account information from XML file of setting storage when the program is launched
+	 */
+	public void loadFromFile() throws IOException {
+		 
+		SAXBuilder builder = new SAXBuilder();
+		  try {
+				Document doc = (Document) builder.build(xmlFile);
+				//Retrieve the elements from XML file
+				Element rootNode = doc.getRootElement();
+				Element account = rootNode.getChild(ACCOUNT);
+				Element username = account.getChild(USERNAME);
+				Element password = account.getChild(PASSWORD);
+				Element displayRemaining  = account.getChild(DISPLAY_REMAINING);
+				Element themeMode = account.getChild(THEMEMODE);
+				Element colourScheme = account.getChild(COLOR_SCHEME);
+				Element autoSync = account.getChild(AUTO_SYNC);
+				Element syncPeriod = account.getChild(SYNC_PERIOD);
+				String decryptedPassword= decryptPassword(password.getText());
+				//copy the info of elements to the model
+				if (username.getText() != null) {
+					model.setUsername(username.getText());
+				}
+				if (decryptedPassword != null) {
+					model.setPassword(decryptedPassword);
+				}
+				if (displayRemaining.getText() != null) {
+					model.setDisplayRemaining(displayRemaining.getText().equals(Common.TRUE) ? true : false);
+				}
+				if (themeMode.getText() != null) {
+					model.setThemeMode(themeMode.getText());
+				}
+				if (colourScheme.getText() != null) {
+					model.setColourScheme(colourScheme.getText());
+				}
+				if (autoSync.getText() != null) {
+					model.setAutoSync(autoSync.getText().equals(Common.TRUE) ? true : false);
+				}
+				if (syncPeriod.getText() != null) {
+					model.setSyncPeriod(Integer.valueOf(syncPeriod.getText()));
+				}			
+		  } catch (JDOMException jdomex) {
+			  log.log(Level.WARNING, jdomex.getMessage());
+		  }
+	}
+
+	
+	/***************** encryption and decryption *************************/
+	
+	private String encryptPassword(String password) {
+		String encryptedPassword;
+		if(model.getPassword()!=null) {
+			try{
+				encryptedPassword = encryptString(password);
+			}
+			catch(Exception e) {
+				encryptedPassword = null;
+				log.log(Level.WARNING, ENCRYPTION_FAIL);
+				log.log(Level.WARNING, "store: "+e.getMessage());
+			}
+		} else {
+			encryptedPassword = null;
+		}
+		return encryptedPassword;
+	}
+	
+	private String decryptPassword(String encryptedPassword) {
+		String decryptedPassword = encryptedPassword;
+		if(encryptedPassword != null) {
+			try{
+				decryptedPassword = decryptString(encryptedPassword);
+				log.log(Level.INFO, "retrieve: "+encryptedPassword+"->"+decryptedPassword);
+			}catch(Exception e) {
+				e.printStackTrace();
+				log.log(Level.WARNING, ENCRYPTION_FAIL);
+				decryptedPassword = null;
+			}
+		}
+		return decryptedPassword;
+	}
+	
+	public String encryptString(String plainText) throws Exception {
+		return new Encryptor(encryptAlgo).encrypt(plainText);
+
+	}
+
+	public String decryptString(String cipherString) throws Exception {
+		return new Encryptor(encryptAlgo).decrypt(cipherString);
+	}
+	
+	
+	/*******************************Methods for testing**********************************************/
+	
+	public boolean compareModelAndFileForTest() throws IOException {
+		SAXBuilder builder = new SAXBuilder();
+		try {//retrieve the elements
+			Document doc = (Document) builder.build(xmlFile);
+			Element rootNode = doc.getRootElement();
+			Element account = rootNode.getChild(ACCOUNT);
+			Element username = account.getChild(USERNAME);
+			Element password = account.getChild(PASSWORD);
+			Element displayRemaining  = account.getChild(DISPLAY_REMAINING);
+			Element themeMode = account.getChild(THEMEMODE);
+			Element colourScheme = account.getChild(COLOR_SCHEME);
+			Element autoSync = account.getChild(AUTO_SYNC);
+			Element syncPeriod = account.getChild(SYNC_PERIOD);
+			String decryptedPassword= decryptPassword(password.getText());
+			if (!username.getText().equals(model.getUsername())) {
+				return false;
+			} else if (!decryptedPassword.equals(model.getPassword())) {
+				return false;
+			} else if ((displayRemaining.getText().equals(Common.TRUE)? true : false)!=(model.getDisplayRemaining())) {
+				return false;
+			} else if (!themeMode.getText().equals(model.getThemeMode())) {
+				return false;
+			} else if (!colourScheme.getText().equals(model.getColourScheme())) {
+				return false;
+			} else if (!autoSync.getText().equals(model.hasAutoSync() == true? Common.TRUE : Common.FALSE)) {
+				return false;
+			} else if (Integer.valueOf(syncPeriod.getText())!=(model.getSyncPeriod())) {
+				return false;
+			} else {
+				return true;
+			}
+			} catch (IOException io) {
+			throw io;
+		  } catch (JDOMException jdomex) {
+			log.log(Level.WARNING, jdomex.getMessage());
+			return false;
+		  }
+	}
+	
+
+}
+
+	// End of segment: D:\CS2103 Proj\src\SettingsStorage.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Storage.java
+	 */
+
+
+public abstract class Storage {
+	
+	protected final static boolean DONE_READING = true;
+	protected final static boolean UNDONE_READING = false;
+	public final static String FOLDERNAME = "iDo Files";
+	protected Model model;
+	protected File xmlFile;
+	
+	/*********************abastract methods which need to be implemented****************/
+	
+	public void loadFromFile() throws IOException {
+		
+	};
+	
+	public void storeToFile() throws IOException {
+		
+	};
+	
+	public void updateToFile() throws IOException {
+		
+	};
+	
+	
+	/*********************create files or check file existence*****************************/
+	
+	/**
+	 * create the directory of iDo folder in user's documents folder
+	 */
+	protected void createDir() {
+		File theDir = new File(findUserDocDir() + FOLDERNAME);
+		// if the directory does not exist, create it
+		if (!theDir.exists()) {
+			System.out.println("creating directory: ");
+			boolean result = theDir.mkdir();
+			if (result) {
+				System.out.println("DIR created");
+			}
+		}
+	}
+	
+	/**
+	 * find user's Documents directory
+	 * @return user Documents dir
+	 */
+	protected String findUserDocDir() {
+		return System.getProperty("user.home") + "/Documents/";
+	}
+
+	/**
+	 * check if target file exists
+	 * @param file
+	 */
+
+	protected static void checkIfFileExists(File file) {
+		if (!file.exists()) {
+			try {
+				file.createNewFile();
+			} catch (IOException e) {
+				System.out.println("Cannot create the text file");
+			}
+		}
+	}
+	
+	/**********************methods for test**********************/
+	boolean searchTaskInFileForTest(Task task, String taskListType) throws IOException {
+		return false;
+	}
+	
+	boolean checkTaskListEmptyForTest(String taskListType) throws IOException{
+		return false;
+	}
+	
+	boolean compareModelAndFileForTest() throws IOException {
+		return false;
+	}
+}
+
+	// End of segment: D:\CS2103 Proj\src\Storage.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Task.java
+	 */
+
+	/**
+	 * This function is used to update the start time and end time for a
+	 * repetitive task when the end time is behind the current time
+	 */
+	public void updateDateForRepetitiveTask() {
+		long difference = CustomDate.getUpdateDistance(getTag()
+				.getRepetition());
+		while (getEndDate().beforeCurrentTime()) {
+			if(current_occurrence == num_occurrences)
+				break;
+			// Update the occurrences
+			current_occurrence++;
+			updateOccurrenceString();
+			// Update the start date and end date
+			updateStartDate(difference);
+			updateEndDate(difference);
+		}
+	}
+	
+	// End of segment: D:\CS2103 Proj\src\Task.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Task.java
+	 */
+
+	/**
+	 * This function is used to update the occurrences of a task for display
+	 */
+	private void updateOccurrenceString() {
+		if (num_occurrences <= 1){
+			occurrenceString.set("");
+		}else{
+			occurrenceString.set(current_occurrence + "/" + num_occurrences);
+		}
+	}
+	
+	// End of segment: D:\CS2103 Proj\src\Task.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Task.java
+	 */
+
+	public int getNumOccurrences() {
+		return num_occurrences;
+	}
+
+	public int getCurrentOccurrence() {
+		return current_occurrence;
+	}
+	
+	// End of segment: D:\CS2103 Proj\src\Task.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Task.java
+	 */
+
+	public void initOccurrence(int num_occurrences) {
+		this.num_occurrences = num_occurrences;
+		current_occurrence = 1;
+		updateOccurrenceString();
+	}
+	
+	public void setNumOccurrences(int num_occurrences) {
+		this.num_occurrences = num_occurrences;
+		updateOccurrenceString();
+	}
+
+	public void setCurrentOccurrence(int current) {
+		current_occurrence = current;
+		updateOccurrenceString();
+	}
+
+	public void setOccurrence(int occurNum, int curOccur) {
+		num_occurrences = occurNum;
+		current_occurrence = curOccur;
+		updateOccurrenceString();
+	}
+	
+	public static boolean equalTask(Task task1, Task task2) {
+		if (!task1.getIndexId().equals(task2.getIndexId())) {
+			return false;
+		} else if (!task1.getWorkInfo().equals(task2.getWorkInfo())) {
+			return false;
+		} else if (CustomDate.compare(task1.getStartDate(), task2.getStartDate()) != 0) {
+			return false;
+		} else if (CustomDate.compare(task1.getEndDate(), task2.getEndDate()) != 0) {
+			return false;
+		} else if (!task1.getTag().getTag().equals(task2.getTag().getTag())) {
+			return false;
+		} else if (!task1.getTag().getRepetition().equals(task2.getTag().getRepetition())) {
+			return false;
+		} else if (task1.isImportantTask() != task2.isImportantTask()) {
+			return false;
+		} else if (task1.getNumOccurrences() != task2.getNumOccurrences()) {
+			return false;
+		} else if (task1.getCurrentOccurrence() != task2.getCurrentOccurrence()) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+}
+
+	// End of segment: D:\CS2103 Proj\src\Task.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\TaskStorage.java
+	 */
+
+public class TaskStorage extends Storage {
+	private static final String INDEXID = "indexID";
+	private static final String WORK_INFO ="workInfo";
+	private static final String START_DATE = "startDate";
+	private static final String END_DATE = "endDate";
+	private static final String TAG = "tag";
+	private static final String REPETITION= "repetition";
+	private static final String IS_IMPORTANT = "isImportant";
+	private static final String INDEX_IN_LIST = "indexInList";
+	private static final String MODIFIED_DATE = "modifiedDate";
+	private static final String CURRENT_OCCURRENCE = "currentOccurrence";
+	private static final String NUM_OCCURRENCE = "numOccurrences";
+	private static final String STATUS = "status";
+	private static final String NEW = "new";
+	private static final String UNCHANGED = "unchanged";
+	private static final String DELETED = "deleted";
+	private static final String ADDED_WHEN_SYNC = "added_when_sync";
+	private static final String DELETED_WHEN_SYNC = "deleted_when_sync";
+	
+	static final String PENDING = "pending";
+	static final String COMPLETE = "complete";
+	static final  String TRASH = "trash";
+
+	private static Logger log = Logger.getLogger("TaskStorage");
+	
+	public TaskStorage(String fileName, Model model) {
+		createDir();
+		xmlFile = new File(findUserDocDir() + FOLDERNAME + "/" + fileName);
+		checkIfFileExists(xmlFile);
+		this.model = model;
+	}
+	
+	/************************** store and load task list  **************************/
+	
+	@Override
+	/**
+	 * Store task list to XML file of task storage
+	 */
+	public void storeToFile() throws IOException {
+		//Initialize the elements in the XML file
+		Element root = new Element("root");
+		Document doc = new Document(root);
+		Element pending = new Element(PENDING);
+		Element complete = new Element(COMPLETE);
+		Element trash = new Element(TRASH);
+		//Add task info to its corresponding element in XML file
+		pending = addTasksToXMLFile(pending, PENDING, model.getPendingList());
+		complete = addTasksToXMLFile(complete, COMPLETE, model.getCompleteList());
+		trash = addTasksToXMLFile(trash, TRASH, model.getTrashList());
+		//append elements to root
+		doc.getRootElement().getChildren().add(pending);
+		doc.getRootElement().getChildren().add(complete);
+		doc.getRootElement().getChildren().add(trash);
+		//Outupt to XML file
+		XMLOutputter xmlOutput = new XMLOutputter();
+		xmlOutput.setFormat(Format.getPrettyFormat());
+		xmlOutput.output(doc, new FileWriter(xmlFile));
+		log.log(Level.INFO, "Data saved.");
+	}
+	
+	@Override
+	public void updateToFile() throws IOException {
+		storeToFile();
+	}
+	
+	@Override
+	/**
+	 * Load task list from XML file of task storage
+	 */
+	public void loadFromFile() throws IOException {
+		SAXBuilder builder = new SAXBuilder();
+		try {//retrieve the elements
+			Document doc = (Document) builder.build(xmlFile);
+			Element rootNode = doc.getRootElement();
+			Element pending = rootNode.getChild(PENDING);
+			Element trash = rootNode.getChild(TRASH);
+			Element complete = rootNode.getChild(COMPLETE);
+			//Retrieve tasks from the elements and add to model
+			addTasksToModel(pending, PENDING);
+			addTasksToModel(complete, COMPLETE);
+			addTasksToModel(trash, TRASH);
+			} catch (IOException io) {
+			throw io;
+		  } catch (JDOMException jdomex) {
+			log.log(Level.WARNING, jdomex.getMessage());
+		  }
+	}
+
+/**********************************Generate tasks from XML file and add them to model **************************/
+	
+	/**
+	 * retrieve the elements in the XML file of task storage, building the corresponding tasks and store them to model
+	 * @param element   task list element in XML file: pending, complete or trash
+	 * @param taskType    "pending", "complete" or "trash"  
+	 * @throws IOException
+	 */
+	private void addTasksToModel(Element element, String taskType)
+			throws IOException {
+		List<Element> taskList = element.getChildren();
+		for(int i = 0; i<taskList.size();i++) {
+			Task newTask = new Task();
+			Element targetElement = taskList.get(i);
+			newTask = setTaskInfo(newTask, targetElement);
+			addToTaskList(newTask, taskType);
+		}
+	}
+	
+	/**
+	 * set the attributes of a task according to info from the task element retrieved from XML file.
+	 * @param newTask
+	 * @param targetElement
+	 * @return
+	 */
+	private Task setTaskInfo(Task newTask, Element targetElement) {
+		newTask.setIndexId(targetElement.getChildText(INDEXID));
+		newTask.setWorkInfo(targetElement.getChildText(WORK_INFO));
+		newTask = setDateInfo(newTask, targetElement);
+		newTask.setTag(new Tag(targetElement.getChildText(TAG),targetElement.getChildText(REPETITION)));
+		newTask.setIsImportant(targetElement.getChildText(IS_IMPORTANT).equals(Common.TRUE) ? true : false);
+		newTask.setIndexInList(Integer.parseInt(targetElement.getChildText(INDEX_IN_LIST)));
+		newTask = setLastModifiedDate(newTask, targetElement);
+		newTask.setCurrentOccurrence(Integer.parseInt(targetElement.getChildText(CURRENT_OCCURRENCE)));
+		newTask.setNumOccurrences(Integer.parseInt(targetElement.getChildText(NUM_OCCURRENCE)));
+		newTask = setStatus(newTask, targetElement);
+		return newTask;
+	}
+	
+	private Task setDateInfo(Task newTask, Element targetElement) {
+		if(!targetElement.getChildText(START_DATE).equals("-")) {
+			newTask.setStartDate(new CustomDate(targetElement.getChildText(START_DATE)));
+		}
+		if(!targetElement.getChildText(END_DATE).equals("-")) {
+			newTask.setEndDate(new CustomDate(targetElement.getChildText(END_DATE)));
+		}
+		return newTask;
+	}
+	
+	private Task setLastModifiedDate(Task newTask, Element targetElement) {
+		String latestDateString = targetElement.getChildText(MODIFIED_DATE);
+		String second = latestDateString.substring(latestDateString.lastIndexOf(":") + 1);
+		String remains = latestDateString.substring(0, latestDateString.lastIndexOf(":"));
+		newTask.setLatestModifiedDate(new CustomDate(remains));
+		newTask.getLatestModifiedDate().setSecond(Integer.parseInt(second));
+		return newTask;
+	}
+	
+	private Task setStatus(Task newTask, Element targetElement) {
+		String statusString = targetElement.getChildText(STATUS);
+		if (statusString.equals(NEW)) {
+			newTask.setStatus(Task.Status.NEWLY_ADDED);
+		} else if (statusString.equals(UNCHANGED)) {
+			newTask.setStatus(Task.Status.UNCHANGED);
+		} else if(statusString.equals(DELETED)) {
+			newTask.setStatus(Task.Status.DELETED);
+		} else if (statusString.equals(ADDED_WHEN_SYNC)) {
+			newTask.setStatus(Task.Status.ADDED_WHEN_SYNC);
+		} else if (statusString.equals(DELETED_WHEN_SYNC)) {
+			newTask.setStatus(Task.Status.DELETED_WHEN_SYNC);
+		}
+		return newTask;
+	}
+	
+	private void addToTaskList(Task newTask, String taskType) {
+        switch (taskType) {
+        case PENDING:
+                model.addTaskToPending(newTask);
+                break;
+        case COMPLETE:
+                model.addTaskToComplete(newTask);
+                break;
+        case TRASH:
+                model.addTaskToTrash(newTask);
+                break;
+        }
+	}
+	
+	
+	/******************************Generate tasks from model and add them to XML file*****************/
+	
+	/**
+	 * Retrieve the tasks from model and store their task informations to the XML file of task storage 
+	 * @param element    task list element in XML file: pending, complete or trash
+	 * @param taskType    "pending", "complete" or "trash"  
+	 * @param taskList    pendingList, completeList or trashList
+	 * @return
+	 */
+	private Element addTasksToXMLFile(Element element, String taskType,
+			List<Task> taskList) {
+		for (int i = 0; i < taskList.size(); i++) {
+			Task targetTask = taskList.get(i);
+			Element newTask = new Element(taskType+""+i);
+			element.getChildren().add(newTask);
+			newTask = recordInfo(newTask, targetTask);
+		}
+		return element;
+	}
+	
+	private Element recordInfo(Element newTask, Task targetTask) {
+		newTask.addContent(new Element(INDEXID).setText(targetTask.getIndexId()));
+		newTask.addContent(new Element(WORK_INFO).setText((targetTask.getWorkInfo())));
+		newTask.addContent(new Element(START_DATE).setText((CustomDate.convertString(targetTask.getStartDate()))));
+		newTask.addContent(new Element(END_DATE).setText((CustomDate.convertString(targetTask.getEndDate()))));
+		newTask.addContent(new Element(TAG).setText((targetTask.getTag().getTag())));
+		newTask.addContent(new Element(REPETITION).setText((targetTask.getTag().getRepetition())));
+		newTask.addContent(new Element(IS_IMPORTANT).setText(((targetTask.isImportantTask() == true ? Common.TRUE : Common.FALSE))));
+		newTask.addContent(new Element(INDEX_IN_LIST).setText((targetTask.getIndexInList()+"")));
+		newTask.addContent(new Element(MODIFIED_DATE).setText((CustomDate.convertString(targetTask.getLatestModifiedDate()) +":"+ targetTask.getLatestModifiedDate().getSecond())));
+		newTask.addContent(new Element(CURRENT_OCCURRENCE).setText((targetTask.getCurrentOccurrence()+"")));
+		newTask.addContent(new Element(NUM_OCCURRENCE).setText((targetTask.getNumOccurrences()+"")));
+		newTask = recordStatus(newTask, targetTask);
+		return newTask;
+	}
+	
+	private Element recordStatus(Element newTask, Task targetTask) {
+		if(targetTask.getStatus() == Task.Status.NEWLY_ADDED) {
+			newTask.addContent(new Element(STATUS).setText((NEW)));
+		} else if(targetTask.getStatus() == Task.Status.UNCHANGED) {
+			newTask.addContent(new Element(STATUS).setText((UNCHANGED)));
+		} else if(targetTask.getStatus() == Task.Status.DELETED) {
+			newTask.addContent(new Element(STATUS).setText((DELETED)));
+		} else if(targetTask.getStatus() == Task.Status.ADDED_WHEN_SYNC) {
+			newTask.addContent(new Element(STATUS).setText((ADDED_WHEN_SYNC)));
+		} else {
+			newTask.addContent(new Element(STATUS).setText((DELETED_WHEN_SYNC)));
+		}
+		return newTask;
+	}
+	
+	
+	/*******************************Methods for testing**********************************************/
+	
+	public boolean compareModelAndFileForTest() throws IOException {
+		SAXBuilder builder = new SAXBuilder();
+		try {//retrieve the elements
+			Document doc = (Document) builder.build(xmlFile);
+			Element rootNode = doc.getRootElement();
+			Element pending = rootNode.getChild(PENDING);
+			Element trash = rootNode.getChild(TRASH);
+			Element complete = rootNode.getChild(COMPLETE);
+			//Retrieve tasks from the elements and add to model
+			if (!compareListAndElement(pending, model.getPendingList())) {
+				return false;
+			} else if (!compareListAndElement(complete, model.getCompleteList())) {
+				return false;
+			} else if (!compareListAndElement(trash, model.getTrashList())) {
+				return false;
+			} else {
+				return true;
+			}
+			} catch (IOException io) {
+			throw io;
+		  } catch (JDOMException jdomex) {
+			log.log(Level.WARNING, jdomex.getMessage());
+			return false;
+		  }
+	}
+	
+	private boolean compareListAndElement (Element element, ObservableList<Task> taskListInModel){
+		List<Element> taskListInFile = element.getChildren();
+		if (taskListInModel.size() != taskListInFile.size()) {
+			return false;
+		}
+		for(int i = 0; i<taskListInFile.size();i++) {
+			Task taskInFile = new Task();
+			Element targetElement = taskListInFile.get(i);
+			taskInFile = setTaskInfo(taskInFile, targetElement);
+			Task taskInModel = taskListInModel.get(i);
+			if(!Task.equalTask(taskInFile,taskInModel)) {
+				return false;
+			}
+		}
+		return true;
+	}	
+	
+	boolean checkTaskListEmptyForTest(String taskListType) throws IOException {
+		SAXBuilder builder = new SAXBuilder();
+		try {//retrive the elements
+			Document doc = (Document) builder.build(xmlFile);
+			Element rootNode = doc.getRootElement();
+			if (taskListType.equals(PENDING)) {
+				Element pending = rootNode.getChild(PENDING);
+				return pending.getChildren().isEmpty();
+			} else if (taskListType.equals(COMPLETE)) {
+				Element complete = rootNode.getChild(COMPLETE);
+				return complete.getChildren().isEmpty();
+			} else if (taskListType.equals(TRASH)) {
+				Element trash = rootNode.getChild(TRASH);
+				return trash.getChildren().isEmpty();
+			} else {
+				return false;
+			}
+		} catch (IOException io) {
+			throw io;
+		  } catch (JDOMException jdomex) {
+			log.log(Level.WARNING, jdomex.getMessage());
+			return false;
+		  }
+	}
+	
+	boolean searchTaskInFileForTest(Task task, String taskListType) throws IOException {
+		SAXBuilder builder = new SAXBuilder();
+		try {//retrive the elements
+			Document doc = (Document) builder.build(xmlFile);
+			Element rootNode = doc.getRootElement();
+			if (taskListType.equals(PENDING)) {
+				Element pending = rootNode.getChild(PENDING);
+				return searchTaskInElement(pending, task);
+			} else if (taskListType.equals(COMPLETE)) {
+				Element complete = rootNode.getChild(COMPLETE);
+				return searchTaskInElement(complete,task);
+			} else if (taskListType.equals(TRASH)) {
+				Element trash = rootNode.getChild(TRASH);
+				return searchTaskInElement(trash, task);
+			} else {
+				return false;
+			}
+		} catch (IOException io) {
+			throw io;
+		  } catch (JDOMException jdomex) {
+			log.log(Level.WARNING, jdomex.getMessage());
+			return false;
+		  }
+	}
+
+	private boolean searchTaskInElement(Element element, Task targetTask) {
+		List<Element> taskList = element.getChildren();
+		for(int i = 0; i<taskList.size();i++) {
+			Task taskInFile = new Task();
+			Element targetElement = taskList.get(i);
+			taskInFile = setTaskInfo(taskInFile, targetElement);
+			if(Task.equalTask(taskInFile, targetTask)) {
+				return true;
+			}
+		}
+		return false;
+}
+}
+
+	// End of segment: D:\CS2103 Proj\src\TaskStorage.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\TestEncryptor.java
+	 */
+
+public class TestEncryptor {
+	private static String encryptAlgo = "DES/ECB/PKCS5Padding";
+	private static Encryptor encryptor;
+	
+	@BeforeClass
+	public static void testSetup() {
+		encryptor = new Encryptor(encryptAlgo);
+	}
+	
+	@Test
+	public void test() {
+		testCase1();
+		testCase2();
+		testCase3();
+		testCase4();
+		testCase5();
+	}
+	
+	public void testCase1() {
+		String plainText = "HelloWorld";
+		try {
+			String encryptedString = encryptor.encrypt(plainText);
+			assertTrue("Encryption fail",!encryptedString.equals(plainText));
+			assertEquals("Decrypted text is different from original plain text",encryptor.decrypt(encryptedString), plainText);
+		} catch (Exception e) {
+			fail("Some exception thrown "+e.getMessage());
+		}
+	}
+	
+	public void testCase2() {
+		String plainText = "Ping#Pong";
+		try {
+			String encryptedString = encryptor.encrypt(plainText);
+			assertTrue("Encryption fail",!encryptedString.equals(plainText));
+			assertEquals("Decrypted text is different from original plain text",encryptor.decrypt(encryptedString), plainText);
+		} catch (Exception e) {
+			fail("Some exception thrown "+e.getMessage());
+		}
+	}
+	
+	public void testCase3() {
+		String plainText = "BattleField2";
+		try {
+			String encryptedString = encryptor.encrypt(plainText);
+			assertTrue("Encryption fail",!encryptedString.equals(plainText));
+			assertEquals("Decrypted text is different from original plain text",encryptor.decrypt(encryptedString), plainText);
+		} catch (Exception e) {
+			fail("Some exception thrown "+e.getMessage());
+		}
+	}
+	
+	public void testCase4() {
+		String plainText = "?%werwe#oiweru";
+		try {
+			String encryptedString = encryptor.encrypt(plainText);
+			assertTrue("Encryption fail",!encryptedString.equals(plainText));
+			assertEquals("Decrypted text is different from original plain text",encryptor.decrypt(encryptedString), plainText);
+		} catch (Exception e) {
+			fail("Some exception thrown "+e.getMessage());
+		}
+	}
+	
+	public void testCase5() {
+		String plainText = "!@#$%^&wertyuioiopip[]jkljl()\';.,/]:|?>";
+		try {
+			String encryptedString = encryptor.encrypt(plainText);
+			assertTrue("Encryption fail",!encryptedString.equals(plainText));
+			assertEquals("Decrypted text is different from original plain text",encryptor.decrypt(encryptedString), plainText);
+		} catch (Exception e) {
+			fail("Some exception thrown "+e.getMessage());
+		}
+	}
+}
+
+	// End of segment: D:\CS2103 Proj\src\TestEncryptor.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\TestSettingsStorage.java
+	 */
+
+public class TestSettingsStorage {
+	static Control controlTest;
+	static Storage settingStore;
+	static Model model;
+
+	@BeforeClass
+	public static void testSetup() {
+		controlTest = new Control();
+		//Common.changeTaskFile("testTaskFile.xml");
+		controlTest.loadData();
+		settingStore = controlTest.getSettingsFile();
+		model = controlTest.getModel();
+	}
+	
+	@Test
+	public void test() {
+		model.setColourScheme(Common.BRIGHT);
+		model.setAutoSync(false);
+		try {
+			settingStore.storeToFile();
+			assertTrue("Settings are not stored successfully", settingStore.compareModelAndFileForTest());
+		} catch(Exception e) {
+			fail("Some exception thrown "+e.getMessage());
+		}
+		
+		model.setColourScheme(Common.GOLDFISH);
+		model.setAutoSync(true);
+		try {
+			settingStore.storeToFile();
+			assertTrue("Settings are not stored successfully", settingStore.compareModelAndFileForTest());
+		} catch(Exception e) {
+			fail("Some exception thrown "+e.getMessage());
+		}
+	}
+
+}
+
+	// End of segment: D:\CS2103 Proj\src\TestSettingsStorage.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\TestTaskStorage.java
+	 */
+
+public class TestTaskStorage {
+
+	static Control controlTest;
+	static Storage dataFile;
+
+	@BeforeClass
+	public static void testSetup() {
+		controlTest = new Control();
+		//Common.changeTaskFile("testTaskFile.xml");
+		controlTest.loadData();
+		dataFile = controlTest.getTaskFile();
+	}
+	
+	@Test
+	public void test() {
+		controlTest.executeCommand("add watch football game from 5pm to 7pm");
+		try {
+			dataFile.storeToFile();
+			assertTrue("Model are not stored successfully", dataFile.compareModelAndFileForTest());
+		} catch(Exception e) {
+			fail("Some exception thrown "+e.getMessage());
+		}
+		
+		controlTest.executeCommand("remove 3");
+		try {
+			dataFile.storeToFile();
+			assertTrue("Model are not stored successfully", dataFile.compareModelAndFileForTest());
+		} catch(Exception e) {
+			fail("Some exception thrown "+e.getMessage());
+		}
+		controlTest.executeCommand("undo");
+		controlTest.executeCommand("undo");
+	}
+	
+
+}
+
+	// End of segment: D:\CS2103 Proj\src\TestTaskStorage.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\View.java
+	 */
+
+	/**
+	 * This function is used to show the initial message when the user first
+	 * open the application. The message will be different according to whether
+	 * the user has indicated Google account yet.
+	 */
+	private void showInitialMessage() {
+		if (model.getUsername() != null && !model.getUsername().equals("")) {
+			setFeedbackStyle(0, String.format(Common.WELCOME_MESSAGE, model
+					.getUsername().replace(GMAIL_ACCOUNT_SUFFIX, "")),
+					defaultColor);
+		} else {
+			setFeedbackStyle(0, UNLOGIN_WELCOME_MESSAGE, defaultColor);
+		}
+	}
+	
+	// End of segment: D:\CS2103 Proj\src\View.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\View.java
+	 */
+
+	// Add occurrence column
+	private TableColumn<Task, String> addOccurrenceColumn(
+			final ObservableList<TableColumn<Task, ?>> columns) {
+		final TableColumn<Task, String> occurrenceColumn = createOccurrenceColumn();
+		columns.add(occurrenceColumn);
+		return occurrenceColumn;
+	}
+
+	/**
+	 * Create the occurrence column
+	 * 
+	 * @return the created column
+	 */
+	private TableColumn<Task, String> createOccurrenceColumn() {
+		TableColumn<Task, String> occurrenceColumn = TableColumnBuilder
+				.<Task, String> create().resizable(false).visible(true)
+				.text("").prefWidth(40).sortable(false).resizable(false)
+				.build();
+		setupOccurrenceProperty(occurrenceColumn);
+		setupOccurrenceUpdateFormat(occurrenceColumn);
+		return occurrenceColumn;
+	}
+
+	/**
+	 * Link up the content of each cell with the occurrence property in Task
+	 * class
+	 * 
+	 * @param occurrenceColumn
+	 *            the linked column
+	 */
+	private void setupOccurrenceProperty(
+			TableColumn<Task, String> occurrenceColumn) {
+		occurrenceColumn.setCellValueFactory(new PropertyValueFactory<Task, String>("occurrence"));
+	}
+
+	/**
+	 * Setup how to display the content of the property
+	 * 
+	 * @param occurrenceColumn
+	 *            the modified column
+	 */
+	private void setupOccurrenceUpdateFormat(
+			final TableColumn<Task, String> occurrenceColumn) {
+		occurrenceColumn
+				.setCellFactory(new Callback<TableColumn<Task, String>, TableCell<Task, String>>() {
+					@Override
+					public TableCell<Task, String> call(
+							TableColumn<Task, String> param) {
+						TableCell<Task, String> tc = new TableCell<Task, String>() {
+							Text text;
+
+							@Override
+							public void updateItem(String item, boolean empty) {
+								if (item != null) {
+									text = new Text(item);
+									text.setFill(Color.DARKCYAN);
+									text.setFont(Font.font("Verdana", 9));
+									setAlignment(Pos.TOP_LEFT);
+									setGraphic(text);
+								}
+							}
+						};
+						tc.setAlignment(Pos.TOP_LEFT);
+						return tc;
+					}
+				});
+	}
+	
+	
+	// End of segment: D:\CS2103 Proj\src\View.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\View.java
+	 */
+
+	/**
+	 * This function is the main function to set the real-time multicolor
+	 * feedback
+	 * 
+	 * @param requestFeedback
+	 *            the request of feedback from the application. Depending on the
+	 *            request, this function will give different feedbacks.
+	 */
+	public void setFeedback(String requestFeedback) {
+		emptyFeedback(0);
+		switch (requestFeedback) {
+		case Common.MESSAGE_ADD_TIP:
+			setFeedbackStyle(0, "<add>", colourScheme[0]);
+			setFeedbackWithTaskInfos();
+			break;
+		case Common.MESSAGE_EDIT_TIP:
+			setFeedbackStyle(0, "<edit>", colourScheme[0]);
+			setFeedbackStyle(1, "<index>", colourScheme[6]);
+			setFeedbackStyle(2, "<workflow>", colourScheme[1]);
+			setFeedbackStyle(3, "<start time>", colourScheme[2]);
+			setFeedbackStyle(4, "<end time>", colourScheme[3]);
+			setFeedbackStyle(5, "<importance *>", colourScheme[4]);
+			setFeedbackStyle(6, "<#tag>", colourScheme[5]);
+			emptyFeedback(7);
+			break;
+		case Common.MESSAGE_RECOVER_INDEX_TIP:
+			setFeedbackStyle(0, "<recover>", colourScheme[0]);
+			setFeedbackWithTaskIndices();
+			break;
+		case Common.MESSAGE_RECOVER_INFO_TIP:
+			setFeedbackStyle(0, "<recover>", colourScheme[0]);
+			setFeedbackWithTaskInfos();
+			break;
+		case Common.MESSAGE_REMOVE_INDEX_TIP:
+			setFeedbackStyle(0, "<remove>", colourScheme[0]);
+			setFeedbackWithTaskIndices();
+			break;
+		case Common.MESSAGE_REMOVE_INFO_TIP:
+			setFeedbackStyle(0, "<remove>", colourScheme[0]);
+			setFeedbackWithTaskInfos();
+			break;
+		case Common.MESSAGE_SEARCH_TIP:
+			setFeedbackStyle(0, "<search>", colourScheme[0]);
+			setFeedbackWithTaskInfos();
+			break;
+		case Common.MESSAGE_UNDO_TIP:
+			setFeedbackStyle(0, "<undo>", colourScheme[0]);
+			emptyFeedback(1);
+			break;
+		case Common.MESSAGE_REDO_TIP:
+			setFeedbackStyle(0, "<redo>", colourScheme[0]);
+			emptyFeedback(1);
+			break;
+		case Common.MESSAGE_TODAY_TIP:
+			setFeedbackStyle(0, "<today>", colourScheme[0]);
+			emptyFeedback(1);
+			break;
+		case Common.MESSAGE_HELP_TIP:
+			setFeedbackStyle(0, "<help>", colourScheme[0]);
+			emptyFeedback(1);
+			break;
+		case Common.MESSAGE_SETTINGS_TIP:
+			setFeedbackStyle(0, "<settings>", colourScheme[0]);
+			emptyFeedback(1);
+			break;
+		case Common.MESSAGE_SHOW_ALL_TIP:
+			setFeedbackStyle(0, "<show>", colourScheme[0]);
+			emptyFeedback(1);
+			break;
+		case Common.MESSAGE_CLEAR_ALL_TIP:
+			setFeedbackStyle(0, "<clear>", colourScheme[0]);
+			break;
+		case Common.MESSAGE_SYNC_TIP:
+			setFeedbackStyle(0, "<sync>", colourScheme[0]);
+			emptyFeedback(1);
+			break;
+		case Common.MESSAGE_EXIT_TIP:
+			setFeedbackStyle(0, "<exit>", colourScheme[0]);
+			emptyFeedback(1);
+			break;
+		case Common.MESSAGE_MARK_INDEX_TIP:
+			setFeedbackStyle(0, "<mark>", colourScheme[0]);
+			setFeedbackWithTaskIndices();
+			break;
+		case Common.MESSAGE_MARK_INFO_TIP:
+			setFeedbackStyle(0, "<mark>", colourScheme[0]);
+			setFeedbackWithTaskInfos();
+			break;
+		case Common.MESSAGE_UNMARK_INDEX_TIP:
+			setFeedbackStyle(0, "<unmark>", colourScheme[0]);
+			setFeedbackWithTaskIndices();
+			break;
+		case Common.MESSAGE_UNMARK_INFO_TIP:
+			setFeedbackStyle(0, "<unmark>", colourScheme[0]);
+			setFeedbackWithTaskInfos();
+			break;
+		case Common.MESSAGE_COMPLETE_INDEX_TIP:
+			setFeedbackStyle(0, "<done>", colourScheme[0]);
+			setFeedbackWithTaskIndices();
+			break;
+		case Common.MESSAGE_COMPLETE_INFO_TIP:
+			setFeedbackStyle(0, "<done>", colourScheme[0]);
+			setFeedbackWithTaskInfos();
+			break;
+		case Common.MESSAGE_INCOMPLETE_INDEX_TIP:
+			setFeedbackStyle(0, "<undone>", colourScheme[0]);
+			setFeedbackWithTaskIndices();
+			break;
+		case Common.MESSAGE_INCOMPLETE_INFO_TIP:
+			setFeedbackStyle(0, "<undone>", colourScheme[0]);
+			setFeedbackWithTaskInfos();
+			break;
+		default:
+			displayAvailableCommands(requestFeedback);
+			break;
+		}
+	}
+
+	private void displayAvailableCommands(String requestFeedback) {
+		emptyFeedback(0);
+		ArrayList<String> availCommands = getAvailCommands(requestFeedback
+				.trim());
+		for (int i = 0; i < availCommands.size(); i++) {
+			setFeedbackStyle(i + 1, availCommands.get(i), colourScheme[0]);
+		}
+		setFeedbackStyle(0,
+				availCommands.size() > 0 ? "Available commands: "
+						: Common.MESSAGE_REQUEST_COMMAND, colourScheme[1]);
+	}
+	
+	/**
+	 * Append the content of feedback with available index
+	 */
+	private void setFeedbackWithTaskIndices() {
+		setFeedbackStyle(1, "<index1> <index2> <index3> ...", colourScheme[6]);
+		emptyFeedback(2);
+	}
+
+	/**
+	 * Append the content of feedback with available task info
+	 */
+	private void setFeedbackWithTaskInfos() {
+		setFeedbackStyle(1, "<workflow>", colourScheme[1]);
+		setFeedbackStyle(2, "<start time>", colourScheme[2]);
+		setFeedbackStyle(3, "<end time>", colourScheme[3]);
+		setFeedbackStyle(4, "<importance *>", colourScheme[4]);
+		setFeedbackStyle(5, "<#tag>", colourScheme[5]);
+		emptyFeedback(6);
+	}
+	
+	public String getFeedback() {
+		String feedbackStr = "";
+		for(Text feedback: feedbackList) {
+			feedbackStr += feedback.getText();
+		}
+		return feedbackStr;
+	}
+
+	/**
+	 * Get the list of possible commands by processing the input command from
+	 * user
+	 * 
+	 * @param inputCommand
+	 *            the command input from the user
+	 * @return the list of possible commands
+	 */
+	private ArrayList<String> getAvailCommands(String inputCommand) {
+		ArrayList<String> availCommands = new ArrayList<String>();
+		for (int i = 0; i < Common.COMMAND_TYPES_STR.length; i++) {
+			String command = Common.COMMAND_TYPES_STR[i];
+			boolean hasCommand = command.indexOf(inputCommand) == 0
+					&& !command.equals(inputCommand);
+			if (hasCommand) {
+				availCommands.add(command);
+			}
+		}
+		return availCommands;
+	}
+
+	// Set the content and color for a feedback element with given index
+	public void setFeedbackStyle(int index, String text, Color color) {
+		feedbackList.get(index).setText(text);
+		feedbackList.get(index).setFill(color);
+	}
+
+	// Empty the feedback list
+	public void emptyFeedback(int startIndex) {
+		for (int i = startIndex; i < feedbackList.size(); i++) {
+			feedbackList.get(i).setText("");
+		}
+	}
+	
+	// End of segment: D:\CS2103 Proj\src\View.java
+
+
+
+
+
