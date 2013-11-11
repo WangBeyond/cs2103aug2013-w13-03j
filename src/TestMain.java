@@ -1,5 +1,6 @@
 import org.junit.Test;
 
+// This test file is used to test all available test cases in this application
 //@author A0098077N
 public class TestMain {
 	TestHistory historyTest = new TestHistory();
@@ -11,6 +12,7 @@ public class TestMain {
 	TestSettingsStorage settingsStorageTest = new TestSettingsStorage();
 	TestEncryptor encryptorTest = new TestEncryptor();
 	TestIntegrated integratedTest = new TestIntegrated();
+	TestSynchronization synchronizationTest = new TestSynchronization();
 		
 	@Test
 	public void test() {
@@ -32,6 +34,8 @@ public class TestMain {
 		// Integrated testing
 		TestIntegrated.testSetup();
 		integratedTest.test();
+		
+		synchronizationTest.test();
 	}
 
 }
