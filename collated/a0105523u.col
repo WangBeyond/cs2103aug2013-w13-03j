@@ -1,40 +1,1223 @@
-import java.io.IOException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.TimeZone;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+//@author: a0105523u
 
-import javafx.collections.ObservableList;
 
-import com.google.gdata.client.calendar.CalendarService;
-import com.google.gdata.data.DateTime;
-import com.google.gdata.data.Link;
-import com.google.gdata.data.PlainTextConstruct;
-import com.google.gdata.data.batch.BatchOperationType;
-import com.google.gdata.data.batch.BatchUtils;
-import com.google.gdata.data.calendar.CalendarEntry;
-import com.google.gdata.data.calendar.CalendarEventEntry;
-import com.google.gdata.data.calendar.CalendarEventFeed;
-import com.google.gdata.data.calendar.CalendarFeed;
-import com.google.gdata.data.calendar.HiddenProperty;
-import com.google.gdata.data.calendar.TimeZoneProperty;
-import com.google.gdata.data.extensions.Recurrence;
-import com.google.gdata.data.extensions.Reminder;
-import com.google.gdata.data.extensions.Reminder.Method;
-import com.google.gdata.data.extensions.When;
-import com.google.gdata.util.AuthenticationException;
-import com.google.gdata.util.ServiceException;
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Command.java
+	 */
+
+/********************************subclass of TwoWayCommand*************************************************/
+/**
+ * 
+ * Class AddCommand. This command create a new task for the user, the new task will be created in the pending list
+ * 
+ */
+class AddCommand extends TwoWayCommand {
+	// Work info
+	private String workInfo;
+	// Tag
+	private String tag;
+	// Start date
+	private String startDateString;
+	// End date
+	private String endDateString;
+	// Indicator whether this is an important task
+	private boolean isImptTask;
+	// Type of repetition
+	private String repeatingType;
+	// The newly created task
+	private Task createdTask;
+	
+	/**
+	 * The constructor of this class
+	 * 
+	 * @param parsedUserCommand
+	 *            the array of info from the command parsed by Parser class
+	 * @param model
+	 *            the model in the application
+	 * @param tabIndex
+	 *            the current tab index
+	 *
+	 */
+	public AddCommand(String[] parsedUserCommand, Model model, int tabIndex) throws IllegalArgumentException {
+		super(model, tabIndex);
+		assert parsedUserCommand != null;
+
+		workInfo = parsedUserCommand[0];
+		tag = parsedUserCommand[1];
+		startDateString = parsedUserCommand[2];
+		endDateString = parsedUserCommand[3];
+		isImptTask =  parsedUserCommand[4].equals(Common.TRUE);
+		repeatingType = parsedUserCommand[5];
+	}
+	
+	/**
+	 * Execute the ADD command
+	 */
+	public String execute() {
+		createdTask = new Task();
+		updateTask();
+		// Add the task to the pending list
+		model.addTaskToPending(createdTask);
+		Common.sortList(model.getPendingList());
+		return Common.MESSAGE_SUCCESSFUL_ADD;
+	}
+	
+	/**
+	 * This function is used to update all the information for the created task basing on the command input
+	 */
+	private void updateTask() {
+		createdTask.setWorkInfo(workInfo);
+		
+		boolean isRepetitive = !repeatingType.equals(Common.NULL);
+		boolean hasStartDate = !startDateString.equals(Common.NULL);
+		boolean hasEndDate = !endDateString.equals(Common.NULL);
+		
+		setDates(hasStartDate, hasEndDate); 
+		
+		if(isRepetitive) {
+			splitRepeatingInfo();
+		}
+		checkInvalidDates(isRepetitive, hasStartDate, hasEndDate, 
+				createdTask.getStartDate(), createdTask.getEndDate(), repeatingType);
+		
+		setTag();
+		if (isRepetitive) {
+			createdTask.updateDateForRepetitiveTask();
+		}
+		
+		createdTask.setIsImportant(isImptTask);
+	}
+	
+	/**
+	 * Set dates for the added task
+	 * @param hasStartDate indicator if the input command has start date
+	 * @param hasEndDate indicator if the input command has end date
+	 */
+	private void setDates(boolean hasStartDate, boolean hasEndDate) {
+		if (hasStartDate && hasEndDate) {
+			setDateForTaskWithBothDates();
+		} else if(hasStartDate){
+			setDateForTaskWithStartDate();
+		} else if(hasEndDate){
+			setDateForTaskWithEndDate();
+		}
+	}
+	
+	/**
+	 * Set dates when the input command has only end date
+	 */
+	private void setDateForTaskWithEndDate() {
+		CustomDate endDate = new CustomDate(endDateString);
+		CustomDate cur = new CustomDate();
+		cur.setHour(0);
+		cur.setMinute(0);
+		if(endDate.beforeCurrentTime()){
+			cur.setYear(endDate.getYear());
+			cur.setMonth(endDate.getMonth());
+			cur.setDate(endDate.getDate());
+			createdTask.setStartDate(cur);
+			createdTask.setEndDate(endDate);
+			updateTimeForEndDate(createdTask.getStartDate(), endDate);
+		} else {
+			createdTask.setStartDate(cur);
+			createdTask.setEndDate(endDate);
+			updateTimeForEndDate(createdTask.getStartDate(), endDate);
+		}
+	}
+	
+	/**
+	 * Set dates when the input command has only start date
+	 */
+	private void setDateForTaskWithStartDate() {
+		CustomDate startDate = new CustomDate(startDateString);
+		createdTask.setStartDate(startDate);
+		CustomDate cd = new CustomDate();
+		cd.setYear(createdTask.getStartDate().getYear());
+		cd.setMonth(createdTask.getStartDate().getMonth());
+		cd.setDate(createdTask.getStartDate().getDate());
+		cd.setHour(23);
+		cd.setMinute(59);
+		createdTask.setEndDate(cd);
+	}
+
+	/**
+	 * Set dates when the input command has both start and end dates
+	 */
+	private void setDateForTaskWithBothDates() {
+		CustomDate startDate = new CustomDate(startDateString);
+		createdTask.setStartDate(startDate);
+		CustomDate endDate = new CustomDate(endDateString);
+		updateTimeForEndDate(createdTask.getStartDate(), endDate);
+		createdTask.setEndDate(endDate);
+	}
+	
+	// End of segment: D:\CS2103 Proj\src\Command.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Command.java
+	 */
 
 /**
- * This class is the main class for processing synchronization
- *
+ * 
+ * Class SyncCommand. This class executes command to sync with the Google Calendar in a concurrent thread.
+ * 
  */
+class SyncCommand extends Command implements Runnable {
+	// Username of Google Account
+	private String username = null;
+	// Password of Google Account
+	private String password = null;
+	// Feedback from the sync
+	private String feedback = null;
+	// Indicator whether it is under syncing process
+	private boolean isRunning = false;
+	// The sync class
+	private Synchronization sync;
+	// Main interface
+	private View view;
+	// The storage file of tasks
+	private Storage taskFile;
+	// The thread that will run the syncing process
+	private Thread syncingThread;
+	
+	/**
+	 * Constructor of this class
+	 * @param model model of tasks in the application
+	 * @param sync the sync object
+	 * @param view the main interface
+	 * @param taskFile the task file to store
+	 */
+	public SyncCommand(Model model, Synchronization sync, View view, Storage taskFile) {
+		super(model);
+		this.sync = sync;
+		this.view = view;
+		this.taskFile = taskFile;
+		
+		loadAccount(model);
+		processSyncing(sync, view);
+	}
 
-//@author A0105523U
+	/**
+	 * This function is the main function for syncing process
+	 * 
+	 * @param sync
+	 *            sync object
+	 * @param view
+	 *            the main interface
+	 */
+	private void processSyncing(Synchronization sync, View view) {
+		if(checkInternetAccess()){
+			try {
+				checkAccount(sync);
+				sync.isValid = true;
+				startSyncing(); 
+			} catch (AuthenticationException e) {
+				feedback = Common.MESSAGE_SYNC_INVALID_USERNAME_PASSWORD;
+				sync.isValid = false;
+			}
+		} else {
+			view.showNoInternetConnection();
+		}
+	}
+	
+	// Begin the syncing phase
+	private void startSyncing() {
+		syncingThread = new Thread(this, "Sync Thread");
+		syncingThread.start();
+	}
+	
+	// Check if this google account is valid or not
+	private void checkAccount(Synchronization sync)
+			throws AuthenticationException {
+		if(!sync.isValid || !username.equals(sync.username) || !password.equals(sync.password)){
+			sync.setUsernameAndPassword(username, password);
+			sync.initService();
+		}
+	}
+	
+	// Load the account user input in the application
+	private void loadAccount(Model model) {
+		username = model.getUsername();
+		password = model.getPassword();
+	}
+	
+	/**
+	 * This function is used to check whether there is currently internet access in the system or not
+	 * @return true if there is indeed internet access, or vice versa
+	 */
+	private boolean checkInternetAccess(){
+            try {
+                //URL of Google
+                URL url = new URL("http://www.google.com");
+                //Open a connection to Google
+                HttpURLConnection urlConnect = (HttpURLConnection)url.openConnection();
+                // Test connection
+                urlConnect.getContent();
+            } catch (UnknownHostException e) {
+                return false;
+            } catch (IOException e) {
+                return false;
+            }
+            return true;
+    }
+	
+	/**
+	 * The syncing thread running content
+	 */
+	@Override
+	public void run() {
+			isRunning = true;
+			view.setSyncProgressVisible(true);
+			execute();
+			view.setSyncProgressVisible(false);
+			isRunning = false;
+			model.clearSyncInfo();
+			storeSyncData();
+	}
+	
+	/**
+	 * Store data after finishing synchronization
+	 */
+	private void storeSyncData() {
+		try {
+			taskFile.storeToFile();
+		} catch (IOException io) {
+			System.out.println(io.getMessage());
+		}
+	}
+	
+	/**
+	 * Execute SYNC command
+	 */
+	@Override
+	public String execute() {
+		try{
+			sync.execute();
+			Common.sortList(model.getPendingList());
+		} catch(Exception e){
+			if(e instanceof AuthenticationException){
+				showSettingsPage();
+			}
+		}
+		return null;
+	}
+	
+	// Show settings window to require reinput google account from the user as it is invalid
+	private void showSettingsPage() {
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				view.showSettingsPage(Common.MESSAGE_SYNC_INVALID_USERNAME_PASSWORD);
+			}
+		});
+	}
+	
+	// Check whether it is currently under syncing process or not
+	public boolean isRunning() {
+		return isRunning;
+	}
+	
+	public String getFeedback() {
+		return feedback;
+	}
+}
+
+	// End of segment: D:\CS2103 Proj\src\Command.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Control.java
+	 */
+
+	/******************************************************* EXECUTION SECTION *************************************************************/
+	/**
+	 * This function is the main function for executing all command inputs from
+	 * users
+	 * 
+	 * @param userCommand
+	 *            the command input from the user
+	 * @return the corresponding feedback according to the command
+	 */
+	public String executeCommand(String userCommand) {
+		boolean isEmptyCommand = Parser.checkEmptyCommand(userCommand);
+		if (isEmptyCommand) {
+			return Common.MESSAGE_EMPTY_COMMAND;
+		}
+		
+		try {
+			Common.COMMAND_TYPES commandType = Parser.determineCommandType(userCommand);
+			int tabIndex = getTabIndex();
+			assert tabIndex >= 0 && tabIndex <= 2;
+			String[] parsedUserCommand = Parser.parseCommand(userCommand, commandType, model, tabIndex);
+			return executeCommandCorrespondingType(parsedUserCommand, commandType);
+		} catch (Exception e) {
+			return e.getMessage(); // the corresponding error message
+		}
+	}
+	
+	// End of segment: D:\CS2103 Proj\src\Control.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Control.java
+	 */
+
+	/**
+	 * This function is used to execute according to each specific command
+	 * 
+	 * @param parsedUserCommand
+	 *            the parsed command array
+	 * @param commandType
+	 *            type of command
+	 * @return the corresponding feedback
+	 */
+	private String executeCommandCorrespondingType(String[] parsedUserCommand,
+			Common.COMMAND_TYPES commandType) throws IllegalArgumentException,
+			IOException {
+		switch (commandType) {
+		case ADD:
+			return executeAddCommand(parsedUserCommand);
+		case EDIT:
+			return executeEditCommand(parsedUserCommand);
+		case REMOVE:
+			return executeRemoveCommand(parsedUserCommand);
+		case RECOVER:
+			return executeRecoverCommand(parsedUserCommand);
+		case UNDO:
+			return executeUndoCommand();
+		case REDO:
+			return executeRedoCommand();
+		case SEARCH:
+			return executeSearchCommand(parsedUserCommand, isRealTimeSearch);
+		case TODAY:
+			return executeTodayCommand(isRealTimeSearch);
+		case SHOW_ALL:
+			return executeShowCommand();
+		case CLEAR_ALL:
+			return executeClearCommand();
+		case COMPLETE:
+			return executeCompleteCommand(parsedUserCommand);
+		case INCOMPLETE:
+			return executeIncompleteCommand(parsedUserCommand);
+		case MARK:
+			return executeMarkCommand(parsedUserCommand);
+		case UNMARK:
+			return executeUnmarkCommand(parsedUserCommand);
+		case SETTINGS:
+			return executeSettingsCommand(CALL_NORMAL_SETTINGS);
+		case HELP:
+			return executeHelpCommand();
+		case SYNC:
+			return executeSyncCommand();
+		case EXIT:
+			return executeExitCommand();
+		case INVALID:
+			return Common.MESSAGE_INVALID_COMMAND_TYPE;
+		default:
+			throw new Error("Unrecognised command type.");
+		}
+	}
+	
+	// End of segment: D:\CS2103 Proj\src\Control.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Control.java
+	 */
+
+	/**
+	 * ADD command execution
+	 */
+	private String executeAddCommand(String[] parsedUserCommand)
+			throws IOException {
+		int tabIndex = getTabIndex();
+		assert tabIndex >= 0 && tabIndex <= 2;
+		Command addCommand = new AddCommand(parsedUserCommand, model, tabIndex);
+		String feedback = addCommand.execute();
+		
+		if (feedback.equals(Common.MESSAGE_SUCCESSFUL_ADD)) {
+			commandHistory.updateCommand((TwoWayCommand) addCommand);
+			storeTask();
+			if(view != null) {
+				view.setTab(Common.PENDING_TAB);
+				executeShowCommand();
+			}
+		}
+		return feedback;
+	}
+	
+	// End of segment: D:\CS2103 Proj\src\Control.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Control.java
+	 */
+
+	/**
+	 * SYNC command execution
+	 */
+	private String executeSyncCommand() throws IOException {
+		// Check whether there is already a sync thread
+		if (!isUnderSyncingProcess()){
+			syncThread = new SyncCommand(model, sync, view,
+					taskFile);
+			if(syncThread.getFeedback() != null && syncThread.getFeedback().equals(Common.MESSAGE_SYNC_INVALID_USERNAME_PASSWORD)){
+				executeSettingsCommand(CALL_SETTINGS_FROM_SYNC);
+			}
+		}
+		
+		clearCommandLine();
+		return Common.MESSAGE_REQUEST_COMMAND;
+	}
+	
+	// End of segment: D:\CS2103 Proj\src\Control.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Model.java
+	 */
+
+	/*
+	 * Default constructor
+	 */
+	public Model() {
+		pending = FXCollections.observableArrayList();
+		complete = FXCollections.observableArrayList();
+		trash = FXCollections.observableArrayList();
+		searchPending = FXCollections.observableArrayList();
+		searchComplete = FXCollections.observableArrayList();
+		searchTrash = FXCollections.observableArrayList();
+		removedIdDuringSync = FXCollections.observableArrayList();
+		displayRemaining = true;
+		themeMode = Common.DAY_MODE;
+		colourScheme = Common.DAY_MODE;
+		syncPeriod = 1;
+	}
+	
+	/**************************************** TASK Section **********************************/
+	
+	/************************** GET a task from given index ************************************/
+	public Task getTaskFromPending(int index) {
+		try{
+			Task temp = pending.get(index);
+			return temp;
+		} catch (IndexOutOfBoundsException e){
+			logger.log(Level.WARNING, MESSAGE_OUT_OF_BOUNDS_INDEX);
+			return null;
+		}
+	}
+
+	public Task getTaskFromComplete(int index) {
+		try{
+			Task temp = complete.get(index);
+			return temp;
+		} catch (IndexOutOfBoundsException e){
+			logger.log(Level.WARNING, MESSAGE_OUT_OF_BOUNDS_INDEX);
+			return null;
+		}
+	}
+
+	public Task getTaskFromTrash(int index) {
+		try{
+			Task temp = trash.get(index);
+			return temp;
+		} catch (IndexOutOfBoundsException e){
+			logger.log(Level.WARNING, MESSAGE_OUT_OF_BOUNDS_INDEX);
+			return null;
+		}
+	}
+
+	/****************************** GET the required list of tasks *****************************/
+	public ObservableList<Task> getPendingList() {
+		return pending;
+	}
+
+	public ObservableList<Task> getCompleteList() {
+		return complete;
+	}
+
+	public ObservableList<Task> getTrashList() {
+		return trash;
+	}
+
+	public ObservableList<Task> getSearchPendingList() {
+		return searchPending;
+	}
+
+	public ObservableList<Task> getSearchCompleteList() {
+		return searchComplete;
+	}
+
+	public ObservableList<Task> getSearchTrashList() {
+		return searchTrash;
+	}
+	
+	// End of segment: D:\CS2103 Proj\src\Model.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Parser.java
+	 */
+
+	/**
+	 * This function is used to determine the command type of the command input
+	 * from the user
+	 * 
+	 * @param userCommand
+	 *            - the command input read from the user
+	 * @return the corresponding command type
+	 */
+	public static Common.COMMAND_TYPES determineCommandType(String userCommand) {
+		String commandTypeString = Common.getFirstWord(userCommand);
+
+		if (commandTypeString == null)
+			throw new IllegalArgumentException("Command type string cannot be null!");
+
+		if (isAddCommand(commandTypeString)) {
+			return Common.COMMAND_TYPES.ADD;
+		} else if (isEditCommand(commandTypeString)) {
+			return Common.COMMAND_TYPES.EDIT;
+		} else if (isRemoveCommand(commandTypeString)) {
+			return Common.COMMAND_TYPES.REMOVE;
+		} else if(isRecoverCommand(commandTypeString)){ 
+			return Common.COMMAND_TYPES.RECOVER;
+		}	else if (isUndoCommand(commandTypeString)) {
+			return Common.COMMAND_TYPES.UNDO;
+		} else if (isRedoCommand(commandTypeString)) {
+			return Common.COMMAND_TYPES.REDO;
+		} else if (isSearchCommand(commandTypeString)) {
+			return Common.COMMAND_TYPES.SEARCH;
+		} else if (isTodayCommand(commandTypeString)) {
+			return Common.COMMAND_TYPES.TODAY;
+		} else if (isShowAllCommand(commandTypeString)) {
+			return Common.COMMAND_TYPES.SHOW_ALL;
+		} else if (isClearAllCommand(commandTypeString)) {
+			return Common.COMMAND_TYPES.CLEAR_ALL;
+		} else if (isCompleteCommand(commandTypeString)) {
+			return Common.COMMAND_TYPES.COMPLETE;
+		} else if (isIncompleteCommand(commandTypeString)) {
+			return Common.COMMAND_TYPES.INCOMPLETE;
+		} else if (isMarkCommand(commandTypeString)) {
+			return Common.COMMAND_TYPES.MARK;
+		} else if (isUnmarkCommand(commandTypeString)) {
+			return Common.COMMAND_TYPES.UNMARK;
+		} else if (isSettingsCommand(commandTypeString)) {
+			return Common.COMMAND_TYPES.SETTINGS;
+		} else if (isHelpCommand(commandTypeString)) {
+			return Common.COMMAND_TYPES.HELP;
+		} else if (isSyncCommand(commandTypeString)) {
+			return Common.COMMAND_TYPES.SYNC;
+		} else if (isExitCommand(commandTypeString)) {
+			return Common.COMMAND_TYPES.EXIT;
+		} else {
+			return Common.COMMAND_TYPES.INVALID;
+		}
+	}
+
+	/**
+	 * This method is used to check whether a command is empty or not
+	 */
+	public static boolean checkEmptyCommand(String userCommand) {
+		return userCommand.trim().equals("");
+	}
+	
+	// End of segment: D:\CS2103 Proj\src\Parser.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Parser.java
+	 */
+
+	/*******************************************************************************************************************/
+	/**
+	 * This method is used to parse from content of an ADD or SEARCH command to
+	 * necessary infos
+	 * 
+	 * @param content
+	 *            command string after removing the command type
+	 * @return an array of strings where the first field contains workInfo, Common.NULL
+	 *         if it is empty; the second field contains tag, Common.NULL if it is
+	 *         empty; the third field contains startDateString, Common.NULL if it is
+	 *         empty; the fourth field contains endDateString, Common.NULL if it is
+	 *         empty; the fifth field contains isImpt (Common.TRUE or Common.FALSE).
+	 */
+	private static String[] parseCommandWithInfo(String content,
+			Common.COMMAND_TYPES commandType) {
+		String commandString = content.trim();
+		String workInfo = Common.NULL;
+		String startDateString = Common.NULL;
+		String endDateString = Common.NULL;
+		String tag = Common.NULL;
+		String isImpt = Common.FALSE;
+		String repeatingType = Common.NULL;
+		
+		// Process recurring info
+		String[] result = getRepeatingType(commandString);
+		commandString = result[0];
+		repeatingType = result[1];
+		
+		// Process tag info
+		if (hasMultipleTags(commandString)) {// multiple hash tags
+			throw new IllegalArgumentException("Invalid Command: multiple hash tags(#).");
+		} else {
+			tag = getTagName(commandString);
+			commandString = parseTag(commandString, tag);
+		}
+		
+		// Process importance info
+		if (hasMultipleImptMarks(commandString)) {//multiple important marks
+			throw new IllegalArgumentException("Invalid Command: multiple important marks(*).");
+		} else {
+			isImpt = isImptTask(commandString);
+			commandString = parseImportance(commandString, isImpt);
+		}
+		
+		// Process start date
+		result = checkDate(commandString, Common.startDateKeys, START_KEY);
+		commandString = result[0];
+		startDateString = result[1];
+		
+		// Process end date
+		result = checkDate(commandString, Common.endDateKeys, END_KEY);
+		commandString = result[0];
+		endDateString = result[1];
+		
+		// Process work info
+		workInfo = parseWorkInfo(commandType, commandString);
+
+		String[] parsedCommand = assignParsedInfos(workInfo, startDateString,
+				endDateString, tag, isImpt, repeatingType);
+
+		return parsedCommand;
+	}
+	
+	/**
+	 * This function is used to assign the parsed info to the corresponding
+	 * array elements to return to its caller
+	 * 
+	 * @param workInfo
+	 *            the info of the task
+	 * @param startDateString
+	 *            the String format of start date
+	 * @param endDateString
+	 *            the String format of end date
+	 * @param tag
+	 *            the tag
+	 * @param isImpt
+	 *            the indicator whether this task is an important task or not
+	 * @param repeatingType
+	 *            the type of repetition including also the number of
+	 *            occurrences
+	 * @return the required array
+	 */
+	private static String[] assignParsedInfos(String workInfo,
+			String startDateString, String endDateString, String tag,
+			String isImpt, String repeatingType) {
+		String[] parsedCommand = new String[] { Common.NULL, Common.NULL, Common.NULL, Common.NULL, Common.FALSE,
+				Common.NULL };
+		
+		parsedCommand[Common.INDEX_WORK_INFO] = workInfo;
+		parsedCommand[Common.INDEX_START_DATE] = startDateString;
+		parsedCommand[Common.INDEX_END_DATE] = endDateString;
+		parsedCommand[Common.INDEX_TAG] = tag;
+		parsedCommand[Common.INDEX_IS_IMPT] = isImpt;
+		parsedCommand[Common.INDEX_REPEATING] = repeatingType;
+		
+		return parsedCommand;
+	}
+	
+	/**
+	 * This function is used to parse the work info
+	 * 
+	 * @param commandType
+	 *            the type of the command
+	 * @param commandString
+	 *            the string content of the comand
+	 * @return the corresponding work info
+	 */
+	private static String parseWorkInfo(Common.COMMAND_TYPES commandType,
+			String commandString) {
+		String workInfo;
+		if (commandString.trim().equals("")) {
+			workInfo = checkForAddCommand(commandType);
+		} else{
+			workInfo = commandString.trim();
+		}
+		return workInfo;
+	}
+	
+	/**
+	 * This function is used to check if this is an ADD command or not when the task info is empty
+	 * @param commandType the type of the command
+	 * @return NULL if this is not an ADD command. Throw error vice versa
+	 */
+	private static String checkForAddCommand(Common.COMMAND_TYPES commandType) {
+		if (isAddCommandType(commandType)){
+			throw new IllegalArgumentException("Invalid command: work information cannot be empty.");
+		}else{
+			return Common.NULL;
+		}
+	}	
+
+	/**
+	 * This function is used to parse the important indicator for the task
+	 * 
+	 * @param commandString
+	 *            the string content of the command
+	 * @param isImpt
+	 *            the indicator whether it is important or not
+	 * @return the command string after removing the important indicator
+	 */
+	private static String parseImportance(String commandString, String isImpt) {
+		commandString = (isImpt.equals(Common.TRUE)) ? removeImptMark(commandString)
+				: commandString;
+		return commandString;
+	}
+
+	/**
+	 * This function is used to parse the tag for the task
+	 * 
+	 * @param commandString
+	 *            the strig content of the command
+	 * @param tag
+	 *            the tag in the command
+	 * @return the command string after removing the tag
+	 */
+	private static String parseTag(String commandString, String tag) {
+		commandString = (!tag.equals(Common.NULL)) ? removeTag(commandString)
+				: commandString;
+		return commandString;
+	}
+	
+	// End of segment: D:\CS2103 Proj\src\Parser.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Parser.java
+	 */
+
+	/**
+	 * This method is used to check a command string for valid date and remove
+	 * the valid date from this command string. If the command string contains
+	 * more than 2 valid dates, it will throw an exception message.
+	 * 
+	 * @param commandString
+	 *            command string at the moment
+	 * @param keys
+	 *            list of key words corresponding to the key type
+	 * @param keyType
+	 *            key type of the date (START or END)
+	 * @return array of strings. First field is the commandString after remove
+	 *         the valid date. Second field is the string of the date.
+	 */
+	private static String[] checkDate(String commandString, String[] keys,
+			String keyType) {
+		String proccessedString = commandString + "";
+		boolean hasDate = false;
+		String dateString = Common.NULL;
+		for (int i = 0; i < keys.length; i++) {
+			// find first occurrence of a <key>
+			int keyIndex = proccessedString.toLowerCase().indexOf(keys[i]);
+			int keyLength = keys[i].length();
+			boolean isValidIndex = keyIndex == 0 || (keyIndex > 0 && proccessedString.charAt(keyIndex-1) == ' ');
+			while (isValidIndex) {
+				// get string before the date key
+				String stringBeforeKey = getStringBeforeIndex(proccessedString, keyIndex);
+				// get string after the date key
+				String stringAfterKey = getStringAfterKey(keys, proccessedString, i, keyIndex, keyLength);
+
+				int dateLastIndex = isValidDate(stringAfterKey);
+				if (dateLastIndex == INVALID) {
+					keyIndex = proccessedString.indexOf(keys[i], keyIndex + keyLength);
+				} else {
+					checkMultipleDates(hasDate);
+					dateString = getStringBeforeIndex(stringAfterKey, dateLastIndex);
+					hasDate = true;
+					proccessedString = stringBeforeKey.trim() + " " + stringAfterKey.substring(dateLastIndex).trim();
+					keyIndex = proccessedString.indexOf(keys[i]);
+				}
+				isValidIndex = keyIndex == 0 || (keyIndex > 0 && proccessedString.charAt(keyIndex-1) == ' ');
+			}
+		}
+
+		if (hasDate) {
+			return new String[] { proccessedString, dateString };
+		} else{
+			return new String[] { commandString, dateString };
+		}
+	}
+	
+	// Check if this command has multiple dates in the same type
+	private static void checkMultipleDates(boolean hasDate) {
+		if (hasDate) {
+			throw new IllegalArgumentException("Invalid Command: Multiple Dates");
+		}
+	}
+	
+	// Get the String after a key word
+	private static String getStringAfterKey(String[] keys, String temp, int i,
+			int keyIndex, int keyLength) {
+		String stringAfterKey;
+		if (isSpecialEndKeyword(keys, i)) {
+			stringAfterKey = keys[i] + " " + temp.substring(keyIndex + keyLength).trim();
+		} else {
+			stringAfterKey = temp.substring(keyIndex + keyLength).trim();
+		}
+		return stringAfterKey;
+	}
+	
+	// Check if this is a special key word in the end date kys
+	private static boolean isSpecialEndKeyword(String[] keys, int i) {
+		return keys[i].equals("today") || keys[i].equals("tonight") || keys[i].equals("tomorrow") || keys[i].equals("next");
+	}
+	
+	// Get the string before a certain index
+	private static String getStringBeforeIndex(String temp, int keyIndex) {
+		return temp.substring(0, keyIndex).trim();
+	}
+
+	// End of segment: D:\CS2103 Proj\src\Parser.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Parser.java
+	 */
+
+	/**
+	 * Checks whether a string is a valid date or not.
+	 * 
+	 * @param dateString
+	 *            - the string which is being checked.
+	 * @return number of words in the date string if the string contains a date;
+	 *         otherwise, returns INVALID(-1).
+	 */
+	private static int isValidDate(String dateString) {
+		CustomDate dateTester = new CustomDate();
+		String[] dateStringArray = Common.splitBySpace(dateString);
+		int length = getMaximumLengthForProcessing(dateStringArray);
+		dateString = cropDateString(dateStringArray, length);
+		while (!dateString.isEmpty()) {
+			int result = dateTester.convert(dateString);
+			if (result == VALID) {
+				return dateString.length();
+			} else if (result == CustomDate.OUT_OF_BOUNDS) {
+				throw new IllegalArgumentException("The time is out of bounds. Please recheck!");
+			}
+			dateString = Common.removeLastWord(dateString);
+		}
+		return INVALID;
+	}
+	
+	// Crop the possible date string to the maximum length for date string
+	private static String cropDateString(String[] dateStringArray, int length) {
+		String dateString;
+		dateString = "";
+		// construct the date tester string.
+		for (int i = 0; i < length; i++) {
+			dateString = (dateString + " " + dateStringArray[i]).trim();
+		}
+		return dateString;
+	}
+	
+	// Determine the maximum length for the investigated date string
+	private static int getMaximumLengthForProcessing(String[] dateStringArray) {
+		int length;
+		if (dateStringArray.length >= MAX_DATE_LENGTH) {
+			length = MAX_DATE_LENGTH;
+		} else {
+			length = dateStringArray.length;
+		}
+		return length;
+	}
+
+	/**
+	 * Checks whether the specified command string has more than one hash tags.
+	 * 
+	 * @param commandString
+	 *            - the string which is being checked.
+	 * @return true if it contains more than one hash tag; false otherwise.
+	 */
+	private static boolean hasMultipleTags(String commandString) {
+		String[] words = Common.splitBySpace(commandString);
+		boolean hasTag = false;
+
+		for (int i = 0; i < words.length; i++) {
+			if (words[i].startsWith(Common.HASH_TAG)) {
+				if (hasTag) {
+					return true;
+				}
+				hasTag = true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Removes the first hash tag from the specified string.
+	 * 
+	 * @param commandString
+	 *            - the string from which the hash tag is being removed.
+	 * @return the string with hash tag being removed if it contains a hash tag;
+	 *         otherwise, returns the same string.
+	 */
+	private static String removeTag(String commandString) {
+		String[] words = Common.splitBySpace(commandString);
+		String result = "";
+		int index = indexOfTag(commandString);
+		if (index >= 0) {
+			for (int i = 0; i < words.length; i++) {
+				if (i != index) {
+					result = result + " " + words[i];
+				}
+			}
+			return result.trim();
+		}
+		return commandString;
+	}
+
+	/**
+	 * Returns content of the hash tag in the specified command string.
+	 * 
+	 * @param commandString
+	 *            - the string which may contains a hash tag.
+	 * @return the content of the hash tag with '#' being removed if the string
+	 *         contains a hash tag; the string Common.NULL otherwise.
+	 */
+	private static String getTagName(String commandString) {
+		String[] words = Common.splitBySpace(commandString);
+		for (int i = 0; i < words.length; i++) {
+			if (words[i].startsWith(Common.HASH_TAG)) {
+				return words[i];
+			}
+		}
+		return Common.NULL;
+	}
+
+	/**
+	 * Returns the index of the first hash tag in the specified command string.
+	 * 
+	 * @param commandString
+	 *            - the string which is being checked.
+	 * @return the starting index if the command string contains a hag tag; -1
+	 *         otherwise.
+	 */
+	private static int indexOfTag(String commandString) {
+		String[] words = Common.splitBySpace(commandString);
+		for (int i = 0; i < words.length; i++) {
+			if (words[i].startsWith(Common.HASH_TAG)) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	/**
+	 * Checks whether the specified command string contains more than one
+	 * important marks.
+	 * 
+	 * @param commandString
+	 *            - the string which is being checked.
+	 * @return true if it contains more than one important marks; false,
+	 *         otherwise.
+	 */
+	private static boolean hasMultipleImptMarks(String commandString) {
+		String[] words = Common.splitBySpace(commandString);
+		boolean isImpt = false;
+
+		for (int i = 0; i < words.length; i++) {
+			if (words[i].equals(Common.IMPT_MARK)) {
+				if (isImpt) {
+					return true;
+				}
+				isImpt = true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Checks whether the specified command string is important.
+	 * 
+	 * @param commandString
+	 *            - the string which is being checked.
+	 * @return the string Common.TRUE if it is a important task; otherwise, returns the
+	 *         string Common.FALSE.
+	 */
+	private static String isImptTask(String commandString) {
+		String[] words = Common.splitBySpace(commandString);
+
+		for (int i = 0; i < words.length; i++) {
+			if (words[i].equals(Common.IMPT_MARK)) {
+				return Common.TRUE;
+			}
+		}
+
+		return Common.FALSE;
+	}
+
+	/**
+	 * Removes the important mark from the specified command string.
+	 * 
+	 * @param commandString
+	 *            - the string from which the important mark is being removed.
+	 * @return the string after removing the first important mark if it contains
+	 *         important mark; otherwise the same string is returned.
+	 */
+	private static String removeImptMark(String commandString) {
+		String[] words = Common.splitBySpace(commandString);
+		String result = "";
+		for (int i = 0; i < words.length; i++) {
+			if (!words[i].equals(Common.IMPT_MARK)) {
+				result = result + " " + words[i];
+			}
+		}
+		return result.trim();
+	}
+
+	
+	/******************************** Determine COMMAND_TYPES Section ***************************************************************/
+
+	private static boolean isAddCommand(String commandTypeString) {
+		return commandTypeString.equalsIgnoreCase("add")
+				||commandTypeString.equalsIgnoreCase("insert");
+	}
+
+	private static boolean isEditCommand(String commandTypeString) {
+		boolean isEdit = commandTypeString.equalsIgnoreCase("edit")
+				|| commandTypeString.equalsIgnoreCase("set")
+				|| commandTypeString.equalsIgnoreCase("modify")
+				|| commandTypeString.equalsIgnoreCase("mod");
+		return isEdit;
+	}
+
+	private static boolean isRemoveCommand(String commandTypeString) {
+		boolean isRemove = commandTypeString.equalsIgnoreCase("remove")
+				|| commandTypeString.equalsIgnoreCase("rm")
+				|| commandTypeString.equalsIgnoreCase("delete")
+				|| commandTypeString.equalsIgnoreCase("del");
+		return isRemove;
+	}
+	
+	private static boolean isRecoverCommand(String commandTypeString){
+		boolean isRecover = commandTypeString.equalsIgnoreCase("recover") || commandTypeString.equalsIgnoreCase("rec");
+		return isRecover;
+	}
+
+	private static boolean isUndoCommand(String commandTypeString) {
+		return commandTypeString.equalsIgnoreCase("undo");
+	}
+
+	private static boolean isRedoCommand(String commandTypeString) {
+		return commandTypeString.equalsIgnoreCase("redo");
+	}
+
+	private static boolean isSearchCommand(String commandTypeString) {
+		boolean isSearch = commandTypeString.equalsIgnoreCase("search")
+				|| commandTypeString.equalsIgnoreCase("find");
+		return isSearch;
+	}
+
+	private static boolean isTodayCommand(String commandTypeString) {
+		return commandTypeString.equalsIgnoreCase("today");
+	}
+
+	private static boolean isShowAllCommand(String commandTypeString) {
+		boolean isShowAll = commandTypeString.equalsIgnoreCase("all")
+				|| commandTypeString.equalsIgnoreCase("show")
+				|| commandTypeString.equalsIgnoreCase("display")
+				|| commandTypeString.equalsIgnoreCase("list")
+				|| commandTypeString.equalsIgnoreCase("ls");
+		return isShowAll;
+	}
+	
+	private static boolean isClearAllCommand(String commandTypeString) {
+		boolean isClearAll = commandTypeString.equalsIgnoreCase("clear")
+				|| commandTypeString.equalsIgnoreCase("clr");
+		return isClearAll;
+	}
+
+	private static boolean isCompleteCommand(String commandTypeString) {
+		return commandTypeString.equalsIgnoreCase("done")
+				|| commandTypeString.equalsIgnoreCase("complete");
+	}
+
+	private static boolean isIncompleteCommand(String commandTypeString) {
+		return commandTypeString.equalsIgnoreCase("undone")
+				|| commandTypeString.equalsIgnoreCase("incomplete");
+	}
+
+	private static boolean isMarkCommand(String commandTypeString) {
+		boolean isMark = commandTypeString.equalsIgnoreCase("mark") 
+				||commandTypeString.equalsIgnoreCase("highlight") ;
+		return isMark;
+	}
+
+	private static boolean isUnmarkCommand(String commandTypeString) {
+		boolean isUnMark = commandTypeString.equalsIgnoreCase("unmark") 
+				||commandTypeString.equalsIgnoreCase("unhighlight") ;
+		return isUnMark;
+	}
+
+	private static boolean isSettingsCommand(String commandTypeString) {
+		return commandTypeString.equalsIgnoreCase("settings");
+	}
+
+	private static boolean isHelpCommand(String commandTypeString) {
+		return commandTypeString.equalsIgnoreCase("help");
+	}
+
+	private static boolean isSyncCommand(String commandTypeString) {
+		return commandTypeString.equalsIgnoreCase("sync");
+	}
+
+	private static boolean isExitCommand(String commandTypeString) {
+		return commandTypeString.equalsIgnoreCase("exit") || commandTypeString.equalsIgnoreCase("end");
+	}
+}
+
+	// End of segment: D:\CS2103 Proj\src\Parser.java
+
+
+
+
+
+	/**
+	 * origin: D:\CS2103 Proj\src\Synchronization.java
+	 */
+
 public class Synchronization  {
 	// Logger of this class
 	private static Logger logger = Logger.getLogger("Sync");
@@ -251,228 +1434,16 @@ public class Synchronization  {
 		return event;
 	}
 	
-	//@author A0098077N
-	/**
-	 * This function is used to update both the modified tasks on iDo and
-	 * modified events on Google Calendar to be the same with each other
-	 * 
-	 * @param service
-	 *            the currently connected service
-	 * @param model
-	 *            the model of the application
-	 * @param entries
-	 *            the entries in Google Calendar
-	 * @param feedURL
-	 *            the URL of the calendar
-	 */
-	private void updateModifiedTasks(CalendarService service, Model model,
-			List<CalendarEventEntry> entries, URL feedURL)
-			throws ServiceException, IOException {
-		List<CalendarEventEntry> toBeUpdatedOnGCal = new ArrayList<CalendarEventEntry>();
-		List<Task> pendingList = model.getPendingList();
-		for (int i = 0; i < pendingList.size(); i++) {
-			if (pendingList.get(i).getStatus() == Task.Status.UNCHANGED) {
-				checkEntriesForUpdate(service, entries, feedURL,
-						toBeUpdatedOnGCal, pendingList, i);
-			}
-		}
-		updateEvents(service, toBeUpdatedOnGCal, feedURL);
-	}
-	
-	/**
-	 * This function find the correct entry from list of entries in Google
-	 * Calendar with the same ID from the task on iDo It then compares the
-	 * latest modified date between the event and the task to determine which
-	 * latest version to update
-	 * 
-	 * @param service
-	 *            the currently connected service
-	 * @param entries
-	 *            list of event entries on Google Calendar
-	 * @param feedURL
-	 *            the URL of the calendar
-	 * @param toBeUpdatedOnGCal
-	 *            list of events to be updated on Google Calendar
-	 * @param pendingList
-	 *            the list of pending tasks
-	 * @param i
-	 *            the index of the task
-	 */
-	private void checkEntriesForUpdate(CalendarService service,
-			List<CalendarEventEntry> entries, URL feedURL,
-			List<CalendarEventEntry> toBeUpdatedOnGCal, List<Task> pendingList,
-			int i) throws IOException, ServiceException {
-		for (int j = 0; j < entries.size(); j++) {
-			boolean isSameId = pendingList.get(i).getIndexId().equals(entries.get(j).getId());
-			if (isSameId) {
-				DateTime updated = entries.get(j).getUpdated();
-				updated.setTzShift(8 * 60);
-				boolean hasLatestModificationFromiDo = CustomDate.compare(pendingList.get(i)
-						.getLatestModifiedDate(), new CustomDate(
-						updated)) > 0;
-				if (hasLatestModificationFromiDo) {
-					updateModifiedEventOnGCal(service, entries,feedURL, toBeUpdatedOnGCal, pendingList, i, j);
-				} else {
-					updateModifiedTaskOniDo(entries, pendingList, i, j);
-				}
-				break;
-			}
-		}
-	}
+	// End of segment: D:\CS2103 Proj\src\Synchronization.java
+
+
+
+
 
 	/**
-	 * This function is used to update a task on iDo to be the same with an
-	 * event entry on Google Calendar
-	 * 
-	 * @param entries
-	 *            the list of entries on Google Calendar
-	 * @param pendingList
-	 *            the list of pending tasks
-	 * @param i
-	 *            the index of the task
-	 * @param j
-	 *            the index of the entry
+	 * origin: D:\CS2103 Proj\src\Synchronization.java
 	 */
-	private void updateModifiedTaskOniDo(List<CalendarEventEntry> entries,
-			List<Task> pendingList, int i, int j) {
-		
-		Task editedTask = pendingList.get(i);
-		editedTask.setWorkInfo(
-				entries.get(j).getTitle().getPlainText());
-		try {
-			setupDateForTimedTask(entries, j, editedTask);
-		} catch (IndexOutOfBoundsException e) {
-			String recurData = entries.get(j).getRecurrence().getValue();
-			if (recurData.contains("VALUE=DATE:")) {
-				setupDateForAllDayRecurringTask(editedTask, recurData);
-			} else {// timed recurring event
-				setupDateForTimedRecurringTask(editedTask, recurData);
-			}
 
-		}
-
-		if (!entries.get(j).getReminder().isEmpty()) {
-			editedTask.setIsImportant(true);
-		} else {
-			editedTask.setIsImportant(false);
-		}
-		editedTask.updateLatestModifiedDate();
-	}
-	
-	/**
-	 * This function is used to update an event on Google Calendar to be the
-	 * same with a task on iDo
-	 * 
-	 * @param service
-	 *            the currently connected service
-	 * @param entries
-	 *            the list of entries on Google Calendar
-	 * @param feedURL
-	 *            the URl of the calendar
-	 * @param toBeUpdatedOnGCal
-	 *            the list of events to be updated on Google Calendar
-	 * @param pendingList
-	 *            the list of pending tasks
-	 * @param i
-	 *            the index of the task
-	 * @param j
-	 *            the index of the event entry
-	 */
-	private void updateModifiedEventOnGCal(CalendarService service,
-			List<CalendarEventEntry> entries, URL feedURL,
-			List<CalendarEventEntry> toBeUpdatedOnGCal, List<Task> pendingList,
-			int i, int j) throws IOException, ServiceException {
-		entries.get(j).setTitle(
-				new PlainTextConstruct(pendingList.get(i)
-						.getWorkInfo()));
-		
-		if (isNormalTask(pendingList, i)) {
-			updateToNormalEntry(service, entries, feedURL, toBeUpdatedOnGCal, pendingList, i, j);
-		} else {
-			updateToRecurrenceEntry(entries, toBeUpdatedOnGCal, pendingList, i, j);
-		}
-		
-		if (pendingList.get(i).isImportantTask() == true) {
-			setReminder(entries.get(j));
-		} else {
-			entries.get(j).getReminder().clear();
-		}
-	}
-	
-	/**
-	 * This function is used to update an event entry to a normal entry
-	 * 
-	 * @param service
-	 *            the currently connected service
-	 * @param entries
-	 *            the list of entries on Google Calendar
-	 * @param feedURL
-	 *            the URL of the calendar
-	 * @param toBeUpdatedOnGCal
-	 *            the list of entries to be updated on Google Calendar
-	 * @param pendingList
-	 *            the list of pending tasks in iDo
-	 * @param i
-	 *            the index of task
-	 * @param j
-	 *            the index of entry
-	 */
-	private void updateToNormalEntry(CalendarService service,
-			List<CalendarEventEntry> entries, URL feedURL,
-			List<CalendarEventEntry> toBeUpdatedOnGCal, List<Task> pendingList,
-			int i, int j) throws IOException, ServiceException {
-		if (isNormalEntry(entries, j)) {
-			entries.get(j).getTimes().get(0).setStartTime(
-							pendingList.get(i).getStartDate().returnInDateTimeFormat());
-			entries.get(j).getTimes().get(0).setEndTime(
-							pendingList.get(i).getEndDate().returnInDateTimeFormat());
-			toBeUpdatedOnGCal.add(entries.get(j));
-		} else {
-			convertFromRecurringToNormalEntry(service, entries, feedURL, pendingList, i, j);
-		}
-	}
-	
-	/**
-	 * This function is used to update an event entry to a recurrence entry
-	 * 
-	 * @param entries
-	 *            the list of entries in Google Calendar
-	 * @param toBeUpdatedOnGCal
-	 *            the list of entries to be updated on Google Calendar
-	 * @param pendingList
-	 *            the list of pending tasks in iDo
-	 * @param i
-	 *            the index of the task
-	 * @param j
-	 *            the index of the entry
-	 */
-	private void updateToRecurrenceEntry(List<CalendarEventEntry> entries,
-			List<CalendarEventEntry> toBeUpdatedOnGCal, List<Task> pendingList,
-			int i, int j) {
-		entries.get(j).getTimes().clear();
-		if (!pendingList.get(i).isFloatingTask()) {
-			String startDate = pendingList.get(i)
-					.getStartDate()
-					.returnInRecurringFormat();
-			String endDate = pendingList.get(i)
-					.getEndDate()
-					.returnInRecurringFormat();
-			String freq = pendingList.get(i).getTag()
-					.getRepetition();
-			int interval = pendingList.get(i).getTag()
-					.getInterval();
-			int count = pendingList.get(i)
-					.getNumOccurrences();
-			
-			String recurData = setRecurrenceData(startDate, endDate, freq, null, count, interval);
-			Recurrence rec = new Recurrence();
-			rec.setValue(recurData);
-			entries.get(j).setRecurrence(rec);
-		}
-		toBeUpdatedOnGCal.add(entries.get(j));
-	}
-	
-	//@author A0105523U
 	/**
 	 * This function is used to set the number of occurences for a recurring
 	 * data to be passed to the constructor of Recurrence object
@@ -1368,3 +2339,10 @@ public class Synchronization  {
 		return calendarId;
 	}
 }
+
+	// End of segment: D:\CS2103 Proj\src\Synchronization.java
+
+
+
+
+
