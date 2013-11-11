@@ -15,7 +15,8 @@ public class ColourPalette {
 	/********************************* Colours for javafx **************************************/
 	public static final Color fxWHITE = Color.WHITE;
 	public static final Color fxNEAR_WHITE = Color.rgb(250, 250, 250);
-	
+	public static final Color occurrenceColour = Color.rgb(42, 186, 143);
+			
 	public static final Color[] defaultScheme = {Color.rgb(130, 255, 121), 
 		fxWHITE, Color.rgb(18, 235, 166), Color.rgb(92, 190, 247), 
 			Color.RED, Color.ORANGE, Color.ORCHID};
